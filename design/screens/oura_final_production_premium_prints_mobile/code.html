@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-primary-container": "#752215",
+                "background": "#131313",
+                "secondary": "#c8c6c5",
+                "surface-container-low": "#1c1b1b",
+                "surface-container": "#201f1f",
+                "secondary-fixed-dim": "#c8c6c5",
+                "secondary-fixed": "#e5e2e1",
+                "on-secondary-fixed": "#1b1b1c",
+                "on-surface-variant": "#dcc0bb",
+                "on-secondary-fixed-variant": "#474746",
+                "inverse-surface": "#e5e2e1",
+                "inverse-on-surface": "#313030",
+                "primary-fixed": "#ffdad4",
+                "secondary-container": "#474746",
+                "surface-container-highest": "#353534",
+                "primary": "#ffb4a6",
+                "tertiary-container": "#29c09f",
+                "on-error": "#690005",
+                "on-primary": "#601308",
+                "inverse-primary": "#9f4030",
+                "on-secondary-container": "#b7b5b4",
+                "on-secondary": "#303030",
+                "on-background": "#e5e2e1",
+                "surface-bright": "#393939",
+                "error-container": "#93000a",
+                "surface-tint": "#ffb4a6",
+                "on-tertiary-container": "#00493a",
+                "on-primary-fixed": "#3f0300",
+                "surface-container-high": "#2a2a2a",
+                "outline-variant": "#56423e",
+                "surface-variant": "#353534",
+                "primary-container": "#ff8a75",
+                "on-surface": "#e5e2e1",
+                "surface-container-lowest": "#0e0e0e",
+                "surface-high": "#2D2D2D",
+                "surface": "#131313",
+                "on-tertiary-fixed-variant": "#005141",
+                "success": "#4CAF50",
+                "error": "#CF6679",
+                "on-tertiary": "#00382c",
+                "tertiary": "#51dcba",
+                "outline": "#a48b87",
+                "on-error-container": "#ffdad6",
+                "tertiary-fixed": "#72f9d5",
+                "on-primary-fixed-variant": "#7f291c",
+                "tertiary-fixed-dim": "#51dcba",
+                "surface-dim": "#131313",
+                "on-tertiary-fixed": "#002019",
+                "primary-fixed-dim": "#ffb4a6"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "stack-sm": "16px",
+                "margin-desktop": "80px",
+                "stack-md": "32px",
+                "margin-mobile": "24px",
+                "stack-lg": "64px",
+                "gutter": "16px",
+                "base": "8px"
+            },
+            "fontFamily": {
+                "headline-md": ["Hanken Grotesk"],
+                "label-sm": ["Rubik"],
+                "display-lg": ["Hanken Grotesk"],
+                "title-md": ["Hanken Grotesk"],
+                "headline-md-mobile": ["Hanken Grotesk"],
+                "body-lg": ["Hanken Grotesk"],
+                "rubik": ["Rubik"]
+            },
+            "fontSize": {
+                "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #131313;
+            color: #e5e2e1;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            background: rgba(19, 19, 19, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .premium-border {
+            border: 1px solid rgba(255, 180, 166, 0.2);
+        }
+        .active-selection {
+            border: 2px solid #ffb4a6;
+            background: rgba(255, 180, 166, 0.1);
+        }
+        .photo-preview-container {
+            perspective: 1000px;
+        }
+        .photo-frame {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="dark overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center px-4 w-full h-16 bg-surface-container-lowest fixed top-0 z-50 border-b border-white/5">
+<div class="flex items-center">
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-headline-md-mobile text-headline-md-mobile text-primary font-bold tracking-tight">Photo Santos</span>
+<img alt="Oura Logo" class="h-9 w-9 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+</div>
+<div class="flex items-center">
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors relative">
+<span class="material-symbols-outlined text-primary">shopping_cart</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-36 px-4 max-w-md mx-auto">
+<!-- Photo Preview Section -->
+<section class="photo-preview-container mb-8 flex justify-center py-8">
+<div class="photo-frame p-5 bg-[#1c1b1b] premium-border rounded-lg" id="main-frame" style="transform: rotateY(-5deg) rotateX(5deg);">
+<div class="bg-black/40 p-1.5 rounded-sm">
+<img alt="תצוגה מקדימה של ההזמנה" class="w-64 h-80 object-cover rounded-sm" id="preview-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzYj5rYPIxi5BxTcwlzoep1l1wzIjALKk_zJL5V7F0NmxnxwlEfVcrJqcbCNZLAaWw4nRhXBnVhaXlxROdBHdQJWoQCMk2vcsmd9E1T1MoOWN_EHVKWekvJE2AveoWG93R8rhpJVGPgRsurAbcQh0ET9WQsJhPTSTU3PmTqw9zKorS5yufrw6whVxoWyHnwYpdYN9HH0A7aP_bUzkLMEqCfnNYDD-KqcdsAyQrZrDktI0tTFSHI2Uoto_I3hbGJsTUGhqmnxdO7iTz"/>
+</div>
+</div>
+</section>
+<!-- Product Title -->
+<div class="text-right mb-8">
+<h1 class="font-headline-md text-on-surface mb-2">הדפסת פרימיום</h1>
+<p class="font-body-lg text-on-surface-variant">איכות מוזיאונית למזכרות הכי יפות שלכם</p>
+</div>
+<!-- Size Selection -->
+<section class="mb-10">
+<h2 class="font-title-md text-on-surface mb-4">בחר גודל הדפסה</h2>
+<div class="grid grid-cols-3 gap-3">
+<button class="size-btn active-selection p-4 rounded-xl flex flex-col items-center gap-1 transition-all" onclick="selectItem(this, 'size-btn')">
+<span class="font-label-lg text-on-surface">10x15</span>
+<span class="font-label-sm text-primary">₪15</span>
+</button>
+<button class="size-btn premium-border p-4 rounded-xl flex flex-col items-center gap-1 transition-all bg-surface-container-low" onclick="selectItem(this, 'size-btn')">
+<span class="font-label-lg text-on-surface">13x18</span>
+<span class="font-label-sm text-primary">₪25</span>
+</button>
+<button class="size-btn premium-border p-4 rounded-xl flex flex-col items-center gap-1 transition-all bg-surface-container-low" onclick="selectItem(this, 'size-btn')">
+<span class="font-label-lg text-on-surface">20x30</span>
+<span class="font-label-sm text-primary">₪45</span>
+</button>
+</div>
+</section>
+<!-- Paper Type Selection -->
+<section class="mb-10">
+<h2 class="font-title-md text-on-surface mb-4">סוג נייר</h2>
+<div class="flex flex-col gap-3">
+<button class="paper-btn active-selection p-4 rounded-xl flex justify-between items-center transition-all" onclick="selectItem(this, 'paper-btn')">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl">texture</span>
+<div class="text-right">
+<p class="font-label-lg text-on-surface">נייר מט (Matte)</p>
+<p class="font-label-sm text-on-surface-variant">גימור רך ללא השתקפויות</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<button class="paper-btn premium-border p-4 rounded-xl flex justify-between items-center transition-all bg-surface-container-low" onclick="selectItem(this, 'paper-btn')">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl">auto_awesome</span>
+<div class="text-right">
+<p class="font-label-lg text-on-surface">נייר מבריק (Glossy)</p>
+<p class="font-label-sm text-on-surface-variant">צבעים עזים וחדות מקסימלית</p>
+</div>
+</div>
+</button>
+<button class="paper-btn premium-border p-4 rounded-xl flex justify-between items-center transition-all bg-surface-container-low" onclick="selectItem(this, 'paper-btn')">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl">settings_brightness</span>
+<div class="text-right">
+<p class="font-label-lg text-on-surface">נייר משי (Silk)</p>
+<p class="font-label-sm text-on-surface-variant">טקסטורה יוקרתית ועמידה</p>
+</div>
+</div>
+</button>
+</div>
+</section>
+<!-- Framing Options -->
+<section class="mb-10">
+<h2 class="font-title-md text-on-surface mb-4">מסגור פרימיום</h2>
+<div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<!-- Frame Option 1 -->
+<div class="frame-option min-w-[150px] flex-shrink-0 group cursor-pointer" onclick="updateFrame('oak', this)">
+<div class="aspect-square bg-[#752215]/20 rounded-lg mb-3 flex items-center justify-center p-3 premium-border group-hover:border-primary transition-colors">
+<div class="w-full h-full bg-[#3f0300] border-[6px] border-[#7f291c] rounded-sm shadow-inner"></div>
+</div>
+<p class="font-label-lg text-on-surface text-center mb-1">אלון טבעי</p>
+<p class="font-label-sm text-center text-primary">+₪89</p>
+</div>
+<!-- Frame Option 2 -->
+<div class="frame-option min-w-[150px] flex-shrink-0 group cursor-pointer" onclick="updateFrame('black', this)">
+<div class="aspect-square bg-surface-container rounded-lg mb-3 flex items-center justify-center p-3 premium-border group-hover:border-primary transition-colors">
+<div class="w-full h-full bg-[#0e0e0e] border-[6px] border-[#2a2a2a] rounded-sm shadow-inner"></div>
+</div>
+<p class="font-label-lg text-on-surface text-center mb-1">שחור מט</p>
+<p class="font-label-sm text-center text-primary">+₪75</p>
+</div>
+<!-- Frame Option 3 -->
+<div class="frame-option min-w-[150px] flex-shrink-0 group cursor-pointer" onclick="updateFrame('gold', this)">
+<div class="aspect-square bg-tertiary-container/10 rounded-lg mb-3 flex items-center justify-center p-3 premium-border group-hover:border-primary transition-colors">
+<div class="w-full h-full bg-[#201f1f] border-[6px] border-[#29c09f] rounded-sm shadow-inner"></div>
+</div>
+<p class="font-label-lg text-on-surface text-center mb-1">זהב מוברש</p>
+<p class="font-label-sm text-center text-primary">+₪120</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Sticky Bottom Section -->
+<footer class="fixed bottom-0 left-0 right-0 glass-effect border-t border-white/5 z-50">
+<div class="max-w-md mx-auto px-6 py-6 flex items-center justify-between">
+<div class="text-right">
+<p class="font-label-sm text-on-surface-variant mb-1">סה״כ לתשלום</p>
+<p class="font-headline-md text-primary">₪104.00</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary font-title-md px-10 py-4 rounded-full flex items-center gap-3 active:scale-95 transition-all shadow-lg shadow-primary/20">
+<span>הוספה לסל</span>
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+</footer>
+<script>
+        function selectItem(element, className) {
+            const buttons = document.querySelectorAll('.' + className);
+            buttons.forEach(btn => {
+                btn.classList.remove('active-selection');
+                btn.classList.add('premium-border', 'bg-surface-container-low');
+                // Handle the check icon for paper buttons
+                const icon = btn.querySelector('.check-icon-dynamic');
+                if(icon) icon.remove();
+            });
+            
+            element.classList.add('active-selection');
+            element.classList.remove('premium-border', 'bg-surface-container-low');
+            
+            // Add check icon if it's a paper button
+            if (className === 'paper-btn') {
+                const checkSpan = document.createElement('span');
+                checkSpan.className = 'material-symbols-outlined text-primary check-icon-dynamic';
+                checkSpan.style.fontVariationSettings = "'FILL' 1";
+                checkSpan.innerText = 'check_circle';
+                element.appendChild(checkSpan);
+            }
+        }
+
+        function updateFrame(type, element) {
+            const frame = document.getElementById('main-frame');
+            const options = document.querySelectorAll('.frame-option');
+            
+            options.forEach(opt => opt.style.opacity = '0.5');
+            element.style.opacity = '1';
+
+            switch(type) {
+                case 'oak':
+                    frame.style.backgroundColor = '#752215';
+                    frame.style.borderColor = '#7f291c';
+                    break;
+                case 'black':
+                    frame.style.backgroundColor = '#1c1b1b';
+                    frame.style.borderColor = '#353534';
+                    break;
+                case 'gold':
+                    frame.style.backgroundColor = '#00493a';
+                    frame.style.borderColor = '#29c09f';
+                    break;
+            }
+
+            // Enhanced animation
+            frame.style.transform = 'scale(1.08) rotateY(-5deg) rotateX(5deg)';
+            setTimeout(() => {
+                frame.style.transform = 'scale(1) rotateY(-5deg) rotateX(5deg)';
+            }, 300);
+        }
+
+        // Smooth tilt effect based on scroll
+        window.addEventListener('scroll', () => {
+            const frame = document.getElementById('main-frame');
+            const rect = frame.getBoundingClientRect();
+            const viewHeight = window.innerHeight;
+            
+            // Adjust tilt as frame moves through viewport
+            const centerOffset = (rect.top + rect.height/2) - (viewHeight/2);
+            const rotationY = -5 + (centerOffset / 100);
+            const rotationX = 5 - (centerOffset / 200);
+            
+            frame.style.transform = `rotateY(${rotationY}deg) rotateX(${rotationX}deg)`;
+        });
+    </script>
+</body></html>

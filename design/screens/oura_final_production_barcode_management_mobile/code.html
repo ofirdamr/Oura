@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Photo Santos - ניהול ברקוד</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(30, 29, 28, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(221, 192, 186, 0.15);
+        }
+        .qr-gradient {
+            background: linear-gradient(135deg, #e2725b 0%, #9f402d 100%);
+        }
+        .high-contrast-bg {
+            background-color: #121212;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#e7bdb1",
+                      "on-secondary-container": "#795950",
+                      "on-tertiary-fixed-variant": "#574500",
+                      "on-primary": "#ffffff",
+                      "surface-dim": "#1a1a1a",
+                      "primary": "#e2725b",
+                      "surface-variant": "#2d2a29",
+                      "secondary": "#77574d",
+                      "on-tertiary": "#ffffff",
+                      "inverse-on-surface": "#f5f0ec",
+                      "error-container": "#ffdad6",
+                      "background": "#121212",
+                      "tertiary": "#735c00",
+                      "on-secondary-fixed": "#2c160e",
+                      "surface-container-low": "#1e1b1a",
+                      "surface-container-highest": "#363331",
+                      "on-error": "#ffffff",
+                      "on-tertiary-container": "#4e3d00",
+                      "on-background": "#f5f0ec",
+                      "inverse-surface": "#121212",
+                      "primary-fixed-dim": "#ffb4a5",
+                      "tertiary-fixed-dim": "#e9c349",
+                      "on-secondary-fixed-variant": "#5d4037",
+                      "surface-container": "#252321",
+                      "secondary-container": "#fed3c7",
+                      "inverse-primary": "#ffb4a5",
+                      "surface-container-lowest": "#000000",
+                      "primary-container": "#e2725b",
+                      "outline": "#89726d",
+                      "on-primary-fixed-variant": "#802918",
+                      "surface-tint": "#e2725b",
+                      "tertiary-fixed": "#ffe088",
+                      "surface": "#121212",
+                      "error": "#ba1a1a",
+                      "surface-bright": "#22201e",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#241a00",
+                      "on-primary-container": "#ffffff",
+                      "secondary-fixed": "#ffdbd0",
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#56423e",
+                      "surface-container-high": "#2d2a29",
+                      "tertiary-container": "#cca72f",
+                      "on-surface-variant": "#ddc0ba",
+                      "on-surface": "#f5f0ec",
+                      "on-primary-fixed": "#3e0500",
+                      "primary-fixed": "#ffdad3"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container/30 min-h-screen">
+<header class="sticky top-0 z-50 bg-surface/90 backdrop-blur-lg flex flex-row-reverse justify-between items-center px-4 h-16 border-b border-outline/10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-outline/20">
+<img alt="Photo Santos Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+</div>
+<span class="text-lg font-bold text-primary tracking-tight">Photo Santos</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full border border-outline/30 overflow-hidden">
+<img alt="פרופיל" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcz1SyFw1vKtWBJQDNXW7Eelxq1VoKv8Q7iL0Ib9f9yyETj7aZfwdDYIw9ez7FfsYAXvM-5vCwxBneBk7pOdYvHHDO_3G3Z-h9G5cInDtz80X_M_dmm3ufr5MYODC-HeITL1Gcb4osOJZ_46xK1ZXEVN5j6XX9IAiLpq9V0KTBWBvgMVGfRlqtHJ48XBJ8arF1-HxyvOwCjSVLHFcHyK1pIMsqr8adXZN9i-iq2ZlXaJ1ZxEc5Lpb8lpO2lDXhDG6x0lvuQCtuAtZh"/>
+</div>
+</div>
+</header>
+<main class="relative z-10 px-4 pt-6 pb-32 max-w-md mx-auto">
+<!-- Event Header -->
+<div class="mb-8 text-center">
+<h1 class="text-2xl font-bold text-primary-fixed-dim mb-1">חתונה של נועה ועידן</h1>
+<p class="text-sm text-outline-variant">24.05.2024 | גן האירועים "האחוזה"</p>
+</div>
+<!-- QR Code Section -->
+<section class="mb-8">
+<div class="glass-card rounded-[2.5rem] p-8 flex flex-col items-center shadow-2xl relative overflow-hidden">
+<div class="absolute inset-0 qr-gradient opacity-[0.03] pointer-events-none"></div>
+<!-- QR Code Box -->
+<div class="relative w-64 h-64 bg-white p-5 rounded-3xl shadow-xl mb-8">
+<img alt="QR Code" class="w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAo8sHGl63gGDqHI-A7x-hmOIAdWXY8FzFNtZX5Pa8W-8vd015ZsLJhbDoQS6JWhtjhzKhQECTpmWNqYAYQCcByuaRptQTXncSLEFJ9-fnFhnfuExiF68QrrVgik528a0mnLZEAK5LZb1YKKSZ3cJM8Z9r_gQObrhzsmk9RGB7KYO_6ZQJjMYVVL7JgKl42X8u2fYKaIny_t4NBlrmb6CdsyQmediehn1uaPyTDf_oFLy3V6EXvWg09k7mbduEPX7S24ISsZKuA_61r"/>
+<div class="absolute inset-0 border-[6px] border-black/5 rounded-3xl pointer-events-none"></div>
+</div>
+<!-- QR Actions -->
+<div class="grid grid-cols-2 gap-3 w-full">
+<button class="bg-surface-container-highest/50 text-on-surface py-4 rounded-2xl flex items-center justify-center gap-2 border border-outline/10 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-xl" data-icon="download">download</span>
+<span class="font-medium text-sm">הורדה כתמונה</span>
+</button>
+<button class="bg-primary text-on-primary py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/20" id="printBtn">
+<span class="material-symbols-outlined text-xl" data-icon="print">print</span>
+<span class="font-medium text-sm">הדפסת קוד</span>
+</button>
+</div>
+<button class="mt-4 w-12 h-12 rounded-full bg-surface-container-highest/30 border border-outline/10 flex items-center justify-center text-outline active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="fullscreen">fullscreen</span>
+</button>
+</div>
+</section>
+<!-- Digital Sharing Section -->
+<section class="mb-10">
+<h2 class="text-lg font-semibold text-primary-fixed-dim mb-5 px-1">שיתוף דיגיטלי מהיר</h2>
+<div class="grid grid-cols-4 gap-4">
+<button class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 flex items-center justify-center text-[#25D366]">
+<span class="material-symbols-outlined text-3xl" data-icon="chat">chat</span>
+</div>
+<span class="text-xs font-medium text-outline-variant">WhatsApp</span>
+</button>
+<button class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 rounded-2xl bg-[#E4405F]/10 border border-[#E4405F]/30 flex items-center justify-center text-[#E4405F]">
+<span class="material-symbols-outlined text-3xl" data-icon="camera_alt">camera_alt</span>
+</div>
+<span class="text-xs font-medium text-outline-variant">Instagram</span>
+</button>
+<button class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 rounded-2xl bg-[#0088cc]/10 border border-[#0088cc]/30 flex items-center justify-center text-[#0088cc]">
+<span class="material-symbols-outlined text-3xl" data-icon="send">send</span>
+</div>
+<span class="text-xs font-medium text-outline-variant">Telegram</span>
+</button>
+<button class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 rounded-2xl bg-primary-fixed-dim/10 border border-primary-fixed-dim/30 flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined text-3xl" data-icon="mail">mail</span>
+</div>
+<span class="text-xs font-medium text-outline-variant">אימייל</span>
+</button>
+</div>
+</section>
+<!-- Direct Link Section -->
+<section class="mb-12">
+<h2 class="text-lg font-semibold text-primary-fixed-dim mb-4 px-1">קישור ישיר</h2>
+<div class="bg-surface-container-low p-4 rounded-2xl flex items-center gap-4 border border-outline/10">
+<div class="flex-1 overflow-hidden">
+<p class="text-on-surface-variant text-sm truncate text-left" dir="ltr">https://photosantos.io/g/noa-idan-2024</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-primary bg-primary/10 rounded-xl active:scale-90 transition-transform shrink-0" onclick="copyLink()">
+<span class="material-symbols-outlined text-xl" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+</section>
+<!-- Edit Footer CTA -->
+<button class="w-full py-5 border border-outline/20 text-outline-variant rounded-2xl flex items-center justify-center gap-3 hover:bg-surface-variant active:scale-[0.98] transition-all bg-surface-container">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+<span class="font-medium">עריכת פרטי אירוע</span>
+</button>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 bg-surface/95 backdrop-blur-md border-t border-outline/10">
+<a class="flex flex-col items-center text-outline-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] mt-1">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_2" style="font-variation-settings: 'FILL' 1;">qr_code_2</span>
+<span class="text-[10px] mt-1 font-bold">ברקוד</span>
+</a>
+<a class="flex flex-col items-center text-outline-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="text-[10px] mt-1">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-outline-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] mt-1">הגדרות</span>
+</a>
+</nav>
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 bg-primary text-on-primary rounded-full text-sm font-medium shadow-2xl opacity-0 translate-y-4 transition-all pointer-events-none z-[100]" id="toast">
+    הקישור הועתק בהצלחה
+</div>
+<div class="fixed inset-0 z-[60] hidden flex items-end justify-center bg-black/80 backdrop-blur-sm p-4" id="printModal">
+<div class="w-full max-w-md bg-surface-container-highest rounded-3xl p-6 pb-12 animate-slide-up shadow-2xl">
+<div class="w-12 h-1.5 bg-outline/30 rounded-full mx-auto mb-8"></div>
+<h3 class="text-xl font-bold text-on-surface mb-8 text-center">בחר גודל להדפסה</h3>
+<div class="space-y-4">
+<button class="w-full py-5 px-6 bg-surface-container-low rounded-2xl flex items-center justify-between border border-outline/10 active:bg-surface-variant transition-colors">
+<span class="font-medium text-on-surface">פורמט גלויה (10x15)</span>
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<button class="w-full py-5 px-6 bg-surface-container-low rounded-2xl flex items-center justify-between border border-outline/10 active:bg-surface-variant transition-colors">
+<span class="font-medium text-on-surface">פורמט מוגדל (15x21)</span>
+<span class="material-symbols-outlined opacity-0 text-outline" data-icon="circle">circle</span>
+</button>
+<button class="w-full py-5 px-6 bg-surface-container-low rounded-2xl flex items-center justify-between border border-outline/10 active:bg-surface-variant transition-colors">
+<span class="font-medium text-on-surface">פוסטר שולחני (20x30)</span>
+<span class="material-symbols-outlined opacity-0 text-outline" data-icon="circle">circle</span>
+</button>
+</div>
+<button class="w-full mt-10 py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-lg shadow-primary/20" onclick="closePrintModal()">המשך להדפסה</button>
+</div>
+</div>
+<script>
+    function copyLink() {
+        const toast = document.getElementById('toast');
+        toast.style.opacity = '1';
+        toast.style.transform = 'translate(-50%, 0)';
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translate(-50%, 16px)';
+        }, 2000);
+    }
+
+    const printBtn = document.getElementById('printBtn');
+    const printModal = document.getElementById('printModal');
+
+    printBtn.addEventListener('click', () => {
+        printModal.classList.remove('hidden');
+        printModal.classList.add('flex');
+    });
+
+    function closePrintModal() {
+        printModal.classList.add('hidden');
+        printModal.classList.remove('flex');
+    }
+
+    printModal.addEventListener('click', (e) => {
+        if (e.target === printModal) closePrintModal();
+    });
+</script>
+<style>
+    @keyframes slide-up {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+    .animate-slide-up {
+        animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+</style>
+</body></html>

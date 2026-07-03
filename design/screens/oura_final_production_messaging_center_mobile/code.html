@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-card": "#1A1C20",
+                        "on-secondary-fixed-variant": "#45474c",
+                        "outline-variant": "#56423e",
+                        "on-background": "#e2e2e8",
+                        "on-tertiary-container": "#282b33",
+                        "on-primary": "#611205",
+                        "on-surface-variant": "#ddc0ba",
+                        "success": "#10B981",
+                        "on-tertiary": "#2d3038",
+                        "tertiary-fixed": "#e0e2ec",
+                        "on-error": "#690005",
+                        "surface-container-lowest": "#0c0e12",
+                        "surface-container-low": "#1a1c20",
+                        "surface-container": "#1e2024",
+                        "on-secondary": "#2e3035",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#37393e",
+                        "on-primary-fixed": "#3e0500",
+                        "text-muted": "#94A3B8",
+                        "on-tertiary-fixed-variant": "#44474f",
+                        "surface": "#111317",
+                        "secondary-fixed-dim": "#c5c6cc",
+                        "secondary": "#c5c6cc",
+                        "on-primary-container": "#5a0d02",
+                        "secondary-fixed": "#e2e2e8",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#90929b",
+                        "inverse-surface": "#e2e2e8",
+                        "surface-tint": "#ffb4a5",
+                        "on-secondary-container": "#b7b8be",
+                        "on-secondary-fixed": "#191c20",
+                        "primary-fixed": "#ffdad3",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-variant": "#333539",
+                        "on-surface": "#e2e2e8",
+                        "primary": "#ffb4a5",
+                        "on-tertiary-fixed": "#181c23",
+                        "border-subtle": "#33363D",
+                        "background": "#111317",
+                        "tertiary-fixed-dim": "#c4c6d0",
+                        "outline": "#a48b86",
+                        "secondary-container": "#47494e",
+                        "primary-container": "#e2725b",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#802918",
+                        "tertiary": "#c4c6d0",
+                        "inverse-primary": "#9f402d",
+                        "surface-container-highest": "#333539",
+                        "surface-input": "#0A0B0D",
+                        "surface-container-high": "#282a2e",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "surface-dim": "#111317"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px",
+                        "container-max-width": "1200px",
+                        "gutter": "24px",
+                        "base-unit": "4px",
+                        "stack-lg": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Rubik"],
+                        "body-md": ["Rubik"],
+                        "body-lg": ["Rubik"],
+                        "headline-md": ["Rubik"],
+                        "display-lg": ["Rubik"],
+                        "label-md": ["Rubik"],
+                        "label-sm": ["Rubik"],
+                        "headline-lg-mobile": ["Rubik"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Rubik', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .sms-bubble { position: relative; border-radius: 18px; border-bottom-right-radius: 4px; }
+        .glow-active { box-shadow: 0 0 12px 0 rgba(226, 114, 91, 0.15); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- Top Bar Component Mapping from JSON -->
+<header class="bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline docked full-width top-0 z-50 flex flex-row-reverse justify-between items-center px-4 w-full h-16 sticky"><div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant" data-icon="notifications">notifications</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Photo Santos studio" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4qzWPJoG1JI4kWnq39JJYMD6YwS62xlsFAtzgpPvU6Q1OLkTrm2V6kh_R-26rS_eryHcL15sE3mp3-2R7i12SGP2Vo2wGX7H0IaXTl-xHdlAxwvmcJFbxCr3i-7KIKLYNrHGEj9cQv26dzY1fMT4EP41rpDvRweoEwdQLQcqgh9bRvkkG_tk5lFALCiT9QCW4LBYOgII0vSqp8Yi6s_ktXv53wz1iA7_uVz4irpmbwSRLMe25d_-NZzUZfjV9TJuMkADZkq67UB9O"/>
+</div>
+</div>
+<div class="flex flex-col items-start">
+<span class="text-label-sm font-label-sm text-primary">Oura</span>
+<h1 class="text-[10px] font-medium text-on-surface truncate max-w-[180px]">Oura_Final_Production_Messaging_Center_Mobile</h1>
+</div></header>
+<main class="px-4 py-6 max-w-md mx-auto">
+<!-- Summary Stats Cards -->
+<section class="mb-stack-md">
+<div class="flex overflow-x-auto gap-4 no-scrollbar pb-2">
+<!-- Sent Messages -->
+<div class="min-w-[140px] bg-surface-card border border-border-subtle p-4 rounded-xl flex flex-col gap-1">
+<span class="text-label-sm font-label-sm text-text-muted">הודעות שנשלחו</span>
+<span class="text-headline-md font-headline-md text-primary">1,248</span>
+<div class="flex items-center gap-1 text-success text-[10px]">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+<span>+12% השבוע</span>
+</div>
+</div>
+<!-- Open Rate -->
+<div class="min-w-[140px] bg-surface-card border border-border-subtle p-4 rounded-xl flex flex-col gap-1">
+<span class="text-label-sm font-label-sm text-text-muted">אחוז פתיחה</span>
+<span class="text-headline-md font-headline-md text-primary">94.2%</span>
+<div class="flex items-center gap-1 text-success text-[10px]">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+<span>מעולה</span>
+</div>
+</div>
+<!-- Clicks -->
+<div class="min-w-[140px] bg-surface-card border border-border-subtle p-4 rounded-xl flex flex-col gap-1">
+<span class="text-label-sm font-label-sm text-text-muted">לחיצות</span>
+<span class="text-headline-md font-headline-md text-primary">856</span>
+<div class="flex items-center gap-1 text-success text-[10px]">
+<span class="material-symbols-outlined text-[14px]" data-icon="ads_click">ads_click</span>
+<span>68% המרה</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Messaging Tabs -->
+<nav class="flex bg-surface-container-low p-1 rounded-full border border-border-subtle mb-stack-md">
+<button class="flex-1 py-2 rounded-full text-label-md font-label-md transition-all bg-primary-container text-on-primary" id="tab-sms" onclick="switchTab('sms')">
+                SMS הודעות
+            </button>
+<button class="flex-1 py-2 rounded-full text-label-md font-label-md transition-all text-on-surface-variant" id="tab-push" onclick="switchTab('push')">
+                Push התראות
+            </button>
+</nav>
+<!-- Template Editor Section -->
+<section class="bg-surface-card border border-border-subtle rounded-xl p-4 mb-stack-md">
+<h3 class="text-label-md font-label-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="edit_note">edit_note</span>
+                עריכת תוכן ההודעה
+            </h3>
+<!-- Dynamic Tags -->
+<div class="flex flex-wrap gap-2 mb-4">
+<button class="bg-surface-variant hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm border border-outline-variant transition-colors">
+                    {שם_אורח}
+                </button>
+<button class="bg-surface-variant hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm border border-outline-variant transition-colors">
+                    {שם_אירוע}
+                </button>
+<button class="bg-surface-variant hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm border border-outline-variant transition-colors">
+                    {קישור_לגלריה}
+                </button>
+</div>
+<textarea class="w-full h-32 bg-surface-input border border-border-subtle rounded-xl p-4 text-body-md font-body-md text-on-surface focus:border-primary-container focus:ring-0 outline-none transition-all resize-none" placeholder="הקלד את ההודעה כאן...">שלום {שם_אורח}! איזה כיף שהייתם איתנו ב{שם_אירוע}. התמונות המדהימות שלך מ-Oura כבר כאן! לצפייה בגלריה המלאה: {קישור_לגלריה}</textarea>
+<div class="mt-2 text-label-sm font-label-sm text-text-muted flex justify-between">
+<span>סה"כ תווים: 112</span>
+<span>2 הודעות SMS</span>
+</div>
+</section>
+<!-- Live Preview -->
+<section class="mb-stack-md">
+<h3 class="text-label-md font-label-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="visibility">visibility</span>
+                תצוגה מקדימה
+            </h3>
+<div class="bg-surface-container-high border border-border-subtle rounded-3xl p-6 relative overflow-hidden">
+<div class="max-w-[240px] mx-auto bg-black/40 rounded-[2.5rem] p-4 border-[6px] border-surface-bright shadow-2xl">
+<div class="bg-[#242424] rounded-2xl p-3 mb-2 sms-bubble shadow-lg">
+<p class="text-[12px] leading-relaxed text-white">שלום <span class="text-primary">דניאל</span>! איזה כיף שהייתם איתנו ב<span class="text-primary">חתונה של נועה וגיא</span>. התמונות המדהימות שלך מ-Oura כבר כאן! לצפייה בגלריה המלאה: https://ef.link/3x7y2</p>
+<span class="text-[9px] text-gray-400 mt-1 block">12:45 PM</span>
+</div>
+<div class="h-6 w-full bg-white/5 rounded-full flex items-center px-3 justify-between">
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 bg-white/20 rounded-full"></div>
+<div class="w-1.5 h-1.5 bg-white/20 rounded-full"></div>
+</div>
+<span class="text-[8px] text-white/30">iMessage</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Sending Rules -->
+<section class="mb-stack-md">
+<h3 class="text-label-md font-label-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="schedule">schedule</span>
+                תזמון שליחה
+            </h3>
+<div class="space-y-3">
+<label class="flex items-center justify-between bg-surface-card border border-border-subtle p-4 rounded-xl cursor-pointer group transition-all hover:bg-surface-container-low active:scale-95">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<div>
+<span class="text-body-md font-body-md block text-on-surface">שליחה אוטומטית (AI)</span>
+<span class="text-label-sm font-label-sm text-text-muted">מיד לאחר זיהוי הפנים בתמונה</span>
+</div>
+</div>
+<input checked="" class="w-5 h-5 text-primary bg-surface-input border-border-subtle focus:ring-0 focus:ring-offset-0" name="trigger" type="radio"/>
+</label>
+<label class="flex items-center justify-between bg-surface-card border border-border-subtle p-4 rounded-xl cursor-pointer group transition-all hover:bg-surface-container-low active:scale-95">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container/50 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+</div>
+<div>
+<span class="text-body-md font-body-md block text-on-surface">שליחה מתוזמנת</span>
+<span class="text-label-sm font-label-sm text-text-muted">בתאריך ושעה שנבחרו מראש</span>
+</div>
+</div>
+<input class="w-5 h-5 text-primary bg-surface-input border-border-subtle focus:ring-0 focus:ring-offset-0" name="trigger" type="radio"/>
+</label>
+<label class="flex items-center justify-between bg-surface-card border border-border-subtle p-4 rounded-xl cursor-pointer group transition-all hover:bg-surface-container-low active:scale-95">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container/50 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="ads_click">ads_click</span>
+</div>
+<div>
+<span class="text-body-md font-body-md block text-on-surface">אישור ידני</span>
+<span class="text-label-sm font-label-sm text-text-muted">רק לאחר בדיקה ואישור הצלם</span>
+</div>
+</div>
+<input class="w-5 h-5 text-primary bg-surface-input border-border-subtle focus:ring-0 focus:ring-offset-0" name="trigger" type="radio"/>
+</label>
+</div>
+</section>
+</main>
+<!-- Fixed Primary Action -->
+<div class="fixed bottom-20 left-0 w-full px-4 z-40 md:hidden">
+<button class="w-full bg-primary-container text-on-primary py-4 rounded-full font-headline-md text-headline-md shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="save">save</span>
+            שמירת הגדרות
+        </button>
+</div>
+<!-- Bottom NavBar Component Mapping from JSON -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-2 px-4 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md border-t border-outline-variant dark:border-outline shadow-lg rounded-t-xl h-18">
+<div class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</div>
+<div class="flex flex-col items-center text-primary dark:text-primary-fixed-dim hover:text-primary transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-label-sm text-label-sm">מסרים</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</div>
+</nav>
+<script>
+        function switchTab(type) {
+            const smsTab = document.getElementById('tab-sms');
+            const pushTab = document.getElementById('tab-push');
+            
+            if (type === 'sms') {
+                smsTab.classList.add('bg-primary-container', 'text-on-primary');
+                smsTab.classList.remove('text-on-surface-variant');
+                pushTab.classList.remove('bg-primary-container', 'text-on-primary');
+                pushTab.classList.add('text-on-surface-variant');
+            } else {
+                pushTab.classList.add('bg-primary-container', 'text-on-primary');
+                pushTab.classList.remove('text-on-surface-variant');
+                smsTab.classList.remove('bg-primary-container', 'text-on-primary');
+                smsTab.classList.add('text-on-surface-variant');
+            }
+        }
+        
+        // Simple scale effect for tapable items
+        document.querySelectorAll('label, button').forEach(el => {
+            el.addEventListener('touchstart', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('touchend', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

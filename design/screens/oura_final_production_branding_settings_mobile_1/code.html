@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura_Final_Production_Branding_Settings_Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+        .glass-panel {
+            background: rgba(50, 48, 46, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Custom scrollbar for horizontal chips */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#e2725b",
+                        "outline": "#89726d",
+                        "secondary-fixed": "#ffdbd0",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "surface": "#fef8f4",
+                        "primary-fixed": "#ffdad3",
+                        "secondary": "#77574d",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#9f402d",
+                        "surface-dim": "#ded9d5",
+                        "primary": "#9f402d",
+                        "on-tertiary-fixed": "#241a00",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#e7bdb1",
+                        "on-secondary-container": "#795950",
+                        "surface-variant": "#e7e1de",
+                        "surface-container-highest": "#e7e1de",
+                        "on-surface-variant": "#56423e",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1d1b19",
+                        "on-secondary-fixed": "#2c160e",
+                        "surface-container": "#f3ede9",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#735c00",
+                        "surface-bright": "#fef8f4",
+                        "secondary-container": "#fed3c7",
+                        "inverse-surface": "#32302e",
+                        "outline-variant": "#ddc0ba",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f8f2ef",
+                        "on-primary-fixed": "#3e0500",
+                        "tertiary-container": "#cca72f",
+                        "on-background": "#1d1b19",
+                        "inverse-primary": "#ffb4a5",
+                        "on-primary-container": "#5a0d02",
+                        "tertiary-fixed": "#ffe088",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "on-tertiary-container": "#4e3d00",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#5d4037",
+                        "inverse-on-surface": "#f5f0ec",
+                        "background": "#fef8f4",
+                        "surface-container-high": "#ede7e3",
+                        "on-primary-fixed-variant": "#802918"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "xxl": "48px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Rubik"],
+                        "label-sm": ["Rubik"],
+                        "headline-lg-mobile": ["Rubik"],
+                        "body-md": ["Rubik"],
+                        "body-lg": ["Rubik"],
+                        "headline-lg": ["Rubik"],
+                        "title-lg": ["Rubik"],
+                        "display-lg": ["Rubik"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                        "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                        "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-inverse-surface text-on-surface dark:text-inverse-on-surface min-h-screen pb-24">
+<!-- Top Navigation Bar (Component 3 Context) -->
+<header class="bg-inverse-surface/90 backdrop-blur-md sticky top-0 z-50 border-b border-outline/20">
+<div class="flex flex-row-reverse justify-between items-center px-4 w-full h-16">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-inverse-on-surface">account_circle</button>
+<button class="material-symbols-outlined text-inverse-on-surface">notifications</button>
+</div>
+<div class="flex items-center gap-2"><div class="flex items-center gap-2"><img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaGczw02gOangRTcfRbEcShtBgO2O7tQV6ywlaL6c2zclkgZIhuBtZHNGNdFAE01u-y6Vle-EuUCa3nF5fvUjMREF_D57p04dLMH5P-5ZcPwdjKndfRn2cv5PXdvu0y-QvdNrQBcaaoCq53d2-EpBD9yViWbZElqXRHUX6vIbj5a4xPr5uFUOF1KKdpSVdfd6sXD2UWeoyjT8dsMJ9q2jEUly9XveKLvwjagCkLJ7XdGmP6qnuM6tdQfjwwW81wFGhYtnAmn6GRExN"/><span class="font-title-lg text-title-lg text-inverse-primary font-bold">Photo Santos</span></div></div>
+<button class="material-symbols-outlined text-inverse-on-surface" onclick="history.back()">arrow_forward</button>
+</div>
+</header>
+<main class="px-4 py-6 space-y-6">
+<!-- Greeting & Stats -->
+<section class="space-y-2">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-inverse-on-surface font-bold">
+                התמונות של יונתן לוי
+            </h1>
+<p class="font-body-md text-body-md text-outline-variant leading-relaxed">
+                מצאנו <span class="text-primary-fixed-dim font-bold">12</span> תמונות שלך מתוך 842 תמונות באירוע 'החתונה של דניאל ומיכל'.
+            </p>
+</section>
+<!-- Action Bar -->
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary-container text-on-primary font-title-lg text-lg py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
+<span class="material-symbols-outlined">download</span>
+                הורדת כל התמונות שלי
+            </button>
+<button class="w-full border border-outline text-inverse-on-surface font-label-lg py-3 rounded-xl flex items-center justify-center gap-2 active:bg-white/5 text-white">
+<span class="material-symbols-outlined">share</span>
+                שיתוף הגלריה האישית
+            </button>
+</div>
+<!-- AI Status Banner -->
+<div class="bg-primary/10 border border-primary/20 p-4 rounded-xl flex items-center gap-3">
+<div class="bg-primary-container p-2 rounded-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h3 class="font-label-lg text-primary-fixed-dim font-bold">זיהוי פנים הושלם בהצלחה</h3>
+<p class="font-label-sm text-inverse-on-surface">כל התמונות סוננו עבורך באופן אוטומטי</p>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="flex overflow-x-auto no-scrollbar gap-2 py-2">
+<button class="whitespace-nowrap px-6 py-2 rounded-full bg-primary-container text-on-primary font-label-lg shadow-md">כל התמונות</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-lg">חופה</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-lg">ריקודים</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-full bg-surface-container-highest text-on-surface-variant font-label-lg">קבלת פנים</button>
+</div>
+<!-- Image Grid -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Photo 1 -->
+<div class="relative group aspect-[3/4] overflow-hidden rounded-xl">
+<img class="w-full h-full object-cover" data-alt="A cinematic, low-angle shot of a male guest laughing heartily during a wedding ceremony. He is dressed in a sharp navy suit with a white shirt, illuminated by warm, golden-hour sunlight filtering through trees. The background is a soft bokeh of celebratory wedding guests and white floral decorations, maintaining a high-end, professional wedding photography aesthetic with rich terracotta tones and deep shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNT2fv0lbay1NTv8IQfoKI9viKNM42lHIi30KsDGXiVbP4CItqagvf_bXFjOEt5bsydHr1ddtPxgs57v90ikTJqa8LT2wvQ3Gt51t3_pSYKTI1XNXZjfMxP89QMuYB3BwmNOozbjkjJG2lzKmAY9X79372mZjpxwzQeWez5s2NGtrNlQ0SmRleH4hDwTvc2sD4EQeUSVDP-bFcHQUMBEW78gXZZtAcQc3EPbenof2uNxBF0y0FqA0pTjTOd0mHYGdhTvixGEJihT90"/>
+<div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 border border-white/20">
+<span class="material-symbols-outlined text-[12px] text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[10px] text-white font-bold">98%</span>
+</div>
+</div>
+<!-- Photo 2 -->
+<div class="relative group aspect-square overflow-hidden rounded-xl">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a young man smiling warmly while looking at the camera during a wedding reception. The lighting is intimate and warm, provided by decorative fairy lights that create a shimmering festive backdrop. The mood is joyful and personal, with the subject rendered in sharp focus against a dark, atmospheric environment typical of a luxury evening event. Colors lean into deep browns and soft highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDf8s80Av4FMyJtQ-EY76rrQVVGpsuwvgFCHSSWa6jUmteElys3hDltLeWGGUEfn5Axa5f13txDTo9ChOdTgNyZnqwAX-J1-mPIm9TbUOIwlmo1_yaW9JuxhKwysEK5_Fhwkzgo6qZVTk16cAblDO56UrTXpnWEb35ALfSUlYVTSGiEn4L2wD1AsZpzxx5o9R8sD2GsDltkA7P-OVn5UXxC8fmd4wWv7_DyGATtwk9r0lcPk4bq1Xoq16e2-Ogpq7Dht9hdJb7FJmCz"/>
+<div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 border border-white/20">
+<span class="material-symbols-outlined text-[12px] text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[10px] text-white font-bold">96%</span>
+</div>
+</div>
+<!-- Photo 3 -->
+<div class="relative group aspect-square overflow-hidden rounded-xl">
+<img class="w-full h-full object-cover" data-alt="An artistic shot of a guest holding a champagne glass at a high-end wedding party. The focus is sharp on the elegant glass and the person's hand, while the blurred background shows a vibrant dance floor with dynamic motion blur. The lighting is dramatic and festive, with pops of warm terracotta and deep amber hues, capturing the upscale celebratory spirit of a wedding in an immersive dark-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAMFLLvY0NcRifHhhh4d22vWViGJ3Km6T_Rd2WlGnJlu9aENuxKQXUK7z28OCyRf8U5DIwEot1jrIbHiNFyy6z2rz8GON6rtqS7mPEKKfW5WRiZhaFfykwC1iVpnoNGLi6XrwSpvNQ7uZvSxcMuckvo3mqTYp6dI4trb11YaOmfbOxDakjT64wExEuwmmJDLWSdFwuqQz-NvTLnrcTmCZGO0-mM38m3I9G_Wn0U94JCH55lIVV81xfpkj_rJfDtG3mHMxJcJzJBStZ"/>
+<div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 border border-white/20">
+<span class="material-symbols-outlined text-[12px] text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[10px] text-white font-bold">94%</span>
+</div>
+</div>
+<!-- Photo 4 -->
+<div class="relative group aspect-[3/4] overflow-hidden rounded-xl">
+<img class="w-full h-full object-cover" data-alt="A group shot featuring the user and several friends posing at a wedding photo booth. They are wearing festive accessories and formal attire. The lighting is bright and flattering with a clean white background that contrasts against the dark UI. The style is crisp and professional, emphasizing the joy and connection shared at the event, with subtle earth-tone accents and high-quality detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmE3X2K5UXPC56t4O3CexwWQEvKgBIS7bUS7DddvGQo2g6rY1DxGvHjWhXOuN-QC_8eSImrNljcY_VxGuroIBzU-Qyc5Syl4CuSX_HMG_gmfL-WNMzyLGfu7mNVzZOFgQ_yTitt5MGeq_OG6o31AlWvmlJEPrDQg6-aeYjpbGx_a-u4yGdbbEeVJdOHsJezAgU0p9HH4JNcmw-RsVfLlLp07hL18f6Rc94y5JBfLyMoVhFvNV0K5wcy2GwPr8Y_635HbDrx99m_l7K"/>
+<div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 border border-white/20">
+<span class="material-symbols-outlined text-[12px] text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[10px] text-white font-bold">91%</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Component 3 Context) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 glass-panel border-t border-outline/20 rounded-t-2xl">
+<a class="flex flex-col items-center text-outline-variant" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-sm text-label-sm mt-1">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-outline-variant" href="#">
+<span class="material-symbols-outlined">share</span>
+<span class="font-label-sm text-label-sm mt-1">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-outline-variant" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">פרופיל</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for button active states
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-95');
+            });
+            button.addEventListener('mouseleave', () => {
+                button.classList.remove('scale-95');
+            });
+        });
+
+        // Filter chip selection logic
+        const chips = document.querySelectorAll('.whitespace-nowrap');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-primary-container', 'text-on-primary', 'shadow-md');
+                    c.classList.add('bg-surface-container-highest', 'text-on-surface-variant');
+                });
+                chip.classList.add('bg-primary-container', 'text-on-primary', 'shadow-md');
+                chip.classList.remove('bg-surface-container-highest', 'text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

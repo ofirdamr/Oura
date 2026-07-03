@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Manrope:wght@400;500&amp;family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-high": "#282a2b",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "tertiary": "#c8c6c6",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "surface-container": "#1e2020",
+                    "on-primary": "#611205",
+                    "on-error": "#690005",
+                    "primary-fixed": "#ffdad3",
+                    "surface-container-highest": "#333535",
+                    "surface-bright": "#38393a",
+                    "secondary-container": "#474746",
+                    "primary": "#ffb4a5",
+                    "on-background": "#e2e2e2",
+                    "surface-variant": "#333535",
+                    "tertiary-fixed-dim": "#c8c6c6",
+                    "on-secondary-container": "#b7b5b4",
+                    "error": "#ffb4ab",
+                    "outline": "#a48b86",
+                    "on-secondary-fixed-variant": "#474746",
+                    "secondary-fixed": "#e5e2e1",
+                    "surface-container-lowest": "#0c0f0f",
+                    "on-primary-fixed": "#3e0500",
+                    "inverse-primary": "#9f402d",
+                    "tertiary-fixed": "#e4e2e1",
+                    "on-tertiary-container": "#2b2b2b",
+                    "on-tertiary": "#303030",
+                    "surface-dim": "#121414",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "surface": "#121414",
+                    "on-primary-fixed-variant": "#802918",
+                    "on-surface-variant": "#ddc0ba",
+                    "inverse-on-surface": "#2f3131",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e2e2e2",
+                    "tertiary-container": "#949292",
+                    "surface-tint": "#ffb4a5",
+                    "secondary": "#c8c6c5",
+                    "on-secondary": "#313030",
+                    "background": "#121414",
+                    "primary-fixed-dim": "#ffb4a5",
+                    "surface-container-low": "#1a1c1c",
+                    "outline-variant": "#56423e",
+                    "inverse-surface": "#e2e2e2",
+                    "on-primary-container": "#5a0d02",
+                    "on-tertiary-fixed-variant": "#474747",
+                    "primary-container": "#e2725b",
+                    "error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "body-md": ["Manrope"],
+                    "label-md": ["Geist"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "label-sm": ["Geist"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-lg": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #121414;
+            color: #e2e2e2;
+            font-family: 'Manrope', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 180, 165, 0.1);
+        }
+        .stat-bar {
+            transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav-indicator {
+            position: absolute;
+            bottom: -2px;
+            height: 2px;
+            background-color: #ffb4a5;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="pb-24">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant px-margin-mobile h-16 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 flex items-center justify-center shrink-0">https://lh3.googleusercontent.com/aida/AP1WRLs0CxHMT_Ra1x2VdVhCJppWCDknwYwB1cK24IUt4RNBtAYhIjG8YQsnpl5gZX333uT1EgLu14QtgvtT6enSeWdjqd5fvlzsDgCaySPoXMSQqLPCEJUuZl6Lo_WV9dEQ-OaETpF6VMLnElE96R2UIEHMrsi73abpNaxNa7Ss6JoyrUKRKylxR42QUqF94y9hkj1y5BEVvduPhDG6J50Xo5oRZ4VnqaBZax_zrngszWWJ-kl1mTXHtcPb4hPX</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">Oura</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant border-r border-outline-variant pr-3 mr-1">Photo Santos studio</span></div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a premium event photographer, clean lighting, minimalist studio background, dark theme context with high-end aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKxecsC7FNxoyXODIn0AB8fz09dj-Su07LVIbFjvQKdEkVmGG3P8d7Da2ug6IGMEo9_FjtMGpw0MyeEONnpLrVJV3-DSgSS2Opm1MuPFdgjDJppdugcHMqTSmNi13FA6MOYhNo-sNFbCDEdualkWIqYLHeMNJwMig3OctjSXUv_ntSfsux_-a2iIZvtYfwOvuQKvFtxhb6K7LIO0sP5URz2tSRDEq0TDrsTd15Qb8I9EOaamjpfv5XmaMAI8mkQGZjQAPAC6hyG4AJ"/>
+</div>
+</div>
+</header>
+<main class="mt-20 px-margin-mobile space-y-6">
+<!-- Dashboard Header -->
+<section>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Oura_Final_Production_Statistics_Mobile</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">ביצועי המערכת בזמן אמת</p>
+</section>
+<!-- KPI Grid -->
+<section class="grid grid-cols-2 gap-4">
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm text-primary">+12%</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md">12.4K</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">צפיות בגלריות</div>
+</div>
+</div>
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary" data-icon="download">download</span>
+<span class="font-label-sm text-label-sm text-primary">+8%</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md">3,820</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">הורדות תמונות</div>
+</div>
+</div>
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary" data-icon="face">face</span>
+<span class="font-label-sm text-label-sm text-primary">+24%</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md">8,150</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">זיהויי פנים</div>
+</div>
+</div>
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary" data-icon="share">share</span>
+<span class="font-label-sm text-label-sm text-error">-2%</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md">1,240</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">שיתופי אירועים</div>
+</div>
+</div>
+</section>
+<!-- Abstract Performance Graph -->
+<section class="glass-card p-6 rounded-xl relative overflow-hidden">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface">מעורבות משתמשים</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">7 ימים אחרונים</p>
+</div>
+<div class="text-right">
+<span class="font-headline-md text-headline-md text-primary">84%</span>
+<p class="font-label-sm text-label-sm text-primary">שיעור המרה</p>
+</div>
+</div>
+<div class="h-40 flex items-end justify-between gap-2 relative z-10">
+<div class="flex-1 bg-primary/20 rounded-t-sm stat-bar" style="height: 40%"></div>
+<div class="flex-1 bg-primary/30 rounded-t-sm stat-bar" style="height: 65%"></div>
+<div class="flex-1 bg-primary/50 rounded-t-sm stat-bar" style="height: 45%"></div>
+<div class="flex-1 bg-primary/70 rounded-t-sm stat-bar" style="height: 90%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm stat-bar" style="height: 60%"></div>
+<div class="flex-1 bg-primary/60 rounded-t-sm stat-bar" style="height: 75%"></div>
+<div class="flex-1 bg-primary rounded-t-sm stat-bar" style="height: 100%"></div>
+</div>
+<!-- Atmospheric background element -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+</section>
+<!-- Top Events List -->
+<section class="space-y-4">
+<div class="flex justify-between items-center px-1">
+<h3 class="font-headline-md text-headline-md">אירועים מובילים</h3>
+<button class="font-label-sm text-label-sm text-primary">הצג הכל</button>
+</div>
+<div class="space-y-3">
+<!-- Event Item -->
+<div class="flex items-center gap-4 glass-card p-3 rounded-xl">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Luxurious wedding ceremony in an outdoor botanical garden at dusk, golden hour lighting, cinematic atmosphere, warm terracotta tones, high-end event photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBZ22Ah1RZEW_Ejh_NmcAHA5zwhwkJI4zCRH7A62AyqznmhgNMIVEEGSvFFP8xk2McNvp57mVVBZYVHuTxggGXih7IilYOZaFv72oP02zSIcuJBqKJdwqxky1YSB0OAQLFHaXI-kOuZn9STOfezAS7YTIpshm5uksANbeZwBU-o06ARvS0PDkQAGHcbBHjWlx9sG1PG8R8yQrEW8bHL3M6o95dBaJUEZkGQ9ajB7xz6TsoVHy3TiOtw696oWDoS3PFjX3B3p5x0OLH"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="font-label-md text-label-md text-on-surface truncate">חתונת קיץ - גן האירועים אופוריה</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            14.08.2023
+                        </div>
+</div>
+<div class="text-right">
+<div class="font-label-md text-label-md text-primary">2.4K</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">צפיות</div>
+</div>
+</div>
+<!-- Event Item -->
+<div class="flex items-center gap-4 glass-card p-3 rounded-xl">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Corporate gala dinner with blue and terracotta lighting, elegant table settings, modern professional event photography, high-end minimalist corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXL--WaBB5fW9DEO28mjCFMd2ia0JNfdQC1KQXyFG1WbogX9uk2UG2z5qtIjffbbDOLIIpuHSyRQCoDQ-u6_ELvDxIxiHGWm-JV7CWoqZKJL-lmneKgXLnBRIp5lai_uRb1FFZgp_ARLtGQ9MdS5aMn8IWQ5K86DMPiufEhisUc3RkdHw3Aqx-Sab2IrNGhbz_zlA4-hq-GgM9EIVDLAUeeia19Rs1rlID4n_fof1cTWOAnFlawsK6I38zy_pL4E97x7K4Th_2P8_O"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="font-label-md text-label-md text-on-surface truncate">כנס טכנולוגיה - מרכז הקונגרסים</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            02.09.2023
+                        </div>
+</div>
+<div class="text-right">
+<div class="font-label-md text-label-md text-primary">1.8K</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">צפיות</div>
+</div>
+</div>
+<!-- Event Item -->
+<div class="flex items-center gap-4 glass-card p-3 rounded-xl">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Upscale private birthday party in a penthouse, vibrant atmospheric lighting, luxury urban setting, high-end photography with sharp focus and cinematic depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd74eEX_uynqkFJj7e8JrWM54y3My88luHMcNgnTFY8KlpyBh1KjJBVMSqm8ide5xie7cIWtD0Ku-YNv9S2PFGiJqIuomflKG7uE8jGQ5uZ998-JG0ASv12VoFjKUxrgSuUheYSF62U2f5Rihu_UcS5mTaUqF72r0zYAmH1R6rBQ9HdFV2ZXLA7ZTx1dLGh6UUs2lyAGhAt831mWITyDUym5e16Vq1bysIS_jlrynf2SpNmrzrIykD-rBEYgDG6Oq6KBcEfEyGWSBw"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="font-label-md text-label-md text-on-surface truncate">מסיבת יום הולדת - פנטהאוז 54</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            22.09.2023
+                        </div>
+</div>
+<div class="text-right">
+<div class="font-label-md text-label-md text-primary">950</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">צפיות</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Floating Action Area -->
+<section class="py-4">
+<button class="w-full bg-primary-container text-on-primary-container h-14 rounded-full font-label-md text-label-md flex items-center justify-center gap-2 shadow-lg shadow-primary/10 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                אירוע חדש
+            </button>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md border-t border-outline-variant py-2 px-4 flex justify-around items-center">
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center relative text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label-sm text-label-sm">סטטיסטיקה</span>
+<div class="absolute -bottom-2 w-1 h-1 bg-primary rounded-full"></div>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for stat bars on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.stat-bar');
+            bars.forEach(bar => {
+                const height = bar.style.height;
+                bar.style.height = '0';
+                setTimeout(() => {
+                    bar.style.height = height;
+                }, 300);
+            });
+        });
+    </script>
+</body></html>

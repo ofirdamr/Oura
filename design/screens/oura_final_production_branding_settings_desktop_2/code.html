@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura | הגדרות מיתוג ולוגו</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Rubik:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Hanken Grotesk', 'Rubik', sans-serif;
+            background-color: #131313;
+            color: #e5e2e1;
+            overflow-x: hidden;
+        }
+        .luxury-card {
+            background: #201f1f;
+            border: 1px solid #353534;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .luxury-card:hover {
+            border-color: #ffb4a6;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131313;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #353534;
+            border-radius: 10px;
+        }
+        .frame-preview-active {
+            border: 2px solid #ff8a75 !important;
+            box-shadow: 0 0 15px rgba(255, 138, 117, 0.3);
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary": "#51dcba",
+                "surface-container": "#201f1f",
+                "on-primary-container": "#752215",
+                "tertiary-fixed": "#72f9d5",
+                "on-secondary": "#303030",
+                "surface-high": "#2D2D2D",
+                "surface-container-lowest": "#0e0e0e",
+                "on-error": "#690005",
+                "on-primary-fixed": "#3f0300",
+                "surface-container-highest": "#353534",
+                "error-container": "#93000a",
+                "on-tertiary-container": "#00493a",
+                "tertiary-container": "#29c09f",
+                "secondary-container": "#474746",
+                "surface-bright": "#393939",
+                "outline-variant": "#56423e",
+                "error": "#CF6679",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed-dim": "#c8c6c5",
+                "surface-container-high": "#2a2a2a",
+                "secondary": "#c8c6c5",
+                "on-secondary-fixed": "#1b1b1c",
+                "inverse-primary": "#9f4030",
+                "surface-tint": "#ffb4a6",
+                "on-primary": "#601308",
+                "primary-fixed-dim": "#ffb4a6",
+                "on-tertiary-fixed": "#002019",
+                "inverse-surface": "#e5e2e1",
+                "surface": "#131313",
+                "surface-variant": "#353534",
+                "on-background": "#FFFFFF",
+                "primary": "#ffb4a6",
+                "on-surface-variant": "#B0B0B0",
+                "primary-fixed": "#ffdad4",
+                "on-secondary-fixed-variant": "#474746",
+                "on-surface": "#e5e2e1",
+                "on-secondary-container": "#b7b5b4",
+                "inverse-on-surface": "#313030",
+                "primary-container": "#ff8a75",
+                "on-primary-fixed-variant": "#7f291c",
+                "on-tertiary-fixed-variant": "#005141",
+                "surface-container-low": "#1c1b1b",
+                "outline": "#a48b87",
+                "background": "#131313",
+                "on-tertiary": "#00382c",
+                "secondary-fixed": "#e5e2e1",
+                "tertiary-fixed-dim": "#51dcba",
+                "surface-dim": "#131313",
+                "success": "#4CAF50"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "margin-desktop": "80px",
+                "margin-mobile": "24px",
+                "stack-sm": "16px",
+                "stack-md": "32px",
+                "stack-lg": "64px",
+                "gutter": "16px",
+                "base": "8px"
+            },
+            "fontFamily": {
+                "display-lg": ["Hanken Grotesk"],
+                "title-md": ["Hanken Grotesk"],
+                "label-sm": ["Rubik"],
+                "headline-md-mobile": ["Hanken Grotesk"],
+                "body-lg": ["Hanken Grotesk"],
+                "headline-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="dark bg-background text-on-background min-h-screen pb-20 md:pb-0">
+<!-- SideNavBar (Desktop Shell) -->
+<aside class="hidden md:flex flex-col h-screen fixed right-0 top-0 border-l border-outline-variant bg-surface-container-high w-64 z-50">
+<div class="p-6 flex flex-col items-center gap-2">
+<div class="w-16 h-16 bg-surface-container-lowest rounded-full flex items-center justify-center overflow-hidden border border-outline p-2">
+<img alt="Oura Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYjFU73BHXAF1JBuCGUiw2HaXeSJXYrEejrkgVlBol6_t2zqAQemvPYI_YUuRgC8VtJV9CLA1IRqMMRz0fcw7jq5cp351YjYe4xDpxf4nJvH8xIDbgdbFnHILnTbgiVb5oZvuKohlBiIL-GyUXi5Yfkuac_7USqTSNpmgCOXO4YUbbvn6nSYuvmm4Ba7Rdc-NFTCskvtemicFz0Gvo8RHid10X0MjTBDII4VNsOn6W4lqYfBWYZON60ocHvwnN8QjCmqO-cv8AtO1G"/>
+</div>
+<h2 class="font-display-lg text-title-md font-bold text-primary mt-2">Oura</h2>
+<p class="font-label-sm text-on-surface-variant uppercase tracking-tighter">Platinum Edition</p>
+</div>
+<nav class="flex-1 mt-4 space-y-1 px-2">
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg font-medium">לוח בקרה</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">photo_library</span>
+<span class="font-label-lg font-medium">אירועים פעילים</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-lg font-medium">ארכיון</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-lg font-medium">לקוחות</span>
+</a>
+<a class="bg-secondary-container text-on-secondary-container rounded-xl px-4 py-3 flex flex-row-reverse items-center gap-3 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label-lg font-medium">הגדרות</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<button class="w-full py-3 bg-primary-container text-on-primary-container font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add_circle</span>
+<span>אירוע חדש</span>
+</button>
+</div>
+<div class="mb-6 space-y-1 px-2">
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-lg font-medium">עזרה</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-lg font-medium">התנתקות</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar (Mobile Shell) -->
+<header class="md:hidden flex flex-row-reverse justify-between items-center px-6 w-full h-16 bg-surface border-b border-outline-variant sticky top-0 z-50">
+<h1 class="font-display-lg text-headline-md-mobile font-bold text-primary">Oura</h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary p-1">
+<img alt="Oura Profile" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYjFU73BHXAF1JBuCGUiw2HaXeSJXYrEejrkgVlBol6_t2zqAQemvPYI_YUuRgC8VtJV9CLA1IRqMMRz0fcw7jq5cp351YjYe4xDpxf4nJvH8xIDbgdbFnHILnTbgiVb5oZvuKohlBiIL-GyUXi5Yfkuac_7USqTSNpmgCOXO4YUbbvn6nSYuvmm4Ba7Rdc-NFTCskvtemicFz0Gvo8RHid10X0MjTBDII4VNsOn6W4lqYfBWYZON60ocHvwnN8QjCmqO-cv8AtO1G"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="md:mr-64 p-6 md:p-12 relative z-10 max-w-[1600px] mx-auto">
+<!-- Header Section -->
+<div class="mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
+<div class="w-full">
+<div class="flex items-center gap-2 text-primary mb-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="font-label-sm font-semibold uppercase tracking-widest">מהדורת פלטינום</span>
+</div>
+<h2 class="font-display-lg text-headline-md md:text-display-lg mb-4">מיתוג ולוגו: Photo Santos</h2>
+<p class="text-on-surface-variant font-body-lg max-w-2xl leading-relaxed">נהל את הזהות הוויזואלית של הסטודיו שלך. הגדרות אלו יחולו באופן אוטומטי על כל הגלריות והאירועים שתיצור במערכת Oura.</p>
+</div>
+<div class="flex gap-4 w-full md:w-auto">
+<button class="flex-1 md:flex-none px-8 py-3 border border-outline text-on-surface rounded-xl font-bold hover:bg-surface-variant transition-all">ביטול</button>
+<button class="flex-1 md:flex-none px-8 py-3 bg-primary-container text-on-primary-container rounded-xl font-bold shadow-lg shadow-primary-container/20 hover:scale-[1.02] active:scale-95 transition-all">שמור שינויים</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Settings Panel -->
+<div class="lg:col-span-5 space-y-8">
+<!-- Logo Upload Card -->
+<div class="luxury-card p-8 rounded-[24px]">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">upload_file</span>
+<h3 class="font-title-md text-title-md font-bold">העלאת לוגו הסטודיו</h3>
+</div>
+<div class="border-2 border-dashed border-outline-variant rounded-2xl p-10 flex flex-col items-center justify-center gap-4 bg-surface-container-lowest hover:border-primary transition-colors cursor-pointer group">
+<div class="w-16 h-16 bg-surface-high rounded-full flex items-center justify-center group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container">add_photo_alternate</span>
+</div>
+<div class="text-center">
+<p class="font-title-md text-white font-bold">גרור לוגו לכאן</p>
+<p class="font-label-sm text-on-surface-variant mt-1 font-medium">PNG, SVG (רקע שקוף מומלץ)</p>
+</div>
+</div>
+<div class="mt-6 flex items-center gap-4 p-4 bg-surface-high rounded-xl border border-outline-variant">
+<div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center p-1 overflow-hidden">
+<img alt="Studio Logo Preview" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi2EuxhC_5gJNkUAC8YyJ4zyDzkjLCYjnpl_0P6ao1RM-fwe80RijHLdQIXhNQ8XLXludyRq2nJfrN17N0yBtcEKqYLgN0np2_DYmB8r-G3_ckoB088mmgzRxVYS_c-gg2hgvbd4jdnD8VTkdIp0jznL6117Gl33BAfS3cjn4XDj4GaC_zUh-KfOWTKM_Mkcjghswdt9zmwtSV7dJs_WN5ck17htkUJNj5s6yIQSPTVHrh9B2ye1EqdsLN5bdKgphFfoKeZ-rY1Zqw"/>
+</div>
+<div class="flex-1">
+<p class="font-label-lg text-white font-bold">PhotoSantos_Platinum.png</p>
+<p class="font-label-sm text-on-surface-variant font-medium">24KB • גרסה אחרונה</p>
+</div>
+<button aria-label="מחק לוגו" class="text-error hover:bg-error/10 p-2 rounded-lg transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Frame Styles Card -->
+<div class="luxury-card p-8 rounded-[24px]">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">border_all</span>
+<h3 class="font-title-md text-title-md font-bold">סגנון מסגרת פרימיום</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="frame-preview-active flex flex-col items-center gap-3 p-4 bg-surface-high rounded-xl border border-transparent transition-all" onclick="selectFrame(this, 'crystal')">
+<div class="w-full aspect-video bg-[#FFFFFF] border-[8px] border-white shadow-inner rounded-sm"></div>
+<span class="font-label-lg font-semibold text-white">לבן קריסטל</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 bg-surface-high rounded-xl border border-transparent transition-all hover:bg-surface-variant" onclick="selectFrame(this, 'piano')">
+<div class="w-full aspect-video bg-[#000000] border-[8px] border-[#1A1A1A] shadow-inner rounded-sm"></div>
+<span class="font-label-lg font-semibold text-white">שחור פסנתר</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 bg-surface-high rounded-xl border border-transparent transition-all hover:bg-surface-variant" onclick="selectFrame(this, 'silver')">
+<div class="w-full aspect-video bg-[#E5E4E2] border-[8px] border-[#C0C0C0] shadow-inner rounded-sm"></div>
+<span class="font-label-lg font-semibold text-white">כסף קלאסי</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 bg-surface-high rounded-xl border border-transparent transition-all hover:bg-surface-variant" onclick="selectFrame(this, 'none')">
+<div class="w-full aspect-video bg-transparent border-2 border-dashed border-outline-variant rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant">block</span>
+</div>
+<span class="font-label-lg font-semibold text-white">ללא מסגרת</span>
+</button>
+</div>
+</div>
+<!-- Branding Options -->
+<div class="luxury-card p-8 rounded-[24px]">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">palette</span>
+<h3 class="font-title-md text-title-md font-bold">צבעי המותג</h3>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-label-lg text-white font-bold">צבע דגש ראשי</p>
+<p class="font-label-sm text-on-surface-variant font-medium">צבע הלחצנים והאלמנטים בגלריה</p>
+</div>
+<div class="flex items-center gap-3 bg-surface-high p-2 rounded-xl border border-outline-variant">
+<div class="w-8 h-8 rounded-full bg-[#FF8A75] border border-white/20"></div>
+<span class="font-label-sm font-mono text-white font-bold">#FF8A75</span>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-6 flex items-center justify-between">
+<div>
+<p class="font-label-lg text-white font-bold">סימן מים אוטומטי</p>
+<p class="font-label-sm text-on-surface-variant font-medium">הוספת לוגו Photo Santos על תמונות</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Preview Panel -->
+<div class="lg:col-span-7">
+<div class="luxury-card p-8 rounded-[24px] h-full flex flex-col">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">visibility</span>
+<h3 class="font-title-md text-title-md font-bold">תצוגה מקדימה חיה</h3>
+</div>
+<div class="flex gap-2 bg-surface-container-lowest p-1 rounded-xl">
+<button class="p-2 hover:text-primary transition-colors" title="Mobile View">
+<span class="material-symbols-outlined">smartphone</span>
+</button>
+<button class="p-2 bg-primary-container text-on-primary-container rounded-lg" title="Desktop View">
+<span class="material-symbols-outlined">laptop</span>
+</button>
+</div>
+</div>
+<div class="flex-1 bg-surface-container-lowest rounded-2xl overflow-hidden relative group border border-outline-variant min-h-[500px]">
+<!-- Live Preview Container -->
+<div class="w-full h-full p-12 flex items-center justify-center bg-zinc-900" id="preview-viewport">
+<div class="relative max-w-[85%] max-h-full border-[16px] border-white shadow-[0_30px_60px_-12px_rgba(0,0,0,0.5)] transition-all duration-700 ease-in-out" id="framed-image">
+<img alt="Photography Preview" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCth-FbTD5prECI-HdZEMqsM1VP5uXlVcLs9P-EBgLNoYnmmoFxvZD7_92jlBDLuwr1YXDZ5gPE7bXzVccNYaLJNUl5lhrqMBOdxivTS_OLNlPm0qUNmqiACECuXQs3ROw8aSAHeS2_4G_PasxQh7I7YXXE662rXEpzWF3sJwoXo0Ki9WURMLhYvSY8ycQUXRxwVrG7Rw52x1aNo46ze-O2LlZ9WNey2hD69m6fXHCbZpOgvDwrsDixXkTVLituWSCX5J6W9HCbSAiq"/>
+<!-- Floating Logo Watermark -->
+<div class="absolute bottom-6 right-6 w-20 h-20 opacity-90 transition-all hover:scale-110 pointer-events-none">
+<div class="bg-black/40 backdrop-blur-md rounded-xl p-2 border border-white/10 overflow-hidden">
+<img alt="Studio Logo Watermark" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi2EuxhC_5gJNkUAC8YyJ4zyDzkjLCYjnpl_0P6ao1RM-fwe80RijHLdQIXhNQ8XLXludyRq2nJfrN17N0yBtcEKqYLgN0np2_DYmB8r-G3_ckoB088mmgzRxVYS_c-gg2hgvbd4jdnD8VTkdIp0jznL6117Gl33BAfS3cjn4XDj4GaC_zUh-KfOWTKM_Mkcjghswdt9zmwtSV7dJs_WN5ck17htkUJNj5s6yIQSPTVHrh9B2ye1EqdsLN5bdKgphFfoKeZ-rY1Zqw"/>
+</div>
+</div>
+<!-- Artist Credit -->
+<div class="absolute top-6 left-6 px-4 py-2 bg-black/40 backdrop-blur-xl text-white font-label-sm font-bold rounded-full tracking-wider border border-white/10">Photo Santos © 2024</div>
+</div>
+</div>
+<!-- Interaction Bar -->
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4">
+<button class="bg-surface-high/90 backdrop-blur-md px-6 py-2 rounded-full flex items-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-all text-white border border-outline-variant font-bold shadow-lg">
+<span class="material-symbols-outlined">zoom_in</span>
+<span class="font-label-lg">הגדל תצוגה</span>
+</button>
+</div>
+</div>
+<!-- Sample Switcher -->
+<div class="mt-8 grid grid-cols-4 gap-4">
+<div class="cursor-pointer border-2 border-primary rounded-xl overflow-hidden aspect-square shadow-lg transition-all group">
+<img alt="Sample 1" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAweLi-tH28iIYJFQEyI6_jp_wiBhjhlSPbN7cocUYcTdwu2-Q-jM78gB4pRH7Q3l7Eho6IC_S-2t0wFvJ02AyN10u9SLQC-RhubujM2XTCxfAmWpHaqFc7bHl0um2t_4_Q1dlmFyv8BkhxlKtkYys6t5ohepSujQBct3wRXrhhpA1CzKn7gD5vMI7GEo1ZuJbYXOkbTGA7naJZSfgBv0Tbk2sEpm_zVrbJG-DG8uebiw1p2QMWjntXKKUugXFd-d4Tyj4PFRqf6tBR"/>
+</div>
+<div class="cursor-pointer border-2 border-transparent rounded-xl overflow-hidden aspect-square opacity-60 hover:opacity-100 transition-all group">
+<img alt="Sample 2" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZVTpP5TkF7glG97apGM8AXstaP2kx3Zs_HYkXkQQQ_XiApVzkIXDw7jWH8DlOZSraFVe8UTMgOU0VMQyUZVdKDvRrSDLbpOC4UrH4AGo_Hh9TG73hsK1d0uxcvMw2dDYwDKSfud_8qx1J-r3XbUeXBK5ky2YABUfNG721EF2vPZpjzljBRxpVtlcstKetNMU38AmvvWMBo0gkcyq-3gW8B02JQDPMfydFqvjE_Cp1fYUnQdw6zwbfE6Y7Rl_X2WNHAJPn4DU1wkKw"/>
+</div>
+<div class="cursor-pointer border-2 border-transparent rounded-xl overflow-hidden aspect-square opacity-60 hover:opacity-100 transition-all group">
+<img alt="Sample 3" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHxZpg-DgvuUtK7-oAC8d_D3kBpMg0HSBQDHDJORTaUhe0CqHBRjKHWbQAekuoaR-Bu-rEte1P69WX5NSipu2CpsKSidZrd9BAA1Ir85Tf-tFRhrb9z6DNpgUx3W_zyPl1aU9SemvCKaqRg8FW0_H38T4SG5Lf4_v5fLaoBR5DOgE6-gGpBs8oJ9ckOhmDQ2ZQ_ONMXbJyDMGMYjgoX62PUsTMU4IOJ5LMFhYQ_YKXjDhQzY5oT661FcxHz3gd50FFOgaBqB0imglp"/>
+</div>
+<div class="cursor-pointer border-2 border-transparent rounded-xl overflow-hidden aspect-square opacity-60 hover:opacity-100 transition-all group">
+<img alt="Sample 4" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOhMIXyVcxEKGuxkUDFpVk4u1rtbh82EFf9skpK6NlsAD6kHKZ2D6YdfFyj8aeu6H1tt2b69MNXEz2TZ0CvguuCDUdRsh4IPLatEIFFQwIxH-E5P7MvV6wtmDoTa-fGA0hmEL74CdWrscQGJ8NGsgNl_toWrtFMYdYk8ejnpb1Yy8cxWuawh0Row-HGEI9o97Ro0YN0Upj2iWp2VXUXUg_GSLo8ki-nL50OffEDD9lXWF-ig0gieobSqZ8ZKrDmal4yyH_7EPr1k4p"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Shell) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 bg-surface-container/95 backdrop-blur-md border-t border-outline-variant">
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm font-medium">בית</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-sm font-medium">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-label-sm font-bold">הגדרות</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm font-medium">פרופיל</span>
+</a>
+</nav>
+<script>
+        function selectFrame(element, type) {
+            // Update selection UI
+            document.querySelectorAll('[onclick^="selectFrame"]').forEach(btn => {
+                btn.classList.remove('frame-preview-active');
+                btn.classList.add('hover:bg-surface-variant');
+            });
+            element.classList.add('frame-preview-active');
+            element.classList.remove('hover:bg-surface-variant');
+
+            const preview = document.getElementById('framed-image');
+            
+            // Apply frame styles
+            switch(type) {
+                case 'crystal':
+                    preview.style.border = '16px solid #FFFFFF';
+                    preview.style.boxShadow = '0 30px 60px -12px rgba(0,0,0,0.4)';
+                    break;
+                case 'piano':
+                    preview.style.border = '16px solid #000000';
+                    preview.style.boxShadow = '0 40px 80px -15px rgba(0,0,0,0.6)';
+                    break;
+                case 'silver':
+                    preview.style.border = '16px solid #C0C0C0';
+                    preview.style.boxShadow = '0 30px 60px -12px rgba(192, 192, 192, 0.2)';
+                    break;
+                case 'none':
+                    preview.style.border = '0px solid transparent';
+                    preview.style.boxShadow = '0 20px 40px -10px rgba(0,0,0,0.5)';
+                    break;
+            }
+        }
+
+        // Animation on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.luxury-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+        });
+    </script>
+</body></html>

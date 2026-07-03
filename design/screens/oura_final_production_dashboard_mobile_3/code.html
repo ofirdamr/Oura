@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#CF6679",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary": "#FFFFFF",
+                    "success": "#4CAF50",
+                    "on-primary-fixed-variant": "#7f291c",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed": "#002019",
+                    "tertiary": "#51dcba",
+                    "inverse-primary": "#9f4030",
+                    "background": "#131313",
+                    "surface-variant": "#353534",
+                    "inverse-surface": "#e5e2e1",
+                    "on-secondary-fixed": "#1b1b1c",
+                    "on-primary-container": "#752215",
+                    "surface-dim": "#131313",
+                    "surface": "#131313",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#FFFFFF",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "surface-container": "#201f1f",
+                    "on-surface": "#FFFFFF",
+                    "tertiary-container": "#29c09f",
+                    "tertiary-fixed": "#72f9d5",
+                    "primary": "#ffb4a6",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-high": "#2D2D2D",
+                    "outline-variant": "#56423e",
+                    "on-secondary-container": "#FFFFFF",
+                    "primary-fixed": "#ffdad4",
+                    "surface-bright": "#393939",
+                    "on-primary-fixed": "#3f0300",
+                    "primary-fixed-dim": "#ffb4a6",
+                    "secondary-container": "#474746",
+                    "on-secondary": "#FFFFFF",
+                    "on-background": "#FFFFFF",
+                    "tertiary-fixed-dim": "#51dcba",
+                    "secondary": "#c8c6c5",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-tertiary-container": "#00493a",
+                    "outline": "#a48b87",
+                    "on-tertiary": "#00382c",
+                    "surface-container-high": "#2a2a2a",
+                    "inverse-on-surface": "#313030",
+                    "surface-tint": "#ffb4a6",
+                    "primary-container": "#ff8a75",
+                    "surface-container-highest": "#353534",
+                    "on-tertiary-fixed-variant": "#005141",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed": "#e5e2e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.75rem",
+                    "xl": "1rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "stack-sm": "16px",
+                    "stack-lg": "64px",
+                    "margin-desktop": "80px",
+                    "base": "8px",
+                    "margin-mobile": "20px",
+                    "stack-md": "32px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-md-mobile": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "label-sm": ["Rubik"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Hanken Grotesk', 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        main {
+            width: 100%;
+        }
+        /* High contrast focus */
+        .text-on-surface { color: #FFFFFF !important; }
+        .text-on-surface-variant { color: #E5E2E1 !important; }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container selection:text-on-primary min-h-screen flex flex-col items-center">
+<!-- Top Navigation Bar -->
+<header class="bg-surface-container/80 backdrop-blur-lg fixed top-0 w-full max-w-md z-50 flex flex-row-reverse justify-between items-center px-margin-mobile h-16 border-b border-outline/10">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+<div class="w-9 h-9 rounded-full bg-surface-container-highest overflow-hidden border border-outline/20">
+<img alt="פוטו סנטוס" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBd8y5SrN-MCTyxmJDvP5hoLDAsYTCUG6GUPEnAWyJr9dplsWfi3Z_1nWi_5vpK6u1QqFZh0lQ_IF2I89leXoTHQ58B4zZ3uyDIEp4cVE4gRLmPXyrXBSSnIYuLHj87hwbcWXVdfWAlZ1nhGWRrZBwsXxEPPtGvvoPB-IrXDxa6SpcY-bq6DUjsZwQ3hziyy__ZXSPSlqW-WvuDb975Ajnch5v28nHrnVuMC4gPL3BtpCwgIDsvTpkYsHIkmCYhNkctCtdBEOo7afbA"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<img alt="Oura Logo" class="h-8 w-8 object-contain rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+<span class="font-display-lg text-xl tracking-tight text-on-surface">Oura</span>
+</div>
+<button class="material-symbols-outlined text-on-surface" data-icon="menu">menu</button>
+</header>
+<main class="flex-grow pt-20 pb-28 px-margin-mobile space-y-stack-sm w-full max-w-md mx-auto overflow-x-hidden">
+<!-- Studio Label -->
+<div class="flex flex-row-reverse items-center justify-between">
+<div class="flex items-center gap-2">
+<img alt="פוטו סנטוס" class="w-6 h-6 rounded-full object-cover border border-outline/10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBd8y5SrN-MCTyxmJDvP5hoLDAsYTCUG6GUPEnAWyJr9dplsWfi3Z_1nWi_5vpK6u1QqFZh0lQ_IF2I89leXoTHQ58B4zZ3uyDIEp4cVE4gRLmPXyrXBSSnIYuLHj87hwbcWXVdfWAlZ1nhGWRrZBwsXxEPPtGvvoPB-IrXDxa6SpcY-bq6DUjsZwQ3hziyy__ZXSPSlqW-WvuDb975Ajnch5v28nHrnVuMC4gPL3BtpCwgIDsvTpkYsHIkmCYhNkctCtdBEOo7afbA"/>
+<span class="text-on-surface font-label-sm font-bold">סטודיו: פוטו סנטוס</span>
+</div>
+</div>
+<!-- Summary Stats Section -->
+<section class="grid grid-cols-2 gap-3 w-full">
+<div class="bg-surface-container-high border border-outline/10 rounded-xl p-4 flex flex-col justify-between aspect-square">
+<span class="font-label-sm text-on-surface font-bold">אירועים פעילים</span>
+<div class="flex items-baseline justify-between w-full">
+<span class="text-3xl font-bold text-primary">12</span>
+<span class="material-symbols-outlined text-primary" data-icon="event_available">event_available</span>
+</div>
+</div>
+<div class="bg-surface-container-high border border-outline/10 rounded-xl p-4 flex flex-col justify-between aspect-square">
+<span class="font-label-sm text-on-surface font-bold">סה"כ הורדות</span>
+<div class="flex items-baseline justify-between w-full">
+<span class="text-3xl font-bold text-tertiary">1.4k</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="download">download</span>
+</div>
+</div>
+</section>
+<!-- Search Bar -->
+<div class="relative w-full">
+<input class="w-full bg-surface-container-high border border-outline/20 rounded-xl py-3.5 pr-4 pl-12 text-on-surface text-right placeholder-on-surface/50 font-body-lg focus:ring-1 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="חיפוש אירוע..." type="text"/>
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface" data-icon="search">search</span>
+</div>
+<!-- Create New Event Large Card -->
+<button class="w-full bg-primary-container text-on-primary rounded-xl p-6 flex flex-row-reverse items-center justify-between shadow-lg active:scale-[0.97] transition-transform duration-150 group">
+<div class="text-right">
+<h2 class="text-xl font-bold">יצירת אירוע חדש</h2>
+<p class="text-sm font-medium opacity-90">העלאת גלריה והפצת QR בשניות</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-black/10 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+<span class="material-symbols-outlined text-[32px] text-on-primary" data-icon="add">add</span>
+</div>
+</button>
+<!-- Event List -->
+<div class="space-y-4 w-full">
+<h3 class="font-label-sm mr-1 text-on-surface font-bold uppercase tracking-widest text-[10px]">אירועים אחרונים</h3>
+<!-- Event Card 1 -->
+<div class="bg-surface-container border border-outline/20 rounded-xl p-4 flex flex-row-reverse gap-4 overflow-hidden relative active:bg-surface-container-high transition-colors">
+<div class="w-24 h-24 rounded-lg bg-white/10 p-1 flex-shrink-0 relative flex items-center justify-center border border-outline/10">
+<span class="material-symbols-outlined text-on-surface text-4xl" data-icon="qr_code_2">qr_code_2</span>
+</div>
+<div class="flex-grow flex flex-col justify-between text-right py-1">
+<div>
+<h4 class="text-lg font-bold text-on-surface leading-tight">חתונה - עדי ורועי</h4>
+<p class="text-xs text-on-surface font-medium flex flex-row-reverse items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            14.05.2024
+                        </p>
+</div>
+<div class="flex flex-row-reverse gap-4 mt-3">
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface" data-icon="photo_library">photo_library</span>
+<span class="text-xs font-bold text-on-surface">452</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface" data-icon="visibility">visibility</span>
+<span class="text-xs font-bold text-on-surface">1.2k</span>
+</div>
+</div>
+</div>
+<button class="absolute left-2 top-2 text-on-surface p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<!-- Event Card 2 -->
+<div class="bg-surface-container border border-outline/20 rounded-xl p-4 flex flex-row-reverse gap-4 overflow-hidden relative active:bg-surface-container-high transition-colors">
+<div class="w-24 h-24 rounded-lg bg-white/10 p-1 flex-shrink-0 relative flex items-center justify-center border border-outline/10">
+<span class="material-symbols-outlined text-on-surface text-4xl" data-icon="qr_code_2">qr_code_2</span>
+</div>
+<div class="flex-grow flex flex-col justify-between text-right py-1">
+<div>
+<h4 class="text-lg font-bold text-on-surface leading-tight">בר מצווה - איתן</h4>
+<p class="text-xs text-on-surface font-medium flex flex-row-reverse items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            10.05.2024
+                        </p>
+</div>
+<div class="flex flex-row-reverse gap-4 mt-3">
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface" data-icon="photo_library">photo_library</span>
+<span class="text-xs font-bold text-on-surface">280</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface" data-icon="visibility">visibility</span>
+<span class="text-xs font-bold text-on-surface">840</span>
+</div>
+</div>
+</div>
+<button class="absolute left-2 top-2 text-on-surface p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile Fixed) -->
+<nav class="fixed bottom-0 w-full max-w-md z-50 flex justify-around items-center h-20 bg-surface-container/95 backdrop-blur-md border-t border-outline/20 px-6 pb-2">
+<a class="flex flex-col items-center justify-center gap-1 text-primary w-16" href="#">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-sm text-[11px] font-bold">גלריה</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-on-surface w-16 transition-opacity" href="#">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<span class="font-label-sm text-[11px] font-bold">בית</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-on-surface w-16 transition-opacity" href="#">
+<span class="material-symbols-outlined text-[28px]">share</span>
+<span class="font-label-sm text-[11px] font-bold">שיתוף</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-on-surface w-16 transition-opacity" href="#">
+<span class="material-symbols-outlined text-[28px]">person</span>
+<span class="font-label-sm text-[11px] font-bold">פרופיל</span>
+</a>
+</nav>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 left-1/2 -translate-x-1/2 ml-[120px] w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-90 transition-transform duration-150 border-4 border-background md:hidden">
+<span class="material-symbols-outlined text-[28px] font-bold" data-icon="add">add</span>
+</button>
+<script>
+        // Smooth transitions and focus states
+        const searchInput = document.querySelector('input[type="text"]');
+        if(searchInput) {
+            searchInput.addEventListener('focus', () => {
+                searchInput.parentElement.classList.add('scale-[1.01]');
+            });
+            searchInput.addEventListener('blur', () => {
+                searchInput.parentElement.classList.remove('scale-[1.01]');
+            });
+        }
+    </script>
+</body></html>

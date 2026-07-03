@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura_Final_Production_AI_Optimization_Desktop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Rubik:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0e0e0e;
+            color: #e5e2e1;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(32, 31, 31, 0.8);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 180, 166, 0.15);
+        }
+        .platinum-border {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+        }
+        .processing-pulse {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px rgba(81, 220, 186, 0.5)); }
+            50% { opacity: 0.7; filter: drop-shadow(0 0 15px rgba(81, 220, 186, 0.8)); }
+        }
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #51dcba;
+            box-shadow: 0 0 15px #51dcba;
+            animation: scan 3s linear infinite;
+            z-index: 20;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+        .before-after-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 4px;
+            height: 100%;
+            background: white;
+            cursor: ew-resize;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0e0e0e; }
+        ::-webkit-scrollbar-thumb { background: #353534; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#51dcba",
+                    "surface-container": "#201f1f",
+                    "on-primary-container": "#752215",
+                    "tertiary-fixed": "#72f9d5",
+                    "on-secondary": "#303030",
+                    "surface-high": "#2D2D2D",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-error": "#690005",
+                    "on-primary-fixed": "#3f0300",
+                    "surface-container-highest": "#353534",
+                    "error-container": "#93000a",
+                    "on-tertiary-container": "#00493a",
+                    "tertiary-container": "#29c09f",
+                    "secondary-container": "#474746",
+                    "surface-bright": "#393939",
+                    "outline-variant": "#56423e",
+                    "error": "#CF6679",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "surface-container-high": "#2a2a2a",
+                    "secondary": "#c8c6c5",
+                    "on-secondary-fixed": "#1b1b1c",
+                    "inverse-primary": "#9f4030",
+                    "surface-tint": "#ffb4a6",
+                    "on-primary": "#601308",
+                    "primary-fixed-dim": "#ffb4a6",
+                    "on-tertiary-fixed": "#002019",
+                    "inverse-surface": "#e5e2e1",
+                    "surface": "#131313",
+                    "surface-variant": "#353534",
+                    "on-background": "#e5e2e1",
+                    "primary": "#ffb4a6",
+                    "on-surface-variant": "#dcc0bb",
+                    "primary-fixed": "#ffdad4",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#b7b5b4",
+                    "inverse-on-surface": "#313030",
+                    "primary-container": "#ff8a75",
+                    "on-primary-fixed-variant": "#7f291c",
+                    "on-tertiary-fixed-variant": "#005141",
+                    "surface-container-low": "#1c1b1b",
+                    "outline": "#a48b87",
+                    "background": "#131313",
+                    "on-tertiary": "#00382c",
+                    "secondary-fixed": "#e5e2e1",
+                    "tertiary-fixed-dim": "#51dcba",
+                    "surface-dim": "#131313",
+                    "success": "#4CAF50"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "80px",
+                    "margin-mobile": "24px",
+                    "stack-sm": "16px",
+                    "stack-md": "32px",
+                    "stack-lg": "64px",
+                    "gutter": "16px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "label-sm": ["Rubik"],
+                    "headline-md-mobile": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-body-lg text-body-lg antialiased">
+<!-- TopNavBar Platinum -->
+<nav class="bg-surface/90 backdrop-blur-xl border-b border-white/10 fixed top-0 left-0 right-0 z-50 flex flex-row-reverse justify-between items-center px-margin-desktop h-20">
+<div class="flex items-center gap-6 flex-row-reverse">
+<img alt="Oura" class="h-12 w-12 object-contain rounded-xl shadow-lg border border-white/5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+<div class="flex flex-col items-end">
+<span class="font-display-lg text-2xl font-bold tracking-tight text-white">Oura <span class="text-primary">PLATINUM</span></span>
+<span class="text-[10px] uppercase tracking-[0.2em] text-primary/80 -mt-1 font-bold">ליבת אופטימיזציה בינה מלאכותית</span>
+</div>
+<div class="hidden lg:flex flex-row-reverse gap-8 items-center mr-10">
+<a class="text-white hover:text-primary transition-all font-medium text-sm" href="#">מרכז שליטה</a>
+<a class="text-primary font-bold text-sm border-b-2 border-primary pb-1" href="#">עיבוד תמונות</a>
+<a class="text-on-surface/70 hover:text-primary transition-all font-medium text-sm" href="#">ארכיון בינה מלאכותית</a>
+<a class="text-on-surface/70 hover:text-primary transition-all font-medium text-sm" href="#">הגדרות קצה</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex flex-col items-start px-4 border-l border-white/20">
+<span class="text-[10px] text-on-surface/60 uppercase font-bold">עומס מערכת</span>
+<span class="text-success text-xs font-bold">אופטימלי 14%</span>
+</div>
+<button class="bg-primary text-on-primary font-bold px-8 py-2.5 rounded-full flex items-center gap-2 hover:shadow-[0_0_25px_rgba(255,180,166,0.4)] transition-all active:scale-95">
+<span class="material-symbols-outlined text-xl">rocket_launch</span>
+            העלאת פרויקט
+        </button>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white cursor-pointer p-2 hover:bg-white/10 rounded-full transition-colors relative">
+                notifications
+                <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_rgba(255,180,166,1)]"></span>
+</span>
+<span class="material-symbols-outlined text-white cursor-pointer p-2 hover:bg-white/10 rounded-full transition-colors">settings</span>
+</div>
+</div>
+</nav>
+<!-- SideNavBar Platinum -->
+<aside class="hidden xl:flex flex-col h-screen fixed right-0 top-0 border-l border-white/10 bg-surface-container-lowest w-72 pt-24 z-40">
+<div class="px-8 mb-10 flex flex-row-reverse items-center gap-4">
+<div class="w-14 h-14 rounded-2xl platinum-border overflow-hidden flex items-center justify-center shadow-lg border border-white/10">
+<span class="material-symbols-outlined text-primary text-3xl">photo_camera</span>
+</div>
+<div>
+<h2 class="font-display-lg text-lg font-bold text-white tracking-wide">Photo Santos</h2>
+<p class="font-label-sm text-[11px] text-primary font-bold uppercase tracking-wider">חשבון סטודיו פלטינום</p>
+</div>
+</div>
+<div class="px-4 space-y-2">
+<a class="group text-white/70 px-6 py-4 flex flex-row-reverse items-center gap-4 hover:bg-white/10 transition-all rounded-2xl" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">monitoring</span>
+<span class="font-bold">סקירת ביצועים</span>
+</a>
+<a class="bg-primary/20 text-primary px-6 py-4 flex flex-row-reverse items-center gap-4 rounded-2xl platinum-border border-primary/30" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">view_in_ar</span>
+<span class="font-bold">תור עיבוד חי</span>
+</a>
+<a class="group text-white/70 px-6 py-4 flex flex-row-reverse items-center gap-4 hover:bg-white/10 transition-all rounded-2xl" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">face_retouching_natural</span>
+<span class="font-bold">ניהול זיהוי פנים</span>
+</a>
+<a class="group text-white/70 px-6 py-4 flex flex-row-reverse items-center gap-4 hover:bg-white/10 transition-all rounded-2xl" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">report_problem</span>
+<span class="font-bold">דיווח שגיאות זיהוי</span>
+</a>
+</div>
+<div class="mt-auto p-6 space-y-4">
+<div class="glass-panel p-5 rounded-2xl border border-primary/30">
+<div class="flex justify-between items-center mb-3">
+<span class="text-[10px] text-primary font-bold uppercase">אחסון ענן AI</span>
+<span class="text-[10px] text-white font-bold">82%</span>
+</div>
+<div class="h-2 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary shadow-[0_0_10px_rgba(255,180,166,0.6)]" style="width: 82%"></div>
+</div>
+</div>
+<button class="w-full bg-white/5 text-white/80 hover:text-white hover:bg-error/20 py-4 rounded-2xl transition-all flex items-center justify-center gap-3 border border-white/10 font-bold">
+<span class="material-symbols-outlined text-lg">logout</span>
+            התנתקות מהמערכת
+        </button>
+</div>
+</aside>
+<!-- Main Platinum Dashboard -->
+<main class="pt-28 xl:mr-72 px-margin-mobile md:px-margin-desktop min-h-screen">
+<!-- Title Section -->
+<header class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center">
+<div>
+<div class="flex items-center gap-3 mb-3">
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-4 py-1.5 rounded-full border border-primary/40 uppercase tracking-widest">Platinum Core V4.2</span>
+<span class="text-on-surface/60 text-xs font-mono font-bold tracking-wider">ID: PT-882-OPTIM</span>
+</div>
+<h1 class="font-display-lg text-4xl md:text-5xl text-white font-bold tracking-tight">Oura_Final_Production_AI_Optimization_Desktop</h1>
+<p class="text-on-surface/80 font-body-lg mt-4 max-w-2xl text-lg">מערכת עיבוד תמונה מבוססת AI בזמן אמת עבור סטודיו פוטו סנטוס (Photo Santos).</p>
+</div>
+<div class="mt-8 md:mt-0">
+<div class="platinum-border px-6 py-4 rounded-3xl flex items-center gap-5 border border-white/10">
+<div class="w-3 h-3 bg-tertiary rounded-full processing-pulse"></div>
+<div>
+<div class="text-[10px] text-white/60 uppercase font-bold leading-none mb-1.5">מצב מנוע עיבוד</div>
+<div class="text-white font-bold leading-none text-base">פעיל ומסונכרן</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+<!-- Processing Queue (Real-time) -->
+<section class="lg:col-span-8 space-y-8">
+<div class="glass-panel rounded-[40px] p-10 border border-white/10 shadow-2xl">
+<div class="flex justify-between items-center mb-10">
+<div class="flex items-center gap-5">
+<div class="p-4 bg-primary/20 rounded-2xl text-primary shadow-inner border border-primary/20">
+<span class="material-symbols-outlined text-4xl">hourglass_empty</span>
+</div>
+<div>
+<h3 class="text-3xl font-bold text-white">תור עיבוד חי</h3>
+<p class="text-base text-on-surface/70 font-medium">ממתינים לעיבוד: 42 תמונות</p>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="p-3 bg-white/5 hover:bg-white/15 rounded-xl text-white transition-colors border border-white/5"><span class="material-symbols-outlined">pause</span></button>
+<button class="p-3 bg-white/5 hover:bg-white/15 rounded-xl text-white transition-colors border border-white/5"><span class="material-symbols-outlined">refresh</span></button>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+<!-- Queue Item 1 (Active) -->
+<div class="relative aspect-[3/4] rounded-3xl overflow-hidden group border-2 border-primary/60 shadow-[0_0_40px_rgba(255,180,166,0.15)] transform hover:scale-105 transition-all duration-500">
+<img class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6W51jq5InzJVGSkGDcMYHaaUrhMLW7RyrX45DfE0YP1_MIQQq2C99HFQ0GbUpiFlR-HmAUNxJoWs110sIyJzKl11xIyNxdFagye1IayM7PClejKW8T3KXkUT4FOHKhk61yEvFEtRx8ayZcXTUwY_YhVQEOYkq0lEACP-UQ4oborUN7DHn-hAwIg0kbfBeeb9QzeKqUCeklGGetjo_k5JsPYdfOGrfZNwwXgjtYnePrHZ_jNCiuZr5y-La4iHVhP26Dz1W0IxQLkii"/>
+<div class="scan-line"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-5">
+<div class="flex justify-between items-center mb-2.5">
+<span class="text-[10px] font-mono text-primary font-bold tracking-widest uppercase">סורק...</span>
+<span class="text-[10px] font-mono text-white font-bold">74%</span>
+</div>
+<div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary shadow-[0_0_10px_rgba(255,180,166,1)]" style="width: 74%"></div>
+</div>
+<div class="mt-3 text-[10px] text-white/80 font-mono font-bold tracking-wider">FACE_REC_INIT</div>
+</div>
+</div>
+<!-- Queue Item 2 -->
+<div class="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/10 group transform hover:scale-105 transition-all duration-500">
+<img class="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-60 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAagUsFJ9gmh_OgA_e6x2c1VBez5Hkhtdf0sGhhfIPnnXLLFk8wjp_F_l3eqX2pa5FluE0GtIL-WuU3ZB2XQYJX7Dbrh4WG_u9bTRdeQ0tCfHMKYcmPilz5cTCdm3DyeFLDgGDpUWiCY7L_Yk81mIaoaPeQ3lZYrGql8rHM9b8VCvtmUyd280FeAEEMhpkH_wERPo0_K726n6vU-aquvFVrofV-PfOqolgtuKSYbMgxhn5lQVAHWKYRJ5UumCNCE50krtnXDPxzVdbD"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/40">
+<span class="material-symbols-outlined text-white text-5xl animate-spin opacity-80">sync</span>
+</div>
+</div>
+<!-- Queue Item 3 -->
+<div class="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/10 group transform hover:scale-105 transition-all duration-500">
+<img class="w-full h-full object-cover grayscale opacity-30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjPxeWbF9EUrdtiRyPF9wuza1nb6DMP8YNU5O-K3hW9uL9_R36WFFzBSB49Pm39wGLeE5lwbLJ9qZm3rmsX6jyE9jKGlWjJ9O4pZQTrlC-U5BLC5B6_kY0k0lwqZ2-v7CbaclcoWtNf2uz_jZCw7CBWSenq0C5_6N6vOr40PjF2ApXhxJIheR9-uKKfZitjJaCXn1hizOtn-LbTlgjNqgDxHDV0TpXyv9CBxccfw9OJhqTxbfpZ1-K-m0tqV5bxd9Ueb3K71uzbpS_"/>
+</div>
+<!-- Queue Item 4 -->
+<div class="relative aspect-[3/4] rounded-3xl overflow-hidden border border-white/10 group transform hover:scale-105 transition-all duration-500">
+<img class="w-full h-full object-cover grayscale opacity-30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGZPWaWeZXbSoTbnRw89dSQy7X_chYvYj-xzP4eIFB_9etGEEI9fbxaxsukRvBHgNxpav0usLoQTcHzpcnAMQqbvq8OdzX_Dijule_EjRLqduOw38WOzYwPNG5brronwq9cUr4YADohUIhz9Ohi2UEC2cIHNtelmmazcuv9AkZXohf8jb4NFecGHYH3S6WzjtlOyQRVWpsmJgQxe8RFOBz_UGclF8idKE3cUvwlhxMUonj5C0vxKJXkjqHjM897MxtsUR2nlZD_HiE"/>
+</div>
+</div>
+</div>
+<!-- Before & After Examples -->
+<div class="glass-panel rounded-[40px] p-10 border border-white/10 shadow-2xl overflow-hidden">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-3xl font-bold text-white">בדיקת איכות (לפני / אחרי)</h3>
+<div class="flex gap-3">
+<span class="text-sm text-white/60 font-medium px-4 py-1.5 bg-white/5 rounded-full border border-white/5">הזז את הסליידר לצפייה בשיפור</span>
+</div>
+</div>
+<div class="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+<!-- Before Image (Base) -->
+<img class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmQ0zBWgCO6vYRdfHxZzU5gxFWWDHTCJROuF11Pit6UJKwpBdwoS7yGn0hhgJTapAGFe3n6Zh6ivze_1scONjv9z9p82a0Zg89h3S-Yzcg65V2bd_Xx9to-EbQTws_xX0UpnHvcnh3vQOlT6ixKm2XYK2-TyOFp1Itin_7OqlEvy4pnvmZpv__U1n_htgAU97IgaEwo9Cpgny9-r6mTYgaqtNtskp4fFadATfJkNUiFqHft6MPsJI40-kYhl6FeD6KxIJSXrqHVOMm"/>
+<!-- After Image (Clipped) -->
+<div class="absolute inset-0 w-full h-full overflow-hidden transition-none" id="after-image-container" style="clip-path: inset(0 0 0 50%);">
+<img class="w-full h-full object-cover filter brightness-110 contrast-105 saturate-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_g2i50NLJfEBTo4LIs8zueo7Ldl5MvDwOLxrHQByCPkAuHfbIIfPYJRFLfKIvQkQ4RSq0FJ0y3VGRoG666RWuoopcQUqC_zm3KfLULLE8BTZOSFtJZr61j74TJM1hvfhlXlBD9PaiHrBonNtCarXER3zLiUuZ_ZKUyTQ2vvuiVJcp330JIX0zTZ0ZK2z38z6c7GJ5KZ0lCYwzy4sYs-4_a6LDr-YT8FhS5opylnAJtNDCFZ3STWJTeBgoJ0zdP43qfc3p37ulVa_H"/>
+</div>
+<!-- Labels -->
+<div class="absolute top-6 right-6 bg-black/70 backdrop-blur-md px-5 py-2 rounded-full text-[11px] text-white border border-white/20 uppercase font-bold tracking-[0.2em] z-40">מקור (Original)</div>
+<div class="absolute top-6 left-6 bg-primary/90 backdrop-blur-md px-5 py-2 rounded-full text-[11px] text-on-primary border border-white/20 uppercase font-bold tracking-[0.2em] z-40 shadow-xl">אופטימיזציה (Optimized)</div>
+<!-- Slider Control -->
+<input class="absolute inset-0 w-full h-full appearance-none bg-transparent cursor-pointer before-after-slider z-50" id="ba-slider" max="100" min="0" type="range" value="50"/>
+<div class="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] z-30 pointer-events-none" id="slider-line" style="left: 50%;">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)] border-4 border-white/20">
+<span class="material-symbols-outlined text-black font-bold text-2xl">unfold_more</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Status & Metrics Side -->
+<aside class="lg:col-span-4 space-y-8">
+<!-- Accuracy Stats -->
+<div class="platinum-border rounded-[40px] p-10 space-y-10 border border-white/10 shadow-2xl">
+<h3 class="text-2xl font-bold text-white flex items-center gap-4">
+<span class="material-symbols-outlined text-tertiary text-3xl">analytics</span>
+                    מדדי דיוק פלטינום
+                </h3>
+<div class="space-y-8">
+<div>
+<div class="flex justify-between items-end mb-3">
+<span class="text-base text-white font-medium">דיוק זיהוי פנים</span>
+<span class="text-tertiary font-mono font-bold text-lg">99.98%</span>
+</div>
+<div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary shadow-[0_0_15px_#51dcba]" style="width: 99.98%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-end mb-3">
+<span class="text-base text-white font-medium">שחזור פרטים בחושך</span>
+<span class="text-primary font-mono font-bold text-lg">94.2%</span>
+</div>
+<div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary shadow-[0_0_15px_#ffb4a6]" style="width: 94.2%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-end mb-3">
+<span class="text-base text-white font-medium">יעילות קודק פלטינום</span>
+<span class="text-white font-mono font-bold text-lg">1:24</span>
+</div>
+<div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-white/40 shadow-[0_0_10px_rgba(255,255,255,0.3)]" style="width: 80%"></div>
+</div>
+</div>
+</div>
+<div class="pt-8 border-t border-white/15">
+<div class="bg-surface-container-high rounded-3xl p-5 flex items-center gap-5 border border-white/5">
+<div class="w-14 h-14 rounded-full bg-success/30 flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-success text-3xl">verified</span>
+</div>
+<div>
+<div class="text-sm text-white font-bold mb-1">אימות VIP מאושר</div>
+<div class="text-[11px] text-on-surface/70 leading-tight">38 אנשי מפתח זוהו באופן אוטומטי ומאובטח</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Error Summary -->
+<div class="glass-panel rounded-[40px] p-10 shadow-2xl border border-white/10">
+<div class="flex items-center gap-4 mb-8">
+<span class="material-symbols-outlined text-error text-3xl">report</span>
+<h3 class="text-2xl font-bold text-white">סיכום שגיאות זיהוי</h3>
+</div>
+<div class="space-y-5">
+<div class="p-5 rounded-3xl bg-error/10 border-r-4 border-error shadow-lg">
+<div class="flex justify-between text-[11px] mb-2">
+<span class="text-error font-extrabold uppercase tracking-widest">קריטי (Critical)</span>
+<span class="text-on-surface/70 font-bold">לפני 12 דקות</span>
+</div>
+<p class="text-sm text-white font-medium leading-relaxed">כפילות זיהוי במצלמה 3. נדרשת בדיקת מפעיל ידנית מיידית.</p>
+</div>
+<div class="p-5 rounded-3xl bg-primary/10 border-r-4 border-primary shadow-lg">
+<div class="flex justify-between text-[11px] mb-2">
+<span class="text-primary font-extrabold uppercase tracking-widest">עדכון מערכת</span>
+<span class="text-on-surface/70 font-bold">לפני 45 דקות</span>
+</div>
+<p class="text-sm text-white font-medium leading-relaxed">מודל זיהוי פנים עודכן לגרסה 4.2.1 לשיפור ביצועי פרופיל עמוק.</p>
+</div>
+</div>
+<button class="w-full mt-8 py-3 text-sm text-white font-bold hover:text-primary transition-all underline decoration-primary/30 underline-offset-8">צפייה בכל הדיווחים המפורטים</button>
+</div>
+</aside>
+</div>
+<!-- Quality Settings Section -->
+<section class="mb-24">
+<h2 class="text-3xl font-bold text-white mb-10 flex items-center gap-5">
+<span class="material-symbols-outlined text-primary text-4xl">tune</span>
+            הגדרות איכות ועיבוד מתקדמות
+        </h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<!-- Optimization Level -->
+<div class="platinum-border rounded-[40px] p-10 group hover:border-primary/50 transition-all shadow-2xl border border-white/10">
+<div class="flex items-center gap-5 mb-8">
+<div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+<span class="material-symbols-outlined text-primary text-4xl">high_quality</span>
+</div>
+<h4 class="font-bold text-xl text-white">רמת אופטימיזציה</h4>
+</div>
+<div class="space-y-5">
+<label class="flex items-center gap-4 cursor-pointer p-2 rounded-xl hover:bg-white/5 transition-colors">
+<input class="form-radio text-primary bg-transparent border-white/30 w-5 h-5 focus:ring-offset-0 focus:ring-primary" name="opt-level" type="radio"/>
+<span class="text-base text-white/90 font-medium">Platinum Master (ללא אובדן איכות)</span>
+</label>
+<label class="flex items-center gap-4 cursor-pointer p-2 rounded-xl hover:bg-white/5 transition-colors">
+<input checked="" class="form-radio text-primary bg-transparent border-white/30 w-5 h-5 focus:ring-offset-0 focus:ring-primary" name="opt-level" type="radio"/>
+<span class="text-base text-white/90 font-medium">Standard Enhanced (משופר סטנדרטי)</span>
+</label>
+<label class="flex items-center gap-4 cursor-pointer p-2 rounded-xl hover:bg-white/5 transition-colors">
+<input class="form-radio text-primary bg-transparent border-white/30 w-5 h-5 focus:ring-offset-0 focus:ring-primary" name="opt-level" type="radio"/>
+<span class="text-base text-white/90 font-medium">Social Media (עיבוד מהיר לרשתות)</span>
+</label>
+</div>
+</div>
+<!-- Face Retouch -->
+<div class="platinum-border rounded-[40px] p-10 group hover:border-primary/50 transition-all shadow-2xl border border-white/10">
+<div class="flex items-center gap-5 mb-8">
+<div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+<span class="material-symbols-outlined text-primary text-4xl">brush</span>
+</div>
+<h4 class="font-bold text-xl text-white">ריטוש פנים אוטומטי</h4>
+</div>
+<div class="px-2">
+<input class="w-full h-2 bg-white/15 rounded-full appearance-none cursor-pointer accent-primary mb-6 shadow-inner" type="range" value="65"/>
+<div class="flex justify-between text-[11px] text-white/60 uppercase font-bold tracking-widest">
+<span>טבעי (Natural)</span>
+<span>מצב קולנוע</span>
+<span>עריכה מלאה</span>
+</div>
+</div>
+</div>
+<!-- AI Model Selector -->
+<div class="platinum-border rounded-[40px] p-10 group hover:border-primary/50 transition-all shadow-2xl border border-white/10">
+<div class="flex items-center gap-5 mb-8">
+<div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+<span class="material-symbols-outlined text-primary text-4xl">memory</span>
+</div>
+<h4 class="font-bold text-xl text-white">מודל בינה מלאכותית</h4>
+</div>
+<select class="w-full bg-white/10 border border-white/20 text-white font-bold rounded-2xl p-4 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base outline-none cursor-pointer">
+<option class="bg-surface">Oura Vision Platinum v4.2</option>
+<option class="bg-surface">Neural Sharpening Pro</option>
+<option class="bg-surface">Portrait Master Legacy</option>
+</select>
+<div class="mt-8 flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+<span class="text-sm text-white/60 font-bold uppercase tracking-widest">האצת GPU</span>
+<span class="text-tertiary font-bold tracking-widest">מופעל (ENABLED)</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+    // Before/After Slider Logic
+    const slider = document.getElementById('ba-slider');
+    const container = document.getElementById('after-image-container');
+    const line = document.getElementById('slider-line');
+
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            container.style.clipPath = `inset(0 0 0 ${val}%)`;
+            line.style.left = `${val}%`;
+        });
+    }
+
+    // Interactive scale effects
+    document.querySelectorAll('.aspect-\\[3\\/4\\]').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.zIndex = '10';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.zIndex = '1';
+        });
+    });
+</script>
+</body></html>

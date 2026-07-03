@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura - הגדרות מיתוג ולוגו</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(30, 27, 25, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#e2725b",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#9f402d",
+                        "secondary": "#77574d",
+                        "surface": "#1d1b19",
+                        "on-surface": "#fef8f4",
+                        "surface-variant": "#32302e",
+                        "on-surface-variant": "#e7e1de",
+                        "outline": "#89726d",
+                        "inverse-surface": "#fef8f4",
+                        "inverse-on-surface": "#1d1b19",
+                        "primary-fixed-dim": "#ffb4a5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<header class="bg-surface/95 backdrop-blur-md sticky top-0 z-50 border-b border-outline/30">
+<div class="flex flex-row-reverse justify-between items-center px-4 w-full h-16">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface hover:text-primary transition-colors">account_circle</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-[#121212] p-1 rounded-lg border border-outline/20">
+<img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYjFU73BHXAF1JBuCGUiw2HaXeSJXYrEejrkgVlBol6_t2zqAQemvPYI_YUuRgC8VtJV9CLA1IRqMMRz0fcw7jq5cp351YjYe4xDpxf4nJvH8xIDbgdbFnHILnTbgiVb5oZvuKohlBiIL-GyUXi5Yfkuac_7USqTSNpmgCOXO4YUbbvn6nSYuvmm4Ba7Rdc-NFTCskvtemicFz0Gvo8RHid10X0MjTBDII4VNsOn6W4lqYfBWYZON60ocHvwnN8QjCmqO-cv8AtO1G"/>
+</div>
+<span class="font-bold text-xl tracking-tight text-on-surface">Photo Santos</span>
+</div>
+<button class="material-symbols-outlined text-on-surface" onclick="history.back()">arrow_forward</button>
+</div>
+</header>
+<main class="px-4 py-6 space-y-8">
+<!-- Header Section -->
+<section class="space-y-2">
+<h1 class="text-3xl font-bold text-on-surface">הגדרות מיתוג ולוגו</h1>
+<p class="text-on-surface-variant text-base leading-relaxed">נהל את המראה והתחושה של הסטודיו שלך 'Photo Santos' בממשק Oura.</p>
+</section>
+<!-- Branding Preview Card -->
+<div class="bg-surface-variant border border-outline/20 rounded-2xl p-5 space-y-4 shadow-xl">
+<div class="flex items-center justify-between">
+<h2 class="text-lg font-bold text-primary-fixed-dim">תצוגה מקדימה של המותג</h2>
+<span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">פעיל</span>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface rounded-xl border border-white/5">
+<div class="w-16 h-16 rounded-xl overflow-hidden bg-black flex items-center justify-center border border-outline/30">
+<img alt="Oura Aperture" class="w-12 h-12 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYjFU73BHXAF1JBuCGUiw2HaXeSJXYrEejrkgVlBol6_t2zqAQemvPYI_YUuRgC8VtJV9CLA1IRqMMRz0fcw7jq5cp351YjYe4xDpxf4nJvH8xIDbgdbFnHILnTbgiVb5oZvuKohlBiIL-GyUXi5Yfkuac_7USqTSNpmgCOXO4YUbbvn6nSYuvmm4Ba7Rdc-NFTCskvtemicFz0Gvo8RHid10X0MjTBDII4VNsOn6W4lqYfBWYZON60ocHvwnN8QjCmqO-cv8AtO1G"/>
+</div>
+<div>
+<p class="font-bold text-xl">Photo Santos</p>
+<p class="text-sm text-outline">צילום אירועים פרימיום</p>
+</div>
+</div>
+</div>
+<!-- Settings Controls -->
+<div class="space-y-4">
+<!-- Logo Upload -->
+<div class="space-y-3">
+<label class="block font-bold text-on-surface mr-1">לוגו הסטודיו</label>
+<button class="w-full h-32 border-2 border-dashed border-outline/40 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-primary/60 hover:bg-white/5 transition-all group">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary">upload_file</span>
+<span class="text-sm font-medium text-outline group-hover:text-on-surface">החלף לוגו (PNG, SVG)</span>
+</button>
+</div>
+<!-- Studio Name -->
+<div class="space-y-3">
+<label class="block font-bold text-on-surface mr-1">שם הסטודיו</label>
+<input class="w-full bg-surface-variant border border-outline/30 rounded-xl px-4 py-4 focus:ring-2 focus:ring-primary focus:border-transparent text-lg font-medium text-on-surface outline-none transition-all" type="text" value="Photo Santos"/>
+</div>
+<!-- Primary Color -->
+<div class="space-y-3">
+<label class="block font-bold text-on-surface mr-1">צבע מותג ראשי</label>
+<div class="flex items-center gap-3 bg-surface-variant border border-outline/30 rounded-xl px-4 py-3">
+<div class="w-10 h-10 rounded-full bg-[#e2725b] border-2 border-white shadow-inner"></div>
+<span class="flex-1 font-mono text-lg">#E2725B</span>
+<button class="text-primary font-bold px-2">שינוי</button>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-4 pt-4">
+<button class="w-full bg-primary text-on-primary font-bold text-lg py-4 rounded-xl shadow-lg active:scale-[0.98] transition-transform">
+            שמירת שינויים
+        </button>
+<button class="w-full border border-outline text-on-surface font-bold py-4 rounded-xl hover:bg-white/5 active:scale-[0.98] transition-transform">
+            ביטול
+        </button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 glass-panel border-t border-outline/20 rounded-t-2xl">
+<a class="flex flex-col items-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-xs mt-1">בית</span>
+</a>
+<a class="flex flex-col items-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-xs mt-1">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-outline hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">share</span>
+<span class="text-xs mt-1">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="text-xs mt-1 font-bold">הגדרות</span>
+</a>
+</nav>
+<script>
+    // Ripple effect and active states
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('touchstart', () => {
+            button.classList.add('opacity-80');
+        });
+        button.addEventListener('touchend', () => {
+            button.classList.remove('opacity-80');
+        });
+    });
+</script>
+</body></html>

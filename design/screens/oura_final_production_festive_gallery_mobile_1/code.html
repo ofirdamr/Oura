@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura_Final_Production_Festive_Gallery_Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#795950",
+                    "on-background": "#1d1b19",
+                    "surface-tint": "#9f402d",
+                    "on-tertiary-container": "#4e3d00",
+                    "primary-fixed": "#ffdad3",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#2c160e",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#cca72f",
+                    "outline-variant": "#ddc0ba",
+                    "on-secondary-fixed-variant": "#5d4037",
+                    "inverse-surface": "#32302e",
+                    "on-surface": "#1d1b19",
+                    "tertiary-fixed": "#ffe088",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#9f402d",
+                    "on-surface-variant": "#56423e",
+                    "inverse-on-surface": "#f5f0ec",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#e7e1de",
+                    "surface-container-low": "#f8f2ef",
+                    "background": "#fef8f4",
+                    "surface-container": "#f3ede9",
+                    "on-tertiary-fixed": "#241a00",
+                    "inverse-primary": "#ffb4a5",
+                    "surface-container-highest": "#e7e1de",
+                    "tertiary": "#735c00",
+                    "secondary": "#77574d",
+                    "surface-dim": "#ded9d5",
+                    "on-primary-container": "#5a0d02",
+                    "surface-container-high": "#ede7e3",
+                    "secondary-fixed": "#ffdbd0",
+                    "primary-fixed-dim": "#ffb4a5",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface-bright": "#fef8f4",
+                    "outline": "#89726d",
+                    "on-primary-fixed": "#3e0500",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "surface": "#fef8f4",
+                    "secondary-fixed-dim": "#e7bdb1",
+                    "secondary-container": "#fed3c7",
+                    "primary-container": "#e2725b",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#802918"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "xxl": "48px",
+                    "xs": "4px",
+                    "margin-desktop": "32px",
+                    "lg": "24px",
+                    "base": "4px",
+                    "sm": "8px",
+                    "gutter": "16px",
+                    "margin-mobile": "16px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Rubik"],
+                    "body-md": ["Rubik"],
+                    "body-lg": ["Rubik"],
+                    "label-lg": ["Rubik"],
+                    "display-lg": ["Rubik"],
+                    "title-lg": ["Rubik"],
+                    "label-sm": ["Rubik"],
+                    "headline-lg-mobile": ["Rubik"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                    "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                    "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .masonry-grid {
+            columns: 2;
+            column-gap: 12px;
+        }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 12px;
+        }
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            background: rgba(50, 48, 46, 0.7);
+        }
+        .celebratory-gradient {
+            background: linear-gradient(to top, rgba(29, 27, 25, 0.95) 0%, rgba(29, 27, 25, 0.4) 50%, rgba(29, 27, 25, 0) 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .btn-active:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background dark:bg-inverse-surface text-on-background dark:text-inverse-on-surface overflow-x-hidden pb-20">
+<!-- Hero Section with Animated Atmospheric Background -->
+<header class="relative h-[574px] w-full overflow-hidden"><div class="absolute top-4 right-4 z-20 w-16 h-16 drop-shadow-lg"><img alt="Oura | Photo Santos" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAO9cu0MtTX60CnHn3PiJ2cE80hoZJZCqRq0xJ3p71GAyRE-lTUV06lmZpvXUxaacqVdpd3VJYDIVcvL-aA8L987ezeOdPKmFVGaSGwY5dX8U4wEjHxw49D0ahXa925NXHIn8fQ0UATl-EG9lp2VryEICw6UlCHMClvEs9x8gZCJBIZZbwv_Xr-4-QIbiY6b_V080-XX8qY1ifTnizabEXAUrNz-CkUY5eT9DSQwkrZKlPnP9dz0bEs-OqjKHGbEEpgjYR37wOb_d9"/></div>
+<div class="absolute inset-0 z-0">
+<img alt="Wedding Celebration Hero" class="w-full h-full object-cover" data-alt="A grand celebratory wedding reception held in a luxury ballroom with warm golden lighting and terracotta floral arrangements. The scene is filled with bokeh lights from crystal chandeliers, creating a sophisticated and immersive festive atmosphere. The style is cinematic and high-end, capturing the joy of a lifetime event with deep shadows and vibrant highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMkXe4H0mICfejy-od_qWYIfRv4KjljhWNdDEoa7vHJAkdUQXnvejZuA9_XXq3JV1rtsVHNucz5o80YbqlSmOgm6-BP_YDuM9cVFIbfy1vqtfAIIvHXL7Gz2Ogmp3vfVRKgyAVwA2PGqicFvIev9rwiWgEP9klbPPPGbDnH7GYIuNkmhMIbo53Km5_6_3SAVUde3WTj_D6Hfy4o6qgmfUzA-5VvqaqUgmAm3Qf8Me1j0oiiUxDUySenumQG3NmIak9KEmXurQAX021"/>
+<div class="absolute inset-0 celebratory-gradient"></div>
+</div>
+<!-- Overlay Content -->
+<div class="absolute bottom-0 right-0 left-0 p-margin-mobile flex flex-col items-start gap-sm z-10">
+<span class="bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-label-lg text-label-lg">12.05.2024</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-white font-bold leading-tight drop-shadow-lg">
+                החתונה של נועה וגיא
+            </h1>
+<p class="font-body-lg text-body-lg text-white/90 max-w-[80%] drop-shadow-md">
+                רגעים קסומים מהערב המיוחד שלנו. תודה שהייתם חלק!
+            </p>
+<div class="flex gap-sm mt-md w-full overflow-x-auto pb-2 scrollbar-hide">
+<button class="bg-primary hover:bg-primary-container text-white px-6 py-3 rounded-xl flex items-center gap-2 whitespace-nowrap btn-active shadow-lg shadow-xl">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">download</span>
+<span class="font-label-lg text-label-lg">הורדת הגלריה</span>
+</button>
+<div class="flex gap-sm">
+<button class="w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white btn-active">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Social Bar (Floating/Celebratory) -->
+<section class="px-margin-mobile -mt-6 relative z-20">
+<div class="glass-effect rounded-2xl p-4 flex justify-between items-center shadow-xl border border-white/10">
+<div class="flex gap-4">
+<!-- Social Action Icons -->
+<button class="flex flex-col items-center gap-1 text-primary">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-container/30">
+<span class="material-symbols-outlined">whatshot</span>
+</div>
+<span class="text-[10px] font-medium text-white/70">WhatsApp</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary-fixed">
+<div class="w-10 h-10 rounded-full bg-primary-container/30 flex items-center justify-center">
+<span class="material-symbols-outlined">camera_enhance</span>
+</div>
+<span class="text-[10px] font-medium text-white/70">Instagram</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<div class="w-10 h-10 rounded-full bg-surface-variant/20 flex items-center justify-center">
+<span class="material-symbols-outlined">music_note</span>
+</div>
+<span class="text-[10px] font-medium text-white/70">TikTok</span>
+</button>
+</div>
+<div class="h-10 w-px bg-white/10 mx-2"></div>
+<div class="text-left flex-1 px-2">
+<div class="text-white font-bold text-lg leading-none">428</div>
+<div class="text-white/60 text-[10px]">תמונות הועלו</div>
+</div>
+</div>
+</section>
+<!-- Filter Chips -->
+<nav class="flex gap-2 overflow-x-auto px-margin-mobile py-6 scrollbar-hide"><button class="bg-primary text-white px-5 py-2 rounded-full font-label-lg text-label-lg whitespace-nowrap btn-active transition-all">כל התמונות</button>
+<button class="bg-surface-container-high dark:bg-inverse-surface border border-outline-variant text-on-surface-variant px-5 py-2 rounded-full font-label-lg text-label-lg whitespace-nowrap btn-active transition-all">קבלת פנים</button>
+<button class="bg-surface-container-high dark:bg-inverse-surface border border-outline-variant text-on-surface-variant px-5 py-2 rounded-full font-label-lg text-label-lg whitespace-nowrap btn-active transition-all">חופה</button>
+<button class="bg-surface-container-high dark:bg-inverse-surface border border-outline-variant text-on-surface-variant px-5 py-2 rounded-full font-label-lg text-label-lg whitespace-nowrap btn-active transition-all">מסיבה</button></nav>
+<!-- Photo Masonry Grid -->
+<main class="px-margin-mobile">
+<div class="masonry-grid gap-2">
+<!-- Grid Items -->
+<div class="masonry-item relative group">
+<img class="rounded-lg w-full shadow-md hover:scale-[1.02] transition-transform duration-300" data-alt="Close-up shot of a elegant floral centerpiece on a wedding table with terracotta roses and eucalyptus leaves. Soft morning light filters through the venue window, creating a delicate and romantic feel with premium warm tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF1jBTFS0H1jnvbawHVWwcCAxc2l1zWHGomJzsZVfmPNVIzHSd0F33qq6n6dSB38rXblnX8QA1s8VekQZtNa9drel7niOM-tLpp33UHnKRnrmAtFnb-5RAYWZyNQ0bGFgyJiRcG26AZq4U7pusJKYnoQjBL2lkpksKHeJB5X_G5y3MtqErKU0cp_psR40tTxro_VEYFDUfwhG0PzeneAUVak3kietEzRyc5ln6HYkfaPFEPoiBy5RrurJA_NoE5dYamd1HxQn8XwvN"/>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-tertiary-fixed-dim drop-shadow-md">favorite</span>
+<span class="material-symbols-outlined text-white drop-shadow-md ml-2">download</span></div>
+</div>
+<div class="masonry-item group">
+<img class="rounded-lg w-full shadow-md hover:scale-[1.02] transition-transform duration-300" data-alt="A wide shot of guests dancing enthusiastically on a vibrant dance floor with dynamic stage lighting. Warm orange and gold hues illuminate the scene, capturing a moment of intense celebration and energy. The photograph uses a shallow depth of field to keep the focus on the joy of the crowd." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqmFa1U6_4SqSWY-NAQ6EDkph_XbnXhu19PlslIV0FOKS1JZGyKsRU2QCRVHzpeOZM_pyskG0JqeTtGnH7I-E2wUGbjT8V81XqONDzqbW1RuE23it6inbnwRKyVXGllKK1cTf6wdHFxuw7CxLF8poPb1ITEWYtxsYXrsJWTrj9EEhehIVHzTf2Yuve06sWAdgOt7NHRLIiBAOH8tbXZfUwEXTUz32yBHClW3QMGms11N3MYQ2bO89pkDKHy_sWh0pDyWY94d4oYqi4"/>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim drop-shadow-md">favorite</span><span class="material-symbols-outlined text-white drop-shadow-md">download</span></div></div>
+<div class="masonry-item relative">
+<img class="rounded-lg w-full shadow-md border-2 border-primary" data-alt="A portrait of a happy couple sharing a laugh during their wedding reception. They are framed by hanging golden lights and terracotta-colored decor elements. The lighting is low-key and intimate, highlighting their expressions with a sophisticated professional photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzSnYlC-ume5eYAdqjq2eKzvsi2qzlQWR-vW9qurWg9381o96CvX06-GTIFHD1WOAQKGxgB5t58N5E2RYvTC2DBCM7-vc2L9Jbhz0CGvndkZsZBQoQknJks-wL09mHkGwWtymIYJo1FKoBhxL1mNbF3bkrQtKaJmCx8Lznab5qMnJdHKYO6_8HY4GkP2nNBGRxLz6WTKvaAN3sr1x2mzc-RYeoe2QnKNU6cFs47P5lTEPtPguUpvqYjJXFgTRZnqccRTsY3pOtTn7d"/>
+<div class="absolute top-2 right-2 bg-primary rounded-full p-1 shadow-lg">
+<span class="material-symbols-outlined text-white text-xs" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="masonry-item group">
+<img class="rounded-lg w-full shadow-md hover:scale-[1.02] transition-transform duration-300" data-alt="Beautifully arranged dessert table at a festive event featuring artisanal cakes and sweets with earthy terracotta tones. The background is a soft blur of the celebration venue, conveying a sense of luxury and meticulous event planning. The palette consists of cream, brown, and gold accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGgwc1bcwc6mjo5GJH3lgV1faR-UPIHg3e6Lyn-z6mVNO0_aNdNNNEsftIkMEZAbBy92rAy-Fek-4-UU6uOYKNcrbqYbE36_OkCVo2QN5HNCMkLp1qBbkN1FTRivxDYI8IHnBN7MtKy6SXdLURosYfRPB031vw5DnyEN6WqYaSyhziCA7_Z_-C7g3SjjPe6Fy-XF2-l7IpO2y7ClgcFICLi9mTqaFEgnw9X0idYaOLSFoTsBttEUWrTjNgrCWm6uDAaUqwHRd-J5uS"/>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim drop-shadow-md">favorite</span><span class="material-symbols-outlined text-white drop-shadow-md">download</span></div></div>
+<div class="masonry-item group">
+<img class="rounded-lg w-full shadow-md hover:scale-[1.02] transition-transform duration-300" data-alt="Cinematic shot of champagne glasses being raised for a toast during a wedding dinner. The lighting is warm and candle-lit, with glowing highlights reflecting off the glass. The mood is celebratory and sophisticated, emphasizing the shared joy of the event." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgRH8UvwhUMPwFl7Eld_FnyKqbtOEZuW3JfueMWimxdzVvyvBCQxOQ7K5S34XJ5BV3UktKLaPIiXSbjAg8GZfmk-pNyD6A9-M53EecObtoutN8AR6QH2ppVKsEooN1ZGQ9RYk-5x9r-kI8WsSOCN6V5TKDBhWJ-2kKwNMLGyEeedL5oWP6auWxnAWVc7SDcsBbBlQtbKbwE3SJeAC7RfRqzpKU_UmGVTFWM7-AavSaWEADotRRM5I23edstrODzQ0UQ0IzTf5qesMG"/>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim drop-shadow-md">favorite</span><span class="material-symbols-outlined text-white drop-shadow-md">download</span></div></div>
+<div class="masonry-item group">
+<img class="rounded-lg w-full shadow-md hover:scale-[1.02] transition-transform duration-300" data-alt="Aerial view of a long wooden banquet table decorated with deep terracotta runners and golden candlesticks. Guests are seated and laughing, creating a lively festive atmosphere. The photography captures the scale of the celebration with a warm, professional grade aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9grP3WVOQE2teDyE_ssub8vr7DxevfVzONxtjVyb7Y7ed9MDpUUByiQurJtx6VWJGT0_UhQUk-YL5k4G2xC0IDeBJh3-ky-1Nbl5A1Td0XF0JwsHIxLo72gmlKT4DUWA7gbf2LiXWhFUo8PDz-JoOT-b47XxH12z6J1Vsb5eMcqFDl22Y2NG2gTNngpnh9Y-fTWZTwqk3_kyKnaPomJTYXUjHrrGTYoudRvqkz6BzZSFm2TcKZTXeBBSmu6SgabyoS39gCuZUN88Y"/>
+<div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2"><span class="material-symbols-outlined text-tertiary-fixed-dim drop-shadow-md">favorite</span><span class="material-symbols-outlined text-white drop-shadow-md">download</span></div></div>
+</div>
+</main>
+<!-- Action Footer (Temporary departure from main nav if focused on download) -->
+<div class="hidden fixed inset-x-margin-mobile bottom-24 glass-effect p-4 rounded-2xl border border-primary/30 flex items-center justify-between z-40 animate-bounce" id="download-overlay">
+<span class="font-label-lg text-label-lg text-white">4 תמונות נבחרו להורדה</span>
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-bold">בצע הורדה</button>
+</div>
+<!-- Bottom Navigation Bar (Shared Component) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-2 px-4 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md border-t border-outline-variant dark:border-outline shadow-lg">
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary dark:text-primary-fixed-dim hover:text-primary transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="font-label-sm text-label-sm">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for selection
+        document.querySelectorAll('.masonry-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const img = this.querySelector('img');
+                img.classList.toggle('border-2');
+                img.classList.toggle('border-primary');
+                
+                let check = this.querySelector('.selection-check');
+                if(!check) {
+                    const checkDiv = document.createElement('div');
+                    checkDiv.className = 'selection-check absolute top-2 right-2 bg-primary rounded-full p-1 shadow-lg';
+                    checkDiv.innerHTML = '<span class="material-symbols-outlined text-white text-[14px]" style="font-variation-settings: \'FILL\' 1;">check</span>';
+                    this.appendChild(checkDiv);
+                } else {
+                    check.remove();
+                }
+
+                // Show download overlay if any selected
+                const selectedCount = document.querySelectorAll('.selection-check').length;
+                const overlay = document.getElementById('download-overlay');
+                if(selectedCount > 0) {
+                    overlay.classList.remove('hidden');
+                    overlay.querySelector('span').innerText = `${selectedCount} תמונות נבחרו להורדה`;
+                } else {
+                    overlay.classList.add('hidden');
+                }
+            });
+        });
+
+        // Atmospheric Scroll Effect for Hero
+        window.addEventListener('scroll', () => {
+            const scroll = window.scrollY;
+            const heroImage = document.querySelector('header img');
+            if(heroImage) {
+                heroImage.style.transform = `translateY(${scroll * 0.4}px) scale(${1 + scroll * 0.0005})`;
+            }
+        });
+    </script>
+</body></html>

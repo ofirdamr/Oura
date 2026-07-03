@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#e2725b",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffe088",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#1d1b19",
+                        "secondary-container": "#5d4037",
+                        "on-error": "#ffffff",
+                        "tertiary": "#e9c349",
+                        "surface-container-lowest": "#000000",
+                        "inverse-surface": "#f3ede9",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#ffdbd0",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#574500",
+                        "on-primary-fixed": "#3e0500",
+                        "on-primary": "#5a0d02",
+                        "on-surface": "#f3ede9",
+                        "on-secondary-container": "#fed3c7",
+                        "secondary-fixed": "#ffdbd0",
+                        "on-tertiary-container": "#e9c349",
+                        "on-secondary": "#442b22",
+                        "secondary-fixed-dim": "#e7bdb1",
+                        "on-background": "#f3ede9",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "primary-fixed": "#ffdad3",
+                        "background": "#141210",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "outline-variant": "#56423e",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary-fixed-variant": "#802918",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "surface-dim": "#1d1b19",
+                        "on-secondary-fixed": "#2c160e",
+                        "secondary": "#e7bdb1",
+                        "primary-container": "#e2725b",
+                        "inverse-on-surface": "#1d1b19",
+                        "surface-container-high": "#32302e",
+                        "outline": "#a08c89",
+                        "on-surface-variant": "#d8c2be",
+                        "surface": "#1d1b19",
+                        "surface-container-highest": "#3e3b39",
+                        "surface-container": "#282624",
+                        "surface-bright": "#44413f",
+                        "primary": "#ffb4a5",
+                        "on-primary-container": "#ffdad3",
+                        "surface-variant": "#56423e",
+                        "inverse-primary": "#9f402d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "xxl": "48px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Rubik"],
+                        "body-md": ["Rubik"],
+                        "body-lg": ["Rubik"],
+                        "label-sm": ["Rubik"],
+                        "display-lg": ["Rubik"],
+                        "label-lg": ["Rubik"],
+                        "title-lg": ["Rubik"],
+                        "headline-lg": ["Rubik"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                        "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Rubik', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            background: rgba(20, 18, 16, 0.8);
+        }
+        input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen overflow-hidden">
+<!-- Mock Background: Admin Dashboard (Blurred and Darkened) -->
+<div class="fixed inset-0 z-0 flex blur-md opacity-30 pointer-events-none">
+<!-- Predicted SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen w-64 bg-surface-container-high border-l border-outline-variant">
+<div class="p-lg">
+<div class="flex items-center gap-3 mb-xl">
+<img alt="Logo" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<div class="font-display-lg text-title-lg font-bold text-primary">Photo Santos</div>
+</div>
+<div class="space-y-sm">
+<div class="bg-secondary-container text-on-secondary-container rounded-xl px-4 py-3 flex flex-row-reverse items-center gap-3">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg">לוח בקרה</span>
+</div>
+<div class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-3">
+<span class="material-symbols-outlined">photo_library</span>
+<span class="font-label-lg">אירועים פעילים</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area Mock -->
+<main class="flex-1 p-margin-desktop space-y-lg">
+<header class="flex flex-row-reverse justify-between items-center h-16 border-b border-outline-variant">
+<div class="font-title-lg text-title-lg text-primary">גלויה</div>
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container"></div>
+<div class="w-10 h-10 rounded-full bg-surface-container"></div>
+</div>
+</header>
+<div class="grid grid-cols-3 gap-gutter">
+<div class="h-48 bg-surface-container rounded-xl"></div>
+<div class="h-48 bg-surface-container rounded-xl"></div>
+<div class="h-48 bg-surface-container rounded-xl"></div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay Container -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-margin-mobile md:p-margin-desktop glass-effect">
+<!-- Create New Event Modal Card -->
+<div class="bg-surface-container-low w-full max-w-2xl rounded-xl shadow-2xl border border-outline-variant overflow-hidden animate-in fade-in zoom-in duration-300">
+<!-- Modal Header -->
+<div class="px-xl py-lg border-b border-outline-variant flex flex-row-reverse justify-between items-center bg-surface-container-high">
+<div class="flex flex-col items-end">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">אירוע חדש</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">הזן פרטים ליצירת גלריה חכמה עבור Photo Santos</p>
+</div>
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body / Form -->
+<form class="p-xl space-y-xl">
+<!-- Event Name Field -->
+<div class="space-y-xs">
+<label class="block text-right font-label-lg text-on-surface-variant" for="event_name">שם האירוע</label>
+<div class="relative">
+<input class="w-full h-12 bg-surface-container border border-outline rounded-lg px-4 text-right font-body-lg focus:border-2 focus:border-primary-container focus:ring-0 transition-all text-on-surface placeholder:text-outline" id="event_name" placeholder="למשל: חתונת יוסי ודנה" type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline">celebration</span>
+</div>
+</div>
+<!-- Date and Location Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Date Field -->
+<div class="space-y-xs">
+<label class="block text-right font-label-lg text-on-surface-variant" for="event_date">תאריך האירוע</label>
+<div class="relative">
+<input class="w-full h-12 bg-surface-container border border-outline rounded-lg px-4 text-right font-body-lg focus:border-2 focus:border-primary-container focus:ring-0 transition-all text-on-surface" id="event_date" type="date"/>
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline">calendar_today</span>
+</div>
+</div>
+<!-- Location Field -->
+<div class="space-y-xs">
+<label class="block text-right font-label-lg text-on-surface-variant" for="event_location">מיקום</label>
+<div class="relative">
+<input class="w-full h-12 bg-surface-container border border-outline rounded-lg px-4 text-right font-body-lg focus:border-2 focus:border-primary-container focus:ring-0 transition-all text-on-surface placeholder:text-outline" id="event_location" placeholder="שם האולם או העיר" type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-3 text-outline">location_on</span>
+</div>
+</div>
+</div>
+<!-- Aesthetic Divider -->
+<div class="pt-md">
+<div class="border-t border-dashed border-outline-variant flex justify-center -mt-px">
+<span class="bg-surface-container-low px-4 -mt-3 text-outline font-label-sm">אפשרויות נוספות</span>
+</div>
+</div>
+<!-- Dynamic Preview Card (Simulated) -->
+<div class="bg-surface-container-highest rounded-xl p-md flex flex-row-reverse items-center gap-md border border-outline-variant/30">
+<div class="w-16 h-16 bg-white rounded-lg flex items-center justify-center border border-outline-variant overflow-hidden">
+<img alt="QR Preview" class="w-12 h-12 opacity-80 mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqujHj2EZfNigusOTeqzCkqvfoV-9dkenRHw_Kl1aMKrK-fLUuRNEwGtiFwecyXFunxcCdUz0dIFR2IkZ24jmne3FqfDgz9xdIxh4do1Yturk2RAzOpktdCEZbkBbTk4JyrMAtgbu0CujBnY6MwgQtHRp7nJ3YxBaQ5eh7j4YQaHzuy4QywzPI34G8bfphUEewA_ED4NRv-fPhnTfQ2JQGzFM81WZOSHLNY10l6ZEE1l98Ug64p8NCPMNcHt7coJrhzeeaSce9p6y2"/>
+</div>
+<div class="flex-1 text-right">
+<div class="font-label-lg text-primary">הפקת ברקוד אוטומטית</div>
+<div class="font-label-sm text-on-surface-variant">לאחר היצירה יופק דף נחיתה וברקוד לסריקה עבור האורחים.</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col md:flex-row-reverse gap-md pt-lg">
+<button class="flex-1 bg-primary-container hover:bg-opacity-90 text-on-primary-container h-14 rounded-xl font-title-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg" type="submit">
+<span>הפקה גלריה וברקוד</span>
+<span class="material-symbols-outlined">qr_code_2</span>
+</button>
+<button class="px-xl h-14 border border-outline text-on-surface hover:bg-surface-variant rounded-xl font-label-lg transition-all active:scale-[0.98]" type="button">
+                        ביטול
+                    </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Background Decorative Elements -->
+<div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 rounded-full blur-[120px]"></div>
+<div class="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/15 rounded-full blur-[120px]"></div>
+</div>
+<script>
+        // Simple Interaction logic
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> <span>מעבד נתונים...</span>';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> <span>הושלם בהצלחה</span>';
+                btn.classList.replace('bg-primary-container', 'bg-green-600');
+                btn.classList.replace('text-on-primary-container', 'text-white');
+            }, 1500);
+        });
+
+        // Close logic
+        document.querySelectorAll('button').forEach(btn => {
+            if (btn.textContent.includes('ביטול') || btn.querySelector('.material-symbols-outlined')?.textContent === 'close') {
+                btn.addEventListener('click', () => {
+                    const modalOverlay = document.querySelector('.glass-effect');
+                    modalOverlay.classList.add('opacity-0', 'pointer-events-none');
+                    modalOverlay.classList.remove('flex');
+                    modalOverlay.style.transition = 'opacity 0.3s ease';
+                });
+            }
+        });
+    </script>
+</body></html>

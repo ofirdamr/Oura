@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura - כניסת אורחים</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffe088",
+                    "on-surface-variant": "#56423e",
+                    "surface-tint": "#9f402d",
+                    "primary-fixed-dim": "#ffb4a5",
+                    "surface-container-highest": "#e7e1de",
+                    "outline-variant": "#ddc0ba",
+                    "on-background": "#fef8f4",
+                    "secondary": "#77574d",
+                    "inverse-surface": "#32302e",
+                    "secondary-fixed-dim": "#e7bdb1",
+                    "primary": "#9f402d",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#802918",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#2c2a28",
+                    "surface-variant": "#e7e1de",
+                    "background": "#1d1b19",
+                    "outline": "#89726d",
+                    "tertiary": "#735c00",
+                    "surface-container-lowest": "#151311",
+                    "error": "#ba1a1a",
+                    "surface": "#1d1b19",
+                    "on-error": "#ffffff",
+                    "inverse-on-surface": "#f5f0ec",
+                    "secondary-fixed": "#ffdbd0",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#ffdad3",
+                    "surface-container-high": "#3d3b39",
+                    "on-surface": "#fef8f4",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#795950",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#2c160e",
+                    "on-secondary-fixed-variant": "#5d4037",
+                    "primary-container": "#e2725b",
+                    "surface-container-low": "#23211f",
+                    "inverse-primary": "#ffb4a5",
+                    "on-primary-fixed": "#3e0500",
+                    "on-tertiary-fixed": "#241a00",
+                    "surface-dim": "#151311",
+                    "secondary-container": "#fed3c7",
+                    "on-tertiary-container": "#4e3d00",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "surface-bright": "#2c2a28",
+                    "on-primary-container": "#5a0d02",
+                    "tertiary-container": "#cca72f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "sm": "8px",
+                    "margin-desktop": "32px",
+                    "margin-mobile": "16px",
+                    "xs": "4px",
+                    "xxl": "48px",
+                    "gutter": "16px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Rubik"],
+                    "headline-lg-mobile": ["Rubik"],
+                    "label-sm": ["Rubik"],
+                    "title-lg": ["Rubik"],
+                    "headline-lg": ["Rubik"],
+                    "body-md": ["Rubik"],
+                    "body-lg": ["Rubik"],
+                    "label-lg": ["Rubik"]
+            },
+            "fontSize": {
+                    "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                    "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #1d1b19;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .qr-scanner-overlay {
+            background: linear-gradient(rgba(159, 64, 45, 0.05) 0%, rgba(159, 64, 45, 0.05) 100%);
+            border: 2px solid rgba(226, 114, 91, 0.2);
+            position: relative;
+        }
+        .qr-scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #e2725b;
+            top: 0;
+            left: 0;
+            box-shadow: 0 0 15px #e2725b;
+            animation: scan 3s infinite ease-in-out;
+        }
+        @keyframes scan {
+            0%, 100% { top: 5%; }
+            50% { top: 95%; }
+        }
+        .glass-card {
+            background: rgba(44, 42, 40, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(221, 192, 186, 0.1);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at center, rgba(159, 64, 45, 0.15) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-on-background overflow-x-hidden" data-purpose="Oura_Final_Production_Gallery_Entry_Mobile">
+<!-- Ambient Atmospheric Background -->
+<div class="fixed inset-0 z-0 pointer-events-none hero-gradient"></div>
+<!-- Main Content Container -->
+<main class="relative z-10 flex flex-col items-center justify-center min-h-screen p-margin-mobile">
+<!-- Brand Logo Area -->
+<header class="mb-xl animate-in fade-in slide-in-from-top duration-700">
+<img alt="Oura Logo" class="h-20 w-20 object-contain rounded-xl shadow-2xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+</header>
+<!-- Welcome Message -->
+<section class="text-center mb-xl max-w-lg px-xs">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-sm">ברוכים הבאים ל-Oura</h1>
+<p class="font-body-md text-outline-variant leading-relaxed">
+            הזיכרונות שלכם כבר כאן. השתמשו בקוד האישי או סרקו את ה-QR כדי לצפות בגלריה המותאמת עבורכם.
+        </p>
+<div class="mt-lg flex flex-wrap items-center justify-center gap-x-md gap-y-sm text-outline-variant/90">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">info</span>
+<p class="text-label-sm font-medium">המערכת תזהה אתכם בתמונות באופן אוטומטי</p>
+</div>
+<span class="hidden md:inline text-outline-variant/30">|</span>
+<button class="flex items-center gap-xs text-primary-fixed-dim hover:text-primary transition-colors underline underline-offset-4 font-label-lg" onclick="document.getElementById('how-it-works-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span>איך זה עובד?</span>
+</button>
+</div>
+</section>
+<!-- Dynamic Entry Interface -->
+<div class="w-full max-w-sm space-y-md">
+<!-- QR Scanner Visual Interface -->
+<div class="glass-card rounded-2xl p-lg shadow-2xl relative overflow-hidden border border-white/5">
+<div class="flex flex-col items-center gap-md">
+<div class="relative w-48 h-48 qr-scanner-overlay rounded-xl overflow-hidden">
+<!-- Scanner Visuals -->
+<div class="qr-scanner-line"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-20">
+<span class="material-symbols-outlined text-[100px] text-on-surface">qr_code_2</span>
+</div>
+<!-- Corner Accents -->
+<div class="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-primary-container/60 rounded-tr-sm"></div>
+<div class="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-primary-container/60 rounded-tl-sm"></div>
+<div class="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-primary-container/60 rounded-br-sm"></div>
+<div class="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-primary-container/60 rounded-bl-sm"></div>
+</div>
+<button class="w-full h-14 bg-primary hover:bg-primary-container text-on-primary font-bold text-label-lg rounded-xl transition-all duration-300 flex items-center justify-center gap-sm active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">photo_camera</span>
+                    הפעל מצלמה לסריקה
+                </button>
+</div>
+</div>
+<!-- Divider -->
+<div class="flex items-center gap-md px-xl">
+<div class="h-px flex-1 bg-outline-variant/10"></div>
+<span class="font-label-sm text-outline-variant/60 uppercase tracking-[0.2em]">או</span>
+<div class="h-px flex-1 bg-outline-variant/10"></div>
+</div>
+<!-- Manual Code Input -->
+<div class="glass-card rounded-2xl p-lg shadow-xl border border-white/5">
+<div class="space-y-md">
+<label class="block font-label-lg text-primary-fixed-dim text-right pr-1" for="event-code">
+                    הכנס קוד אירוע ידנית
+                </label>
+<div class="relative group">
+<input class="w-full bg-surface-container-lowest border border-outline/30 text-on-background h-14 px-md rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-center tracking-widest font-bold text-lg placeholder:font-normal placeholder:tracking-normal placeholder:text-outline-variant/40" id="event-code" placeholder="לדוגמה: WED-2024" type="text"/>
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant/50 group-focus-within:text-primary transition-colors">key</span>
+</div>
+<button class="w-full h-14 border border-outline/20 hover:bg-white/5 text-on-surface font-bold text-label-lg rounded-xl transition-all duration-300 active:scale-95" onclick="window.location.href='#gallery'">
+                    כניסה לגלריה
+                </button>
+</div>
+</div>
+</div>
+<!-- Footer / Support -->
+<footer class="mt-auto py-xl text-center">
+<p class="font-label-sm text-outline-variant/50 flex items-center justify-center gap-xs">
+            נתקלתם בבעיה? 
+            <a class="text-primary-fixed-dim underline underline-offset-4 hover:text-primary transition-colors" href="#">מרכז הסיוע שלנו</a> 
+            זמין עבורכם
+        </p>
+</footer>
+</main>
+<!-- Decorative Background Gradients -->
+<div class="fixed top-0 left-0 right-0 h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none z-0"></div>
+<div class="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-0"></div>
+<!-- How It Works Modal -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-margin-mobile animate-in fade-in duration-300 hidden" id="how-it-works-modal">
+<div class="absolute inset-0 bg-black/90 backdrop-blur-md" onclick="document.getElementById('how-it-works-modal').classList.add('hidden')"></div>
+<div class="glass-card relative w-full max-w-md rounded-3xl p-xl shadow-2xl border border-white/10 animate-in zoom-in-95 duration-300">
+<button class="absolute top-4 left-4 p-2 text-outline-variant hover:text-white transition-colors" onclick="document.getElementById('how-it-works-modal').classList.add('hidden')">
+<span class="material-symbols-outlined">close</span>
+</button>
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg-mobile text-on-surface mb-xs">איך זה עובד?</h2>
+<p class="font-body-md text-outline-variant">3 שלבים פשוטים לגישה לתמונות שלכם</p>
+</div>
+<div class="space-y-lg mb-xl">
+<div class="flex items-start gap-md">
+<div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary">qr_code_scanner</span>
+</div>
+<div class="text-right">
+<h3 class="font-bold text-on-surface">סריקה מהירה</h3>
+<p class="font-body-md text-outline-variant/80">סרקו את ה-QR באירוע או הזינו את הקוד האישי שקיבלתם.</p>
+</div>
+</div>
+<div class="flex items-start gap-md">
+<div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary">face_6</span>
+</div>
+<div class="text-right">
+<h3 class="font-bold text-on-surface">זיהוי חכם</h3>
+<p class="font-body-md text-outline-variant/80">אלגוריתם ה-AI שלנו יסרוק את כלל התמונות ויזהה אתכם אוטומטית.</p>
+</div>
+</div>
+<div class="flex items-start gap-md">
+<div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+<span class="material-symbols-outlined text-primary">auto_awesome_motion</span>
+</div>
+<div class="text-right">
+<h3 class="font-bold text-on-surface">גלריה אישית</h3>
+<p class="font-body-md text-outline-variant/80">קבלו את כל הרגעים שלכם מרוכזים בגלריה פרטית ומעוצבת.</p>
+</div>
+</div>
+</div>
+<button class="w-full h-14 bg-on-surface text-background font-bold rounded-xl transition-all active:scale-95" onclick="document.getElementById('how-it-works-modal').classList.add('hidden')">
+            הבנתי, תודה
+        </button>
+</div>
+</div>
+<script>
+    // Camera trigger simulation
+    const cameraBtn = document.querySelector('button.bg-primary');
+    if (cameraBtn) {
+        cameraBtn.addEventListener('click', function() {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> מתחבר למצלמה...';
+            this.disabled = true;
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 1500);
+        });
+    }
+
+    // Input focus styling
+    const inputField = document.getElementById('event-code');
+    if (inputField) {
+        inputField.addEventListener('focus', () => {
+            inputField.closest('.glass-card').classList.add('ring-1', 'ring-primary/20');
+        });
+        inputField.addEventListener('blur', () => {
+            inputField.closest('.glass-card').classList.remove('ring-1', 'ring-primary/20');
+        });
+    }
+</script>
+</body></html>

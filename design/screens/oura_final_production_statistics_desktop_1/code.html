@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&amp;family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Hanken Grotesk', 'Rubik', sans-serif;
+            background-color: #0e0e0e;
+            color: #e2e2e8;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: #1c1b1b;
+            border: 1px solid #333333;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: #ff8a75;
+            background: #252424;
+        }
+        .terracotta-glow {
+            box-shadow: 0 0 20px rgba(255, 138, 117, 0.15);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0e0e0e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff8a75;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ff8a75",
+                        "primary-container": "#ff8a75",
+                        "on-primary-container": "#131313",
+                        "surface": "#131313",
+                        "surface-container-high": "#1c1b1b",
+                        "surface-container-highest": "#333333",
+                        "outline-variant": "#333333",
+                        "on-surface": "#e2e2e8",
+                        "on-surface-variant": "#a1a1a1",
+                        "border-subtle": "#333333",
+                        "background": "#0e0e0e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "container-max-width": "1200px",
+                        "stack-lg": "48px",
+                        "stack-md": "24px",
+                        "stack-sm": "8px"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="dark bg-background text-on-surface">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen fixed right-0 top-0 border-l border-outline-variant bg-surface w-64 z-50">
+<div class="p-6 mb-4 flex flex-col items-center text-center">
+<div class="w-20 h-20 mb-4 rounded-full overflow-hidden border-2 border-primary/20 p-1">
+<img alt="Oura Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtthmGBbN96JQH52DSf0bIaFpks-uGVIS__Hpw1yyXQ6z3eytWcgLl62ZvdXICv-KuBYOP29AgoAxWcdncBnUaBtI3X8470NXKtdUaRaQxe6l0URa-FQ7DAG5uhPQGfIL1pBbITzEH80XnBrtBdslu8LtUQ13E3S6vr4i6832mK8BBX2ua8HWxGvzMsv7Cvj9BDiK27M6osLGV8gMUteZ68bgWRGAv7IK4-epWNMc5iM1hIzxhx7GJsQJ9rRDfSdfxMV_asiffdFLX"/>
+</div>
+<h1 class="text-2xl font-bold text-primary tracking-tight">Oura</h1>
+<div class="mt-4 flex flex-col items-center gap-2">
+<img alt="Photo Santos" class="h-8 object-contain opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0_MybDOFJzEHA2cKOaZs69rFIhZgf4mxea-hHsNBN4uHapQ-ItMA7OodZqv95QqO0enaE0sBN5uVTWAd9VVDpfP-QfbdtBjo2YrvbSbpVUYlSsTX8RguaUufRl7tlaKIIH3CLPplGepPdYv_raZnTNINpObP3Ch6lN2whcV_n4FJazHUoUqYoFStXt5XdbCJEG0ereoZ8EU4i4xEMn9h8MtERLpbgqrNKD3r0VDIsrpIKpZSJXInNfTuupVyLGpB3WMwaOxZo1s7r"/>
+<p class="text-xs font-medium text-on-surface-variant uppercase tracking-widest">Photo Santos studio</p>
+</div>
+</div>
+<nav class="flex-grow space-y-1 px-3">
+<a class="text-on-surface-variant hover:text-primary px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-medium">לוח בקרה</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="photo_library">photo_library</span>
+<span class="font-medium">אירועים פעילים</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-medium">ארכיון</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-medium">לקוחות</span>
+</a>
+<a class="bg-primary text-on-primary-container px-4 py-3 flex flex-row-reverse items-center gap-3 rounded-lg terracotta-glow" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-bold">סטטיסטיקה</span>
+</a>
+</nav>
+<div class="p-4 space-y-2 border-t border-outline-variant">
+<button class="w-full bg-primary text-on-primary-container py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                אירוע חדש
+            </button>
+<a class="flex flex-row-reverse items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+<span>עזרה</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-red-400 transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="logout">logout</span>
+<span>התנתקות</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:pr-64 min-h-screen pb-20 md:pb-10 bg-background">
+<!-- TopNavBar -->
+<header class="flex flex-row-reverse justify-between items-center px-6 md:px-10 w-full h-16 bg-surface border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-6">
+<div class="hidden md:flex flex-row-reverse items-center gap-8">
+<a class="font-medium text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">גלריה</a>
+<a class="font-medium text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">אירועים</a>
+<a class="font-bold text-sm text-primary border-b-2 border-primary pb-1" href="#">הגדרות</a>
+</div>
+<button class="bg-primary text-on-primary-container px-4 py-1.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity">העלאת תמונות</button>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" data-icon="search">search</span>
+<input class="bg-surface-container-high border border-outline-variant rounded-full py-1.5 pr-10 pl-4 text-sm focus:ring-1 focus:ring-primary focus:outline-none w-64 text-on-surface" placeholder="חיפוש אירועים..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary" data-icon="notifications">notifications</span>
+<div class="w-9 h-9 rounded-full bg-primary-container overflow-hidden border border-primary/30">
+<img alt="פרופיל" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEpCNQ-6hql_mTGthYg2dk2dyXTVvCgEpdZsYAEzChLbNy50Y1WaWsGjNyDcGk48hbHZvYuHly-z1c72tPhVdaNdEQbCn4my1n8O5YU6Gd7X__YOUCBk2qBMErGfospvMd4WhchC8hb_oMBw5xuXRnYuwrGR5IvudF3-o7GT7u3fHX48QGRBpIvlmuvAv9hCbhxjZBRi-Ddwc5-IDxRZKoF_BU5fLwT7vVMwLo29EBS_mpr78YwlkWEKsQcgKUS0xYDKUv6UEdg1bq"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="px-6 md:px-10 py-8 max-w-container-max-width mx-auto">
+<!-- Page Header -->
+<div class="mb-10 text-right">
+<h2 class="text-3xl font-bold mb-2 tracking-tight">Oura Analytics Dashboard</h2>
+<p class="text-on-surface-variant font-medium">סקירה מקיפה של פעילות הגלריות והמעורבות של האורחים שלך.</p>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- KPI 1 -->
+<div class="glass-panel p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded" data-icon="event_available">event_available</span>
+<span class="text-green-400 text-xs font-bold flex items-center gap-1">+12% <span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span></span>
+</div>
+<div>
+<div class="text-on-surface-variant text-sm font-medium mb-1">סה"כ אירועים</div>
+<div class="text-4xl font-bold text-on-surface">142</div>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="glass-panel p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-green-400 text-xs font-bold flex items-center gap-1">+8% <span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span></span>
+</div>
+<div>
+<div class="text-on-surface-variant text-sm font-medium mb-1">תמונות שעובדו ב-AI</div>
+<div class="text-4xl font-bold text-on-surface">45,203</div>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="glass-panel p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded" data-icon="visibility">visibility</span>
+<span class="text-green-400 text-xs font-bold flex items-center gap-1">+24% <span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span></span>
+</div>
+<div>
+<div class="text-on-surface-variant text-sm font-medium mb-1">צפיות אורחים</div>
+<div class="text-4xl font-bold text-on-surface">12.5k</div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="glass-panel p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded" data-icon="download">download</span>
+<span class="text-on-surface-variant text-xs font-bold flex items-center gap-1">0% <span class="material-symbols-outlined text-xs" data-icon="horizontal_rule">horizontal_rule</span></span>
+</div>
+<div>
+<div class="text-on-surface-variant text-sm font-medium mb-1">הורדות תמונות</div>
+<div class="text-4xl font-bold text-on-surface">3,892</div>
+</div>
+</div>
+</div>
+<!-- Chart & AI Efficiency Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<!-- Engagement Chart -->
+<div class="lg:col-span-2 glass-panel p-8">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-xl font-bold">מעורבות אורחים</h3>
+<select class="bg-surface-container-highest border-none text-xs font-bold rounded px-4 py-2 text-on-surface focus:ring-1 focus:ring-primary">
+<option>30 ימים אחרונים</option>
+<option>90 ימים אחרונים</option>
+<option>שנה אחרונה</option>
+</select>
+</div>
+<div class="h-64 flex items-end justify-between gap-4 px-2 relative border-b border-outline-variant">
+<div class="absolute inset-0 flex flex-col justify-between opacity-5 pointer-events-none">
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+</div>
+<div class="w-full flex items-end justify-around gap-2 h-full z-10">
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[40%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[20%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">א'</span>
+</div>
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[60%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[45%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">ב'</span>
+</div>
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[55%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[30%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">ג'</span>
+</div>
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[85%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[65%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">ד'</span>
+</div>
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[70%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[50%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">ה'</span>
+</div>
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[30%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[15%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">ו'</span>
+</div>
+<div class="flex flex-col items-center gap-3 group cursor-pointer w-full max-w-[40px]">
+<div class="w-full bg-primary/20 rounded-t h-[20%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-full bg-primary rounded-t h-[10%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[11px] font-bold text-on-surface-variant mt-2">ש'</span>
+</div>
+</div>
+</div>
+<div class="mt-8 flex gap-8 justify-center text-xs font-bold uppercase tracking-wider">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary/30 rounded-full"></div>
+<span>צפיות</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary rounded-full"></div>
+<span>הורדות</span>
+</div>
+</div>
+</div>
+<!-- AI Efficiency Card -->
+<div class="glass-panel p-8 flex flex-col">
+<h3 class="text-xl font-bold mb-8">יעילות AI</h3>
+<div class="flex-grow flex flex-col justify-between space-y-6">
+<div>
+<div class="flex justify-between text-sm font-bold mb-3">
+<span>זיהוי פנים</span>
+<span class="text-primary">98.2%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 98.2%"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="text-center p-4 bg-background rounded border border-outline-variant">
+<div class="text-primary font-bold text-2xl">12.4k</div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">פנים שזוהו</div>
+</div>
+<div class="text-center p-4 bg-background rounded border border-outline-variant">
+<div class="text-primary font-bold text-2xl">842</div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">שעות שנחסכו</div>
+</div>
+</div>
+<div class="bg-primary/5 p-4 rounded border border-primary/10 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+<p class="text-xs text-on-surface-variant leading-relaxed">מנוע ה-AI הצליח להקטין את גודל הקבצים ב-35% ללא פגיעה באיכות.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Events Table & Popular Photos -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Top Performing Events -->
+<div class="lg:col-span-2 glass-panel overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-high/30">
+<h3 class="text-lg font-bold">אירועים מובילים</h3>
+<button class="text-primary text-xs font-bold hover:underline">הצג הכל</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4">שם האירוע</th>
+<th class="px-6 py-4">תאריך</th>
+<th class="px-6 py-4 text-center">צפיות</th>
+<th class="px-6 py-4 text-center">הורדות</th>
+<th class="px-6 py-4 text-left">סטטוס</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container-highest overflow-hidden">
+<img alt="חתונה" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu3x0W7mMLHzc6codW-oXrKsMEo1irSslRX5NwM3SXQeiy-4esQMtwR4qcTEzoKm6DenjN_46Cf8sL6S61FxlgYYV6M3Re8fbuIsb03JAU6J7qNc7vNc8jbS7FgnHn5IiIXbi_mTRG7FrU8NZ8yePHNhZfYgKwzVmkbEXboXFf9Z4-_GNEHAVAT7YkZkRYEovyHF5FZxzNzjEElTTpneWmHQ70wxnY2AYnftuPFpv90BoQ3cvateMO0YEz4viaTnC0ZuMFzlgY2I5m"/>
+</div>
+<span class="font-bold text-sm">חתונת קיץ - לוי</span>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant text-sm font-medium">15.08.23</td>
+<td class="px-6 py-4 text-sm font-bold text-center">1,240</td>
+<td class="px-6 py-4 text-sm font-bold text-center">420</td>
+<td class="px-6 py-4 text-left">
+<span class="bg-green-400/10 text-green-400 px-2 py-1 rounded text-[10px] font-bold">מעורבות גבוהה</span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container-highest overflow-hidden">
+<img alt="אירוע" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtWlRmK87K1LwrgKHGUv4rekEv5OxuqncTI460EmngphLbYJUcavJ1m0ArYsTfS2eBYjFE3ApaIF6vaZxhKbvQkRdcU8Ghvy9bSSJ4WLUBDcJG-UkqWB4euRyn_CWZVRAd0qJvm9ieOJxfsHHopUXQn-HYRqp6CmWyNX-fAGVYjmslPdn-bIxZLhDt_WpsszqufEtIa6rVDmu8569gaCbCFu0aF7pBGtj7BGfJbPec_qiGd4y4KNK61G3-nVPAOYjuVmDA9GoPr7wj"/>
+</div>
+<span class="font-bold text-sm">כנס טכנולוגי - Microsoft</span>
+</div>
+</td>
+<td class="px-6 py-4 text-on-surface-variant text-sm font-medium">22.08.23</td>
+<td class="px-6 py-4 text-sm font-bold text-center">980</td>
+<td class="px-6 py-4 text-sm font-bold text-center">150</td>
+<td class="px-6 py-4 text-left">
+<span class="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-bold">בינונית</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Popular Photos Section -->
+<div class="glass-panel p-6">
+<h3 class="text-lg font-bold mb-6">תמונות פופולריות</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="relative aspect-square rounded overflow-hidden group border border-outline-variant">
+<img alt="פופולרי" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPryfbdjnsuMqsEqAaSZXd-EXlOcItUWHxCGL3T2ADlAkgOWS5pQrcnzUAkI9uy1u0n9DipeOtiBD5YJ8nJMhDKBrTUex1N4kC5zBUaiI9TXzWgKLxEY9BZYn0u8F52ZXDX2KXe_rsFDe_Ok7h0kpdhl7dAVMgyzlHW_fBwsUid097y2HAYqgJ4DLxfRGlAuYwK4DlitpyOq20k7VIEKYywP-kyaXAj3Y9wDkJjKuOIv2icqiFHxVPerwmiu8Z6up0Yy8PJ-KHXrh1"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="favorite">favorite</span>
+<span class="text-white text-xs font-bold">242</span>
+</div>
+</div>
+<div class="relative aspect-square rounded overflow-hidden group border border-outline-variant">
+<img alt="פופולרי" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhq5xlB-m1BFIOuFLxVlp-_4T-LvaeC-v2WJkgAGfS9SXqIDT2QNA7cwBVoXWgfhbl3sqsunnD2zthcb36s5SdEMJjckNJJ1YTObkKa6aEBnw4Uje7IP_ETrhRmbrtKdFjXTgFRArXusSMtN471dAP6NFoXoT4IK_d5qvEhCdw7UZ__zimu7YD0VYtKy1Y0Sj6T8fuTR3XN4RmaWs0k0kXRU_pw_BLWaBWZnOoqoPgXeKBBr22Lm33jkQdk-kVjeVW7eIr6GYgS8xu"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="favorite">favorite</span>
+<span class="text-white text-xs font-bold">185</span>
+</div>
+</div>
+<div class="relative aspect-square rounded overflow-hidden group border border-outline-variant">
+<img alt="פופולרי" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCClWBroTfD_GpWKI-H2C8vytDjNZOdDRCwV_jyUqOe0JBPSGV7PRVdu862dY7fMJosTlMhti58tT3uOaXhtWGG5tSoVNbcJmSQu4qMJhR0oNWGqsuWeI4LIMNoqfTYhJHJGiPsR8MK5vqltKdDsK_9GcnjKdTD5P_BB1Sva7q77DUHnB0V_VRhx2JL3x1C0KLTUHQC-qLjK-u6FauVg4jkZWGMZlmLrd4xpSrxckFx573YYS1WA1CahphLF3WqeIZgJm6t-Not40Cx"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="favorite">favorite</span>
+<span class="text-white text-xs font-bold">156</span>
+</div>
+</div>
+<div class="relative aspect-square rounded overflow-hidden border border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-high transition-colors group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="image">image</span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">ראה עוד</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 bg-surface/90 backdrop-blur-lg border-t border-outline-variant shadow-2xl rounded-t-xl">
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-bold mt-1">בית</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="text-[10px] font-bold mt-1">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-bold mt-1">סטטיסטיקה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-bold mt-1">פרופיל</span>
+</a>
+</nav>
+<script>
+        // Smooth entry animations for stats
+        document.addEventListener('DOMContentLoaded', () => {
+            const panels = document.querySelectorAll('.glass-panel');
+            panels.forEach((panel, i) => {
+                panel.style.opacity = '0';
+                panel.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    panel.style.transition = 'all 0.5s ease-out';
+                    panel.style.opacity = '1';
+                    panel.style.transform = 'translateY(0)';
+                }, i * 100);
+            });
+        });
+    </script>
+</body></html>

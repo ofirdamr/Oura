@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#CF6679",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-primary": "#601308",
+                    "success": "#4CAF50",
+                    "on-primary-fixed-variant": "#7f291c",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed": "#002019",
+                    "tertiary": "#51dcba",
+                    "inverse-primary": "#9f4030",
+                    "background": "#131313",
+                    "surface-variant": "#353534",
+                    "inverse-surface": "#e5e2e1",
+                    "on-secondary-fixed": "#1b1b1c",
+                    "on-primary-container": "#752215",
+                    "surface-dim": "#131313",
+                    "surface": "#131313",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#dcc0bb",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "surface-container": "#201f1f",
+                    "on-surface": "#e5e2e1",
+                    "tertiary-container": "#29c09f",
+                    "tertiary-fixed": "#72f9d5",
+                    "primary": "#ffb4a6",
+                    "surface-container-low": "#1c1b1b",
+                    "surface-high": "#2D2D2D",
+                    "outline-variant": "#56423e",
+                    "on-secondary-container": "#b7b5b4",
+                    "primary-fixed": "#ffdad4",
+                    "surface-bright": "#393939",
+                    "on-primary-fixed": "#3f0300",
+                    "primary-fixed-dim": "#ffb4a6",
+                    "secondary-container": "#474746",
+                    "on-secondary": "#303030",
+                    "on-background": "#FFFFFF",
+                    "tertiary-fixed-dim": "#51dcba",
+                    "secondary": "#c8c6c5",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-tertiary-container": "#00493a",
+                    "outline": "#a48b87",
+                    "on-tertiary": "#00382c",
+                    "surface-container-high": "#2a2a2a",
+                    "inverse-on-surface": "#313030",
+                    "surface-tint": "#ffb4a6",
+                    "primary-container": "#ff8a75",
+                    "surface-container-highest": "#353534",
+                    "on-tertiary-fixed-variant": "#005141",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed": "#e5e2e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "stack-sm": "16px",
+                    "stack-lg": "64px",
+                    "margin-desktop": "80px",
+                    "base": "8px",
+                    "margin-mobile": "24px",
+                    "stack-md": "32px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-md-mobile": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "label-sm": ["Rubik"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        main {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-container selection:text-on-primary min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="bg-surface-container fixed top-0 w-full z-50 flex flex-row-reverse justify-between items-center px-margin-mobile h-16 border-b border-outline/20">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline/30">
+<img alt="Oura - פוטו סנטוס" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ6W3aoONJKg4JUYgB_PH1K1Ay6SjWBdfdtAHXM7VcGIV9BsR586QtFAukeTgitODiSgBR7vpPuBfab59qzGwYrdKLgxDfYtdbhiRVq6Yt8UzKzDEa38c8CfTOmDYV_i71opBGw_msbOpbuR8ax5IpfDTABLW50UclXTY1DnXdoKQdzkVXr49VGnQTai10cMsFwK1fEVt56L-3TeDaCZ5HPfnxJUNYA9UCZClfDzD45YOoVdXHoWCw6vegmbTAuE44rzdV7EZawaEh"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZ4GlYXrOB1BvRrmVFR6SxN4ETPZSayI5w1xg9gtYAoqeQ1UbbyLVLhA1ZRbXuTWLw_tU7BLhqNGgX9ifpa5LaJLs8Ij27kFotcc0dNSBIxjnj9431XMA9Rp3Y7aBdOapoU0_DI8SqPM2btWmqmEDmFvGFUUB4cdebxPMOfBiZ45LtPyVe6ZF15WBWWykvsg9ZafRQaR46sUn3RLH6WYleVhLQIod4h9ojSl_-ZeFAUknMVXMHKTcUeSNnhCC2XNXjAWmvHB7HgRPG"/>
+<span class="font-display-lg text-xl tracking-tight text-primary">Oura</span>
+</div>
+<button class="material-symbols-outlined text-primary" data-icon="menu">menu</button>
+</header>
+<main class="pt-20 pb-24 px-margin-mobile min-h-screen space-y-stack-sm max-w-full overflow-x-hidden">
+<!-- Studio Label -->
+<div class="flex flex-row-reverse items-center justify-between mb-2">
+<span class="text-on-surface-variant font-label-sm">סטודיו: פוטו סנטוס</span>
+</div>
+<!-- Summary Stats Section -->
+<section class="grid grid-cols-2 gap-base w-full">
+<div class="bg-surface-container-high border border-outline/10 rounded-xl p-4 flex flex-col justify-between">
+<span class="font-label-sm text-on-surface-variant">אירועים פעילים</span>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-bold text-primary">12</span>
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="event_available">event_available</span>
+</div>
+</div>
+<div class="bg-surface-container-high border border-outline/10 rounded-xl p-4 flex flex-col justify-between">
+<span class="font-label-sm text-on-surface-variant">סה"כ הורדות</span>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-bold text-tertiary">1.4k</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="download">download</span>
+</div>
+</div>
+</section>
+<!-- Search Bar -->
+<div class="relative w-full">
+<input class="w-full bg-surface-container-high border border-outline/20 rounded-xl py-3 pr-4 pl-12 text-on-surface text-right placeholder-on-surface-variant font-body-lg focus:ring-2 focus:ring-primary-container focus:border-transparent outline-none transition-all" placeholder="חיפוש אירוע..." type="text"/>
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+</div>
+<!-- Create New Event Large Card -->
+<button class="w-full bg-primary-container text-on-primary rounded-xl p-6 flex flex-row-reverse items-center justify-between shadow-lg active:scale-[0.98] transition-transform duration-150">
+<div class="text-right">
+<h2 class="text-xl font-bold">יצירת אירוע חדש</h2>
+<p class="text-sm opacity-90">העלאת גלריה והפצת QR בשניות</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-on-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</div>
+</button>
+<!-- Event List -->
+<div class="space-y-4 w-full">
+<h3 class="font-label-sm mr-1 text-on-surface-variant uppercase tracking-wider">אירועים אחרונים</h3>
+<!-- Event Card 1 -->
+<div class="bg-surface-container border border-outline/10 rounded-xl p-4 flex flex-row-reverse gap-4 overflow-hidden relative active:bg-surface-container-high transition-colors">
+<div class="w-24 h-24 rounded-lg bg-white p-1 flex-shrink-0 relative">
+<img alt="QR Code" class="w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3kdUB0mrFa4L70XYFsy8wcNACMQz-Ba4_o9GpQn_jor5X5utgH6Vx5wUlm5crNuc9Ba5sUTrCp4zcKdVVCMfrqwXuPdwqDngH7o99GjZvkvpkuWA7OE7bc4c-aGx0cVFJNdrprY0dtgKccFBqEE3WJu83eUwbCyTsCEp3_bqMVcWbFpn0F-V80b1cPv_pe3ybMiUiK7OBsW-zZdRsjt9auTrGkSgQ8WdB1t0ADUwAI-6mIH6xY2FXo7o8OF9JpFnPjBNYmtDQbdYM"/>
+</div>
+<div class="flex-grow flex flex-col justify-between text-right">
+<div>
+<h4 class="text-lg font-bold text-primary leading-tight">חתונה - עדי ורועי</h4>
+<p class="text-xs text-on-surface-variant flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            14.05.2024
+                        </p>
+</div>
+<div class="flex flex-row-reverse gap-4 mt-2">
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="photo_library">photo_library</span>
+<span class="text-xs text-on-surface">452</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="visibility">visibility</span>
+<span class="text-xs text-on-surface">1.2k</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="download">download</span>
+<span class="text-xs text-on-surface">318</span>
+</div>
+</div>
+</div>
+<button class="absolute left-2 top-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<!-- Event Card 2 -->
+<div class="bg-surface-container border border-outline/10 rounded-xl p-4 flex flex-row-reverse gap-4 overflow-hidden relative active:bg-surface-container-high transition-colors">
+<div class="w-24 h-24 rounded-lg bg-white p-1 flex-shrink-0 relative">
+<img alt="QR Code" class="w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqBUtAb9-d7WfZZcAFJt5YP4sb6WN2G1jKdi2QaUbBYS4GzZdxrj2ic5WvK6vILvcsvA8j8sS9nnekl0kEcTWy68Q4oXnBzljHHyZ35Rc1unHQ9iElv9rLSTBzs18V-chgooHiVvO2ixDUO0ElTK9rPZpo1EMwbaH-1Gr-DmtN7Lxrhl8HSQwYr5SNoUINRR7IIRt9yRYZq-jL0mIs_JT6RU_dJHJZXvPMlDH7A0XOKcC3-R9FiUjDnpzFg1_vbbYcNg0GNA84BFVx"/>
+</div>
+<div class="flex-grow flex flex-col justify-between text-right">
+<div>
+<h4 class="text-lg font-bold text-primary leading-tight">בר מצווה - איתן</h4>
+<p class="text-xs text-on-surface-variant flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            10.05.2024
+                        </p>
+</div>
+<div class="flex flex-row-reverse gap-4 mt-2">
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="photo_library">photo_library</span>
+<span class="text-xs text-on-surface">280</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="visibility">visibility</span>
+<span class="text-xs text-on-surface">840</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="download">download</span>
+<span class="text-xs text-on-surface">152</span>
+</div>
+</div>
+</div>
+<button class="absolute left-2 top-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<!-- Event Card 3 -->
+<div class="bg-surface-container border border-outline/10 rounded-xl p-4 flex flex-row-reverse gap-4 overflow-hidden relative opacity-70 active:bg-surface-container-high transition-colors">
+<div class="w-24 h-24 rounded-lg bg-white/80 p-1 flex-shrink-0 relative grayscale">
+<img alt="QR Code" class="w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWTbjp5AizgIBg20Lfg4nE9iTbDXpcHAl6BAYT1n-dW0Aoz47rs5d7fC0Y7a6EfND-6grD2AAgymni6ii8YDT6ht5mHnwFNShbRPYz71fdBOAa3GQu65m759fIEsNoTQGCcwhpkoVpfeUGg791Az177Z42DPdtrDBWDocXLTwfGIyixpBDncwOX9u3RPu1FvZNT7ml00eIsm8r5BYTKwF2AFfQIypY_1FQoE6jULBC-3GHlrWdhxTyWb72SeVEmI1sCHrugKdU7ni2"/>
+</div>
+<div class="flex-grow flex flex-col justify-between text-right">
+<div>
+<div class="flex flex-row-reverse items-center gap-1">
+<h4 class="text-lg font-bold text-outline leading-tight">אירוע חברה - טק-לנד</h4>
+<span class="bg-outline/20 text-outline text-[10px] px-1.5 py-0.5 rounded uppercase font-bold">בארכיון</span>
+</div>
+<p class="text-xs text-on-surface-variant flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="calendar_today">calendar_today</span>
+                            02.05.2024
+                        </p>
+</div>
+<div class="flex flex-row-reverse gap-4 mt-2">
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="photo_library">photo_library</span>
+<span class="text-xs text-outline">1,105</span>
+</div>
+<div class="flex flex-row-reverse items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="visibility">visibility</span>
+<span class="text-xs text-outline">4.5k</span>
+</div>
+</div>
+</div>
+<button class="absolute left-2 top-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 bg-surface-container/95 backdrop-blur-md border-t border-outline/20">
+<a class="flex flex-col items-center text-on-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-[10px]">בית</span>
+</a>
+<a class="flex flex-col items-center text-[#FF8A75]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-sm text-[10px] font-bold">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">share</span>
+<span class="font-label-sm text-[10px]">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-[10px]">פרופיל</span>
+</a>
+</nav>
+<!-- Floating Action Button -->
+<button class="fixed bottom-20 left-6 w-14 h-14 bg-primary-container text-on-primary rounded-full shadow-xl flex items-center justify-center z-40 active:scale-90 transition-transform duration-150 md:hidden">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</button>
+<script>
+        // Search input animation focus
+        const searchInput = document.querySelector('input[type="text"]');
+        if(searchInput) {
+            searchInput.addEventListener('focus', () => {
+                searchInput.parentElement.classList.add('scale-[1.01]');
+                searchInput.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            searchInput.addEventListener('blur', () => {
+                searchInput.parentElement.classList.remove('scale-[1.01]');
+            });
+        }
+    </script>
+</body></html>

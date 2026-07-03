@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#1d1b19",
+                    "primary-fixed": "#ffdad3",
+                    "on-tertiary-fixed": "#241a00",
+                    "tertiary-fixed": "#ffe088",
+                    "on-primary-fixed": "#3e0500",
+                    "surface-container-highest": "#32302e",
+                    "on-error-container": "#93000a",
+                    "primary": "#e2725b",
+                    "surface-tint": "#9f402d",
+                    "secondary": "#77574d",
+                    "outline": "#89726d",
+                    "on-surface": "#ede7e3",
+                    "surface-bright": "#32302e",
+                    "primary-fixed-dim": "#ffb4a5",
+                    "surface-container-lowest": "#000000",
+                    "background": "#141210",
+                    "secondary-fixed-dim": "#e7bdb1",
+                    "on-tertiary-container": "#ffe088",
+                    "on-secondary-container": "#fed3c7",
+                    "on-primary-fixed-variant": "#802918",
+                    "surface-variant": "#56423e",
+                    "on-primary-container": "#ffdad3",
+                    "surface": "#1d1b19",
+                    "surface-container-high": "#3d3936",
+                    "tertiary": "#e9c349",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#1d1b19",
+                    "primary-container": "#9f402d",
+                    "inverse-primary": "#ffb4a5",
+                    "surface-container": "#282624",
+                    "secondary-container": "#5d4037",
+                    "on-tertiary": "#3e3000",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface-dim": "#141210",
+                    "inverse-surface": "#ede7e3",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#ffdbd0",
+                    "outline-variant": "#56423e",
+                    "on-primary": "#5a0d02",
+                    "tertiary-container": "#574500",
+                    "on-secondary-fixed": "#2c160e",
+                    "on-surface-variant": "#ddc0ba",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-secondary-fixed-variant": "#5d4037",
+                    "error-container": "#93000a",
+                    "error": "#ffb4ab",
+                    "on-background": "#ede7e3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "xxl": "48px",
+                    "margin-desktop": "32px",
+                    "lg": "24px",
+                    "margin-mobile": "16px",
+                    "base": "4px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Rubik"],
+                    "body-lg": ["Rubik"],
+                    "headline-lg": ["Rubik"],
+                    "title-lg": ["Rubik"],
+                    "label-lg": ["Rubik"],
+                    "headline-lg-mobile": ["Rubik"],
+                    "display-lg": ["Rubik"],
+                    "body-md": ["Rubik"]
+            },
+            "fontSize": {
+                    "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Rubik', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-effect { background: rgba(29, 27, 25, 0.85); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary/30">
+<!-- Desktop Sidebar Shell -->
+<div class="flex h-screen overflow-hidden">
+<!-- Main Gallery Canvas (Receded View) -->
+<main class="flex-1 relative overflow-y-auto bg-background p-8">
+<header class="flex justify-between items-center mb-12">
+<div class="flex items-center gap-4">
+<img alt="Oura Logo" class="h-12 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<div class="h-8 w-px bg-outline/30 mx-2"></div>
+<h1 class="font-headline-lg text-headline-lg text-primary-fixed-dim">גלריית Photo Santos</h1>
+</div>
+<button class="flex items-center gap-2 text-outline-variant hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined">arrow_forward</span>
+<span class="font-label-lg text-label-lg">חזרה לגלריה</span>
+</button>
+</header>
+<!-- Gallery Grid with Print Markers -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 opacity-30 grayscale pointer-events-none">
+<div class="aspect-[3/4] bg-surface-container-high rounded-xl overflow-hidden relative">
+<img alt="חתונה במטע זיתים" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDqgrh2wJLAnIozhPQq_xuupN070DdDukOm5FiHCgKI2-G_gTgP0ijYp6fgQvcA2mhRGh0nno0mn8dxLv1mUaeHNPg8W1ykRLMF4hs1kp7xYyCyuMadXeZ7Z3GIsbFUqiidyuOAp7SiuY8-08n0Ietu09EqhTICPrhMcZGSu8gZmHZ0NRxbKwQocWZe6M45yxR7yR0o3az6oa-aeBCAGViXhphgl4b6ldmZ4T52uDsd9p4mhbujDgEirdKlOm13a4UCGoxSirJHKJ6"/>
+</div>
+<div class="aspect-square bg-surface-container-high rounded-xl overflow-hidden ring-4 ring-primary relative">
+<img alt="זר כלה" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAW8od1DoE59h6M2ktTk0ePTfIdKPJy9QeL0yVIKMmhnd-F_1poBR33BenbxI-u_fKEfHvRi2tWpi_2EBfrrko_UuQT-KN7t-S50WCAUhtmnj2CDgzxOmW4aG-kO7qVkIisZ2yip6UZSHVD7DgSu5oR8dhQOMSEpf6j5Qf_lkB3YAyFOZoe9PHTo-J-nYiwPWC7IXQ7k5Hx5W0swrMqL1kEWgrjKuW8UW5oLVfTrOVB__SqFnksi38l0QQX7LssjPFWjAlTRT-QIlh3"/>
+<div class="absolute top-2 right-2 bg-primary p-1 rounded-full text-white shadow-lg">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="aspect-[4/3] bg-surface-container-high rounded-xl overflow-hidden">
+<img alt="קבלת פנים לילית" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvbgF7hLp9DosQwOOlOE6PHK1_FhvpD34rnp6yeR7HhTSqlb_PpG_lFusDFTnuIYHacg6zkt6DXTHLDzyTymmmrsWBF0cohYjhQiCPJzA2k3ri0haX573xv-Tom1lv1uazSKphQaSX7Nw81D14CVv7nc-TMrEr0lbERll1j5p4gQuLVO5mQvEmJH0pgcfUZBnf35_gO2_eiknglChJW_i-If4XcvutXrKSJ0jNpW3rHa1wRXa6-pwzzHa7_4KmXBC1Fp-99g6L9ypM"/>
+</div>
+<div class="aspect-[2/3] bg-surface-container-high rounded-xl overflow-hidden">
+<img alt="דיוקן חתן" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChbOhVB_tpAPmZKTuFOE8op1WE7vFOw0HYxRuXmb80MsKyJPJJmGHa4rJEWgpfGG6oWNde4evVdIFmF24ujuLoCQ123g_9ZLMIwSVyDDEr3M2XQKIA-Xjmqv38EXGirn7Db0tD8Avr9ty1hrwRR_r_6GE0XrPWVCg_kJvKbGfwkPEZuDeSqp2DHtL6sOO4CevCxY9i9K-cKBBIxHEhD_5GbJpTcKTGt6zB6AoP8lagFwQla49Ug3I_d2AEvf-MOsWjxPCTPHaWMcrU"/>
+</div>
+</div>
+</main>
+<!-- Print Shop Sidebar (Primary Interface) -->
+<aside class="w-full md:w-[480px] bg-surface border-r border-outline-variant shadow-2xl z-50 flex flex-col h-full overflow-hidden">
+<div class="p-8 space-y-8 flex-1 overflow-y-auto no-scrollbar">
+<!-- Branding & Close -->
+<div class="flex justify-between items-start">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary-fixed-dim">הזמנת הדפסות</h2>
+<p class="font-body-md text-body-md text-outline-variant">Oura x Photo Santos</p>
+</div>
+<button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary-fixed-dim">close</span>
+</button>
+</div>
+<!-- Selected Photo Preview -->
+<div class="relative">
+<div class="aspect-video w-full rounded-xl overflow-hidden border border-outline-variant shadow-lg bg-surface-container-lowest">
+<img alt="תמונה נבחרת" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDDMBDr-6_Y8eytM1LFW6q-pKsGAqm_3cbf-U472w8skqNR13vBmCeYJVjVG6z3LB3XhWouOgmUFn9eU7cbRq5VsC6CSihJ1qzHe952QgQBayrQj_TIdybU2hCT3B6tX0m66IjgZtpKqhkDk0VlE-xgLIMI9Ni15y-KT3fe54wBq9gfw2thrDWjHDzfXgfbXhdlIXRp91aTxlW6g4FgUQBIz0DJxWzHdMpJArwUBHlSUZDMgWfkpbT4MTwSwUWVD-KqwX3LjCUHJNp"/>
+</div>
+<div class="absolute bottom-4 right-4 glass-effect px-3 py-1 rounded-full">
+<p class="font-label-sm text-label-sm text-primary-fixed-dim">תמונה מס׳ 421</p>
+</div>
+</div>
+<!-- Print Configuration -->
+<div class="space-y-10">
+<!-- Size Selection -->
+<section>
+<h3 class="font-title-lg text-title-lg text-primary-fixed mb-4">מידות הדפסה</h3>
+<div class="grid grid-cols-3 gap-3">
+<button class="p-4 border border-primary bg-primary-container/20 rounded-xl flex flex-col items-center gap-1 transition-all hover:scale-[1.02]">
+<span class="font-label-lg text-label-lg text-primary-fixed">10x15 ס״מ</span>
+<span class="font-label-sm text-label-sm text-outline-variant">₪15.00</span>
+</button>
+<button class="p-4 border border-outline rounded-xl flex flex-col items-center gap-1 transition-all hover:bg-surface-container-highest">
+<span class="font-label-lg text-label-lg text-on-surface">13x18 ס״מ</span>
+<span class="font-label-sm text-label-sm text-outline-variant">₪22.00</span>
+</button>
+<button class="p-4 border border-outline rounded-xl flex flex-col items-center gap-1 transition-all hover:bg-surface-container-highest">
+<span class="font-label-lg text-label-lg text-on-surface">20x30 ס״מ</span>
+<span class="font-label-sm text-label-sm text-outline-variant">₪45.00</span>
+</button>
+</div>
+</section>
+<!-- Paper Type -->
+<section>
+<h3 class="font-title-lg text-title-lg text-primary-fixed mb-4">סוג נייר</h3>
+<div class="flex flex-wrap gap-2">
+<button class="px-6 py-2 rounded-full border-2 border-primary text-primary-fixed font-label-lg text-label-lg">מט (Matte)</button>
+<button class="px-6 py-2 rounded-full border border-outline text-outline-variant font-label-lg text-label-lg">מבריק (Glossy)</button>
+<button class="px-6 py-2 rounded-full border border-outline text-outline-variant font-label-lg text-label-lg">משי (Silk)</button>
+</div>
+</section>
+<!-- Premium Framing -->
+<section>
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-title-lg text-title-lg text-primary-fixed">מסגור פרימיום</h3>
+<span class="font-label-sm text-label-sm bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded">אופציונלי</span>
+</div>
+<div class="space-y-3">
+<label class="flex items-center justify-between p-4 rounded-xl border border-outline cursor-pointer hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-[#4A3728] border-2 border-[#D4AF37]"></div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">עץ יוקרתי (Luxury Wood)</p>
+<p class="font-label-sm text-label-sm text-outline-variant">עץ מהגוני כהה בגימור ידני</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label-lg text-label-lg text-primary-fixed">+ ₪85.00</span>
+<input class="w-5 h-5 text-primary bg-surface-container border-outline focus:ring-primary" name="frame" type="radio"/>
+</div>
+</label>
+<label class="flex items-center justify-between p-4 rounded-xl border border-outline cursor-pointer hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-[#C0C0C0] border-2 border-[#E5E4E2]"></div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">כסף קלאסי (Classic Silver)</p>
+<p class="font-label-sm text-label-sm text-outline-variant">אלומיניום מוברש בסגנון מודרני</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label-lg text-label-lg text-primary-fixed">+ ₪65.00</span>
+<input class="w-5 h-5 text-primary bg-surface-container border-outline focus:ring-primary" name="frame" type="radio"/>
+</div>
+</label>
+<label class="flex items-center justify-between p-4 rounded-xl border border-outline cursor-pointer hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-white/10 backdrop-blur-sm border-2 border-white/30"></div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">אקריליק קריסטל (Crystal Acrylic)</p>
+<p class="font-label-sm text-label-sm text-outline-variant">מראה שקוף ונקי ללא מסגרת חיצונית</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label-lg text-label-lg text-primary-fixed">+ ₪120.00</span>
+<input class="w-5 h-5 text-primary bg-surface-container border-outline focus:ring-primary" name="frame" type="radio"/>
+</div>
+</label>
+</div>
+</section>
+</div>
+</div>
+<!-- Footer Cart Summary -->
+<div class="p-8 border-t border-outline-variant bg-surface-container-low">
+<div class="flex justify-between items-end mb-6">
+<div>
+<p class="font-label-sm text-label-sm text-outline-variant">סה״כ לתשלום (1 מוצר)</p>
+<h4 class="font-headline-lg text-headline-lg text-primary-fixed-dim">₪100.00</h4>
+</div>
+<div class="flex gap-2">
+<button class="p-3 border border-outline-variant rounded-full text-outline-variant transition-colors hover:bg-surface-container-highest">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary font-title-lg text-title-lg rounded-full shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+                הוספה לסל הקניות
+            </button>
+<p class="text-center mt-4 font-label-sm text-label-sm text-outline-variant">משלוח חינם בהזמנה מעל ₪250</p>
+</div>
+</aside>
+</div>
+<!-- Micro-interaction Scripts -->
+<script>
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('mousedown', function(e) {
+            this.classList.add('opacity-80');
+            setTimeout(() => this.classList.remove('opacity-80'), 150);
+        });
+    });
+
+    const radioLabels = document.querySelectorAll('label');
+    radioLabels.forEach(label => {
+        label.addEventListener('click', () => {
+            radioLabels.forEach(l => l.classList.remove('border-primary', 'bg-primary-container/10'));
+            label.classList.add('border-primary', 'bg-primary-container/10');
+        });
+    });
+</script>
+</body></html>

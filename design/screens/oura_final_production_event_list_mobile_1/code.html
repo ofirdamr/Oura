@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<title>Oura_Final_Production_Event_List_Mobile</title>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-glow {
+            box-shadow: 0 0 40px 0 rgba(226, 114, 91, 0.15);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+            animation: float 4s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#333539",
+                      "surface-container-highest": "#333539",
+                      "surface-container-lowest": "#0c0e12",
+                      "inverse-primary": "#9f402d",
+                      "tertiary-fixed-dim": "#c4c6d0",
+                      "on-secondary-fixed-variant": "#45474c",
+                      "outline": "#a48b86",
+                      "on-surface-variant": "#ddc0ba",
+                      "inverse-on-surface": "#2f3035",
+                      "on-secondary": "#2e3035",
+                      "surface-tint": "#ffb4a5",
+                      "tertiary-container": "#90929b",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-container": "#282b33",
+                      "secondary-fixed-dim": "#c5c6cc",
+                      "border-subtle": "#33363D",
+                      "outline-variant": "#56423e",
+                      "error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#44474f",
+                      "primary-fixed-dim": "#ffb4a5",
+                      "surface-input": "#0A0B0D",
+                      "surface-container-low": "#1a1c20",
+                      "success": "#10B981",
+                      "on-background": "#e2e2e8",
+                      "on-primary": "#611205",
+                      "surface-container": "#1e2024",
+                      "on-error": "#690005",
+                      "tertiary": "#c4c6d0",
+                      "on-secondary-fixed": "#191c20",
+                      "surface-container-high": "#282a2e",
+                      "on-tertiary-fixed": "#181c23",
+                      "primary": "#ffb4a5",
+                      "secondary-container": "#47494e",
+                      "surface-bright": "#37393e",
+                      "primary-fixed": "#ffdad3",
+                      "secondary-fixed": "#e2e2e8",
+                      "on-primary-fixed": "#3e0500",
+                      "on-secondary-container": "#b7b8be",
+                      "error": "#ffb4ab",
+                      "secondary": "#c5c6cc",
+                      "on-surface": "#e2e2e8",
+                      "surface-dim": "#111317",
+                      "on-tertiary": "#2d3038",
+                      "tertiary-fixed": "#e0e2ec",
+                      "on-primary-fixed-variant": "#802918",
+                      "text-muted": "#94A3B8",
+                      "surface": "#111317",
+                      "surface-card": "#1A1C20",
+                      "on-primary-container": "#5a0d02",
+                      "inverse-surface": "#e2e2e8",
+                      "primary-container": "#e2725b",
+                      "background": "#111317"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "stack-md": "24px",
+                      "stack-lg": "48px",
+                      "stack-sm": "8px",
+                      "gutter": "24px",
+                      "container-max-width": "1200px",
+                      "margin-desktop": "40px",
+                      "base-unit": "4px"
+              },
+              "fontFamily": {
+                      "label-sm": ["Rubik"],
+                      "display-lg": ["Rubik"],
+                      "headline-lg": ["Rubik"],
+                      "body-lg": ["Rubik"],
+                      "headline-lg-mobile": ["Rubik"],
+                      "body-md": ["Rubik"],
+                      "headline-md": ["Rubik"],
+                      "label-md": ["Rubik"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md overflow-x-hidden">
+<!-- Header (Shared Component: TopNavBar) -->
+<!-- Shell Visibility: Suppressed on Success screens but required to maintain "Save & Exit" as per user context if they want to leave. Showing for brand integrity. -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-surface dark:bg-surface border-b border-border-subtle dark:border-border-subtle">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">Photo Santos</div>
+<div class="flex items-center gap-stack-md">
+<button class="font-label-md text-label-md text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors">Save &amp; Exit</button>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center justify-center pt-16 px-margin-mobile">
+<!-- Progress Stepper (Contextual Component) -->
+<div class="w-full max-w-[600px] mb-stack-lg">
+<div class="flex items-center justify-between relative">
+<!-- Progress Line -->
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-primary-container -translate-y-1/2 z-0"></div>
+<!-- Steps -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Success Content -->
+<div class="max-w-[800px] w-full flex flex-col items-center text-center space-y-stack-md relative">
+<!-- Animated Background Decor -->
+<div class="absolute -top-32 -left-16 w-32 h-32 opacity-20 animate-float">
+<span class="material-symbols-outlined text-[64px] text-primary" data-icon="photo_camera">photo_camera</span>
+</div>
+<div class="absolute top-24 -right-12 w-24 h-24 opacity-20 animate-float-delayed">
+<span class="material-symbols-outlined text-[48px] text-primary" data-icon="image">image</span>
+</div>
+<div class="absolute -bottom-16 left-1/4 w-20 h-20 opacity-10 animate-float">
+<span class="material-symbols-outlined text-[40px] text-primary" data-icon="lens">lens</span>
+</div>
+<!-- Central Icon -->
+<div class="w-24 h-24 rounded-full bg-surface-container-high border border-border-subtle flex items-center justify-center success-glow mb-stack-sm">
+<span class="material-symbols-outlined text-primary-container text-[48px]" style="font-variation-settings: 'FILL' 1;">aperture</span>
+</div>
+<div class="space-y-stack-sm">
+<h1 class="font-display-lg text-display-lg text-on-surface">Welcome to the Frame!</h1>
+<p class="font-body-lg text-body-lg text-text-muted max-w-lg mx-auto">Your account is ready. Let's create your first event.</p>
+</div>
+<div class="pt-stack-md w-full max-w-sm">
+<button class="w-full bg-primary-container text-white py-4 px-8 rounded font-label-md text-label-md hover:opacity-90 transition-all transform active:scale-[0.98] shadow-lg">
+                    Create My First Event
+                </button>
+</div>
+<!-- Dashboard Preview / Bento Style Hint -->
+<div class="mt-stack-lg grid grid-cols-1 md:grid-cols-3 gap-gutter w-full max-w-[900px]">
+<div class="bg-surface-container-low border border-border-subtle p-stack-md text-left space-y-2">
+<span class="material-symbols-outlined text-primary" data-icon="rocket_launch">rocket_launch</span>
+<h3 class="font-label-md text-label-md text-on-surface">Quick Setup</h3>
+<p class="text-label-sm text-text-muted">Launch a photoshoot gallery in under 2 minutes.</p>
+</div>
+<div class="bg-surface-container-low border border-border-subtle p-stack-md text-left space-y-2">
+<span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+<h3 class="font-label-md text-label-md text-on-surface">Client Proofing</h3>
+<p class="text-label-sm text-text-muted">Collaborative tools for real-time selection.</p>
+</div>
+<div class="bg-surface-container-low border border-border-subtle p-stack-md text-left space-y-2">
+<span class="material-symbols-outlined text-primary" data-icon="cloud_done">cloud_done</span>
+<h3 class="font-label-md text-label-md text-on-surface">Secure Storage</h3>
+<p class="text-label-sm text-text-muted">1TB of encrypted cloud storage included.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="w-full py-stack-md px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-stack-sm border-t border-border-subtle dark:border-border-subtle bg-surface dark:bg-surface">
+<div class="font-label-md text-label-md font-bold text-on-surface">Photo Santos</div>
+<div class="flex gap-stack-md">
+<a class="font-label-sm text-label-sm text-text-muted dark:text-text-muted hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-text-muted dark:text-text-muted hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-text-muted dark:text-text-muted hover:text-primary transition-colors" href="#">Support</a>
+</div>
+<div class="font-label-sm text-label-sm text-text-muted dark:text-text-muted">© 2024 Photo Santos</div>
+</footer>
+<script>
+        // Simple confetti-like micro-interaction on button hover
+        const btn = document.querySelector('button.bg-primary-container');
+        btn.addEventListener('mouseenter', () => {
+            // Future interaction: Trigger a subtle particle effect
+            console.log('User is ready to begin.');
+        });
+    </script>
+</body></html>

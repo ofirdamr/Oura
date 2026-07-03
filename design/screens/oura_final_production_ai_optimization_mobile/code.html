@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura | AI Optimization</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#ffb4a5",
+                    "on-primary": "#690005",
+                    "surface": "#151312",
+                    "surface-container": "#1e1b1a",
+                    "outline": "#a08c89",
+                    "background": "#000000"
+            },
+            "fontFamily": {
+                    "rubik": ["Rubik", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .luxury-card {
+            background: #111111;
+            border: 1px solid #222222;
+        }
+        .active-glow {
+            box-shadow: 0 0 15px rgba(255, 180, 165, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<header class="bg-black/90 backdrop-blur-md border-b border-white/5 fixed top-0 w-full z-50 h-16 flex flex-row-reverse justify-between items-center px-4">
+<div class="flex flex-row-reverse items-center gap-3">
+<img alt="Oura Logo" class="h-8 w-8 object-cover rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+<span class="text-xl font-bold tracking-tight text-white">Oura</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-white opacity-80 hover:opacity-100 transition-opacity" data-icon="notifications">notifications</button>
+<div class="w-9 h-9 rounded-full border border-white/10 overflow-hidden bg-zinc-800">
+<img alt="פרופיל" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAj9E7X_Nv7LBKT_913bhOC4PpeOyo0JbxRPmES4ghPLcmltGcuzlgVhW8MNdP4dgB70zIpFAo1F-84KSL-Y9HW2BWdW2cAtin6ZJc43ivTZu0yEC9OTyr9iQUL3_-VgXbyXfE5Ja2U4MyGI3zWFvWYq-TZU5G7GYPAdftlBDmHM0iuYugfOctd34yztaO2VrLwh6Sj-BShqy7dZIChngFHfrT1SmBiYiNNWjVm5ZHU850x5qqjcioQzKgQo5NkaOWTCWQz_ZbGyI20"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-20 px-4 flex flex-col gap-6 max-w-md mx-auto">
+<!-- Live Status Section -->
+<section class="flex flex-col gap-4">
+<div class="flex justify-between items-center pr-1">
+<div>
+<h2 class="text-2xl font-bold text-white">אופטימיזציה בזמן אמת</h2>
+<p class="text-xs text-zinc-400 mt-0.5">עיבוד מבוסס AI — שרת Oura 1</p>
+</div>
+<span class="text-[11px] font-bold bg-white/10 px-3 py-1 rounded-full text-white border border-white/20">פעיל</span>
+</div>
+<!-- Progress Card -->
+<div class="luxury-card p-6 rounded-2xl flex flex-col gap-4 active-glow">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary" data-icon="sync">sync</span>
+<span class="font-semibold text-zinc-100">סריקת קבצים</span>
+</div>
+<span class="text-lg font-bold text-primary">87%</span>
+</div>
+<div class="w-full bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[87%] rounded-full"></div>
+</div>
+<div class="flex justify-between text-xs text-zinc-400">
+<span class="font-medium">מעבד: image_8422.raw</span>
+<span class="font-medium">נותרו 2:14 דק'</span>
+</div>
+</div>
+<!-- Performance Grid -->
+<div class="grid grid-cols-2 gap-4">
+<div class="luxury-card p-5 rounded-2xl flex flex-col gap-1.5">
+<span class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">דיוק AI</span>
+<span class="text-2xl font-bold text-white">99.4%</span>
+<div class="flex items-center gap-1 text-emerald-400 text-[11px] font-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+<span>מאומת</span>
+</div>
+</div>
+<div class="luxury-card p-5 rounded-2xl flex flex-col gap-1.5">
+<span class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">מהירות עיבוד</span>
+<span class="text-2xl font-bold text-white">0.4s</span>
+<div class="flex items-center gap-1 text-zinc-400 text-[11px] font-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span>
+<span>לכל תמונה</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Optimization Toggles -->
+<section class="flex flex-col gap-4">
+<h3 class="text-xs font-bold text-zinc-500 pr-1 uppercase tracking-widest">הגדרות אופטימיזציה</h3>
+<div class="luxury-card rounded-2xl overflow-hidden divide-y divide-white/5">
+<!-- Toggle Item -->
+<div class="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="face_retouching_natural">face_retouching_natural</span>
+</div>
+<div>
+<p class="text-[14px] font-bold text-zinc-100">שיפור תווי פנים</p>
+<p class="text-[11px] text-zinc-500">תיקון חשיפה ומיקוד אוטומטי</p>
+</div>
+</div>
+<div class="w-11 h-6 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+<!-- Toggle Item -->
+<div class="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-zinc-800/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-zinc-500" data-icon="auto_awesome_motion">auto_awesome_motion</span>
+</div>
+<div>
+<p class="text-[14px] font-bold text-zinc-400">ניקוי כפילויות</p>
+<p class="text-[11px] text-zinc-500">הסרת תמונות דומות ברצף</p>
+</div>
+</div>
+<div class="w-11 h-6 bg-zinc-800 rounded-full relative border border-white/5 cursor-pointer">
+<div class="absolute left-1 top-1 w-4 h-4 bg-zinc-600 rounded-full"></div>
+</div>
+</div>
+<!-- Toggle Item -->
+<div class="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="palette">palette</span>
+</div>
+<div>
+<p class="text-[14px] font-bold text-zinc-100">איזון צבעים (Color Grade)</p>
+<p class="text-[11px] text-zinc-500">החלת סגנון 'Oura Signature'</p>
+</div>
+</div>
+<div class="w-11 h-6 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Logs / Recent -->
+<section class="pb-10">
+<div class="flex justify-between items-center mb-4 pr-1">
+<h2 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">לוג פעולות אחרון</h2>
+<button class="text-primary text-xs font-bold hover:underline">ראה הכל</button>
+</div>
+<div class="space-y-2.5">
+<div class="luxury-card p-4 rounded-xl flex items-center justify-between border-l-[3px] border-l-emerald-500">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-500 text-lg" data-icon="check_circle">check_circle</span>
+<span class="text-[13px] font-medium text-zinc-200">בוצע חיתוך אוטומטי ל-140 תמונות</span>
+</div>
+<span class="text-[10px] text-zinc-500 font-bold">14:20</span>
+</div>
+<div class="luxury-card p-4 rounded-xl flex items-center justify-between border-l-[3px] border-l-primary">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="cloud_upload">cloud_upload</span>
+<span class="text-[13px] font-medium text-zinc-200">העלאת גלריה לאירוע 'ירושלים'</span>
+</div>
+<span class="text-[10px] text-zinc-500 font-bold">14:15</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3.5 bg-black/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]">
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined text-[26px]" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">ראשי</span>
+</a>
+<a class="flex flex-col items-center text-zinc-500 transition-colors hover:text-white" href="#">
+<span class="material-symbols-outlined text-[26px]" data-icon="auto_fix_high">auto_fix_high</span>
+<span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">AI</span>
+</a>
+<a class="flex flex-col items-center text-zinc-500 transition-colors hover:text-white" href="#">
+<span class="material-symbols-outlined text-[26px]" data-icon="photo_library">photo_library</span>
+<span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-zinc-500 transition-colors hover:text-white" href="#">
+<span class="material-symbols-outlined text-[26px]" data-icon="settings">settings</span>
+<span class="text-[10px] font-bold mt-1 uppercase tracking-tighter">הגדרות</span>
+</a>
+</nav>
+</body></html>

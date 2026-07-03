@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura_Final_Production_Personal_Gallery_Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Rubik:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#121212",
+                        "surface": "#1E1E1E",
+                        "primary": "#FF8A75",
+                        "on-primary": "#3f0300",
+                        "primary-container": "#FF8A75",
+                        "on-primary-container": "#121212",
+                        "secondary": "#c8c6c5",
+                        "on-surface": "#e5e2e1",
+                        "on-surface-variant": "#B0B0B0",
+                        "outline": "#a48b87",
+                        "surface-container": "#201f1f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "display": ["Hanken Grotesk", "Rubik", "sans-serif"],
+                        "body": ["Rubik", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #121212;
+            color: #e5e2e1;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<header class="bg-background/95 backdrop-blur-md sticky top-0 z-50 border-b border-white/10">
+<div class="flex flex-row-reverse justify-between items-center px-4 w-full h-16 max-w-lg mx-auto">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-on-surface hover:opacity-70 transition-opacity">notifications</button>
+<button class="material-symbols-outlined text-on-surface hover:opacity-70 transition-opacity">account_circle</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-2">
+<span class="font-display text-2xl font-bold text-primary tracking-tight">Oura</span>
+<img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaGczw02gOangRTcfRbEcShtBgO2O7tQV6ywlaL6c2zclkgZIhuBtZHNGNdFAE01u-y6Vle-EuUCa3nF5fvUjMREF_D57p04dLMH5P-5ZcPwdjKndfRn2cv5PXdvu0y-QvdNrQBcaaoCq53d2-EpBD9yViWbZElqXRHUX6vIbj5a4xPr5uFUOF1KKdpSVdfd6sXD2UWeoyjT8dsMJ9q2jEUly9XveKLvwjagCkLJ7XdGmP6qnuM6tdQfjwwW81wFGhYtnAmn6GRExN"/>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface hover:opacity-70 transition-opacity" onclick="history.back()">arrow_forward</button>
+</div>
+</header>
+<main class="max-w-lg mx-auto px-4 py-6 space-y-6">
+<!-- Header Section -->
+<section class="space-y-2">
+<h1 class="text-3xl font-bold text-on-surface">הגלריה האישית של יונתן לוי | Oura</h1>
+<p class="text-on-surface-variant text-base leading-relaxed">
+                מצאנו <span class="text-primary font-bold">12</span> תמונות שלך מתוך 842 תמונות באירוע 'החתונה של דניאל ומיכל'.
+            </p>
+</section>
+<!-- Primary Actions -->
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary text-on-primary-container font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">download</span>
+                הורדת כל התמונות שלי
+            </button>
+<button class="w-full border border-outline/40 text-on-surface font-medium py-3 rounded-xl flex items-center justify-center gap-2 active:bg-white/5 transition-all">
+<span class="material-symbols-outlined">share</span>
+                שיתוף הגלריה האישית
+            </button>
+</div>
+<!-- AI Status Banner -->
+<div class="bg-primary/5 border border-primary/20 p-4 rounded-2xl flex items-center gap-4">
+<div class="bg-primary p-2.5 rounded-xl">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h3 class="text-primary font-bold text-sm">זיהוי פנים הושלם בהצלחה</h3>
+<p class="text-on-surface-variant text-xs mt-0.5">כל התמונות סוננו עבורך באופן אוטומטי</p>
+</div>
+</div>
+<!-- Category Filters -->
+<div class="flex overflow-x-auto no-scrollbar gap-2 py-1 -mx-4 px-4">
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-primary text-on-primary-container font-bold text-sm shadow-md transition-all shrink-0">כל התמונות</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface-variant border border-white/5 font-medium text-sm transition-all shrink-0 hover:bg-white/10">חופה</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface-variant border border-white/5 font-medium text-sm transition-all shrink-0 hover:bg-white/10">ריקודים</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface-variant border border-white/5 font-medium text-sm transition-all shrink-0 hover:bg-white/10">קבלת פנים</button>
+</div>
+<!-- Results Grid -->
+<div class="grid grid-cols-2 gap-3 pb-8">
+<!-- Photo 1 -->
+<div class="relative group aspect-[3/4] overflow-hidden rounded-2xl border border-white/5 bg-surface shadow-md">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNT2fv0lbay1NTv8IQfoKI9viKNM42lHIi30KsDGXiVbP4CItqagvf_bXFjOEt5bsydHr1ddtPxgs57v90ikTJqa8LT2wvQ3Gt51t3_pSYKTI1XNXZjfMxP89QMuYB3BwmNOozbjkjJG2lzKmAY9X79372mZjpxwzQeWez5s2NGtrNlQ0SmRleH4hDwTvc2sD4EQeUSVDP-bFcHQUMBEW78gXZZtAcQc3EPbenof2uNxBF0y0FqA0pTjTOd0mHYGdhTvixGEJihT90"/>
+<div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[11px] text-white font-bold tracking-tight">98%</span>
+</div>
+</div>
+<!-- Photo 2 -->
+<div class="relative group aspect-square overflow-hidden rounded-2xl border border-white/5 bg-surface shadow-md">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDf8s80Av4FMyJtQ-EY76rrQVVGpsuwvgFCHSSWa6jUmteElys3hDltLeWGGUEfn5Axa5f13txDTo9ChOdTgNyZnqwAX-J1-mPIm9TbUOIwlmo1_yaW9JuxhKwysEK5_Fhwkzgo6qZVTk16cAblDO56UrTXpnWEb35ALfSUlYVTSGiEn4L2wD1AsZpzxx5o9R8sD2GsDltkA7P-OVn5UXxC8fmd4wWv7_DyGATtwk9r0lcPk4bq1Xoq16e2-Ogpq7Dht9hdJb7FJmCz"/>
+<div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[11px] text-white font-bold tracking-tight">96%</span>
+</div>
+</div>
+<!-- Photo 3 -->
+<div class="relative group aspect-square overflow-hidden rounded-2xl border border-white/5 bg-surface shadow-md">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAMFLLvY0NcRifHhhh4d22vWViGJ3Km6T_Rd2WlGnJlu9aENuxKQXUK7z28OCyRf8U5DIwEot1jrIbHiNFyy6z2rz8GON6rtqS7mPEKKfW5WRiZhaFfykwC1iVpnoNGLi6XrwSpvNQ7uZvSxcMuckvo3mqTYp6dI4trb11YaOmfbOxDakjT64wExEuwmmJDLWSdFwuqQz-NvTLnrcTmCZGO0-mM38m3I9G_Wn0U94JCH55lIVV81xfpkj_rJfDtG3mHMxJcJzJBStZ"/>
+<div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[11px] text-white font-bold tracking-tight">94%</span>
+</div>
+</div>
+<!-- Photo 4 -->
+<div class="relative group aspect-[3/4] overflow-hidden rounded-2xl border border-white/5 bg-surface shadow-md">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmE3X2K5UXPC56t4O3CexwWQEvKgBIS7bUS7DddvGQo2g6rY1DxGvHjWhXOuN-QC_8eSImrNljcY_VxGuroIBzU-Qyc5Syl4CuSX_HMG_gmfL-WNMzyLGfu7mNVzZOFgQ_yTitt5MGeq_OG6o31AlWvmlJEPrDQg6-aeYjpbGx_a-u4yGdbbEeVJdOHsJezAgU0p9HH4JNcmw-RsVfLlLp07hL18f6Rc94y5JBfLyMoVhFvNV0K5wcy2GwPr8Y_635HbDrx99m_l7K"/>
+<div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1.5 border border-white/10">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[11px] text-white font-bold tracking-tight">91%</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 glass-panel border-t border-white/10 rounded-t-3xl max-w-lg mx-auto right-0">
+<a class="flex flex-col items-center text-on-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[11px] mt-1 font-medium">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="text-[11px] mt-1 font-bold">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">share</span>
+<span class="text-[11px] mt-1 font-medium">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[11px] mt-1 font-medium">פרופיל</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for button active states
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('touchstart', () => {
+                button.style.transform = 'scale(0.97)';
+            }, {passive: true});
+            button.addEventListener('touchend', () => {
+                button.style.transform = 'scale(1)';
+            }, {passive: true});
+        });
+
+        // Filter chip selection logic
+        const chips = document.querySelectorAll('.whitespace-nowrap');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-primary', 'text-on-primary-container', 'shadow-md', 'font-bold');
+                    c.classList.add('bg-surface', 'text-on-surface-variant', 'border', 'border-white/5', 'font-medium');
+                });
+                chip.classList.add('bg-primary', 'text-on-primary-container', 'shadow-md', 'font-bold');
+                chip.classList.remove('bg-surface', 'text-on-surface-variant', 'border', 'border-white/5', 'font-medium');
+            });
+        });
+    </script>
+</body></html>

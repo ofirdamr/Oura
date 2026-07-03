@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #111317;
+            color: #e2e2e8;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(26, 28, 32, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid #33363D;
+        }
+        .terracotta-glow {
+            box-shadow: 0 0 20px rgba(226, 114, 91, 0.15);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111317;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #33363D;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4A4D55;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#c4c6d0",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#44474f",
+                        "on-surface": "#e2e2e8",
+                        "on-secondary-fixed": "#191c20",
+                        "on-primary-fixed-variant": "#802918",
+                        "surface": "#111317",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "border-subtle": "#33363D",
+                        "surface-container-highest": "#333539",
+                        "on-secondary-container": "#b7b8be",
+                        "on-primary": "#611205",
+                        "inverse-surface": "#e2e2e8",
+                        "on-tertiary-container": "#282b33",
+                        "tertiary-fixed": "#e0e2ec",
+                        "primary-container": "#e2725b",
+                        "secondary-fixed-dim": "#c5c6cc",
+                        "secondary": "#c5c6cc",
+                        "background": "#111317",
+                        "on-primary-container": "#5a0d02",
+                        "surface-container": "#1e2024",
+                        "on-primary-fixed": "#3e0500",
+                        "surface-bright": "#37393e",
+                        "surface-container-lowest": "#0c0e12",
+                        "primary": "#ffb4a5",
+                        "secondary-container": "#47494e",
+                        "text-muted": "#94A3B8",
+                        "tertiary-container": "#90929b",
+                        "tertiary-fixed-dim": "#c4c6d0",
+                        "outline-variant": "#56423e",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#2e3035",
+                        "on-background": "#e2e2e8",
+                        "surface-container-low": "#1a1c20",
+                        "on-error-container": "#ffdad6",
+                        "inverse-primary": "#9f402d",
+                        "surface-container-high": "#282a2e",
+                        "on-surface-variant": "#ddc0ba",
+                        "surface-input": "#0A0B0D",
+                        "outline": "#a48b86",
+                        "on-tertiary-fixed": "#181c23",
+                        "secondary-fixed": "#e2e2e8",
+                        "success": "#10B981",
+                        "on-secondary-fixed-variant": "#45474c",
+                        "primary-fixed": "#ffdad3",
+                        "on-tertiary": "#2d3038",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-card": "#1A1C20",
+                        "surface-dim": "#111317"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "container-max-width": "1200px",
+                        "stack-lg": "48px",
+                        "stack-sm": "8px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "base-unit": "4px",
+                        "stack-md": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Rubik"],
+                        "headline-lg": ["Rubik"],
+                        "body-lg": ["Rubik"],
+                        "headline-md": ["Rubik"],
+                        "body-md": ["Rubik"],
+                        "label-sm": ["Rubik"],
+                        "headline-lg-mobile": ["Rubik"],
+                        "display-lg": ["Rubik"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="dark bg-background text-on-surface">
+<!-- SideNavBar (Authority: Shared Components JSON) -->
+<aside class="hidden md:flex flex-col h-screen fixed right-0 top-0 border-l border-outline-variant bg-surface-container-high dark:bg-inverse-surface w-64 z-50">
+<div class="p-6 mb-4 flex flex-col items-start">
+<div class="w-12 h-12 mb-2">https://lh3.googleusercontent.com/aida/AP1WRLsQug4Z43i40q9z5p_Z_D7hUwH4xHTASxyJROeBnD95x8KW7TjDb3_NYb9gj_BLKkslp7lgyu8zL0hPaDZ57sqO01TspQlGnsPDIFSZ4eGcczQQbF-VuKyw8vsebnOjT9PTmD-f2E1-iJXDWW5M0KvSL8Pi-Oaz7CbqTSiTbGu4EL2Kwf62HBq6mHXhO9722B5D1mQfTe7pm1cpUjzYiejtxdipBF5AZoUoBa-wUZt-4-OsDMF-LbeEHQ2S</div><h1 class="font-display-lg text-title-lg font-bold text-primary">Oura</h1>
+<p class="font-label-md text-on-surface-variant opacity-70">Photo Santos studio</p>
+</div>
+<nav class="flex-grow space-y-1">
+<!-- Active Tab: סטטיסטיקה (Since this is the Analytics Dashboard) -->
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-lg text-label-lg">לוח בקרה</span>
+</a>
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="photo_library">photo_library</span>
+<span class="font-label-lg text-label-lg">אירועים פעילים</span>
+</a>
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-lg text-label-lg">ארכיון</span>
+</a>
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-lg text-label-lg">לקוחות</span>
+</a>
+<!-- ACTIVE TAB -->
+<a class="bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-xl mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 terracotta-glow" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-lg text-label-lg">סטטיסטיקה</span>
+</a>
+</nav>
+<div class="p-4 space-y-2 border-t border-outline-variant">
+<button class="w-full bg-primary-container text-on-primary-container py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                אירוע חדש
+            </button>
+<a class="flex flex-row-reverse items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-label-md">עזרה</span>
+</a>
+<a class="flex flex-row-reverse items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-label-md">התנתקות</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:pr-64 min-h-screen pb-20 md:pb-10">
+<!-- TopNavBar (Authority: Shared Components JSON) -->
+<header class="flex flex-row-reverse justify-between items-center px-margin-desktop w-full h-16 bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline sticky top-0 z-40">
+<div class="flex items-center gap-6">
+<div class="hidden md:flex flex-row-reverse items-center gap-6">
+<a class="font-label-lg text-label-lg text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors" href="#">גלריה</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors" href="#">אירועים</a>
+<a class="font-label-lg text-label-lg text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1" href="#">הגדרות</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-lg font-medium text-label-md hover:opacity-90 transition-opacity">העלאת תמונות</button>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="bg-surface-container-low border border-outline-variant rounded-full py-1.5 pr-4 pl-10 text-label-md focus:ring-1 focus:ring-primary focus:outline-none w-64" placeholder="חיפוש אירועים..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary" data-icon="notifications">notifications</span>
+<div class="w-8 h-8 rounded-full bg-primary overflow-hidden">
+<img alt="צלם אדמין" data-alt="A professional headshot of a middle-aged photographer with a friendly expression. He is wearing a minimalist black linen shirt against a soft, dark-toned studio background. The lighting is sophisticated, using a Rembrandt style to create depth and highlight his features, aligning with a high-end, modern corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEpCNQ-6hql_mTGthYg2dk2dyXTVvCgEpdZsYAEzChLbNy50Y1WaWsGjNyDcGk48hbHZvYuHly-z1c72tPhVdaNdEQbCn4my1n8O5YU6Gd7X__YOUCBk2qBMErGfospvMd4WhchC8hb_oMBw5xuXRnYuwrGR5IvudF3-o7GT7u3fHX48QGRBpIvlmuvAv9hCbhxjZBRi-Ddwc5-IDxRZKoF_BU5fLwT7vVMwLo29EBS_mpr78YwlkWEKsQcgKUS0xYDKUv6UEdg1bq"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="px-margin-mobile md:px-margin-desktop py-8 max-w-container-max-width mx-auto">
+<!-- Page Header -->
+<div class="mb-stack-lg">
+<h2 class="font-headline-lg text-headline-lg mb-2">Oura_Final_Production_Statistics_Desktop</h2>
+<p class="text-on-surface-variant font-body-md">סקירה מקיפה של פעילות הגלריות והמעורבות של האורחים שלך.</p>
+</div>
+<!-- KPI Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-stack-md">
+<!-- KPI 1 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary-container/10 p-2 rounded-lg" data-icon="event_available">event_available</span>
+<span class="text-success text-label-sm flex items-center gap-1">+12% <span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span></span>
+</div>
+<div class="text-on-surface-variant font-label-md mb-1">סה"כ אירועים</div>
+<div class="font-display-lg text-headline-lg font-bold">142</div>
+</div>
+<!-- KPI 2 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary-container/10 p-2 rounded-lg" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-success text-label-sm flex items-center gap-1">+8% <span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span></span>
+</div>
+<div class="text-on-surface-variant font-label-md mb-1">תמונות שעובדו ב-AI</div>
+<div class="font-display-lg text-headline-lg font-bold">45,203</div>
+</div>
+<!-- KPI 3 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary-container/10 p-2 rounded-lg" data-icon="visibility">visibility</span>
+<span class="text-success text-label-sm flex items-center gap-1">+24% <span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span></span>
+</div>
+<div class="text-on-surface-variant font-label-md mb-1">צפיות אורחים</div>
+<div class="font-display-lg text-headline-lg font-bold">12.5k</div>
+</div>
+<!-- KPI 4 -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary bg-primary-container/10 p-2 rounded-lg" data-icon="download">download</span>
+<span class="text-tertiary text-label-sm flex items-center gap-1">0% <span class="material-symbols-outlined text-[14px]" data-icon="horizontal_rule">horizontal_rule</span></span>
+</div>
+<div class="text-on-surface-variant font-label-md mb-1">הורדות תמונות</div>
+<div class="font-display-lg text-headline-lg font-bold">3,892</div>
+</div>
+</div>
+<!-- Chart & AI Efficiency Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-stack-md">
+<!-- Engagement Chart -->
+<div class="lg:col-span-2 glass-panel p-6 rounded-xl relative overflow-hidden">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md">מעורבות אורחים</h3>
+<select class="bg-surface-container-low border-none text-label-sm rounded-lg focus:ring-primary px-3 py-1">
+<option>30 ימים אחרונים</option>
+<option>90 ימים אחרונים</option>
+<option>שנה אחרונה</option>
+</select>
+</div>
+<!-- Simulated Chart Canvas -->
+<div class="h-64 flex items-end justify-between gap-2 px-2 relative">
+<!-- Simulated Bars/Grid -->
+<div class="absolute inset-0 flex flex-col justify-between opacity-10 pointer-events-none">
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+</div>
+<div class="w-full flex items-end justify-around gap-2 h-full z-10">
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[40%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[20%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">א'</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[60%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[45%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">ב'</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[55%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[30%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">ג'</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[85%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[65%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">ד'</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[70%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[50%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">ה'</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[30%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[15%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">ו'</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-8 bg-primary/20 rounded-t-sm h-[20%] group-hover:bg-primary/40 transition-all"></div>
+<div class="w-8 bg-primary-container rounded-t-sm h-[10%] group-hover:opacity-80 transition-all"></div>
+<span class="text-[10px] text-on-surface-variant">ש'</span>
+</div>
+</div>
+</div>
+<div class="mt-6 flex gap-6 justify-center text-label-sm">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary/30 rounded-full"></div>
+<span>צפיות</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary-container rounded-full"></div>
+<span>הורדות</span>
+</div>
+</div>
+</div>
+<!-- AI Efficiency Card -->
+<div class="glass-panel p-6 rounded-xl flex flex-col">
+<h3 class="font-headline-md text-headline-md mb-6">יעילות AI</h3>
+<div class="flex-grow flex flex-col justify-center space-y-8">
+<div>
+<div class="flex justify-between text-label-md mb-2">
+<span>זיהוי פנים</span>
+<span class="text-primary">98.2%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container" style="width: 98.2%"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="text-center p-4 bg-surface-container-low rounded-xl border border-border-subtle">
+<div class="text-primary font-bold text-headline-md">12.4k</div>
+<div class="text-label-sm text-on-surface-variant">פנים שזוהו</div>
+</div>
+<div class="text-center p-4 bg-surface-container-low rounded-xl border border-border-subtle">
+<div class="text-primary font-bold text-headline-md">842</div>
+<div class="text-label-sm text-on-surface-variant">שעות שנחסכו</div>
+</div>
+</div>
+<div class="bg-primary/5 p-4 rounded-xl border border-primary/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+<p class="text-label-sm text-on-surface-variant">מנוע ה-AI אופטימיזציה הצליח להקטין את גודל הקבצים ב-35% ללא פגיעה באיכות.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Events Table & Popular Photos Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Top Performing Events -->
+<div class="lg:col-span-2 glass-panel rounded-xl overflow-hidden">
+<div class="p-6 border-b border-border-subtle flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md">אירועים מובילים</h3>
+<button class="text-primary text-label-md font-medium hover:underline">הצג הכל</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead class="bg-surface-container-low text-on-surface-variant text-label-sm border-b border-border-subtle">
+<tr>
+<th class="p-4 font-medium">שם האירוע</th>
+<th class="p-4 font-medium">תאריך</th>
+<th class="p-4 font-medium">צפיות</th>
+<th class="p-4 font-medium">הורדות</th>
+<th class="p-4 font-medium">מעורבות</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle">
+<tr class="hover:bg-surface-container transition-colors">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden">
+<img alt="חתונה" data-alt="A cinematic wide shot of a luxury wedding ballroom decorated with hanging crystal chandeliers, warm candlelight, and lush white floral arrangements. The atmosphere is romantic and sophisticated with soft amber lighting, conveying a premium event photography aesthetic consistent with a dark mode brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu3x0W7mMLHzc6codW-oXrKsMEo1irSslRX5NwM3SXQeiy-4esQMtwR4qcTEzoKm6DenjN_46Cf8sL6S61FxlgYYV6M3Re8fbuIsb03JAU6J7qNc7vNc8jbS7FgnHn5IiIXbi_mTRG7FrU8NZ8yePHNhZfYgKwzVmkbEXboXFf9Z4-_GNEHAVAT7YkZkRYEovyHF5FZxzNzjEElTTpneWmHQ70wxnY2AYnftuPFpv90BoQ3cvateMO0YEz4viaTnC0ZuMFzlgY2I5m"/>
+</div>
+<span class="font-label-md">חתונת קיץ - משפחת לוי</span>
+</div>
+</td>
+<td class="p-4 text-on-surface-variant text-label-md">15.08.23</td>
+<td class="p-4 text-label-md font-medium">1,240</td>
+<td class="p-4 text-label-md font-medium">420</td>
+<td class="p-4">
+<span class="bg-success/10 text-success px-2 py-1 rounded text-[10px] font-bold">גבוהה מאוד</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden">
+<img alt="אירוע חברה" data-alt="A modern corporate gala event in a sleek industrial space. Blue and magenta neon lighting accentuates the modern architecture. Guests in elegant evening wear are captured in candid motion, reflecting a professional and high-energy corporate environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtWlRmK87K1LwrgKHGUv4rekEv5OxuqncTI460EmngphLbYJUcavJ1m0ArYsTfS2eBYjFE3ApaIF6vaZxhKbvQkRdcU8Ghvy9bSSJ4WLUBDcJG-UkqWB4euRyn_CWZVRAd0qJvm9ieOJxfsHHopUXQn-HYRqp6CmWyNX-fAGVYjmslPdn-bIxZLhDt_WpsszqufEtIa6rVDmu8569gaCbCFu0aF7pBGtj7BGfJbPec_qiGd4y4KNK61G3-nVPAOYjuVmDA9GoPr7wj"/>
+</div>
+<span class="font-label-md">כנס טכנולוגי - Microsoft</span>
+</div>
+</td>
+<td class="p-4 text-on-surface-variant text-label-md">22.08.23</td>
+<td class="p-4 text-label-md font-medium">980</td>
+<td class="p-4 text-label-md font-medium">150</td>
+<td class="p-4">
+<span class="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-bold">בינונית</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container transition-colors">
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden">
+<img alt="מסיבה" data-alt="A vibrant outdoor garden party at twilight. String lights are draped between trees, creating a warm golden glow. People are laughing and cheering, with a shallow depth of field focusing on the joyful expressions. The colors are rich and saturated, perfect for a high-end photography portfolio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALZWFOX4nKN5XCrhJo1TRQZK28zAWU52PgI_nHOqaj2BcMdL1_7haZ84KMwsylOBz9fqYkFL7vduZniJIXlImuK80LPZW32Af2yCANDyKvKJLER1QlyERX_uzVSyi1-68qyr4ECVwr9xuawMUt5Gd0OjFxDjWzGZOPFO5fkMg0VukWW0dnFS0HTR36xruW_TlYOYzzVyv8uKREtCMMfBQRtMzBwo4pa8TWQpjC4kvBXZtnHLrRuNbNGPOubL22mv_Zjwm8Rq6kWRT4"/>
+</div>
+<span class="font-label-md">יומולדת 50 - רונית</span>
+</div>
+</td>
+<td class="p-4 text-on-surface-variant text-label-md">05.09.23</td>
+<td class="p-4 text-label-md font-medium">750</td>
+<td class="p-4 text-label-md font-medium">310</td>
+<td class="p-4">
+<span class="bg-success/10 text-success px-2 py-1 rounded text-[10px] font-bold">גבוהה</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Popular Photos Section -->
+<div class="glass-panel p-6 rounded-xl">
+<h3 class="font-headline-md text-headline-md mb-6">תמונות פופולריות</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="relative aspect-square rounded-lg overflow-hidden group">
+<img alt="תמונה פופולרית" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A stunning close-up portrait of a bride and groom during their first dance. The groom is whispering in the bride's ear, and her eyes are closed with a blissful smile. Soft bokeh from warm light bulbs in the background creates a dreamy, editorial feel. The image is crisp and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPryfbdjnsuMqsEqAaSZXd-EXlOcItUWHxCGL3T2ADlAkgOWS5pQrcnzUAkI9uy1u0n9DipeOtiBD5YJ8nJMhDKBrTUex1N4kC5zBUaiI9TXzWgKLxEY9BZYn0u8F52ZXDX2KXe_rsFDe_Ok7h0kpdhl7dAVMgyzlHW_fBwsUid097y2HAYqgJ4DLxfRGlAuYwK4DlitpyOq20k7VIEKYywP-kyaXAj3Y9wDkJjKuOIv2icqiFHxVPerwmiu8Z6up0Yy8PJ-KHXrh1"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-white" data-icon="favorite">favorite</span>
+<span class="text-white text-label-sm">242</span>
+</div>
+</div>
+<div class="relative aspect-square rounded-lg overflow-hidden group">
+<img alt="תמונה פופולרית" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A striking artistic portrait of a woman looking directly at the camera. Her face is half-lit by a warm sunset glow, creating deep shadows on the other side. Her expression is calm and confident. The lighting is dramatic and moody, reflecting a high-contrast cinematic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhq5xlB-m1BFIOuFLxVlp-_4T-LvaeC-v2WJkgAGfS9SXqIDT2QNA7cwBVoXWgfhbl3sqsunnD2zthcb36s5SdEMJjckNJJ1YTObkKa6aEBnw4Uje7IP_ETrhRmbrtKdFjXTgFRArXusSMtN471dAP6NFoXoT4IK_d5qvEhCdw7UZ__zimu7YD0VYtKy1Y0Sj6T8fuTR3XN4RmaWs0k0kXRU_pw_BLWaBWZnOoqoPgXeKBBr22Lm33jkQdk-kVjeVW7eIr6GYgS8xu"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-white" data-icon="favorite">favorite</span>
+<span class="text-white text-label-sm">185</span>
+</div>
+</div>
+<div class="relative aspect-square rounded-lg overflow-hidden group">
+<img alt="תמונה פופולרית" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="An energetic action shot at a concert. A crowd of fans has their hands raised toward the stage, which is bathed in intense purple and red laser light. The silhouettes of the crowd create a powerful graphic composition. The atmosphere is electric and high-octane." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCClWBroTfD_GpWKI-H2C8vytDjNZOdDRCwV_jyUqOe0JBPSGV7PRVdu862dY7fMJosTlMhti58tT3uOaXhtWGG5tSoVNbcJmSQu4qMJhR0oNWGqsuWeI4LIMNoqfTYhJHJGiPsR8MK5vqltKdDsK_9GcnjKdTD5P_BB1Sva7q77DUHnB0V_VRhx2JL3x1C0KLTUHQC-qLjK-u6FauVg4jkZWGMZlmLrd4xpSrxckFx573YYS1WA1CahphLF3WqeIZgJm6t-Not40Cx"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-white" data-icon="favorite">favorite</span>
+<span class="text-white text-label-sm">156</span>
+</div>
+</div>
+<div class="relative aspect-square rounded-lg overflow-hidden group border-2 border-dashed border-border-subtle flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="image">image</span>
+<span class="text-label-sm text-on-surface-variant mt-1">ראה עוד</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Authority: Shared Components JSON) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-2 px-4 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md border-t border-outline-variant dark:border-outline shadow-lg rounded-t-xl">
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="font-label-sm text-label-sm">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-primary dark:text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<script>
+        // Simple interactive micro-interactions for counters
+        function animateCounter(id, target, duration) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            let start = 0;
+            const increment = target / (duration / 16);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    element.innerText = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    element.innerText = Math.floor(start).toLocaleString();
+                }
+            }, 16);
+        }
+
+        // Add some basic hover effects logic
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mouseenter', () => {
+                panel.style.transform = 'translateY(-4px)';
+                panel.style.transition = 'transform 0.3s ease';
+            });
+            panel.addEventListener('mouseleave', () => {
+                panel.style.transform = 'translateY(0px)';
+            });
+        });
+    </script>
+</body></html>

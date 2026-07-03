@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura_Final_Production_Minimal_Gallery_Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&amp;family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#002019",
+                        "on-primary-fixed-variant": "#7f291c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary": "#601308",
+                        "success": "#4CAF50",
+                        "error": "#CF6679",
+                        "on-secondary-fixed": "#1b1b1c",
+                        "surface-dim": "#131313",
+                        "on-primary-container": "#752215",
+                        "inverse-surface": "#e5e2e1",
+                        "surface-variant": "#353534",
+                        "tertiary": "#51dcba",
+                        "inverse-primary": "#9f4030",
+                        "background": "#131313",
+                        "surface-container": "#201f1f",
+                        "on-surface": "#e5e2e1",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-surface-variant": "#dcc0bb",
+                        "surface": "#131313",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-high": "#2D2D2D",
+                        "primary": "#ffb4a6",
+                        "tertiary-fixed": "#72f9d5",
+                        "tertiary-container": "#29c09f",
+                        "on-primary-fixed": "#3f0300",
+                        "surface-bright": "#393939",
+                        "primary-fixed": "#ffdad4",
+                        "on-secondary-container": "#b7b5b4",
+                        "outline-variant": "#56423e",
+                        "tertiary-fixed-dim": "#51dcba",
+                        "on-secondary": "#303030",
+                        "on-background": "#FFFFFF",
+                        "secondary-container": "#474746",
+                        "primary-fixed-dim": "#ffb4a6",
+                        "outline": "#a48b87",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary": "#00382c",
+                        "on-tertiary-container": "#00493a",
+                        "secondary": "#c8c6c5",
+                        "on-secondary-fixed-variant": "#474746",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-container-highest": "#353534",
+                        "on-tertiary-fixed-variant": "#005141",
+                        "on-error-container": "#ffdad6",
+                        "surface-tint": "#ffb4a6",
+                        "primary-container": "#ff8a75",
+                        "inverse-on-surface": "#313030"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "32px",
+                        "margin-mobile": "24px",
+                        "gutter": "16px",
+                        "stack-sm": "16px",
+                        "stack-lg": "64px",
+                        "margin-desktop": "80px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "label-sm": ["Rubik"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .photo-card:hover .overlay {
+            opacity: 1;
+        }
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .animate-sparkle {
+            animation: sparkle 2s infinite ease-in-out;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary selection:text-on-primary overflow-x-hidden min-h-screen font-body-lg">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 glass-nav bg-surface-container-low/80 border-b border-outline/10">
+<div class="flex flex-row-reverse justify-between items-center px-margin-mobile md:px-margin-desktop w-full h-16 max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<img alt="Oura Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<span class="font-display-lg text-title-md font-bold text-primary">Oura</span>
+</div>
+<div class="hidden md:flex flex-row-reverse gap-8">
+<a class="font-title-md text-primary border-b-2 border-primary pb-1 transition-colors" href="#">גלריה</a>
+<a class="font-title-md text-on-surface-variant hover:text-primary transition-colors" href="#">אירועים</a>
+<a class="font-title-md text-on-surface-variant hover:text-primary transition-colors" href="#">הגדרות</a>
+</div>
+<div class="flex flex-row-reverse items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
+<img alt="פרופיל" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0LiCX1RgiEzDI7aF5bCRCZEkg7uN55e2nu04I5v_LKAuGo3oozq5hmT5HXW4_PkNNvK3axROnVof7oKSgZQ1wKeEzCevDxNfwAj4GX08_z7zAKOs9Eir19qOh4i2-kTIqHHVHdGTv7cODIzSQtnW6wQljzQKfPNkc3qWLOFTck3sTUUO8GzFqrTk9ivHIgF0flPVousj6dFbNammAXKpPLt1mTqw4-aUsNCbTmqQxRt2p-ZJNURCGnI1fI_svqb0nDb_pTv1w5FOc"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden pt-16">
+<div class="absolute inset-0 w-full h-full">
+<img alt="Hero Background" class="absolute inset-0 w-full h-full object-cover scale-105 blur-[2px] opacity-40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB13IlE692IXWPolZ2wq221SvZ2SAW6qZ53CNHD3g6uioLyAJzrY6BGUdIJNBFmrqzrl2w_4JNomBTXC6UM68RTxTosCwkDgCDiajVqum7l3R0-xtm_lkM094RWw9vpFhgq4gJcOKYwJisPOD_88Y-HZHKXt1Klm4njO-j3DuUAfEKd2Pr1-27mKIH1BD6oPm6jLwew9M6VVOzyoPQ4n6s2_3z65rYpmWg5MM6wnTfCVPtfDfSxgRb_r_-KhjdWRxG8IDnvs8Ph3TAt"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+<div class="relative z-10 text-center px-margin-mobile">
+<img alt="Oura Logo" class="w-32 h-32 md:w-48 md:h-48 mx-auto object-contain animate-pulse" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+</div>
+</section>
+<!-- Gallery Controls -->
+<section class="sticky top-16 z-40 bg-background/95 border-y border-outline/10 py-4 px-margin-mobile md:px-margin-desktop backdrop-blur-md">
+<div class="max-w-7xl mx-auto flex flex-row-reverse justify-between items-center gap-4">
+<div class="flex flex-row-reverse items-center gap-2 overflow-x-auto no-scrollbar">
+<button class="bg-primary text-on-primary px-4 py-2 rounded-full font-label-sm whitespace-nowrap">הכל</button>
+<button class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full font-label-sm whitespace-nowrap hover:bg-primary/10 transition-colors">קבלת פנים</button>
+<button class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full font-label-sm whitespace-nowrap hover:bg-primary/10 transition-colors">החופה</button>
+<button class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full font-label-sm whitespace-nowrap hover:bg-primary/10 transition-colors">המסיבה</button>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">grid_view</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">view_agenda</button>
+</div>
+</div>
+</section>
+<!-- Photo Bento Grid -->
+<main class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-12">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
+<!-- Large Featured Card -->
+<div class="col-span-2 row-span-2 group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-primary transition-all duration-500 photo-card cursor-pointer">
+<img alt="החופה המרהיבה" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCg0Byk0nhwfjhiLyckP4KIeijw9IFI7bkN3xr_p4UMKxMrUE8vR29aZg2mg7W41sWEO72eV4crC7NX1wiHvMmPwaxtJgzxJZP_NESxvYWgRpp8tHglyaLju5ZTXhpVTFf7A1oZG2jIy9ceY9NcT1pn60xfRT6ZjvlBK2AHGbrsPB5YoWOCecYQs_MSAgN4r_KL3KrdPtmPaQHIhrXs42evpWGINLCmv5AEsGE2l1grpRTZVnuutVrRwpMtBFhKUQ_BDrafOGRQZ0da"/>
+<div class="overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 flex flex-col justify-end p-6">
+<div class="flex justify-between items-end">
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-black/40">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-black/40">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+<span class="text-white font-label-sm bg-black/20 backdrop-blur-md px-3 py-1 rounded-full">החופה המרהיבה</span>
+</div>
+</div>
+</div>
+<!-- Standard Cards -->
+<div class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-primary transition-all duration-500 photo-card cursor-pointer">
+<img alt="זר כלה" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7CRDQ9PqovViOdZe1o71pnaHul3CveKuuBtPnUFfcBQ8VmKzddHOeDo7bQO85EteqVzbp2vstgQSZhuaSSXZCILCwYnW327NQPZ7YGtJyN6J08yzNvp4AUc4_RINQYlhTwl3Lrpa6O09564iqI1P1w6ilZ_ptFCOkiZ71VzCTPIGCR4zZAJUaJ9sCk0doEvMSblUv8r26sEo56abVe0Dn_oHvr4kH5kx2nwstMYKAySfuhbkIPdo2X5eW4Dv0QjwzqbkRUlBJgWAG"/>
+<div class="overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">zoom_in</span>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-primary transition-all duration-500 photo-card cursor-pointer">
+<img alt="חגיגה ברחבה" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH20KoWp9hNNXtGZ4iZiLm2Fo7K9goRxEVN988ya4i7TWylkqVYxZxqHisqly3xy3bVR8rRlG93y6nCR4qznr2zrULz9V8lXWk6h1X3y84cwZsyFB0FoQYzDJ_-XOwE38DWEdRE7QU26aTjKXgVwVeAC112XVzj7HiCFOlEWMRFmSIQg1vMqEQNaFy9-0LKs3GC9gHBacPoLeX3psi5B1PaT60rnUftgoTPXmY_dYETf_OajRy_r4yL9C18K-al0hf5HKbYqO75nyG"/>
+<div class="overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">zoom_in</span>
+</div>
+</div>
+<div class="col-span-2 group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-primary transition-all duration-500 photo-card cursor-pointer">
+<img alt="סידור שולחן" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkXTkaM5y7l3TVQOXSVX5Kk7lsUuQW62-K-OHt7Q7_Py_ZfchwOzWBKaMkl21Hh8z6mYu3eUgWQEjxMgfFRogag6K1hyFncAZS6gnozUQSdlSmKhhd9URhFxVwHNxlwF_Y5Z_GoAEnzfP7DIAJtOsH6v_WPJjvN8WVIkyoKUh_moLBUAto7rqGD91mHs4gA2FUGd0JTi2u_H8A6Rr0cdGU6tM3n_dsDrRgWMperdugUYercpErUrZC4mfCBEmAEGF_-opSletVHHDD"/>
+<div class="overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity flex items-center justify-end p-6">
+<button class="bg-white/20 backdrop-blur-md p-3 rounded-full text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">share</span>
+</button>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-primary transition-all duration-500 photo-card cursor-pointer">
+<img alt="רגע רומנטי בשקיעה" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAu7DmIsIaLsRs4UI-DtYS4huz761D8AN0Y444hpaM7m2ry4cl_Lx9E83E30s7E6GdViKyoMUcKch1vfe--FSQFrXHL6ENDLDSU1iLUIB9bOlMVOwgO_Dn_a80xUZDXy5dgy7iO1iat47CUAOut7WL5U_zukFUQcSzUpIBrsELfqyOkD9J8cPSHxwVDLISbAmCx_8w6ypT5uGQa6-8HKBPZ0TFH3w_I_O3IT-EQDmwRKLxIZ83Sl8wAfz9-4O6nT1uL6GFBV1-pIsn"/>
+<div class="overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">zoom_in</span>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-primary transition-all duration-500 photo-card cursor-pointer">
+<img alt="לחיים" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPeuW9qwlVM5GwRo7Dzc4GssKAH7qyg-Q2_cos3mkU6V9Jf_5dqh2CAxUeb2q59IPC2ZxaI4Zr9H_gkD5AA9cuhCZcuPBsrPNPLjRxzbMOY-MrxKKgPZ_hBePnNSgS4GbmuzWcYw9WSeO3vOO89fsXs4nGMBTkQnPKW5KUyToLtVIjMXiksOfAXWk3mCipbATgdJ2zjsuLvnWXcmQ5Nibud_zdYCoRGxYAf-mpS8cnXh3qiIZd-eEOsXN-GKBcso0O5aENSECspvyy"/>
+<div class="overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">zoom_in</span>
+</div>
+</div>
+</div>
+<div class="mt-12 flex justify-center">
+<button class="border-2 border-primary text-primary hover:bg-primary hover:text-on-primary px-12 py-4 rounded-xl font-headline-md transition-all active:scale-95">
+                טעינת תמונות נוספות
+            </button>
+</div>
+</main>
+<!-- Sticky Share/Download FAB Group (Mobile) -->
+<div class="fixed bottom-24 right-6 md:hidden z-50 flex flex-col gap-3">
+<button class="w-14 h-14 bg-tertiary-fixed text-on-tertiary-container rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-2xl">share</span>
+</button>
+<button class="w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">download_for_offline</span>
+</button>
+</div>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 glass-nav bg-surface-container-low/80 border-t border-outline/10 flex justify-around items-center py-4 px-4">
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">share</span>
+<span class="font-label-sm text-label-sm">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<!-- Footer -->
+<footer class="bg-surface-container-high border-t border-outline/10 pt-16 pb-32 md:pb-16 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row-reverse justify-between items-start gap-12">
+<div class="max-w-sm">
+<div class="flex items-center gap-3 mb-4">
+<img alt="Oura Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<h3 class="font-display-lg text-headline-md font-bold text-primary">Oura</h3>
+</div>
+<p class="font-body-lg text-on-surface">הופכים כל אירוע ליצירת אמנות נצחית עם Oura. הטכנולוגיה שלנו מאפשרת לכם ליהנות מהזיכרונות שלכם ברזולוציה הגבוהה ביותר ובחוויה המזמינה ביותר.</p>
+</div>
+<div class="grid grid-cols-2 gap-16">
+<div class="flex flex-col gap-4">
+<h4 class="font-title-md text-on-surface font-bold">קישורים מהירים</h4>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">האירועים שלי</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">גלריית אורחים</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">הזמנת אלבומים</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-title-md text-on-surface font-bold">תמיכה</h4>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">שאלות נפוצות</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">צור קשר</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">תנאי שימוש</a>
+</div>
+</div>
+<div class="flex flex-col items-start md:items-end gap-6">
+<h4 class="font-title-md text-on-surface font-bold">עקבו אחרינו</h4>
+<div class="flex gap-4">
+<button class="w-12 h-12 rounded-full border border-outline flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-2xl">camera</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-outline flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined text-2xl">alternate_email</span>
+</button>
+</div>
+<div class="text-right">
+<p class="text-label-sm text-outline">כל הזכויות שמורות © 2024</p>
+<p class="text-label-sm text-outline">צולם באהבה על ידי סטודיו Photo Santos &amp; Oura</p>
+</div>
+</div>
+</div>
+</footer>
+<script>
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('shadow-xl', 'bg-surface-container-low/95');
+                nav.classList.remove('bg-surface-container-low/80');
+            } else {
+                nav.classList.remove('shadow-xl', 'bg-surface-container-low/95');
+                nav.classList.add('bg-surface-container-low/80');
+            }
+        });
+
+        // Photo Grid Animation
+        const cards = document.querySelectorAll('.photo-card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                    }, index * 100);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        cards.forEach(card => {
+            card.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-700');
+            observer.observe(card);
+        });
+    </script>
+</body></html>

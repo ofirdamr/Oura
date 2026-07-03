@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura - דף נחיתה יוקרתי</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Rubik:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-high": "#2a2a2a",
+                    "inverse-primary": "#9f4030",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed": "#002019",
+                    "surface-container-low": "#1c1b1b",
+                    "on-tertiary-container": "#00493a",
+                    "on-tertiary": "#00382c",
+                    "on-primary-container": "#752215",
+                    "on-background": "#FFFFFF",
+                    "tertiary-fixed-dim": "#51dcba",
+                    "on-secondary": "#303030",
+                    "on-tertiary-fixed-variant": "#005141",
+                    "outline-variant": "#56423e",
+                    "surface-dim": "#131313",
+                    "error": "#CF6679",
+                    "on-surface-variant": "#E0E0E0",
+                    "surface-tint": "#ffb4a6",
+                    "inverse-on-surface": "#313030",
+                    "primary-fixed": "#ffdad4",
+                    "on-primary": "#601308",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#c8c6c5",
+                    "surface": "#131313",
+                    "primary-fixed-dim": "#ffb4a6",
+                    "on-secondary-fixed": "#1b1b1c",
+                    "tertiary-container": "#29c09f",
+                    "error-container": "#93000a",
+                    "secondary-container": "#474746",
+                    "surface-variant": "#353534",
+                    "success": "#4CAF50",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "primary": "#ffb4a6",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-primary-fixed-variant": "#7f291c",
+                    "inverse-surface": "#e5e2e1",
+                    "secondary-fixed": "#e5e2e1",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-secondary-container": "#FFFFFF",
+                    "primary-container": "#ff8a75",
+                    "outline": "#a48b87",
+                    "surface-bright": "#393939",
+                    "surface-container-highest": "#353534",
+                    "background": "#131313",
+                    "tertiary-fixed": "#72f9d5",
+                    "surface-container": "#201f1f",
+                    "on-primary-fixed": "#3f0300",
+                    "surface-high": "#2D2D2D",
+                    "tertiary": "#51dcba",
+                    "on-surface": "#FFFFFF"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-md": "32px",
+                    "stack-sm": "16px",
+                    "margin-desktop": "80px",
+                    "base": "8px",
+                    "gutter": "16px",
+                    "stack-lg": "64px",
+                    "margin-mobile": "24px"
+            },
+            "fontFamily": {
+                    "headline-md-mobile": ["Hanken Grotesk"],
+                    "label-sm": ["Rubik"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #FFFFFF;
+            font-family: 'Hanken Grotesk', 'Rubik', sans-serif;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .luxury-shadow {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        .transition-standard {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
+<nav class="bg-surface/90 backdrop-blur-xl border-b border-outline-variant/10 fixed w-full top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 max-w-full mx-auto">
+<div class="flex items-center gap-6">
+<img alt="לוגו אורה" class="h-12 w-12 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+<span class="font-headline-md text-headline-md-mobile text-primary font-extrabold tracking-tighter">אורה</span>
+<div class="hidden md:flex gap-10 items-center mr-10">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 text-body-lg" href="#">גלריה</a>
+<a class="text-on-surface-variant font-bold hover:text-primary transition-colors text-body-lg" href="#">סיפור</a>
+<a class="text-on-surface-variant font-bold hover:text-primary transition-colors text-body-lg" href="#">אודות</a>
+</div>
+</div>
+<div class="flex items-center gap-stack-sm">
+<button class="hidden md:flex items-center gap-2 px-8 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-bold hover:brightness-110 active:scale-95 transition-all">
+<span>שיתוף</span>
+</button>
+<div class="flex gap-6">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors text-[28px]">face_retouching_natural</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors text-[28px]">notifications</span>
+</div>
+</div>
+</div>
+</nav>
+<main class="relative">
+<!-- Hero Section -->
+<section class="relative min-h-screen flex items-center overflow-hidden px-margin-mobile md:px-margin-desktop py-stack-lg bg-background">
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-l from-transparent via-background/60 to-background z-10"></div>
+<div class="w-full h-full bg-cover bg-center scale-100 transition-transform duration-[20s] ease-linear hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCuG5pMlife4QTzQ7wdrGspVxyr3hXvyoc54LIm6kD_Z3zqi8KVvuWwNOyRMd9o9Pq4VG9DsHBZdX_P29POiWF84eQqkOP47QMFqhIuP6zbtQRel29itzv2Umj7WnumCENtQHxHgj1PNr-YECzT-yrUUyns_XA1jLcdqixZr1WhUg119AXHUyFjyFou2XJYXdpCK0hMUdK12kfK64QEXiJ5h9Lh-EUIao8weNwqIX1s-6XhmuxWw12AAIbCFazxoMk3gp_YGnhiB_y0')"></div>
+</div>
+<div class="relative z-20 w-full max-w-5xl space-y-stack-md">
+<div class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-surface-container-high/60 border border-outline-variant/40 backdrop-blur-lg">
+<img alt="אייקון" class="h-5 w-5 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+<span class="font-label-sm text-label-sm uppercase tracking-[0.2em] text-on-surface font-bold">חוויית פלטינום בלעדית</span>
+</div>
+<div class="space-y-6">
+<h1 class="font-display-lg text-display-lg leading-tight md:text-8xl">
+<span class="text-on-surface block font-black">פוטו סנטוס</span>
+<span class="text-primary italic block mt-2">יוסי דוסנטוס</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl font-medium leading-relaxed">
+                        ברוכים הבאים לגלריית האירועים הפרטית שלכם. כאן תוכלו למצוא את הרגעים היפים ביותר, מתועדים בעין אומנותית ובאיכות ללא פשרות.
+                    </p>
+</div>
+<div class="flex flex-wrap gap-stack-sm pt-8">
+<button class="px-12 py-5 bg-primary-container text-on-primary-container rounded-xl font-black text-headline-md-mobile hover:scale-105 active:scale-95 transition-all flex items-center gap-4 luxury-shadow">
+<span>כניסה לגלריה</span>
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="px-10 py-5 border-2 border-primary text-primary rounded-xl font-black text-headline-md-mobile hover:bg-primary/10 transition-all backdrop-blur-sm">
+                        צפו בסיפור
+                    </button>
+</div>
+</div>
+</section>
+<!-- Bento Grid Feature Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-stack-lg bg-surface-dim">
+<div class="max-w-full mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Large Feature Card -->
+<div class="md:col-span-8 group relative h-[600px] rounded-2xl overflow-hidden bg-surface-container-low transition-standard hover:shadow-2xl">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuneSpY_vbkc0ah5qokvOUme6eG93CgBU_vTiAIiWBODHeD-Ns8o4T3mS793SyvXHfrWGzxbzBgay9Nnxg7stFWjzo4bnBo4T96y0lo7azGz3QD0kgWR3EyVylvkDit3ECQpG1aKPfqw1QobB-xIBMF_Yvg5SNrq2Kuql2_8lxP6ed_K_wazfyIMDXPBfjOyxYxoqZmhwjpd1WczONBOG7fCYaz61w2GdnKpjM1uhW2KIYvVk7nq0f63bai8mYdy0DKKO_iDxoWDjd')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent"></div>
+<div class="absolute bottom-0 p-12 w-full">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4 font-bold">דיוק קריאטיבי</h3>
+<p class="text-on-surface-variant max-w-lg font-body-lg font-medium text-lg">צילום אמנותי המשלב טכנולוגיית בינה מלאכותית לזיהוי פנים ומיון חכם של הרגעים המיוחדים שלכם.</p>
+</div>
+</div>
+<!-- Small Vertical Cards -->
+<div class="md:col-span-4 flex flex-col gap-8">
+<div class="flex-1 rounded-2xl overflow-hidden bg-surface-container-high p-10 flex flex-col justify-center border border-outline-variant/30 hover:border-primary transition-standard">
+<div class="mb-6">
+<img alt="לוגו" class="h-12 w-12 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+</div>
+<h4 class="font-title-md text-2xl text-on-surface mb-3 font-bold">שיתוף מהיר</h4>
+<p class="text-on-surface-variant font-body-lg font-medium leading-relaxed">שתפו את הרגעים היפים ביותר ישירות לרשתות החברתיות בלחיצת כפתור אחת פשוטה.</p>
+</div>
+<div class="flex-1 rounded-2xl overflow-hidden relative group h-[280px]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAaeJO3DzdMfYvXWH2A4iDoRSNtVmMMMp6xgFL9HZHoK2naMkpBNZ0RYWqPgmJ8Llyx1PzDqU3i4IlxvXfPgC-o0RM2fU4cWM4qjO9_E_gDmZjJYHPz_VuJKvXLBB7tfqG1dATfhLxOer2U05ptgm2yfOsx0z1YvO6svANp0oTLVxFmwvng1QYerl9zBoVt0Kkg7xoln3NNzuQKuMNfJRHOl-VzJaDpynU0cslcjpykIeWqTTQmTTwuORVEAj6KLuym6bnSAJa6ZtMJ')"></div>
+<div class="absolute inset-0 bg-primary/20 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="bg-surface/90 backdrop-blur-md px-8 py-3 rounded-full font-bold text-on-surface opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 shadow-lg">צפו בגלריה</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Bar -->
+<section class="border-y border-outline-variant/10 py-20 px-margin-mobile md:px-margin-desktop bg-surface">
+<div class="max-w-7xl mx-auto flex flex-wrap justify-between gap-12">
+<div class="flex flex-col items-center md:items-start">
+<span class="font-display-lg text-primary text-6xl font-black mb-2">1,240+</span>
+<span class="font-label-sm text-on-surface font-bold uppercase tracking-widest">תמונות בגלריה</span>
+</div>
+<div class="flex flex-col items-center md:items-start">
+<span class="font-display-lg text-primary text-6xl font-black mb-2">4K</span>
+<span class="font-label-sm text-on-surface font-bold uppercase tracking-widest">רזולוציית הדפסה</span>
+</div>
+<div class="flex flex-col items-center md:items-start">
+<span class="font-display-lg text-primary text-6xl font-black mb-2">AI</span>
+<span class="font-label-sm text-on-surface font-bold uppercase tracking-widest">מיון פנים חכם</span>
+</div>
+<div class="flex flex-col items-center md:items-start">
+<span class="font-display-lg text-primary text-6xl font-black mb-2">24/7</span>
+<span class="font-label-sm text-on-surface font-bold uppercase tracking-widest">זמינות ענן מלאה</span>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="pt-stack-lg pb-stack-md px-margin-mobile md:px-margin-desktop bg-background border-t border-outline-variant/10">
+<div class="max-w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-stack-lg pb-stack-md mb-12">
+<div>
+<div class="flex items-center gap-4 mb-6">
+<img alt="לוגו אורה" class="h-10 w-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+<h2 class="font-headline-md text-3xl text-primary font-black">אורה</h2>
+</div>
+<p class="text-on-surface-variant max-w-md font-medium text-lg leading-relaxed">אנו יוצרים זיכרונות ויזואליים ששורדים דורות. השילוב המושלם של אמנות וטכנולוגיה מתקדמת בקצה האצבעות שלכם.</p>
+</div>
+<div class="flex md:justify-end gap-20">
+<div class="space-y-6">
+<h4 class="font-bold text-xl text-on-surface">ניווט</h4>
+<ul class="space-y-4 text-on-surface-variant font-bold">
+<li class="hover:text-primary cursor-pointer transition-colors">דף הבית</li>
+<li class="hover:text-primary cursor-pointer transition-colors">גלריות</li>
+<li class="hover:text-primary cursor-pointer transition-colors">סיפורי לקוח</li>
+</ul>
+</div>
+<div class="space-y-6">
+<h4 class="font-bold text-xl text-on-surface">צור קשר</h4>
+<ul class="space-y-4 text-on-surface-variant font-bold">
+<li class="hover:text-primary cursor-pointer transition-colors">אינסטגרם</li>
+<li class="hover:text-primary cursor-pointer transition-colors">פייסבוק</li>
+<li class="hover:text-primary cursor-pointer transition-colors">וואטסאפ</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="max-w-full mx-auto flex flex-col md:flex-row justify-between items-center text-label-sm text-on-surface-variant/70 gap-6 border-t border-outline-variant/10 pt-8">
+<span class="font-bold text-base">© 2024 פוטו סנטוס על ידי יוסי דוסנטוס. כל הזכויות שמורות.</span>
+<div class="flex gap-12 font-bold text-base">
+<span class="cursor-pointer hover:text-on-surface">תקנון האתר</span>
+<span class="cursor-pointer hover:text-on-surface">מדיניות פרטיות</span>
+</div>
+</div>
+</footer>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe md:hidden bg-surface-container-highest/95 backdrop-blur-lg border-t border-outline-variant/20 shadow-2xl">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">photo_library</span>
+<span class="font-bold text-xs mt-1">גלריה</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:text-primary active:scale-90 transition-all">
+<span class="material-symbols-outlined">search_spark</span>
+<span class="font-bold text-xs mt-1">חיפוש</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:text-primary active:scale-90 transition-all">
+<span class="material-symbols-outlined">share</span>
+<span class="font-bold text-xs mt-1">שיתוף</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:text-primary active:scale-90 transition-all">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-bold text-xs mt-1">פרופיל</span>
+</div>
+</nav>
+<script>
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => button.style.transform = 'scale(0.96)');
+            button.addEventListener('mouseup', () => button.style.transform = 'scale(1.04)');
+            button.addEventListener('mouseleave', () => button.style.transform = 'scale(1)');
+        });
+    </script>
+</body></html>

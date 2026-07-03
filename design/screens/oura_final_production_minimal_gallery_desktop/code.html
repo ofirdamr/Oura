@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Rubik:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#353534",
+                    "tertiary": "#51dcba",
+                    "surface-bright": "#393939",
+                    "surface-container-high": "#2a2a2a",
+                    "on-secondary-fixed-variant": "#474746",
+                    "inverse-on-surface": "#313030",
+                    "on-background": "#FFFFFF",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "surface-container": "#201f1f",
+                    "tertiary-container": "#29c09f",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-tint": "#ffb4a6",
+                    "surface-container-low": "#1c1b1b",
+                    "on-surface": "#e5e2e1",
+                    "background": "#131313",
+                    "on-primary": "#601308",
+                    "on-surface-variant": "#dcc0bb",
+                    "on-error-container": "#ffdad6",
+                    "primary": "#ffb4a6",
+                    "surface": "#131313",
+                    "on-tertiary": "#00382c",
+                    "surface-high": "#2D2D2D",
+                    "on-tertiary-fixed-variant": "#005141",
+                    "surface-variant": "#353534",
+                    "on-primary-fixed": "#3f0300",
+                    "on-tertiary-container": "#00493a",
+                    "primary-container": "#ff8a75",
+                    "error-container": "#93000a",
+                    "surface-dim": "#131313",
+                    "secondary-container": "#474746",
+                    "inverse-primary": "#9f4030",
+                    "outline": "#a48b87",
+                    "surface-container-lowest": "#0e0e0e",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-tertiary-fixed": "#002019",
+                    "on-error": "#690005",
+                    "on-secondary": "#303030",
+                    "on-secondary-fixed": "#1b1b1c",
+                    "on-secondary-container": "#b7b5b4",
+                    "primary-fixed-dim": "#ffb4a6",
+                    "secondary": "#c8c6c5",
+                    "success": "#4CAF50",
+                    "on-primary-fixed-variant": "#7f291c",
+                    "tertiary-fixed": "#72f9d5",
+                    "outline-variant": "#56423e",
+                    "error": "#CF6679",
+                    "primary-fixed": "#ffdad4",
+                    "on-primary-container": "#752215",
+                    "tertiary-fixed-dim": "#51dcba"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "64px",
+                    "margin-mobile": "24px",
+                    "gutter": "16px",
+                    "base": "8px",
+                    "stack-sm": "16px",
+                    "margin-desktop": "80px",
+                    "stack-md": "32px"
+            },
+            "fontFamily": {
+                    "headline-md-mobile": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "label-sm": ["Rubik"]
+            },
+            "fontSize": {
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1.5", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .luxury-card {
+            background: #1E1E1E;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .luxury-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+            background: rgba(19, 19, 19, 0.8);
+        }
+        #side-filter {
+            transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        .active-dot::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: #ffb4a6;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-[100] glass-header px-margin-mobile md:px-margin-desktop h-20 flex justify-between items-center shadow-md">
+<div class="flex items-center gap-stack-sm">
+<img alt="Oura Logo" class="h-10 w-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJVMIB25H0g5KW-UPEhn64VmMqwAWAyGGQ4NFGJCsh-KmWNu_REspzU3cNl_-0XXuyRLX4vv5cmrw0l8p3-nN6Ky6i1R9293JZr_Yv3WtTUPTxpzKQrw09WLNqcuaq-7WEcv3ysGFx_7z71hTsBV_A9DL7cUq_E88zHidsLL_OPRrF-AL-JzUN9TcUqTRyKwEd5PTvM_6-IYRtg0aFCNAB3be0clzweCldRkzfSyiXrEIWPEEcZMM7VEQh1Ef_plFvG2Yxki4-UMnH"/>
+<span class="font-headline-md text-headline-md text-primary font-bold tracking-tighter">Oura</span>
+<div class="hidden md:flex h-6 w-[1px] bg-outline-variant mx-4"></div>
+<div class="hidden md:flex flex-col leading-tight">
+<span class="font-label-sm text-label-sm text-on-surface uppercase tracking-widest">PHOTO SANTOS</span>
+<span class="text-[10px] text-on-surface-variant">by Yossi Dosantos</span>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-stack-md">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-lg text-body-lg active-dot relative" href="#">גלריה</a>
+<a class="text-on-surface-variant font-medium hover:scale-[1.02] hover:opacity-90 transition-transform duration-200 font-body-lg text-body-lg" href="#">סיפור</a>
+<a class="text-on-surface-variant font-medium hover:scale-[1.02] hover:opacity-90 transition-transform duration-200 font-body-lg text-body-lg" href="#">אודות</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-variant rounded-full transition-all active:scale-95" id="search-trigger">
+<span class="material-symbols-outlined text-on-surface">search_spark</span>
+</button>
+<button class="p-2 hover:bg-surface-variant rounded-full transition-all active:scale-95" onclick="toggleFilter()">
+<span class="material-symbols-outlined text-on-surface">tune</span>
+</button>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-lg font-bold hover:scale-[1.02] active:scale-[0.98] transition-all">
+                שיתוף
+            </button>
+</div>
+</header>
+<!-- Sidebar Search & Filter -->
+<aside class="fixed top-0 right-0 h-full w-80 bg-surface-container-low z-[110] shadow-lg transform translate-x-full flex flex-col p-stack-md" id="side-filter">
+<div class="flex justify-between items-center mb-stack-lg">
+<div class="flex items-center gap-2">
+<img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJVMIB25H0g5KW-UPEhn64VmMqwAWAyGGQ4NFGJCsh-KmWNu_REspzU3cNl_-0XXuyRLX4vv5cmrw0l8p3-nN6Ky6i1R9293JZr_Yv3WtTUPTxpzKQrw09WLNqcuaq-7WEcv3ysGFx_7z71hTsBV_A9DL7cUq_E88zHidsLL_OPRrF-AL-JzUN9TcUqTRyKwEd5PTvM_6-IYRtg0aFCNAB3be0clzweCldRkzfSyiXrEIWPEEcZMM7VEQh1Ef_plFvG2Yxki4-UMnH"/>
+<h2 class="font-headline-md text-headline-md text-on-surface">חיפוש</h2>
+</div>
+<button class="p-2 hover:bg-surface-variant rounded-full" onclick="toggleFilter()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-stack-md">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">חיפוש חופשי</label>
+<div class="relative">
+<input class="w-full bg-surface-high border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary focus:outline-none transition-all" placeholder="חפש תמונות, רגעים, אנשים..." type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-4">קטגוריות</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-medium text-sm">הכל</button>
+<button class="px-4 py-2 rounded-full bg-surface-variant text-on-surface-variant hover:bg-secondary-container transition-colors text-sm">פורטרטים</button>
+<button class="px-4 py-2 rounded-full bg-surface-variant text-on-surface-variant hover:bg-secondary-container transition-colors text-sm">נוף</button>
+<button class="px-4 py-2 rounded-full bg-surface-variant text-on-surface-variant hover:bg-secondary-container transition-colors text-sm">שחור-לבן</button>
+<button class="px-4 py-2 rounded-full bg-surface-variant text-on-surface-variant hover:bg-secondary-container transition-colors text-sm">אירועים</button>
+</div>
+</div>
+<div class="pt-stack-md">
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-lg font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">auto_awesome</span>
+                    חיפוש AI מתקדם
+                </button>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-32 pb-24 px-margin-mobile md:px-margin-desktop min-h-screen">
+<!-- Hero Section / Title -->
+<section class="mb-stack-lg max-w-4xl">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-4">Oura_Final_Production_Minimal_Gallery_Desktop</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
+                ברוכים הבאים לגלריה הפרטית של Oura. כל תמונה כאן עוצבה בקפידה על ידי סטודיו Photo Santos כדי לספר סיפור ייחודי של אור, צל ורגש.
+            </p>
+</section>
+<!-- Asymmetric Bento Grid Gallery -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Featured Large Vertical -->
+<div class="md:col-span-8 md:row-span-2 group relative luxury-card rounded-lg overflow-hidden cursor-pointer h-[600px]">
+<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBbfzmediU2dIEJYmwrsYxyBcjqJmVU1LEqVX_13Qzj3DpIeUfrNM7LNKPMDUuGeCNK459Ll3gmAtltLfqdRqBhkvF-Lj4Dgz5aWIpBBgdFLp_qXYq3dvTG9f8SRd97P5DBfoa-4y8aB1MuJGQImV3MspwTv6y3Q3xT4H1Ty6sCZ_UFrjuy1kkE26wzrYyGEurkCnOq9rx1nuwBV4and0bAPn1vC7-OHvBgxT9zxrzGKb3afvvwICzqnb6qCvJfvIOEVA-fljdloyd3')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-stack-md">
+<p class="font-label-sm text-label-sm text-primary uppercase tracking-widest mb-1">פורטרט ראשי</p>
+<h3 class="font-headline-md text-headline-md text-white">השקט שלפני</h3>
+</div>
+</div>
+<!-- Square Right Top -->
+<div class="md:col-span-4 group relative luxury-card rounded-lg overflow-hidden cursor-pointer h-[292px]">
+<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCpSpOBqPEQIZgrXsxuszXZtUmJ2tQ8Um6xlCZKYRc4kCcSVtb9sSokD0lEZTGMrBhvNelm-LncCEXYa9OoT6NFqkOOHW1Yb89mY3OOi5EMkQDKsopcueRVlXPB2LhI7skDz-IyOwdgpmoRSHmXE7ekeIqSE8zegvdOSITGweOzGWGiDA37h2dKMD4xCYc2UeBxrXwfo_WpMT70FFCCOyIKt7x8DZQX6RWbxJF-ZqHUsc9LuccXkc_rkjhhbpdVY12KgMZnnWzrKTsC')"></div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">visibility</span>
+</div>
+</div>
+<!-- Square Right Bottom -->
+<div class="md:col-span-4 group relative luxury-card rounded-lg overflow-hidden cursor-pointer h-[292px]">
+<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBffrxUvR3V48AVt7BpOWv0OfFVq6NxNE3_-wtaPaVg5p-E3EKpkiEBKNmowMAh5CozXMSYANVKlH_bYK0LlY0KyCY85yNY4AQDBdd9o-088MlxVqhh-JQJE1_qMZHcD7MIRXW6ZxeCBhevhrgZMzRUew_WEOgC_vNXk8tB5M5Oy4nXGA3mMwJ0PkWH2DH6rhJgwtu_8aZxbk7evQArL-Nhn3CTnDutgModOfyeceGBQuIrjd1gwGkWdvIeZNttAGdqLByvEYCG6gvN')"></div>
+<div class="absolute inset-0 w-full h-full bg-black/20 group-hover:bg-transparent transition-all"></div>
+</div>
+<!-- Wide Banner -->
+<div class="md:col-span-12 group relative luxury-card rounded-lg overflow-hidden cursor-pointer h-[400px]">
+<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrEkkCOTls4Xw2lIBZcW2suKV8n4Gw0hiRCKhlOHJWOy2OMMkFMs8d7DvYJ58axzAXOjvPqcuyFLGGDVKIUOFTjTQmAS6x6NNwITuGzGFgBvsGrVyB0RU6WQfDR4l4jLEjEG_w6Fx1zno31lZM0QiJmwwhiHJFHtMY3CyeOqY0iDQmC4LAD6jop2kGf663H485W-7PCQL4gOpZNddMznOepOkfSLRa-2dnntPV0NOtZV5ZzRPe7pSVATcZj-PHo0cVeR_ZcHdlYhva')"></div>
+<div class="absolute top-8 right-8 flex gap-3">
+<span class="bg-black/50 backdrop-blur-md px-4 py-1 rounded-full text-xs font-label-sm border border-white/10 uppercase tracking-widest">Story Collection</span>
+</div>
+</div>
+<!-- Grid triplet -->
+<div class="md:col-span-4 luxury-card rounded-lg overflow-hidden h-[350px]">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAsbWDgFJDrOSQb00kPOeMILWrl8Cn82Gkclz0x4ByTmFyEiqnBkj7ASAo7jtjqHSJyaB_U6RpkRTRN5cowYR6BGlintoHJIWynxZA9-6uqsjCBG80dsYD_Bc3v3eYaEadYM8rNAAjf3XXZYA0h-aMUoWjetwcANYh8gAnrDaCEc3J1Te7pPq8KYddkNbSAGVMQJILoELeOCPzhsqSoUzJx_McZafkSroYYf0DX311aPcCayuZ2TzcQFb-u-4j9okSQFL-5pJ0P5-vQ')"></div>
+</div>
+<div class="md:col-span-4 luxury-card rounded-lg overflow-hidden h-[350px]">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDr-pxyoQrTegSAevMRjDHu1VQPJ6-BkuCTKGB_fWPmMqgXHxyeZEDy4ylFL606mU-iDnHHWr7z442JIkSZ0NveX9HR_1hJJ0D29J7Ma13l8dttT4pRU8RqpVs6fDcoZcYwrZsol_ixTKdzBXeWcIPXDckUvcTn5JZRymvFiNZTD-WPr5HQZ9ddao5YXMAUvEbFadUS1QZZfTPQHJm7l0AeyCrWIRCm8A4_cnY1mwMi5DqTR5tFqIaGUjss_NdAAF1AwBVyRB5qc8Qk')"></div>
+</div>
+<div class="md:col-span-4 luxury-card rounded-lg overflow-hidden h-[350px]">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMApXqK2dgtthvxIdfW6U8BHRsx94U3tJgg58WHOBYVXvxE99Oz4hbjMvuRts-d4tSG9pEGcoumNxEbv0sMNYIwY77aIHWnlbInH5NR1jfOnJnqJxByN3BQJYRdgjx61zhfSnRFd3Ud3jrwIRORvvGfBp3R7M0CVszD7zD5WBZxTEWqfkXYND3phcL42h5-zyd7QtefTISFjpG3oResg5FAPFFB9opIOrg3vgJUuOZbuZZVVZAqTSYgydossNLco8wStw8adaUXlD_')"></div>
+</div>
+</div>
+<!-- Pagination / Load More -->
+<div class="mt-stack-lg flex flex-col items-center gap-6">
+<button class="group flex items-center gap-4 bg-surface-container-high border border-outline-variant px-10 py-4 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all">
+<span class="font-bold tracking-widest">טען תמונות נוספות</span>
+<span class="material-symbols-outlined group-hover:translate-y-1 transition-transform">expand_more</span>
+</button>
+<p class="text-on-surface-variant font-label-sm text-label-sm">מציג 8 מתוך 248 צילומים</p>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe md:hidden bg-surface-container-highest shadow-2xl rounded-t-lg">
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg p-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">photo_library</span>
+<span class="font-label-sm text-label-sm mt-1">גלריה</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:opacity-80 active:scale-95 transition-transform" onclick="toggleFilter()">
+<span class="material-symbols-outlined">search_spark</span>
+<span class="font-label-sm text-label-sm mt-1">חיפוש</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:opacity-80 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">share</span>
+<span class="font-label-sm text-label-sm mt-1">שיתוף</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:opacity-80 active:scale-95 transition-transform">
+<img alt="Oura" class="h-6 w-6 object-contain opacity-70" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJVMIB25H0g5KW-UPEhn64VmMqwAWAyGGQ4NFGJCsh-KmWNu_REspzU3cNl_-0XXuyRLX4vv5cmrw0l8p3-nN6Ky6i1R9293JZr_Yv3WtTUPTxpzKQrw09WLNqcuaq-7WEcv3ysGFx_7z71hTsBV_A9DL7cUq_E88zHidsLL_OPRrF-AL-JzUN9TcUqTRyKwEd5PTvM_6-IYRtg0aFCNAB3be0clzweCldRkzfSyiXrEIWPEEcZMM7VEQh1Ef_plFvG2Yxki4-UMnH"/>
+<span class="font-label-sm text-label-sm mt-1">אודות</span>
+</div>
+</nav>
+<!-- Footer -->
+<footer class="mt-stack-lg py-stack-md border-t border-outline-variant/30 px-margin-mobile md:px-margin-desktop text-center">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="text-right flex items-center gap-4">
+<img alt="Oura Logo" class="h-12 w-12 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJVMIB25H0g5KW-UPEhn64VmMqwAWAyGGQ4NFGJCsh-KmWNu_REspzU3cNl_-0XXuyRLX4vv5cmrw0l8p3-nN6Ky6i1R9293JZr_Yv3WtTUPTxpzKQrw09WLNqcuaq-7WEcv3ysGFx_7z71hTsBV_A9DL7cUq_E88zHidsLL_OPRrF-AL-JzUN9TcUqTRyKwEd5PTvM_6-IYRtg0aFCNAB3be0clzweCldRkzfSyiXrEIWPEEcZMM7VEQh1Ef_plFvG2Yxki4-UMnH"/>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1 text-right">נוצר עבור</p>
+<p class="font-title-md text-title-md font-bold text-primary">Oura Platinum Experience</p>
+</div>
+</div>
+<div class="flex gap-stack-sm">
+<a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">captive_portal</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">alternate_email</span>
+</a>
+</div>
+<p class="text-[10px] text-on-surface-variant opacity-50 uppercase tracking-[0.2em]">© 2024 PHOTO SANTOS STUDIO • ALL RIGHTS RESERVED</p>
+</div>
+</footer>
+<script>
+        function toggleFilter() {
+            const sidebar = document.getElementById('side-filter');
+            const isHidden = sidebar.classList.contains('translate-x-full');
+            if (isHidden) {
+                sidebar.classList.remove('translate-x-full');
+                sidebar.classList.add('translate-x-0');
+            } else {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('translate-x-full');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('side-filter');
+                if (sidebar.classList.contains('translate-x-0')) {
+                    toggleFilter();
+                }
+            }
+        });
+
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-8');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.luxury-card').forEach(card => {
+            card.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700');
+            observer.observe(card);
+        });
+    </script>
+</body></html>

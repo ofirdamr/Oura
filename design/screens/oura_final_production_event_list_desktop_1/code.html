@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura_Final_Production_Event_List_Desktop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Rubik:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e0e;
+            color: #e5e2e1;
+            font-family: 'Hanken Grotesk', 'Rubik', sans-serif;
+        }
+        .platinum-border {
+            border: 1px solid rgba(255, 138, 117, 0.2);
+        }
+        .platinum-card {
+            background: #131313;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .platinum-card:hover {
+            border-color: #FF8A75;
+            background: #1c1b1b;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0e0e0e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #353534;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#FF8A75",
+                        "on-primary": "#3f0300",
+                        "background": "#0e0e0e",
+                        "surface": "#131313",
+                        "surface-container": "#1c1b1b",
+                        "surface-container-high": "#201f1f",
+                        "outline": "#56423e",
+                        "on-surface": "#e5e2e1",
+                        "on-surface-variant": "#dcc0bb",
+                        "success": "#51dcba"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "80px",
+                        "stack-md": "32px",
+                        "stack-lg": "64px"
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background min-h-screen selection:bg-primary/30">
+<!-- Side Navigation Shell -->
+<aside class="hidden md:flex flex-col h-screen fixed right-0 top-0 border-l border-white/5 bg-surface w-72 z-40">
+<div class="p-8 flex flex-row-reverse items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-container overflow-hidden platinum-border">
+<img alt="Oura Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBY4IXBqDK-0xobM0skHWEKCs05qic8UbyPX0v_3FA86xXSQ5q4aYj6Oq8vSYJTmDmTqEeNzRyHi0UUBYlsGP9R8Heha-jU1er3cblC50rUFIE_03hVF_mjEjrR98ZolcVqpPWbT-cJ-o3PKDllmex7eWSm9X6WNtlsEHypLHu4bm6_g9yoWy2yaUnFXgZuZOgFVE2890qhiniaXycAop_HGx-fci6X6tHDoP8QUJjoieKY7TK8qJhQwMtNYF5XfxRpxmQgBq9D2Q-B"/>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-white">Oura</h1>
+<p class="text-[10px] uppercase tracking-widest text-primary font-bold">Platinum Management</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-4 hover:bg-surface-container-high hover:text-white transition-all rounded-xl group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors" data-icon="dashboard">dashboard</span>
+<span class="font-medium">לוח בקרה</span>
+</a>
+<a class="bg-primary/10 text-primary px-4 py-3 flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="event" style="font-variation-settings: 'FILL' 1;">event</span>
+<span class="font-bold">אירועים פעילים</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-4 hover:bg-surface-container-high hover:text-white transition-all rounded-xl group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors" data-icon="archive">archive</span>
+<span class="font-medium">ארכיון אירועים</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-4 hover:bg-surface-container-high hover:text-white transition-all rounded-xl group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors" data-icon="badge">badge</span>
+<span class="font-medium">לקוחות VIP</span>
+</a>
+<a class="text-on-surface-variant px-4 py-3 flex flex-row-reverse items-center gap-4 hover:bg-surface-container-high hover:text-white transition-all rounded-xl group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors" data-icon="insights">insights</span>
+<span class="font-medium">ניתוח נתונים</span>
+</a>
+</nav>
+<div class="p-6 mt-auto space-y-4">
+<button class="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold hover:brightness-110 active:scale-95 transition-all text-sm shadow-[0_8px_24px_rgba(255,138,117,0.2)]">
+                יצירת אירוע חדש
+            </button>
+<div class="pt-4 border-t border-white/5 space-y-1">
+<a class="text-on-surface-variant px-4 py-2 flex flex-row-reverse items-center gap-4 hover:text-white transition-all text-sm" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span>הגדרות מערכת</span>
+</a>
+<a class="text-on-surface-variant px-4 py-2 flex flex-row-reverse items-center gap-4 hover:text-red-400 transition-all text-sm" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="logout">logout</span>
+<span>התנתקות</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="md:mr-72 min-h-screen pb-12">
+<!-- Top Header -->
+<header class="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-white/5 h-20 flex items-center px-margin-mobile md:px-margin-desktop justify-between">
+<div class="flex flex-row-reverse items-center gap-8">
+<div class="hidden lg:flex flex-row-reverse items-center gap-6">
+<h2 class="text-xl font-bold text-white">רשימת אירועים</h2>
+<div class="h-4 w-px bg-white/10"></div>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-base" data-icon="home">home</span>
+<span>דף הבית</span>
+<span class="material-symbols-outlined text-xs" data-icon="chevron_left">chevron_left</span>
+<span class="text-primary font-medium">אירועים</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" data-icon="search">search</span>
+<input class="bg-surface-container border border-white/5 rounded-full py-2.5 pr-10 pl-4 w-64 text-sm focus:outline-none focus:border-primary/50 transition-all" placeholder="חיפוש לפי שם או מיקום..." type="text"/>
+</div>
+<div class="flex items-center gap-3 pl-2 border-l border-white/10">
+<div class="text-left hidden md:block">
+<p class="text-sm font-bold text-white leading-tight">Photo Santos</p>
+<p class="text-[10px] text-primary font-medium tracking-wide">PLATINUM MEMBER</p>
+</div>
+<img class="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmMp-CBpOBcB8vXtElTm1Ldu41QaD-2bUt7agXJaQKHqU5mTDJR2bMPhFola0g_SYEhYx8varFKuApf6-Fei0LMbhrkE8pgcGHD72lLdMUR1MXqYeshY9YO0zlft-cYD0ogQclHUD_V3V8ZyPRcy2uzsYwXbd3UtDHkJMD3kNaxDuBpaFuEGSXUfmNgF2ZEN3EKR6laYtFpQjEzvqVwHKc1uJeoj8dPqI1Q7dTwV0Hnu2vB82gqn99DG5IBLfMpI7X88KTvIQNR6ls"/>
+</div>
+</div>
+</header>
+<div class="px-margin-mobile md:px-margin-desktop py-stack-md">
+<!-- Summary Bar -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<div class="platinum-card p-5 rounded-2xl flex flex-row-reverse items-center justify-between">
+<div>
+<p class="text-[11px] text-on-surface-variant font-bold uppercase mb-1">סה"כ אירועים</p>
+<h3 class="text-2xl font-bold text-white">124</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+</div>
+</div>
+<div class="platinum-card p-5 rounded-2xl flex flex-row-reverse items-center justify-between">
+<div>
+<p class="text-[11px] text-on-surface-variant font-bold uppercase mb-1">פעילים כעת</p>
+<h3 class="text-2xl font-bold text-success">18</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</div>
+</div>
+<div class="platinum-card p-5 rounded-2xl flex flex-row-reverse items-center justify-between">
+<div>
+<p class="text-[11px] text-on-surface-variant font-bold uppercase mb-1">צפיות השבוע</p>
+<h3 class="text-2xl font-bold text-white">42.5k</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</div>
+</div>
+<div class="platinum-card p-5 rounded-2xl flex flex-row-reverse items-center justify-between">
+<div>
+<p class="text-[11px] text-on-surface-variant font-bold uppercase mb-1">אחסון בשימוש</p>
+<h3 class="text-2xl font-bold text-white">1.2 TB</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="cloud">cloud</span>
+</div>
+</div>
+</div>
+<!-- Table Header Actions -->
+<div class="flex flex-row-reverse justify-between items-center mb-6">
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-surface-container border border-white/5 rounded-lg text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span>
+                        סינון
+                    </button>
+<button class="px-4 py-2 bg-surface-container border border-white/5 rounded-lg text-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+                        ייצוא דוח
+                    </button>
+</div>
+<div class="flex bg-surface-container p-1 rounded-xl border border-white/5">
+<button class="p-2 rounded-lg bg-primary text-on-primary">
+<span class="material-symbols-outlined" data-icon="list">list</span>
+</button>
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-white">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+</div>
+</div>
+<!-- Platinum Event Table -->
+<div class="bg-surface rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50 border-b border-white/5">
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">שם האירוע</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">תאריך</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">מיקום</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">תמונות</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">כניסות</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">סטטוס</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest text-center">פעולות</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Event 1 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-row-reverse items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden platinum-border">
+<img alt="Event" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFofOQO3QRaZk1h2DKxg_j1vVPd5Sig-9wyPfiQr4iyRllW1DOH-ySbMeU7RpgkmJXxv8tSoLmH0gCwmLO2Ia8hZzV4ZZfmdevvqCS7Xv1-yS9oZotNfxvY6s5ql6vViFPirkaN2wNOAKXfFmuKNHLVGSkKV4rQ-KSJ1BDxLYYt1-EwzBXOJ8NQTMAlx3vqtnfWjCiRTU5RFbJ36qHb4aPlaznateNQ902WzWmrsCd0Do85Lza2zZo4-ZixWiKAlIE2ny5gaoMpRhn"/>
+</div>
+<div>
+<p class="font-bold text-white group-hover:text-primary transition-colors">חתונה - כהן &amp; לוי</p>
+<p class="text-xs text-on-surface-variant">ID: #892341</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium">12.08.2024</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">דייוויד אינטרקונטיננטל</td>
+<td class="px-6 py-5">
+<span class="text-sm font-bold text-white">452</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-bold text-white">1,208</span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-success/10 text-success text-[10px] font-bold border border-success/20 flex items-center gap-1.5 w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                                    פעיל
+                                </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex justify-center gap-2">
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="עריכה">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="קוד QR">
+<span class="material-symbols-outlined text-lg" data-icon="qr_code">qr_code</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="סטטיסטיקה">
+<span class="material-symbols-outlined text-lg" data-icon="bar_chart">bar_chart</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Event 2 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-row-reverse items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden platinum-border">
+<img alt="Event" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD87Qijqn0HllYOywvw-Y-LDK4d0ZLt-vwtsuYhDnnSFYtIsl5vy75CUbyiynQf5UPqSiRMtK9r39s6BNYff7Hsh-oM3xqTWX5BNQKVXZOs6KqXL2940kjxYl0L-6srSieXnp1UMgStBfhaDg_r1dHUAs7T3bvUEFL9Nuo0PSZ5mvLPVcppwFdNcmZMg3PlvuCYjb4YOGuR3xY9aZeGGrZaebPoDQEc0Oh90ReTagmtvUN3hNVbZIWzcwO0FIjo9qymZ194Z-gz5fzL"/>
+</div>
+<div>
+<p class="font-bold text-white group-hover:text-primary transition-colors">ועידת הייטק 2024</p>
+<p class="text-xs text-on-surface-variant">ID: #892342</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium">09.08.2024</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">מרכז הירידים, ת"א</td>
+<td class="px-6 py-5">
+<span class="text-sm font-bold text-white">1,204</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-bold text-white">3,450</span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold border border-primary/20 flex items-center gap-1.5 w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                    מעובד...
+                                </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex justify-center gap-2">
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="עריכה">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="קוד QR">
+<span class="material-symbols-outlined text-lg" data-icon="qr_code">qr_code</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="סטטיסטיקה">
+<span class="material-symbols-outlined text-lg" data-icon="bar_chart">bar_chart</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Event 3 -->
+<tr class="hover:bg-white/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-row-reverse items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden platinum-border opacity-50 grayscale">
+<img alt="Event" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDExaoAvwfG1ZuNHCpUtaSc68o8EhFWOggA27Nwn9_O6a61e5sX6YaIgkgwlzYCSZFz9w6swM4Nd5vgCWtARuW2ref8nK7CuIp6oUMHSexsu8EDmsESRsZ4asWnNvzlByNK-1LomfR6DnkM2Lk8LIr58ekfqJ8xS9TAGPE8ko-LQrxKBDK8ft6r3lxx49c2VOeFkYi4Bx-dIUnTsyZ4W08LRqQlJE8T1aQG7DyNWy3C74DoTcQfkm1WhQ66L5owtPSqrqUAbdlNoOiK"/>
+</div>
+<div>
+<p class="font-bold text-on-surface-variant group-hover:text-white transition-colors">תערוכת רכבי יוקרה</p>
+<p class="text-xs text-on-surface-variant/50">ID: #892338</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant">24.07.2024</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant/70">נמל הרצליה</td>
+<td class="px-6 py-5">
+<span class="text-sm font-bold text-on-surface-variant">892</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-bold text-on-surface-variant">542</span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 rounded-full bg-white/5 text-on-surface-variant text-[10px] font-bold border border-white/10 flex items-center gap-1.5 w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+                                    בארכיון
+                                </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex justify-center gap-2">
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-white transition-all" title="שחזור">
+<span class="material-symbols-outlined text-lg" data-icon="unarchive">unarchive</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-surface-container border border-white/5 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/30 transition-all" title="סטטיסטיקה">
+<span class="material-symbols-outlined text-lg" data-icon="bar_chart">bar_chart</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-surface-container-high/30 border-t border-white/5 flex flex-row-reverse justify-between items-center">
+<p class="text-xs text-on-surface-variant">מציג 1-10 מתוך 124 אירועים</p>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-white/10 transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary text-xs font-bold">1</button>
+<button class="w-8 h-8 rounded hover:bg-white/10 text-on-surface-variant text-xs font-bold transition-colors">2</button>
+<button class="w-8 h-8 rounded hover:bg-white/10 text-on-surface-variant text-xs font-bold transition-colors">3</button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 rounded hover:bg-white/10 text-on-surface-variant text-xs font-bold transition-colors">13</button>
+<button class="p-1 rounded hover:bg-white/10 transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 bg-surface/90 backdrop-blur-lg border-t border-white/5 rounded-t-3xl">
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-bold mt-1">בית</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="text-[10px] font-medium mt-1">אירועים</span>
+</a>
+<div class="-mt-8 w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-on-primary shadow-lg border-4 border-background">
+<span class="material-symbols-outlined text-3xl font-bold" data-icon="add">add</span>
+</div>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-medium mt-1">דוחות</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-medium mt-1">פרופיל</span>
+</a>
+</nav>
+</body></html>

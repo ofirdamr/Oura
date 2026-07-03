@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Three.js for 3D Box Reveal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #0a0a0a; /* High contrast dark mode */
+            color: #ffffff;
+        }
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #three-canvas-container {
+            width: 100%;
+            height: 400px;
+            cursor: pointer;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#d4a373", /* Oura-inspired bronze/gold */
+                      "background": "#0a0a0a",
+                      "surface": "#141414",
+                      "on-surface": "#ffffff",
+                      "outline": "#333333"
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="overflow-x-hidden bg-background text-on-surface">
+<!-- Main Mobile Container -->
+<div class="flex flex-col min-h-screen pb-20">
+<!-- Top Branding Header -->
+<header class="w-full py-6 px-6 flex flex-col items-center gap-4 bg-surface border-b border-outline">
+<img alt="Oura Logo" class="h-16 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<h1 class="text-xl font-bold text-primary tracking-wide">מצגת חשיפת מארז הפרימיום</h1>
+</header>
+<main class="flex-1 px-6 py-8 flex flex-col gap-8">
+<!-- Interactive 3D Box Reveal Section -->
+<section class="glass-panel rounded-3xl overflow-hidden p-4 relative">
+<div class="text-center mb-4">
+<span class="text-xs uppercase tracking-widest text-primary/80 font-bold">חוויה אינטראקטיבית</span>
+<h2 class="text-lg font-medium">גע בקופסה כדי לחשוף את המתנה</h2>
+</div>
+<div class="rounded-2xl bg-black/40" id="three-canvas-container">
+<!-- Three.js renders here -->
+</div>
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none opacity-50 flex flex-col items-center">
+<span class="material-symbols-outlined animate-bounce text-primary">touch_app</span>
+<span class="text-[10px] mt-1">גרור לסיבוב • לחץ לפתיחה</span>
+</div>
+</section>
+<!-- Product Details -->
+<section class="space-y-6 fade-in" style="animation-delay: 0.3s;">
+<div class="flex justify-between items-end border-b border-outline pb-4">
+<div>
+<h3 class="text-2xl font-bold">קולקציית Oura Pro</h3>
+<p class="text-primary/70 text-sm">מהדורה מוגבלת לשנת 2024</p>
+</div>
+<div class="text-left">
+<span class="text-primary text-xl font-bold">₪1,299</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="glass-panel p-4 rounded-2xl flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-primary">diamond</span>
+<span class="text-xs text-white/60">חומרים</span>
+<span class="text-sm font-medium">טיטניום מוברש</span>
+</div>
+<div class="glass-panel p-4 rounded-2xl flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-primary">battery_charging_full</span>
+<span class="text-xs text-white/60">סוללה</span>
+<span class="text-sm font-medium">עד 7 ימים</span>
+</div>
+</div>
+<div class="space-y-4">
+<p class="text-white/80 leading-relaxed text-right">
+                    חוויית הפתיחה של מארז ה-Oura החדש עוצבה כדי לשקף את הדיוק והאלגנטיות של המוצר שבתוכו. כל מארז עשוי מחומרים ממוחזרים וכולל גימורי פרימיום בעבודת יד.
+                </p>
+<ul class="space-y-3">
+<li class="flex items-center gap-3 flex-row-reverse">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-sm">זיהוי פנים אוטומטי בכניסה לגלריה</span>
+</li>
+<li class="flex items-center gap-3 flex-row-reverse">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-sm">אבטחת נתונים ברמה צבאית</span>
+</li>
+<li class="flex items-center gap-3 flex-row-reverse">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span class="text-sm">סנכרון מלא עם אפליקציית Oura</span>
+</li>
+</ul>
+</div>
+</section>
+<!-- CTA Action -->
+<section class="mt-4">
+<button class="w-full bg-primary text-background py-5 rounded-2xl font-bold text-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                הזמן עכשיו עם שליח עד הבית
+            </button>
+<p class="text-center text-[11px] text-white/40 mt-4">
+                משלוח חינם בקנייה מעל ₪500 | החזרות עד 30 יום
+            </p>
+</section>
+</main>
+</div>
+<!-- Mobile Nav (Bottom) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-4 bg-surface/90 backdrop-blur-xl border-t border-outline">
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-[10px] font-medium mt-1">חנות</span>
+</a>
+<a class="flex flex-col items-center text-white/40" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-medium mt-1">גילוי</span>
+</a>
+<a class="flex flex-col items-center text-white/40" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium mt-1">חשבון</span>
+</a>
+</nav>
+<script>
+    // Three.js 3D Box Logic
+    const container = document.getElementById('three-canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // Light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xd4a373, 1);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+
+    // Box (Group to handle lid)
+    const boxGroup = new THREE.Group();
+    
+    // Main Box Body
+    const geometry = new THREE.BoxGeometry(2, 1.5, 2);
+    const material = new THREE.MeshStandardMaterial({ 
+        color: 0x1a1a1a,
+        roughness: 0.1,
+        metalness: 0.5
+    });
+    const boxBody = new THREE.Mesh(geometry, material);
+    boxGroup.add(boxBody);
+
+    // Lid
+    const lidGeometry = new THREE.BoxGeometry(2.1, 0.5, 2.1);
+    const lidMaterial = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
+    const lid = new THREE.Mesh(lidGeometry, lidMaterial);
+    lid.position.y = 0.8;
+    boxGroup.add(lid);
+
+    scene.add(boxGroup);
+    camera.position.z = 4;
+    camera.position.y = 1;
+    camera.lookAt(0,0,0);
+
+    let isOpened = false;
+    let rotationSpeed = 0.005;
+
+    // Animation Loop
+    function animate() {
+        requestAnimationFrame(animate);
+        if(!isOpened) {
+            boxGroup.rotation.y += rotationSpeed;
+        } else {
+            lid.position.y = THREE.MathUtils.lerp(lid.position.y, 2.5, 0.05);
+            lid.rotation.x = THREE.MathUtils.lerp(lid.rotation.x, -Math.PI/2, 0.05);
+            boxGroup.rotation.y += 0.002;
+        }
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Interaction
+    container.addEventListener('click', () => {
+        isOpened = !isOpened;
+        if(isOpened) {
+            // Trigger feedback
+            navigator.vibrate?.(50);
+        }
+    });
+
+    // Handle Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+</script>
+</body></html>

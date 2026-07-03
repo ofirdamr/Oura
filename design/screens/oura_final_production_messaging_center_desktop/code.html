@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #111317;
+            color: #e2e2e8;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111317;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #33363D;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4A4D55;
+        }
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(26, 28, 32, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid #33363D;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#191c20",
+                        "on-error": "#690005",
+                        "tertiary": "#c4c6d0",
+                        "primary-container": "#e2725b",
+                        "secondary-container": "#47494e",
+                        "on-primary-fixed-variant": "#802918",
+                        "surface-variant": "#333539",
+                        "surface-container-lowest": "#0c0e12",
+                        "tertiary-fixed-dim": "#c4c6d0",
+                        "on-secondary-fixed-variant": "#45474c",
+                        "surface-tint": "#ffb4a5",
+                        "on-surface-variant": "#ddc0ba",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#e2e2e8",
+                        "inverse-surface": "#e2e2e8",
+                        "surface-bright": "#37393e",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "on-secondary": "#2e3035",
+                        "on-tertiary": "#2d3038",
+                        "on-background": "#e2e2e8",
+                        "surface-container-high": "#282a2e",
+                        "success": "#10B981",
+                        "primary": "#ffb4a5",
+                        "primary-fixed": "#ffdad3",
+                        "on-secondary-container": "#b7b8be",
+                        "outline": "#a48b86",
+                        "tertiary-fixed": "#e0e2ec",
+                        "on-surface": "#e2e2e8",
+                        "surface-input": "#0A0B0D",
+                        "text-muted": "#94A3B8",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-card": "#1A1C20",
+                        "surface-container": "#1e2024",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#90929b",
+                        "inverse-primary": "#9f402d",
+                        "on-primary": "#611205",
+                        "on-tertiary-container": "#282b33",
+                        "surface-container-highest": "#333539",
+                        "on-tertiary-fixed": "#181c23",
+                        "surface-dim": "#111317",
+                        "secondary": "#c5c6cc",
+                        "secondary-fixed-dim": "#c5c6cc",
+                        "on-tertiary-fixed-variant": "#44474f",
+                        "border-subtle": "#33363D",
+                        "outline-variant": "#56423e",
+                        "surface": "#111317",
+                        "background": "#111317",
+                        "on-primary-fixed": "#3e0500",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#5a0d02",
+                        "surface-container-low": "#1a1c20"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-lg": "48px",
+                        "base-unit": "4px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "24px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "container-max-width": "1200px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Rubik"],
+                        "headline-md": ["Rubik"],
+                        "body-md": ["Rubik"],
+                        "body-lg": ["Rubik"],
+                        "display-lg": ["Rubik"],
+                        "label-md": ["Rubik"],
+                        "headline-lg": ["Rubik"],
+                        "headline-lg-mobile": ["Rubik"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="antialiased overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline fixed top-0 right-0 left-0 z-40 flex flex-row-reverse justify-between items-center px-margin-desktop w-full h-16">
+<div class="flex flex-row-reverse items-center gap-4">
+<span class="font-display-lg text-title-lg font-bold text-primary dark:text-primary-fixed-dim">Oura</span>
+<div class="hidden md:flex flex-row-reverse gap-6 mr-8">
+<a class="font-label-lg text-label-lg text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1" href="#">ניהול הודעות ותקשורת</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">גלריה</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">אירועים</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-xl font-label-md hover:opacity-90 transition-opacity">העלאת תמונות</button>
+<span class="material-symbols-outlined text-on-surface cursor-pointer p-2 rounded-full hover:bg-surface-variant transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface cursor-pointer p-2 rounded-full hover:bg-surface-variant transition-colors" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen fixed right-0 top-0 w-64 bg-surface-container-high dark:bg-inverse-surface border-l border-outline-variant z-50">
+<div class="p-6 flex flex-col items-end gap-2">
+<div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-on-primary mb-4"><img alt="Oura Logo" class="w-full h-full object-cover rounded-xl" src="https://lh3.googleusercontent.com/aida/AP1WRLsQug4Z43i40q9z5p_Z_D7hUwH4xHTASxyJROeBnD95x8KW7TjDb3_NYb9gj_BLKkslp7lgyu8zL0hPaDZ57sqO01TspQlGnsPDIFSZ4eGcczQQbF-VuKyw8vsebnOjT9PTmD-f2E1-iJXDWW5M0KvSL8Pi-Oaz7CbqTSiTbGu4EL2Kwf62HBq6mHXhO9722B5D1mQfTe7pm1cpUjzYiejtxdipBF5AZoUoBa-wUZt-4-OsDMF-LbeEHQ2S"/></div>
+<h2 class="font-display-lg text-title-lg font-bold text-primary">Oura</h2>
+<p class="font-label-lg text-label-lg text-on-surface-variant">Photo Santos studio</p>
+</div>
+<nav class="flex-1 mt-4 space-y-1">
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-lg text-label-lg">לוח בקרה</span>
+</a>
+<a class="bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-xl mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span class="font-label-lg text-label-lg">הודעות ותקשורת</span>
+</a>
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="photo_library">photo_library</span>
+<span class="font-label-lg text-label-lg">אירועים פעילים</span>
+</a>
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-lg text-label-lg">לקוחות</span>
+</a>
+<a class="text-on-surface-variant dark:text-outline-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-variant dark:hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-lg text-label-lg">סטטיסטיקה</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<button class="w-full bg-primary-container text-on-primary-container py-3 rounded-xl flex items-center justify-center gap-2 font-label-md">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span>אירוע חדש</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:pr-64 pt-24 pb-20 min-h-screen">
+<div class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin-desktop">
+<!-- Page Header Section -->
+<div class="flex flex-col md:flex-row-reverse justify-between items-start md:items-center gap-4 mb-stack-md">
+<div class="text-right">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Oura_Final_Production_Messaging_Center_Desktop</h1>
+<p class="font-body-md text-text-muted">הגדר תבניות הודעה אוטומטיות ותזמוני שליחה ללקוחות שלך.</p>
+</div>
+<div class="flex gap-2 p-1 bg-surface-container-low border border-border-subtle rounded-xl">
+<button class="px-6 py-2 rounded-lg font-label-md transition-all bg-primary-container text-on-primary-container" id="tab-sms" onclick="switchTab('sms')">הודעות SMS</button>
+<button class="px-6 py-2 rounded-lg font-label-md transition-all text-on-surface-variant hover:bg-surface-variant" id="tab-push" onclick="switchTab('push')">התראות Push</button>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-stack-md">
+<div class="glass-panel p-6 rounded-2xl flex flex-row-reverse items-center gap-4 border-r-4 border-r-primary">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="send" data-weight="fill">send</span>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-text-muted">הודעות שנשלחו</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">1,248</h3>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-2xl flex flex-row-reverse items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center text-success">
+<span class="material-symbols-outlined" data-icon="visibility" data-weight="fill">visibility</span>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-text-muted">אחוז פתיחה</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">94.2%</h3>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-2xl flex flex-row-reverse items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="touch_app" data-weight="fill">touch_app</span>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-text-muted">הקלקות לגלריה</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">856</h3>
+</div>
+</div>
+</div>
+<!-- Main Workspace: Asymmetric Bento Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Left/Center Column: Editor and Rules -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Template Editor -->
+<section class="glass-panel p-8 rounded-3xl overflow-hidden relative">
+<div class="flex flex-row-reverse justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md text-on-surface">עורך תבנית הודעה</h2>
+<span class="bg-success/20 text-success px-3 py-1 rounded-full font-label-sm flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+                                פעיל
+                            </span>
+</div>
+<div class="mb-4">
+<label class="block text-right font-label-md text-on-surface-variant mb-2">תוכן ההודעה</label>
+<textarea class="w-full h-48 bg-surface-input border border-border-subtle rounded-xl p-4 text-right font-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" id="message-editor" placeholder="הקלד את ההודעה שלך כאן...">שלום {שם_אורח}!
+איזה כיף שהייתם איתנו ב{שם_אירוע}. התמונות המדהימות שלך כבר כאן!
+
+לצפייה בגלריה המלאה:
+{קישור_לגלריה}</textarea>
+</div>
+<!-- Dynamic Placeholders -->
+<div class="flex flex-row-reverse flex-wrap gap-2 mb-6">
+<span class="font-label-sm text-on-surface-variant ml-2">הוסף שדה דינמי:</span>
+<button class="px-3 py-1.5 bg-surface-container-highest border border-border-subtle rounded-lg font-label-sm text-on-surface hover:border-primary transition-colors" onclick="insertPlaceholder('{שם_אורח}')">{שם_אורח}</button>
+<button class="px-3 py-1.5 bg-surface-container-highest border border-border-subtle rounded-lg font-label-sm text-on-surface hover:border-primary transition-colors" onclick="insertPlaceholder('{שם_אירוע}')">{שם_אירוע}</button>
+<button class="px-3 py-1.5 bg-surface-container-highest border border-border-subtle rounded-lg font-label-sm text-on-surface hover:border-primary transition-colors" onclick="insertPlaceholder('{קישור_לגלריה}')">{קישור_לגלריה}</button>
+<button class="px-3 py-1.5 bg-surface-container-highest border border-border-subtle rounded-lg font-label-sm text-on-surface hover:border-primary transition-colors" onclick="insertPlaceholder('{תאריך_אירוע}')">{תאריך_אירוע}</button>
+</div>
+</section>
+<!-- Delivery Rules -->
+<section class="glass-panel p-8 rounded-3xl">
+<h2 class="font-headline-md text-headline-md text-on-surface text-right mb-6">כללי שליחה ותזמון</h2>
+<div class="space-y-4">
+<label class="flex flex-row-reverse items-center justify-between p-4 bg-surface-container rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-container-high transition-colors group">
+<div class="flex flex-row-reverse items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">מיד לאחר עיבוד AI</p>
+<p class="font-label-sm text-text-muted">ההודעה תשלח ברגע שהמערכת זיהתה פנים</p>
+</div>
+</div>
+<input checked="" class="w-5 h-5 text-primary bg-surface-input border-border-subtle focus:ring-primary" name="delivery-rule" type="radio"/>
+</label>
+<label class="flex flex-row-reverse items-center justify-between p-4 bg-surface-container rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-container-high transition-colors group">
+<div class="flex flex-row-reverse items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">תזמון מושהה</p>
+<p class="font-label-sm text-text-muted">שלח את ההודעות כמה שעות לאחר סיום האירוע</p>
+</div>
+</div>
+<div class="flex items-center gap-2"><div class="flex flex-wrap items-center gap-3">
+<div class="flex flex-col gap-1">
+<label class="text-[10px] text-text-muted text-right">תאריך</label>
+<input class="bg-surface-input border-border-subtle rounded-lg text-on-surface font-label-sm h-8 py-0 px-2 focus:ring-primary focus:border-primary" type="date"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] text-text-muted text-right">שעה</label>
+<input class="bg-surface-input border-border-subtle rounded-lg text-on-surface font-label-sm h-8 py-0 px-2 focus:ring-primary focus:border-primary" type="time"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] text-text-muted text-right">או השהייה</label>
+<select class="bg-surface-input border-border-subtle rounded-lg text-on-surface font-label-sm h-8 py-0">
+<option>2 שעות</option>
+<option>4 שעות</option>
+<option>בוקר למחרת</option>
+</select>
+</div>
+<input class="w-5 h-5 text-primary bg-surface-input border-border-subtle focus:ring-primary mt-4" name="delivery-rule" type="radio"/>
+</div></div>
+</label>
+<label class="flex flex-row-reverse items-center justify-between p-4 bg-surface-container rounded-xl border border-border-subtle cursor-pointer hover:bg-surface-container-high transition-colors group">
+<div class="flex flex-row-reverse items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20">
+<span class="material-symbols-outlined" data-icon="touch_app">touch_app</span>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">בתזמון ידני</p>
+<p class="font-label-sm text-text-muted">המתן לאישור סופי שלי לכל הודעה</p>
+</div>
+</div>
+<input class="w-5 h-5 text-primary bg-surface-input border-border-subtle focus:ring-primary" name="delivery-rule" type="radio"/>
+</label>
+</div>
+</section>
+</div>
+<!-- Right Column: Live Preview -->
+<div class="lg:col-span-4 sticky top-24">
+<div class="flex flex-col items-center">
+<p class="font-label-md text-on-surface-variant mb-4">תצוגה מקדימה בזמן אמת</p>
+<!-- Realistic Phone Frame -->
+<div class="relative w-[280px] h-[560px] bg-black rounded-[3rem] border-[8px] border-[#222] shadow-2xl overflow-hidden">
+<!-- Notch -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#222] rounded-b-2xl z-10"></div>
+<!-- Phone Content -->
+<div class="w-full h-full bg-cover bg-center transition-all duration-700" id="phone-bg" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA3yFE_M-1JV5jFfmlcENYc1o82Dmz8l2C1IyQsQNHwW7eBCeBrYQ_sFKaJEJP7emj3CnXVp5KFYyrnzTbZHcMX_KHBYFyEl0GLwn7xZZHuEDqmXmGHJ_TrEJ_AYvqxxBhYsvm2GW7Rpqrd7rRCdfA1A-yUBUZU5JhRZkbV1Ek97fowDBkIe69Zg4OVqM_VNIpKt1WPvm0VepPbCVy4yDkE79mVqoEvb3LeFo-QU3WON3w3ZP8e2ntdzOx3XvKPOQZS_q8W2CfegV2v');">
+<div class="absolute inset-0 bg-black/40"></div>
+<!-- Status Bar -->
+<div class="flex justify-between px-6 pt-8 text-[10px] text-white/80 font-bold">
+<span>9:41</span>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-xs" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-xs" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- Notification Display -->
+<div class="mt-8 px-4 flex flex-col gap-4" id="preview-content-container">
+<!-- SMS Mode Preview -->
+<div class="space-y-4" id="sms-preview">
+<div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 animate-bounce-subtle">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-white/60 font-bold">הודעות (SMS)</span>
+<span class="text-[10px] text-white/60">עכשיו</span>
+</div>
+<p class="text-white text-[12px] leading-relaxed text-right" id="phone-sms-text">שלום נועה! איזה כיף שהיית איתנו בחתונה של גל ורון...</p>
+</div>
+<div class="mt-20 p-4 bg-white/5 rounded-2xl backdrop-blur-md border border-white/10">
+<div class="flex items-center gap-2 mb-2">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xs" data-icon="person">person</span>
+</div>
+<div class="flex-1">
+<div class="h-1.5 w-16 bg-white/20 rounded-full mb-1"></div>
+<div class="h-1 w-24 bg-white/10 rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="bg-primary/20 p-2 rounded-lg text-white text-[10px] text-right" id="live-chat-bubble">
+<!-- Live update text here -->
+</div>
+</div>
+</div>
+</div>
+<!-- Push Mode Preview (hidden initially) -->
+<div class="hidden" id="push-preview">
+<div class="bg-black/80 backdrop-blur-xl rounded-2xl p-4 border border-white/10 mt-2">
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20"><img alt="Oura" class="w-full h-full object-cover rounded-xl" src="https://lh3.googleusercontent.com/aida/AP1WRLsQug4Z43i40q9z5p_Z_D7hUwH4xHTASxyJROeBnD95x8KW7TjDb3_NYb9gj_BLKkslp7lgyu8zL0hPaDZ57sqO01TspQlGnsPDIFSZ4eGcczQQbF-VuKyw8vsebnOjT9PTmD-f2E1-iJXDWW5M0KvSL8Pi-Oaz7CbqTSiTbGu4EL2Kwf62HBq6mHXhO9722B5D1mQfTe7pm1cpUjzYiejtxdipBF5AZoUoBa-wUZt-4-OsDMF-LbeEHQ2S"/></div>
+<div class="flex-1 text-right">
+<h4 class="text-white font-bold text-[13px]">Oura</h4>
+<p class="text-white/80 text-[12px] mt-1" id="phone-push-text">התמונות שלך מהאירוע מוכנות!</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-8 bg-primary-container text-on-primary-container w-full py-4 rounded-2xl font-label-md flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/20 transition-all">
+<span class="material-symbols-outlined" data-icon="save">save</span>
+<span>שמור הגדרות תקשורת</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md border-t border-outline-variant dark:border-outline flex justify-around items-center py-2 px-4 shadow-lg">
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary dark:text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view" data-weight="fill">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="font-label-sm text-label-sm">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant dark:text-outline-variant hover:text-primary" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<script>
+        const editor = document.getElementById('message-editor');
+        const smsPreview = document.getElementById('sms-preview');
+        const pushPreview = document.getElementById('push-preview');
+        const phoneSmsText = document.getElementById('phone-sms-text');
+        const phonePushText = document.getElementById('phone-push-text');
+        const liveChatBubble = document.getElementById('live-chat-bubble');
+        const tabSms = document.getElementById('tab-sms');
+        const tabPush = document.getElementById('tab-push');
+
+        function updatePreview() {
+            const val = editor.value;
+            // Simplified replacement for preview
+            let previewText = val
+                .replace(/{שם_אורח}/g, "נועה")
+                .replace(/{שם_אירוע}/g, "חתונה של גל ורון")
+                .replace(/{קישור_לגלריה}/g, "eventframe.io/gallery/123")
+                .replace(/{תאריך_אירוע}/g, "12.05.24");
+
+            phoneSmsText.innerText = previewText;
+            phonePushText.innerText = previewText.length > 50 ? previewText.substring(0, 47) + "..." : previewText;
+            liveChatBubble.innerText = previewText;
+        }
+
+        editor.addEventListener('input', updatePreview);
+        updatePreview();
+
+        function switchTab(type) {
+            if (type === 'sms') {
+                smsPreview.classList.remove('hidden');
+                pushPreview.classList.add('hidden');
+                tabSms.classList.add('bg-primary-container', 'text-on-primary-container');
+                tabSms.classList.remove('text-on-surface-variant');
+                tabPush.classList.remove('bg-primary-container', 'text-on-primary-container');
+                tabPush.classList.add('text-on-surface-variant');
+            } else {
+                smsPreview.classList.add('hidden');
+                pushPreview.classList.remove('hidden');
+                tabPush.classList.add('bg-primary-container', 'text-on-primary-container');
+                tabPush.classList.remove('text-on-surface-variant');
+                tabSms.classList.remove('bg-primary-container', 'text-on-primary-container');
+                tabSms.classList.add('text-on-surface-variant');
+            }
+        }
+
+        function insertPlaceholder(placeholder) {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            const before = text.substring(0, start);
+            const after = text.substring(end, text.length);
+            editor.value = before + placeholder + after;
+            editor.focus();
+            editor.selectionStart = editor.selectionEnd = start + placeholder.length;
+            updatePreview();
+        }
+    </script>
+</body></html>

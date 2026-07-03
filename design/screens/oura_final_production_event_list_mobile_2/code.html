@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<title>Oura_Final_Production_Event_List_Mobile</title>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-glow {
+            box-shadow: 0 0 40px 0 rgba(226, 114, 91, 0.15);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#333539",
+                      "surface-container-highest": "#333539",
+                      "surface-container-lowest": "#0c0e12",
+                      "inverse-primary": "#9f402d",
+                      "tertiary-fixed-dim": "#c4c6d0",
+                      "on-secondary-fixed-variant": "#45474c",
+                      "outline": "#a48b86",
+                      "on-surface-variant": "#ddc0ba",
+                      "inverse-on-surface": "#2f3035",
+                      "on-secondary": "#2e3035",
+                      "surface-tint": "#ffb4a5",
+                      "tertiary-container": "#90929b",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-container": "#282b33",
+                      "secondary-fixed-dim": "#c5c6cc",
+                      "border-subtle": "#33363D",
+                      "outline-variant": "#56423e",
+                      "error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#44474f",
+                      "primary-fixed-dim": "#ffb4a5",
+                      "surface-input": "#0A0B0D",
+                      "surface-container-low": "#1a1c20",
+                      "success": "#10B981",
+                      "on-background": "#e2e2e8",
+                      "on-primary": "#611205",
+                      "surface-container": "#1e2024",
+                      "on-error": "#690005",
+                      "tertiary": "#c4c6d0",
+                      "on-secondary-fixed": "#191c20",
+                      "surface-container-high": "#282a2e",
+                      "on-tertiary-fixed": "#181c23",
+                      "primary": "#ffb4a5",
+                      "secondary-container": "#47494e",
+                      "surface-bright": "#37393e",
+                      "primary-fixed": "#ffdad3",
+                      "secondary-fixed": "#e2e2e8",
+                      "on-primary-fixed": "#3e0500",
+                      "on-secondary-container": "#b7b8be",
+                      "error": "#ffb4ab",
+                      "secondary": "#c5c6cc",
+                      "on-surface": "#e2e2e8",
+                      "surface-dim": "#111317",
+                      "on-tertiary": "#2d3038",
+                      "tertiary-fixed": "#e0e2ec",
+                      "on-primary-fixed-variant": "#802918",
+                      "text-muted": "#CBD5E1",
+                      "surface": "#111317",
+                      "surface-card": "#1A1C20",
+                      "on-primary-container": "#5a0d02",
+                      "inverse-surface": "#e2e2e8",
+                      "primary-container": "#e2725b",
+                      "background": "#111317"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "stack-md": "24px",
+                      "stack-lg": "48px",
+                      "stack-sm": "8px",
+                      "gutter": "24px",
+                      "container-max-width": "1200px",
+                      "margin-desktop": "40px",
+                      "base-unit": "4px"
+              },
+              "fontFamily": {
+                      "sans": ["Rubik", "sans-serif"],
+                      "label-sm": ["Rubik"],
+                      "display-lg": ["Rubik"],
+                      "headline-lg": ["Rubik"],
+                      "body-lg": ["Rubik"],
+                      "headline-lg-mobile": ["Rubik"],
+                      "body-md": ["Rubik"],
+                      "headline-md": ["Rubik"],
+                      "label-md": ["Rubik"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md overflow-x-hidden" dir="rtl">
+<!-- Header -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-surface border-b border-border-subtle">
+<div class="flex items-center gap-2">
+<img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYjFU73BHXAF1JBuCGUiw2HaXeSJXYrEejrkgVlBol6_t2zqAQemvPYI_YUuRgC8VtJV9CLA1IRqMMRz0fcw7jq5cp351YjYe4xDpxf4nJvH8xIDbgdbFnHILnTbgiVb5oZvuKohlBiIL-GyUXi5Yfkuac_7USqTSNpmgCOXO4YUbbvn6nSYuvmm4Ba7Rdc-NFTCskvtemicFz0Gvo8RHid10X0MjTBDII4VNsOn6W4lqYfBWYZON60ocHvwnN8QjCmqO-cv8AtO1G"/>
+<span class="font-headline-md text-headline-md font-bold text-primary">Photo Santos</span>
+</div>
+<div class="flex items-center">
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">שמור וצא</button>
+</div>
+</header>
+<main class="flex-grow flex flex-col pt-20 pb-12 px-margin-mobile">
+<!-- Event List Header -->
+<div class="mb-stack-md flex justify-between items-end">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">האירועים שלי</h1>
+<p class="font-body-md text-text-muted">נהל את גלריות הצילום שלך</p>
+</div>
+<button class="bg-primary-container text-white p-2 rounded-full shadow-lg flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<!-- Event List Main Content -->
+<div class="space-y-4">
+<!-- Event Item 1 -->
+<div class="bg-surface-container-low border border-border-subtle p-4 rounded-xl flex items-center gap-4">
+<div class="w-16 h-16 rounded bg-surface-container-high flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary-container text-3xl">photo_library</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-label-md text-on-surface">חתונה של נועה וגיא</h3>
+<p class="text-label-sm text-text-muted">128 תמונות • עודכן לפני שעתיים</p>
+</div>
+<span class="material-symbols-outlined text-text-muted">chevron_left</span>
+</div>
+<!-- Event Item 2 -->
+<div class="bg-surface-container-low border border-border-subtle p-4 rounded-xl flex items-center gap-4">
+<div class="w-16 h-16 rounded bg-surface-container-high flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary-container text-3xl">celebration</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-label-md text-on-surface">בר מצווה - משפחת לוי</h3>
+<p class="text-label-sm text-text-muted">85 תמונות • עודכן אתמול</p>
+</div>
+<span class="material-symbols-outlined text-text-muted">chevron_left</span>
+</div>
+<!-- Empty State / Create First Event UI -->
+<div class="mt-8 border-2 border-dashed border-border-subtle rounded-xl p-8 flex flex-col items-center text-center space-y-stack-md bg-surface-container-lowest/50">
+<div class="w-20 h-20 rounded-full bg-surface-container-high border border-border-subtle flex items-center justify-center success-glow animate-float">
+<span class="material-symbols-outlined text-primary-container text-[40px]" style="font-variation-settings: 'FILL' 1;">add_a_photo</span>
+</div>
+<div class="space-y-1">
+<h2 class="font-headline-md text-on-surface">ברוכים הבאים ל-Oura!</h2>
+<p class="font-body-md text-text-muted max-w-xs">החשבון שלך מוכן. בוא ניצור את האירוע הראשון שלך ונתחיל לשתף.</p>
+</div>
+<button class="w-full bg-primary-container text-white py-4 px-8 rounded font-label-md text-label-md hover:opacity-90 transition-all active:scale-[0.98] shadow-lg">
+                    צור את האירוע הראשון שלי
+                </button>
+</div>
+</div>
+<!-- Dashboard Insights (Bento) -->
+<div class="mt-stack-lg grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low border border-border-subtle p-4 rounded-xl space-y-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+<h3 class="font-label-sm text-on-surface">הגדרה מהירה</h3>
+<p class="text-[10px] text-text-muted">השקת גלריה בפחות מ-2 דקות.</p>
+</div>
+<div class="bg-surface-container-low border border-border-subtle p-4 rounded-xl space-y-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+<h3 class="font-label-sm text-on-surface">אחסון בטוח</h3>
+<p class="text-[10px] text-text-muted">אחסון ענן מוצפן בנפח 1TB.</p>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-md px-margin-mobile flex flex-col items-center gap-stack-sm border-t border-border-subtle bg-surface">
+<div class="font-label-md text-label-md font-bold text-on-surface">Photo Santos</div>
+<div class="flex gap-stack-md">
+<a class="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">תנאי שימוש</a>
+<a class="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">מדיניות פרטיות</a>
+<a class="font-label-sm text-label-sm text-text-muted hover:text-primary transition-colors" href="#">תמיכה</a>
+</div>
+<div class="font-label-sm text-label-sm text-text-muted">© 2024 Photo Santos</div>
+</footer>
+</body></html>

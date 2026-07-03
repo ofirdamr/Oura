@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#9f402d",
+                    "primary": "#9f402d",
+                    "on-secondary-fixed": "#2c160e",
+                    "on-primary-fixed": "#3e0500",
+                    "tertiary": "#735c00",
+                    "surface-container-lowest": "#000000",
+                    "secondary-fixed-dim": "#e7bdb1",
+                    "on-tertiary-container": "#4e3d00",
+                    "surface-container-highest": "#1d1b19",
+                    "surface-dim": "#111111",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#241a00",
+                    "outline-variant": "#444444",
+                    "background": "#000000",
+                    "primary-container": "#e2725b",
+                    "surface-container-high": "#181818",
+                    "surface-bright": "#1a1a1a",
+                    "inverse-primary": "#ffb4a5",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "on-error": "#ffffff",
+                    "primary-fixed": "#ffdad3",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffe088",
+                    "outline": "#89726d",
+                    "on-primary-container": "#5a0d02",
+                    "surface": "#000000",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#ffdbd0",
+                    "tertiary-container": "#cca72f",
+                    "surface-variant": "#1d1b19",
+                    "on-background": "#ffffff",
+                    "surface-container-low": "#0a0a0a",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-secondary-container": "#fed3c7",
+                    "on-primary": "#ffffff",
+                    "on-surface-variant": "#e7e1de",
+                    "on-secondary-fixed-variant": "#e7bdb1",
+                    "inverse-on-surface": "#ffffff",
+                    "secondary-container": "#77574d",
+                    "on-surface": "#ffffff",
+                    "surface-container": "#141414",
+                    "on-primary-fixed-variant": "#ffb4a5",
+                    "error": "#ba1a1a",
+                    "inverse-surface": "#000000",
+                    "secondary": "#e7bdb1",
+                    "primary-fixed-dim": "#ffb4a5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "xxl": "48px",
+                    "margin-desktop": "32px",
+                    "margin-mobile": "16px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "base": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Rubik"],
+                    "label-sm": ["Rubik"],
+                    "display-lg": ["Rubik"],
+                    "body-lg": ["Rubik"],
+                    "title-lg": ["Rubik"],
+                    "body-md": ["Rubik"],
+                    "label-lg": ["Rubik"],
+                    "headline-lg-mobile": ["Rubik"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                    "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .frame-preview-container {
+            aspect-ratio: 4 / 5;
+            position: relative;
+            overflow: hidden;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Frame Styles */
+        .frame-royal-gold { border: 12px solid transparent; border-image: linear-gradient(45deg, #735c00, #ffe088, #735c00) 1; }
+        .frame-minimalist-white { border: 10px solid #ffffff; box-shadow: inset 0 0 0 1px #e7e1de; }
+        .frame-dark-wood { border: 14px solid #2c160e; border-image: linear-gradient(to bottom, #2c160e, #5d4037, #2c160e) 1; }
+        .frame-modern-terracotta { border: 12px solid #9f402d; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-inverse-surface text-on-surface dark:text-inverse-on-surface min-h-screen">
+<!-- Top Navigation Bar -->
+<nav class="sticky top-0 z-40 bg-surface dark:bg-inverse-surface border-b border-outline-variant flex flex-row-reverse justify-between items-center px-6 w-full h-20">
+<div class="flex items-center gap-4">
+<img alt="Oura Logo" class="h-10 w-10 object-contain rounded-full bg-white/5 p-1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<span class="font-title-lg text-title-lg text-primary dark:text-primary-fixed-dim font-bold">הגדרות מיתוג Oura</span>
+</div>
+<button class="p-2 text-on-surface-variant active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</nav>
+<main class="max-w-4xl mx-auto pb-48">
+<!-- Section 1: Personal Branding -->
+<section class="p-6 space-y-8">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">identity_platform</span>
+<h2 class="font-title-lg text-title-lg font-bold">מיתוג אישי</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Upload Logo -->
+<div class="flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-2xl p-10 bg-surface-container-low hover:bg-surface-container transition-all group cursor-pointer">
+<div class="relative w-20 h-20 mb-4 rounded-xl overflow-hidden shadow-lg border border-outline-variant/30">
+<img alt="Current Logo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white">edit</span>
+</div>
+</div>
+<span class="font-label-lg text-label-lg font-medium">החלפת לוגו</span>
+<span class="text-xs text-on-surface-variant mt-1">PNG מומלץ עם רקע שקוף</span>
+</div>
+<!-- Business Name Input -->
+<div class="flex flex-col justify-center space-y-4">
+<div class="space-y-2">
+<label class="block text-right font-label-lg text-label-lg text-on-surface-variant px-1">שם העסק / צלם</label>
+<input class="w-full h-14 bg-surface-container-high border border-outline-variant rounded-xl px-4 text-right focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-lg" id="business-name-input" placeholder="הכנס שם שיופיע על התמונות..." type="text" value="Oura Production"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Frame Library -->
+<section class="mt-8 px-6">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+<h2 class="font-title-lg text-title-lg font-bold">ספריית מסגרות</h2>
+</div>
+<button class="text-primary font-label-lg text-label-lg font-medium">הכל</button>
+</div>
+<div class="flex flex-row-reverse gap-4 overflow-x-auto no-scrollbar pb-6">
+<!-- Frame Card 1: Royal Gold -->
+<button class="flex-shrink-0 w-36 group" onclick="selectFrame('royal-gold')">
+<div class="w-full aspect-square rounded-2xl border-2 border-primary bg-surface-container-high flex items-center justify-center mb-3 overflow-hidden relative shadow-lg">
+<div class="absolute inset-2 border-4 border-[#735c00]"></div>
+<span class="material-symbols-outlined text-tertiary scale-125">workspace_premium</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface text-center block font-medium">Royal Gold</span>
+</button>
+<!-- Frame Card 2: Minimalist White -->
+<button class="flex-shrink-0 w-36 group" onclick="selectFrame('minimalist-white')">
+<div class="w-full aspect-square rounded-2xl border-2 border-outline-variant bg-surface-container-high flex items-center justify-center mb-3 overflow-hidden relative">
+<div class="absolute inset-2 border-4 border-white"></div>
+<span class="material-symbols-outlined text-outline-variant scale-125">rectangle</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant text-center block">Minimalist White</span>
+</button>
+<!-- Frame Card 3: Retro Film -->
+<button class="flex-shrink-0 w-36 group" onclick="selectFrame('retro-film')">
+<div class="w-full aspect-square rounded-2xl border-2 border-outline-variant bg-surface-container-high flex items-center justify-center mb-3 overflow-hidden relative">
+<div class="absolute inset-2 border-4 border-on-surface flex flex-col justify-between py-1">
+<div class="flex justify-around"><div class="w-1 h-1 bg-white rounded-full"></div><div class="w-1 h-1 bg-white rounded-full"></div></div>
+<div class="flex justify-around"><div class="w-1 h-1 bg-white rounded-full"></div><div class="w-1 h-1 bg-white rounded-full"></div></div>
+</div>
+<span class="material-symbols-outlined text-on-surface scale-125">movie</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant text-center block">Retro Film</span>
+</button>
+<!-- Frame Card 4: Modern Terracotta -->
+<button class="flex-shrink-0 w-36 group" onclick="selectFrame('modern-terracotta')">
+<div class="w-full aspect-square rounded-2xl border-2 border-outline-variant bg-surface-container-high flex items-center justify-center mb-3 overflow-hidden relative">
+<div class="absolute inset-2 border-4 border-primary"></div>
+<span class="material-symbols-outlined text-primary scale-125">palette</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface-variant text-center block">Terracotta</span>
+</button>
+</div>
+</section>
+<!-- Section 3: Live Preview -->
+<section class="p-6 mt-8">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">visibility</span>
+<h2 class="font-title-lg text-title-lg font-bold">תצוגה מקדימה</h2>
+</div>
+<div class="max-w-md mx-auto">
+<div class="frame-preview-container rounded-3xl shadow-2xl bg-surface-container-highest flex items-center justify-center p-0 transition-all duration-500" id="preview-wrapper">
+<div class="relative w-full h-full p-8 transition-all duration-300" id="frame-style-element">
+<div class="w-full h-full relative overflow-hidden rounded-sm">
+<img alt="Event Preview" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKGVMH66-I7jJFjfTPdBu8zItAgFtaRTS1ELtlak9D3qOq6zk5zzWp7mbDbo2TTZ4jb8UIkzfatSKbI8PWhY1ZW3gGg3qKPxgsKaG2ym-O2_vTP44-0SSWmluaxLnFU7El6OgU6Xk5bp8QpF_drKX1lt2LAefQEkkZA_K_4bScEHvgoBIwEvmWMsGFn8r2l2qMxixw44xM7vnQQqcE8UeaMYJjXU0cnQiInaBuMi3GmMHb-KK3xQme_pSabZNQJ8-kcTLjC5ovIHuP"/>
+<!-- Oura Logo Overlay -->
+<div class="absolute bottom-6 left-6 bg-black/40 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20 flex items-center gap-3">
+<img alt="Oura" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<span class="text-white font-label-sm text-[12px] tracking-widest uppercase font-bold" id="preview-business-name">OURA PRODUCTION</span>
+</div>
+</div>
+</div>
+</div>
+<p class="text-center text-on-surface-variant text-sm mt-6">התמונה מדמה כיצד יראו התמונות באלבום הדיגיטלי של Oura</p>
+</div>
+</section>
+</main>
+<!-- Bottom Actions -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-surface/95 backdrop-blur-xl border-t border-outline-variant p-6 flex flex-col md:flex-row-reverse justify-center gap-4">
+<button class="w-full md:w-64 h-14 bg-primary text-on-primary rounded-2xl font-label-lg text-label-lg font-bold shadow-xl active:scale-95 transition-transform">
+            החל על כל תמונות האירוע
+        </button>
+<button class="w-full md:w-64 h-14 bg-surface-container border border-outline-variant rounded-2xl font-label-lg text-label-lg font-medium active:opacity-70 transition-opacity">
+            ביטול שינויים
+        </button>
+</footer>
+<script>
+        function selectFrame(frameType) {
+            const wrapper = document.getElementById('frame-style-element');
+            // Reset existing frame classes
+            wrapper.classList.remove('frame-royal-gold', 'frame-minimalist-white', 'frame-dark-wood', 'frame-modern-terracotta', 'p-6', 'p-8', 'p-10');
+            
+            // Apply new frame style and padding
+            switch(frameType) {
+                case 'royal-gold':
+                    wrapper.classList.add('frame-royal-gold', 'p-8');
+                    break;
+                case 'minimalist-white':
+                    wrapper.classList.add('frame-minimalist-white', 'p-6');
+                    break;
+                case 'dark-wood':
+                    wrapper.classList.add('frame-dark-wood', 'p-10');
+                    break;
+                case 'modern-terracotta':
+                    wrapper.classList.add('frame-modern-terracotta', 'p-8');
+                    break;
+                default:
+                    wrapper.classList.add('p-8');
+            }
+
+            // Visual feedback on cards
+            const buttons = document.querySelectorAll('.flex-shrink-0.group');
+            buttons.forEach(btn => {
+                const inner = btn.querySelector('.rounded-2xl');
+                inner.classList.remove('border-primary', 'shadow-lg');
+                inner.classList.add('border-outline-variant');
+            });
+            
+            const selectedBtn = event.currentTarget;
+            if (selectedBtn) {
+                const inner = selectedBtn.querySelector('.rounded-2xl');
+                inner.classList.add('border-primary', 'shadow-lg');
+                inner.classList.remove('border-outline-variant');
+            }
+        }
+
+        // Live update business name
+        const input = document.getElementById('business-name-input');
+        const previewName = document.getElementById('preview-business-name');
+        input.addEventListener('input', (e) => {
+            previewName.textContent = e.target.value || 'OURA PRODUCTION';
+        });
+
+        // Initialize with Royal Gold
+        document.addEventListener('DOMContentLoaded', () => {
+            // Manual trigger of the first button styling if needed
+            const firstBtn = document.querySelector('[onclick*="royal-gold"]');
+            if (firstBtn) {
+                const wrapper = document.getElementById('frame-style-element');
+                wrapper.classList.add('frame-royal-gold', 'p-8');
+            }
+        });
+    </script>
+</body></html>

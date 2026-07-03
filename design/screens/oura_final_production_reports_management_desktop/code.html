@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #0c0b0a; /* high contrast background */
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1a1918;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #9f402d;
+            border-radius: 10px;
+        }
+        .glass-panel {
+            background: rgba(30, 28, 26, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed": "#ffe088",
+                      "on-surface-variant": "#ddc0ba",
+                      "surface-tint": "#9f402d",
+                      "primary-fixed-dim": "#ffb4a5",
+                      "surface-container-highest": "#32302e",
+                      "outline-variant": "#56423e",
+                      "on-background": "#0c0b0a",
+                      "secondary": "#77574d",
+                      "inverse-surface": "#1e1c1a",
+                      "secondary-fixed-dim": "#e7bdb1",
+                      "primary": "#9f402d",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#802918",
+                      "on-error-container": "#93000a",
+                      "surface-container": "#1e1c1a",
+                      "surface-variant": "#2a2826",
+                      "background": "#0c0b0a",
+                      "outline": "#89726d",
+                      "tertiary": "#cca72f",
+                      "surface-container-lowest": "#000000",
+                      "error": "#ff5449",
+                      "surface": "#0c0b0a",
+                      "on-error": "#ffffff",
+                      "inverse-on-surface": "#f5f0ec",
+                      "secondary-fixed": "#ffdbd0",
+                      "tertiary-fixed-dim": "#e9c349",
+                      "error-container": "#93000a",
+                      "primary-fixed": "#ffdad3",
+                      "surface-container-high": "#262422",
+                      "on-surface": "#fef8f4",
+                      "on-tertiary": "#000000",
+                      "on-secondary-container": "#ffdbd0",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed": "#2c160e",
+                      "on-secondary-fixed-variant": "#5d4037",
+                      "primary-container": "#e2725b",
+                      "surface-container-low": "#161412",
+                      "inverse-primary": "#ffb4a5",
+                      "on-primary-fixed": "#3e0500",
+                      "on-tertiary-fixed": "#241a00",
+                      "surface-dim": "#161412",
+                      "secondary-container": "#5d4037",
+                      "on-tertiary-container": "#ffe088",
+                      "on-tertiary-fixed-variant": "#574500",
+                      "surface-bright": "#262422",
+                      "on-primary-container": "#5a0d02",
+                      "tertiary-container": "#cca72f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "sm": "8px",
+                      "margin-desktop": "32px",
+                      "margin-mobile": "16px",
+                      "xs": "4px",
+                      "xxl": "48px",
+                      "gutter": "16px",
+                      "base": "4px",
+                      "xl": "32px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Rubik"],
+                      "headline-lg-mobile": ["Rubik"],
+                      "label-sm": ["Rubik"],
+                      "title-lg": ["Rubik"],
+                      "headline-lg": ["Rubik"],
+                      "body-md": ["Rubik"],
+                      "body-lg": ["Rubik"],
+                      "label-lg": ["Rubik"]
+              },
+              "fontSize": {
+                      "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}],
+                      "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                      "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="overflow-hidden bg-on-background text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="bg-inverse-surface/90 backdrop-blur-md text-primary-fixed-dim border-b border-white/5 fixed w-full h-16 flex flex-row-reverse justify-between items-center px-margin-desktop z-50">
+<div class="flex flex-row-reverse items-center gap-6">
+<div class="flex items-center gap-3">
+<img alt="Oura Logo" class="h-10 w-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<span class="font-display-lg text-headline-lg font-bold text-primary-fixed-dim">Photo Santos</span>
+</div>
+<div class="hidden md:flex flex-row-reverse gap-8 font-title-lg text-title-lg">
+<a class="text-primary-fixed-dim border-b-2 border-primary-fixed-dim pb-1" href="#">גלריה</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors" href="#">אירועים</a>
+<a class="text-on-surface-variant hover:text-primary-fixed transition-colors" href="#">הגדרות</a>
+</div>
+</div>
+<div class="flex flex-row-reverse items-center gap-4">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-xl font-label-lg text-label-lg active:opacity-80 transition-opacity">
+                העלאת תמונות
+            </button>
+<div class="flex flex-row-reverse gap-3 text-primary-fixed-dim">
+<span class="material-symbols-outlined cursor-pointer hover:scale-110 transition-transform">notifications</span>
+<div class="flex items-center gap-3 pr-2 border-r border-outline/30">
+<img alt="פרופיל" class="w-10 h-10 rounded-full object-cover border-2 border-primary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB13IlE692IXWPolZ2wq221SvZ2SAW6qZ53CNHD3g6uioLyAJzrY6BGUdIJNBFmrqzrl2w_4JNomBTXC6UM68RTxTosCwkDgCDiajVqum7l3R0-xtm_lkM094RWw9vpFhgq4gJcOKYwJisPOD_88Y-HZHKXt1Klm4njO-j3DuUAfEKd2Pr1-27mKIH1BD6oPm6jLwew9M6VVOzyoPQ4n6s2_3z65rYpmWg5MM6wnTfCVPtfDfSxgRb_r_-KhjdWRxG8IDnvs8Ph3TAt"/>
+<span class="hidden md:block font-label-lg text-label-lg text-inverse-on-surface">יוסי כהן</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Side Navigation Bar (RTL) -->
+<aside class="hidden md:flex flex-col h-screen fixed right-0 top-0 border-l border-white/5 bg-inverse-surface w-64 pt-20 pb-6 z-40">
+<div class="flex flex-col gap-2 px-4 mb-8">
+<div class="p-4 bg-primary/5 rounded-2xl flex flex-col items-center text-center">
+<img alt="Oura Logo" class="h-16 w-16 object-contain mb-2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<span class="font-display-lg text-title-lg font-bold text-primary mb-1">Photo Santos</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">ניהול הפקות</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="bg-primary text-on-primary rounded-xl mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">לוח בקרה</span>
+</a>
+<a class="text-on-surface-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">photo_library</span>
+<span class="font-label-lg text-label-lg">אירועים פעילים</span>
+</a>
+<a class="text-on-surface-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-lg text-label-lg">ארכיון</span>
+</a>
+<a class="text-on-surface-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-lg text-label-lg">לקוחות</span>
+</a>
+<a class="text-on-surface-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-lg text-label-lg">דוחות הפקה</span>
+</a>
+<a class="text-on-surface-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">face</span>
+<span class="font-label-lg text-label-lg">זיהוי פנים</span>
+</a>
+</nav>
+<div class="px-4 mt-auto flex flex-col gap-2">
+<button class="w-full bg-primary-container text-on-primary-container py-3 rounded-xl flex items-center justify-center gap-2 mb-4 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-lg text-label-lg">אירוע חדש</span>
+</button>
+<hr class="border-white/5 mb-2"/>
+<a class="text-on-surface-variant px-4 py-2 flex flex-row-reverse items-center gap-3 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-lg text-label-lg">תמיכה</span>
+</a>
+<a class="text-error px-4 py-2 flex flex-row-reverse items-center gap-3 hover:opacity-80 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-lg text-label-lg">התנתקות</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:mr-64 pt-16 h-screen overflow-y-auto custom-scrollbar bg-background">
+<div class="p-margin-desktop space-y-8">
+<!-- Statistics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
+<div class="col-span-1 md:col-span-2 lg:col-span-2 bg-inverse-surface p-6 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
+<div class="relative z-10">
+<span class="font-label-lg text-label-lg text-on-surface-variant">סה"כ תמונות שהועלו</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-headline-lg font-bold text-primary-fixed-dim">14,208</span>
+<span class="text-tertiary font-medium text-body-md">+12% החודש</span>
+</div>
+</div>
+</div>
+<div class="bg-inverse-surface p-6 rounded-3xl border border-white/5 shadow-2xl">
+<span class="font-label-lg text-label-lg text-on-surface-variant">צפיות בגלריות</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-headline-lg font-bold text-tertiary-fixed-dim">8.5k</span>
+<span class="material-symbols-outlined text-tertiary-fixed text-sm">trending_up</span>
+</div>
+</div>
+<div class="bg-inverse-surface p-6 rounded-3xl border border-white/5 shadow-2xl">
+<span class="font-label-lg text-label-lg text-on-surface-variant">אירועים פעילים</span>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="font-display-lg text-headline-lg font-bold text-primary-fixed">24</span>
+<span class="text-on-surface-variant text-body-md">/ 50</span>
+</div>
+</div>
+</section>
+<!-- Upload Area -->
+<section class="bg-inverse-surface/50 border-2 border-dashed border-primary/20 rounded-3xl p-12 flex flex-col items-center justify-center gap-4 hover:border-primary/50 transition-colors group cursor-pointer">
+<div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-4xl">cloud_upload</span>
+</div>
+<div class="text-center">
+<h3 class="font-title-lg text-title-lg text-on-surface">גרור ושחרר קבצים כאן</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">תומך בפורמטים JPG, PNG, RAW (עד 50MB לקובץ)</p>
+</div>
+<button class="mt-2 px-8 py-3 bg-primary text-on-primary rounded-xl font-label-lg text-label-lg hover:brightness-110 transition-all">
+                    בחירת קבצים מהמחשב
+                </button>
+</section>
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<div class="lg:col-span-2 bg-inverse-surface p-6 rounded-3xl border border-white/5 shadow-2xl">
+<div class="flex flex-row-reverse justify-between items-center mb-6">
+<h3 class="font-title-lg text-title-lg text-on-surface">קיבוץ פנים אוטומטי</h3>
+<button class="text-primary font-label-lg">הצג הכל</button>
+</div>
+<div class="flex flex-row-reverse gap-6 overflow-x-auto pb-2 custom-scrollbar">
+<div class="flex flex-col items-center gap-2 min-w-[80px]">
+<div class="w-16 h-16 rounded-full border-2 border-primary p-1">
+<img alt="User" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB13IlE692IXWPolZ2wq221SvZ2SAW6qZ53CNHD3g6uioLyAJzrY6BGUdIJNBFmrqzrl2w_4JNomBTXC6UM68RTxTosCwkDgCDiajVqum7l3R0-xtm_lkM094RWw9vpFhgq4gJcOKYwJisPOD_88Y-HZHKXt1Klm4njO-j3DuUAfEKd2Pr1-27mKIH1BD6oPm6jLwew9M6VVOzyoPQ4n6s2_3z65rYpmWg5MM6wnTfCVPtfDfSxgRb_r_-KhjdWRxG8IDnvs8Ph3TAt"/>
+</div>
+<span class="text-on-surface font-label-lg">יוסי</span>
+<span class="text-on-surface-variant text-xs">142 תמונות</span>
+</div>
+<div class="flex flex-col items-center gap-2 min-w-[80px]">
+<div class="w-16 h-16 rounded-full border-2 border-white/10 p-1">
+<div class="w-full h-full rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+<span class="text-on-surface font-label-lg">לא מזוהה</span>
+<span class="text-on-surface-variant text-xs">85 תמונות</span>
+</div>
+</div>
+</div>
+<div class="bg-primary/10 border border-primary/20 p-6 rounded-3xl flex flex-col gap-4">
+<div class="flex flex-row-reverse items-center gap-3 text-primary">
+<span class="material-symbols-outlined">content_copy</span>
+<h3 class="font-title-lg text-title-lg">זיהוי כפילויות</h3>
+</div>
+<p class="text-on-surface-variant text-body-md text-right">זיהינו 12 סטים של תמונות דומות מאוד. האם תרצה לאחד אותן כדי לחסוך מקום?</p>
+<button class="mt-auto w-full bg-primary text-on-primary py-3 rounded-xl font-label-lg hover:brightness-110 transition-all">סקירת כפילויות</button>
+</div>
+</section>
+<section class="bg-inverse-surface p-6 rounded-3xl border border-white/5 shadow-2xl">
+<div class="flex flex-row-reverse justify-between items-center mb-4">
+<div class="flex flex-row-reverse items-center gap-3 text-tertiary-fixed-dim">
+<span class="material-symbols-outlined">filter_alt</span>
+<h3 class="font-title-lg text-title-lg">סינון AI אוטומטי</h3>
+</div>
+<span class="bg-error/20 text-error px-3 py-1 rounded-full text-xs font-medium">42 תמונות הוסתרו</span>
+</div>
+<p class="text-on-surface-variant text-body-md text-right mb-6">ה-AI זיהה תמונות מטושטשות, עיניים עצומות או כפילויות באיכות נמוכה.</p>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-highest p-3 rounded-xl border border-white/5">
+<div class="text-on-surface-variant text-xs mb-1">מטושטשות</div>
+<div class="text-on-surface font-bold text-lg">28</div>
+</div>
+<div class="bg-surface-container-highest p-3 rounded-xl border border-white/5">
+<div class="text-on-surface-variant text-xs mb-1">עיניים עצומות</div>
+<div class="text-on-surface font-bold text-lg">14</div>
+</div>
+</div>
+<button class="w-full bg-tertiary text-on-tertiary py-3 rounded-xl font-label-lg flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined">visibility</span>
+        סקירת תמונות שסוננו
+    </button>
+</section>
+<!-- Reports Section -->
+<section class="bg-inverse-surface p-6 rounded-3xl border border-white/5 shadow-2xl">
+<div class="flex flex-row-reverse justify-between items-center mb-6">
+<div class="flex flex-row-reverse items-center gap-3 text-primary">
+<span class="material-symbols-outlined">report_problem</span>
+<h3 class="font-title-lg text-title-lg text-on-surface">דוחות הפקה וביקורת</h3>
+</div>
+<span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-medium">3 דיווחים חדשים</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Report Item 1 -->
+<div class="bg-surface-container-highest border border-white/5 rounded-2xl p-3 flex flex-row-reverse gap-4">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Flagged image" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqgKuqwi67YjBRg2WSYl5egGNcw5CHmMmxB8yrNFbH3myiSIaYWTcXi6W3Oybn52Xof6TnYngutAkFW5XnCPKqycv-Wnzx7pnL8zewSU5WmMiuqadwX2_-FKzF-orSbu700T2uFQvk06Y-IzCT2OSZz4401-pGp5oqbp_zS_XLcSWM-fgDh30Gys0MLznSRWawEiWcJq-qp8DOtusge4kZqq-v-npnVLLBygNf9MxDyWt9bp30sFVSY-lrNTQrRoJZ5koUc1U5FaEc"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="text-on-surface-variant text-xs">דווח על ידי:</div>
+<div class="text-on-surface font-medium">מיכל כהן</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary py-1.5 rounded-lg text-[12px] font-medium hover:brightness-110 transition-all">אשר הסרה</button>
+<button class="flex-1 border border-white/20 text-on-surface-variant py-1.5 rounded-lg text-[12px] font-medium hover:bg-white/5 transition-colors">דחה</button>
+</div>
+</div>
+</div>
+<!-- Report Item 2 -->
+<div class="bg-surface-container-highest border border-white/5 rounded-2xl p-3 flex flex-row-reverse gap-4">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Flagged image" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbEIo_JMhYNSJ3S5pYxFiU8zp5NV4U8yRTHwjc6mzLFfx7pl3ZOOGbaDZKsZp5GGwLUVHH0LOcKEudZbepWK1dfEwRfAGX8NqQfpAHsZhNqXm211_SDX3_ytBY7hgnpQ7qg_nTAhwiJL6fnIEn4xSqnvWwk-Q9uz3FKDvfNJFMnBCWseq5P-il0uvGh9sFwcUor49KwdJILVMdvoGphMYcBGhcM2EEmyp6xhUBB5HnkrxojEhMxqiXmVDz37ByGRGgGwxI6SskEkOf"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="text-on-surface-variant text-xs">דווח על ידי:</div>
+<div class="text-on-surface font-medium">דניאל לוי</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary py-1.5 rounded-lg text-[12px] font-medium hover:brightness-110 transition-all">אשר הסרה</button>
+<button class="flex-1 border border-white/20 text-on-surface-variant py-1.5 rounded-lg text-[12px] font-medium hover:bg-white/5 transition-colors">דחה</button>
+</div>
+</div>
+</div>
+<!-- Report Item 3 -->
+<div class="bg-surface-container-highest border border-white/5 rounded-2xl p-3 flex flex-row-reverse gap-4">
+<div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Flagged image" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnKLuXCK-642b1p3zBheeLRSkf20CYahs0tdmrTe6pIOUKR6bBxOXsnuHos0Zqgfrgn9-kZ69-799Qs8fHUQ8Ui_CyccFNtqkSpU2PzXw_dVkROScCTFyVGaohmA9FJHiVd3wUvazhCWoqZP1V-XF2nA-GGEq5DKH9nSNXBqGIHktqou0qUtBJbu0YQ4l8JwvAc9LOJrVP0V9MSxqQP6xn4OMflSZC_Xut32A1Vb-FmhqAGECbGUf91QbspurjN3ARJ71TxyJCMn6R"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="text-on-surface-variant text-xs">דווח על ידי:</div>
+<div class="text-on-surface font-medium">אביב משה</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary py-1.5 rounded-lg text-[12px] font-medium hover:brightness-110 transition-all">אשר הסרה</button>
+<button class="flex-1 border border-white/20 text-on-surface-variant py-1.5 rounded-lg text-[12px] font-medium hover:bg-white/5 transition-colors">דחה</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Photo Grid & Controls -->
+<section class="space-y-6">
+<div class="flex flex-col md:flex-row-reverse justify-between items-center gap-4">
+<div class="flex flex-row-reverse items-center gap-4 w-full md:w-auto">
+<div class="relative flex-1 md:w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-inverse-surface border border-white/10 rounded-xl py-3 pr-4 pl-10 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-right" placeholder="חיפוש תמונות, לקוחות או אירועים..." type="text"/>
+</div>
+<button class="bg-inverse-surface border border-white/10 p-3 rounded-xl text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+<div class="flex flex-row-reverse gap-2 items-center">
+<span class="text-on-surface-variant font-label-lg ml-2">פעולות גורפות:</span>
+<button class="p-2 bg-inverse-surface text-on-surface-variant rounded-lg hover:text-primary transition-colors" title="מחיקה"><span class="material-symbols-outlined">delete</span></button>
+<button class="p-2 bg-inverse-surface text-on-surface-variant rounded-lg hover:text-primary transition-colors" title="סיבוב"><span class="material-symbols-outlined">rotate_right</span></button>
+<button class="p-2 bg-inverse-surface text-on-surface-variant rounded-lg hover:text-primary transition-colors" title="הורדה"><span class="material-symbols-outlined">download</span></button>
+<button class="p-2 bg-inverse-surface text-on-surface-variant rounded-lg hover:text-primary transition-colors" title="העברה"><span class="material-symbols-outlined">drive_file_move</span></button>
+</div>
+</div>
+<!-- Actual Photo Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+<!-- Photo Card 1 -->
+<div class="group relative aspect-square rounded-xl overflow-hidden bg-inverse-surface border border-white/5 cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqgKuqwi67YjBRg2WSYl5egGNcw5CHmMmxB8yrNFbH3myiSIaYWTcXi6W3Oybn52Xof6TnYngutAkFW5XnCPKqycv-Wnzx7pnL8zewSU5WmMiuqadwX2_-FKzF-orSbu700T2uFQvk06Y-IzCT2OSZz4401-pGp5oqbp_zS_XLcSWM-fgDh30Gys0MLznSRWawEiWcJq-qp8DOtusge4kZqq-v-npnVLLBygNf9MxDyWt9bp30sFVSY-lrNTQrRoJZ5koUc1U5FaEc"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+<div class="flex flex-wrap gap-1">
+<span class="bg-primary/20 text-primary-fixed-dim text-[10px] px-1.5 py-0.5 rounded border border-primary/30 flex items-center gap-1">AI שיפור</span>
+<span class="bg-secondary/20 text-secondary-fixed-dim text-[10px] px-1.5 py-0.5 rounded border border-secondary/30 flex items-center gap-1">סימן מים</span>
+</div>
+<div class="flex justify-between items-end">
+<div class="text-white text-xs font-label-sm">חתונה - Photo Santos</div>
+<div class="flex gap-2">
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Photo Card 2 -->
+<div class="group relative aspect-square rounded-xl overflow-hidden bg-inverse-surface border border-white/5 cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbEIo_JMhYNSJ3S5pYxFiU8zp5NV4U8yRTHwjc6mzLFfx7pl3ZOOGbaDZKsZp5GGwLUVHH0LOcKEudZbepWK1dfEwRfAGX8NqQfpAHsZhNqXm211_SDX3_ytBY7hgnpQ7qg_nTAhwiJL6fnIEn4xSqnvWwk-Q9uz3FKDvfNJFMnBCWseq5P-il0uvGh9sFwcUor49KwdJILVMdvoGphMYcBGhcM2EEmyp6xhUBB5HnkrxojEhMxqiXmVDz37ByGRGgGwxI6SskEkOf"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+<div class="flex justify-end gap-2">
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>
+</div>
+<div class="text-white text-xs font-label-sm">ערב גאלה - טק-איט</div>
+</div>
+</div>
+<!-- Photo Card 3 (Selected State) -->
+<div class="group relative aspect-square rounded-xl overflow-hidden bg-inverse-surface border-4 border-primary cursor-pointer">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-xCAOG2vzDWL3-JYLtgArrPtGAdCEHhpieEpG-EWF0THNQ6OJy5h7ZjGQLaTarQaqXIi5374MaoE0x_xubkxEZ2S5e9lTJXkbEnBcPByTMA-wmtva_GoyKQ0bQBNGE6-nBfM_MIHfezRwOINJGzRUOpIz_WmqrmCozvYkPkPqpx5ZKaXrB56ivUaSun8X6DovICIXyNCejVOApuB1J0o-oPlvlQ2Db6HazjBXs48aWzwxujF6dP_e8mynVWW4Mnl54VyQ1PNUQZQM"/>
+<div class="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="absolute inset-0 bg-primary/20"></div>
+</div>
+<!-- Photo Card 4 -->
+<div class="group relative aspect-square rounded-xl overflow-hidden bg-inverse-surface border border-white/5 cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnKLuXCK-642b1p3zBheeLRSkf20CYahs0tdmrTe6pIOUKR6bBxOXsnuHos0Zqgfrgn9-kZ69-799Qs8fHUQ8Ui_CyccFNtqkSpU2PzXw_dVkROScCTFyVGaohmA9FJHiVd3wUvazhCWoqZP1V-XF2nA-GGEq5DKH9nSNXBqGIHktqou0qUtBJbu0YQ4l8JwvAc9LOJrVP0V9MSxqQP6xn4OMflSZC_Xut32A1Vb-FmhqAGECbGUf91QbspurjN3ARJ71TxyJCMn6R"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+<div class="flex justify-end gap-2">
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>
+</div>
+<div class="text-white text-xs font-label-sm">בר מצווה - אלון</div>
+</div>
+</div>
+<!-- Photo Card 5 -->
+<div class="group relative aspect-square rounded-xl overflow-hidden bg-inverse-surface border border-white/5 cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzDXJZdhgm6P0mm5KrbkqERkWyxntYSDGyf_JlzNzWYVdLsYFm4o8s-oDpFG4zPNQ_SW55E4Q8oEE8JYu-vhCF8OB-QZwhPVOzwWgK_shN9ccE3rTYD68JRX9407DkZuTKhjRTISxDUnbW63z-XvNJzFvS0SJTSBV7r8gQeedWxlyajju_l9qRmOlKTisTE8ow4pXUBEonRYTPgPnGJN7JSn6dF90E_mfKlMRwtdfIuJ7IAznN0O9WJ8HP3iKMCRoAVf7xqAJ9gL0P"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+<div class="flex justify-end gap-2">
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
+<button class="bg-white/20 backdrop-blur-md p-1.5 rounded-lg text-white hover:bg-primary transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>
+</div>
+<div class="text-white text-xs font-label-sm">אירוע חברה - וולבו</div>
+</div>
+</div>
+<!-- Add Card -->
+<div class="aspect-square rounded-xl bg-inverse-surface/40 flex items-center justify-center border border-dashed border-white/10 hover:border-primary/50 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary text-4xl transition-colors">add</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-2 px-4 bg-inverse-surface/90 backdrop-blur-md border-t border-white/5">
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">share</span>
+<span class="font-label-sm text-label-sm">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<!-- Contextual FAB -->
+<button class="fixed bottom-20 left-6 md:bottom-10 md:left-10 w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl">add_photo_alternate</span>
+</button>
+<script>
+        // Micro-interactions and simple state management
+        document.querySelectorAll('.group[cursor-pointer]').forEach(card => {
+            if(card.querySelector('img')){
+                card.addEventListener('click', () => {
+                    const isSelected = card.classList.contains('border-primary');
+                    if (isSelected) {
+                        card.classList.remove('border-primary', 'border-4');
+                        card.classList.add('border', 'border-white/5');
+                        const icon = card.querySelector('.absolute.top-2');
+                        if (icon) icon.remove();
+                        const overlay = card.querySelector('.bg-primary/20');
+                        if (overlay) overlay.remove();
+                    } else {
+                        card.classList.add('border-primary', 'border-4');
+                        card.classList.remove('border', 'border-white/5');
+                        
+                        const selectIcon = document.createElement('div');
+                        selectIcon.className = 'absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-lg';
+                        selectIcon.innerHTML = '<span class="material-symbols-outlined text-base" style="font-variation-settings: \'FILL\' 1;">check_circle</span>';
+                        card.appendChild(selectIcon);
+
+                        const colorOverlay = document.createElement('div');
+                        colorOverlay.className = 'absolute inset-0 bg-primary/20 pointer-events-none';
+                        card.appendChild(colorOverlay);
+                    }
+                });
+            }
+        });
+
+        const navLinks = document.querySelectorAll('aside nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                navLinks.forEach(l => {
+                    l.className = 'text-on-surface-variant mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 hover:bg-surface-container-highest transition-all';
+                });
+                link.className = 'bg-primary text-on-primary rounded-xl mx-2 px-4 py-3 flex flex-row-reverse items-center gap-3 transition-all';
+            });
+        });
+    </script>
+</body></html>

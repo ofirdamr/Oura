@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#9f402d",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffe088",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f8f2ef",
+                        "secondary-container": "#fed3c7",
+                        "on-error": "#ffffff",
+                        "tertiary": "#735c00",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#121212", /* Higher contrast black */
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#5d4037",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#cca72f",
+                        "on-primary-fixed": "#3e0500",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#f5f0ec",
+                        "on-secondary-container": "#795950",
+                        "secondary-fixed": "#ffdbd0",
+                        "on-tertiary-container": "#4e3d00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#e7bdb1",
+                        "on-background": "#f5f0ec",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "primary-fixed": "#ffdad3",
+                        "background": "#0a0a0a", /* Deeper black for background */
+                        "primary-fixed-dim": "#ffb4a5",
+                        "outline-variant": "#4d4d4d",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-primary-fixed-variant": "#802918",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "surface-dim": "#1e1e1e",
+                        "on-secondary-fixed": "#2c160e",
+                        "secondary": "#77574d",
+                        "primary-container": "#e2725b",
+                        "inverse-on-surface": "#f5f0ec",
+                        "surface-container-high": "#1a1a1a",
+                        "outline": "#666666",
+                        "on-surface-variant": "#cccccc",
+                        "surface": "#0a0a0a",
+                        "surface-container-highest": "#222222",
+                        "surface-container": "#151515",
+                        "surface-bright": "#1a1a1a",
+                        "primary": "#ffb4a5", /* Lighter primary for dark mode contrast */
+                        "on-primary-container": "#5a0d02",
+                        "surface-variant": "#222222",
+                        "inverse-primary": "#9f402d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "xxl": "48px",
+                        "margin-desktop": "32px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Rubik"],
+                        "body-md": ["Rubik"],
+                        "body-lg": ["Rubik"],
+                        "label-sm": ["Rubik"],
+                        "display-lg": ["Rubik"],
+                        "label-lg": ["Rubik"],
+                        "title-lg": ["Rubik"],
+                        "headline-lg": ["Rubik"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0a0a0a;
+            color: #f5f0ec;
+        }
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .qr-glow {
+            box-shadow: 0 0 50px rgba(159, 64, 45, 0.15);
+        }
+        .logo-img {
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="flex flex-row-reverse justify-between items-center px-margin-desktop w-full h-16 border-b border-outline/30 fixed top-0 z-50 bg-[#121212]/95 backdrop-blur-md">
+<div class="flex items-center gap-3">
+<img alt="Photo Santos Logo" class="h-10 w-10 rounded-full object-cover logo-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<span class="font-display-lg text-title-lg font-bold text-primary">Photo Santos</span>
+</div>
+<nav class="hidden md:flex flex-row-reverse gap-8 items-center h-full">
+<a class="font-title-lg text-title-lg text-on-surface-variant hover:text-primary transition-colors" href="#">גלריה</a>
+<a class="font-title-lg text-title-lg text-primary border-b-2 border-primary pb-1 transition-colors" href="#">אירועים</a>
+<a class="font-title-lg text-title-lg text-on-surface-variant hover:text-primary transition-colors" href="#">הגדרות</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="bg-[#9f402d] text-white px-4 py-2 rounded-xl flex flex-row-reverse items-center gap-2 font-label-lg transition-all active:scale-95 hover:bg-[#b84a34]">
+<span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+<span>העלאת תמונות</span>
+</button>
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">notifications</span>
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">account_circle</span>
+</div>
+</header>
+<main class="pt-24 pb-20 px-4 md:px-margin-desktop max-w-7xl mx-auto flex flex-col items-center">
+<!-- Success Header -->
+<div class="text-center mb-12">
+<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#2a1b18] text-[#ffb4a5] mb-6">
+<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-white mb-2">האירוע נוצר בהצלחה!</h1>
+<p class="text-on-surface-variant font-body-lg">הגלריה של Photo Santos מוכנה. הנה הקוד לסריקה וגישה מהירה.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter w-full">
+<!-- QR Section (Large) -->
+<div class="lg:col-span-7 glass-panel rounded-xxl p-xl flex flex-col items-center justify-center qr-glow">
+<div class="bg-white p-8 rounded-2xl mb-8 transform hover:scale-[1.01] transition-transform duration-500 cursor-zoom-in" onclick="toggleFullScreen()">
+<img alt="QR Code for the event" class="w-[300px] h-[300px] md:w-[400px] md:h-[400px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjHdeZawGbPrTT34zKyxzyW_z2hDD7JIyTZJmT8mAKg7cjb0Zo2-7s-dQAfpGnDB6acGdXjRt5TgK_SHXNmGWgFAc6_omWcbUoFv35r3TgrmUW6CeX7E2w934hPqGsp6Ar1ZaiW4Bu4ALphBmvGgytvx6N-NvGnRgajy-HM7K3jXSLyx75yPUwzwQXeyJ_8_RtIDAm-hSkE-0Hw5CtYYhky-iAofqYy_pBE18k7IpGs38A5vfkb47eYNPel93XgnMYjwaOwCT9qA-r"/>
+</div>
+<div class="flex flex-col items-center gap-4">
+<div class="flex items-center gap-3 bg-[#1a1a1a] px-6 py-3 rounded-full border border-white/10">
+<span class="text-primary font-bold tracking-widest uppercase text-lg">ID: PHOTO-8829-PS</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-white transition-colors" title="Copy ID">content_copy</button>
+</div>
+<p class="text-label-sm text-on-surface-variant">סרקו כדי לצפות בגלריה בזמן אמת דרך Photo Santos</p>
+</div>
+</div>
+<!-- Management Actions -->
+<div class="lg:col-span-5 flex flex-col gap-gutter">
+<!-- Print & Display Card -->
+<div class="glass-panel rounded-xxl p-lg">
+<h2 class="font-title-lg text-title-lg text-white mb-6 flex items-center gap-2 flex-row-reverse">
+<span class="material-symbols-outlined text-primary">print</span>
+                        ניהול פיזי ותצוגה
+                    </h2>
+<div class="flex flex-col gap-4">
+<div class="group relative">
+<button class="w-full h-14 bg-[#9f402d] hover:bg-[#b84a34] text-white rounded-xl flex flex-row-reverse items-center justify-between px-6 transition-all shadow-lg shadow-[#9f402d]/20">
+<div class="flex flex-row-reverse items-center gap-3">
+<span class="material-symbols-outlined">print</span>
+<span class="font-label-lg">הדפסת קוד QR</span>
+</div>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+<!-- Dropdown -->
+<div class="hidden group-hover:block absolute top-full left-0 right-0 mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden z-10 shadow-2xl">
+<button class="w-full text-right px-6 py-4 hover:bg-white/5 text-white border-b border-white/5">עמוד מלא (A4)</button>
+<button class="w-full text-right px-6 py-4 hover:bg-white/5 text-white">מדבקות מיתוג (Photo Santos)</button>
+</div>
+</div>
+<button class="w-full h-14 border border-white/20 hover:bg-white/5 text-white rounded-xl flex flex-row-reverse items-center gap-3 px-6 transition-all" onclick="toggleFullScreen()">
+<span class="material-symbols-outlined">fullscreen</span>
+<span class="font-label-lg">הצגה על מסך מלא באירוע</span>
+</button>
+<button class="w-full h-14 border border-white/20 hover:bg-white/5 text-white rounded-xl flex flex-row-reverse items-center gap-3 px-6 transition-all">
+<span class="material-symbols-outlined">download</span>
+<span class="font-label-lg">הורדה כקובץ PNG איכותי</span>
+</button>
+</div>
+</div>
+<!-- Sharing Card -->
+<div class="glass-panel rounded-xxl p-lg flex-grow">
+<h2 class="font-title-lg text-title-lg text-white mb-6 flex items-center gap-2 flex-row-reverse">
+<span class="material-symbols-outlined text-primary">share</span>
+                        שיתוף דיגיטלי
+                    </h2>
+<div class="grid grid-cols-2 gap-3">
+<button class="h-12 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 rounded-xl flex items-center justify-center gap-2 hover:bg-[#25D366]/20 transition-all">
+<span class="font-label-lg">WhatsApp</span>
+</button>
+<button class="h-12 bg-white/5 text-white border border-white/10 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+<span class="font-label-lg">אימייל</span>
+</button>
+<button class="h-12 bg-white/5 text-white border border-white/10 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+<span class="font-label-lg">Instagram</span>
+</button>
+<button class="h-12 bg-white/5 text-white border border-white/10 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+<span class="font-label-lg">Telegram</span>
+</button>
+</div>
+<div class="mt-8 p-5 bg-black rounded-xl border border-dashed border-white/20">
+<p class="text-label-sm text-on-surface-variant mb-2">קישור ישיר לגלריה של Photo Santos</p>
+<div class="flex items-center justify-between gap-3">
+<span class="text-body-md text-primary font-medium truncate">photosantos.co/gallery/ps-8829-xl</span>
+<button class="material-symbols-outlined text-primary hover:scale-125 transition-transform">content_copy</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary CTA -->
+<div class="mt-16 flex flex-col md:flex-row gap-6 items-center">
+<button class="px-10 py-4 bg-[#9f402d] text-white rounded-full font-label-lg hover:bg-[#b84a34] transition-all shadow-xl shadow-[#9f402d]/20">מעבר לניהול האירוע</button>
+<button class="px-10 py-4 text-on-surface-variant font-label-lg hover:text-white transition-colors border border-transparent hover:border-white/10 rounded-full">עריכת פרטי הגלריה</button>
+</div>
+</main>
+<!-- Full Screen Overlay -->
+<div class="fixed inset-0 bg-black z-[100] hidden flex-col items-center justify-center p-8 text-center cursor-zoom-out" id="fullScreenOverlay" onclick="toggleFullScreen()">
+<button class="absolute top-8 right-8 text-white hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[48px]">close</span>
+</button>
+<div class="flex flex-col items-center gap-4 mb-12">
+<img alt="Photo Santos Logo" class="h-16 w-16 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<h2 class="text-white text-[48px] md:text-[64px] font-bold">הצטרפו לגלריה של Photo Santos</h2>
+</div>
+<div class="bg-white p-12 rounded-[48px] shadow-[0_0_120px_rgba(159,64,45,0.4)]">
+<img alt="Large Event QR" class="w-[450px] h-[450px] md:w-[600px] md:h-[600px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOAdeTErQAJRdki53XnmuMZ5cuJlUuMegY_0jMf_zNs2RwImzOy6ecRt5_Dz5WQ_H9DB2-iV17lL6fFYdf9YNrgMDUXsVCskyuWChfy7_P9nHH-IHQH3Jbp6VgjaEfIKfK5kCUIUrjHNGarCFq4_pOgfP4UCIac_4aLZwQXyNyANMxvEFxPFprx-qzVCmD52_SVkxgHLUzYzi0mGo2qq2p3Oaa4UF8br9WoTcIj1G3n875S32mHvX-CFkSP2YxfsjUqhm_AlNhrXzF"/>
+</div>
+<div class="mt-12">
+<p class="text-white/80 text-2xl md:text-3xl">סרקו עכשיו כדי לשתף ולהוריד תמונות</p>
+<p class="text-primary text-4xl font-black mt-6 tracking-[0.25em]">PHOTO-8829-PS</p>
+</div>
+</div>
+<!-- Mobile Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-[#121212]/95 backdrop-blur-lg border-t border-white/10 shadow-2xl flex justify-around items-center py-3 px-4">
+<div class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">בית</span>
+</div>
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">share</span>
+<span class="font-label-sm text-label-sm">שיתוף</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</div>
+</nav>
+<script>
+        function toggleFullScreen() {
+            const overlay = document.getElementById('fullScreenOverlay');
+            overlay.classList.toggle('hidden');
+            overlay.classList.toggle('flex');
+            
+            if (!overlay.classList.contains('hidden')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Copy feedback logic
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const iconSpan = btn.querySelector('.material-symbols-outlined');
+                if (iconSpan && iconSpan.innerText === 'content_copy') {
+                    const originalIcon = iconSpan.innerText;
+                    iconSpan.innerText = 'check';
+                    iconSpan.style.color = '#25D366';
+                    setTimeout(() => {
+                        iconSpan.innerText = originalIcon;
+                        iconSpan.style.color = '';
+                    }, 2000);
+                }
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura | גלריית צילום יוקרתית</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Hanken Grotesk', 'Rubik', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .festive-frame {
+            position: relative;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .photo-container:hover .festive-frame {
+            transform: translateY(-4px);
+            border-color: rgba(255, 180, 166, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .watermark {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
+        }
+
+        .glass-overlay {
+            background: rgba(14, 14, 14, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Modal Animation Styles */
+        #lightbox.hidden {
+            display: none;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #lightbox:not(.hidden) {
+            display: flex;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        #lightbox-content {
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        #lightbox:not(.hidden) #lightbox-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .sidebar-transition {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    
+        /* Mobile-first Lightbox Slide-Up */
+        @media (max-width: 767px) {
+            #lightbox-content {
+                transform: translateY(100%);
+                transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+            }
+            #lightbox:not(.hidden) #lightbox-content {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Staggered Tools Reveal */
+        .tool-item {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease-out;
+        }
+        #edit-sidebar:not(.translate-x-full) .tool-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tool-item:nth-child(1) { transition-delay: 0.1s; }
+        .tool-item:nth-child(2) { transition-delay: 0.2s; }
+        .tool-item:nth-child(3) { transition-delay: 0.3s; }
+
+        .interactive-btn {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .interactive-btn:active {
+            transform: scale(0.95);
+        }
+
+        .preview-transition {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #ffb4a6;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#752215",
+                        "background": "#0e0e0e",
+                        "secondary": "#c8c6c5",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container": "#201f1f",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-secondary-fixed": "#1b1b1c",
+                        "on-surface-variant": "#dcc0bb",
+                        "on-secondary-fixed-variant": "#474746",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "primary-fixed": "#ffdad4",
+                        "secondary-container": "#474746",
+                        "surface-container-highest": "#353534",
+                        "primary": "#ffb4a6",
+                        "tertiary-container": "#29c09f",
+                        "on-error": "#690005",
+                        "on-primary": "#601308",
+                        "inverse-primary": "#9f4030",
+                        "on-secondary-container": "#b7b5b4",
+                        "on-secondary": "#303030",
+                        "on-background": "#e5e2e1",
+                        "surface-bright": "#393939",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ffb4a6",
+                        "on-tertiary-container": "#00493a",
+                        "on-primary-fixed": "#3f0300",
+                        "surface-container-high": "#2a2a2a",
+                        "outline-variant": "#56423e",
+                        "surface-variant": "#353534",
+                        "primary-container": "#ff8a75",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-high": "#2D2D2D",
+                        "surface": "#0e0e0e",
+                        "on-tertiary-fixed-variant": "#005141",
+                        "success": "#4CAF50",
+                        "error": "#CF6679",
+                        "on-tertiary": "#00382c",
+                        "tertiary": "#51dcba",
+                        "outline": "#a48b87",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#72f9d5",
+                        "on-primary-fixed-variant": "#7f291c",
+                        "tertiary-fixed-dim": "#51dcba",
+                        "surface-dim": "#0e0e0e",
+                        "on-tertiary-fixed": "#002019",
+                        "primary-fixed-dim": "#ffb4a6"
+                    },
+                    "spacing": {
+                        "margin-desktop": "80px",
+                        "margin-mobile": "24px",
+                        "gutter": "16px"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface transition-colors duration-300 antialiased overflow-x-hidden">
+<!-- Header -->
+<header class="bg-surface/90 backdrop-blur-lg fixed top-0 w-full h-16 z-50 border-b border-white/5 flex flex-row-reverse justify-between items-center px-margin-mobile md:px-margin-desktop transition-transform duration-300">
+<div class="flex items-center gap-3 flex-row-reverse">
+<img alt="Oura Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
+<h1 class="font-bold text-2xl tracking-tight text-white">Oura</h1>
+</div>
+<div class="flex items-center gap-4 flex-row-reverse">
+<button class="bg-primary-container text-on-primary-container px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:brightness-110 active:scale-95 shadow-lg shadow-primary/10">העלאת תמונות</button>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-all duration-200">notifications</span>
+<div class="w-9 h-9 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden border border-white/10 hover:border-primary transition-all duration-200 cursor-pointer">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMTM6i37hO-j7JWwFOkv-u8cHje_C-CmcAcuAq4zEujYBjvmKeVczC3lc4IsdI1XfoY8zEX3DqKiAIa5hMZOnj_ItS29QrD7NYm0UakMIPoNFqzUkH0tIZsLOItBVsoCk5-kpK-UyKpTstQrNYxXKYTHQTC-UInTOuOkOdV2ajJHtfyoKAfxwzP3kQgf7cSUo1qvdHHbAfG6L6VmlnvIAYVu3NedY-wjtSm0FX7Ob01mh2ZCQBme8fidkFAi8ymYgYIzNWyChVGJKf"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Grid -->
+<main class="pt-24 pb-32 px-margin-mobile md:px-margin-desktop min-h-screen max-w-7xl mx-auto" data-purpose="Oura_Final_Production_Photo_Editor_Mobile">
+<!-- Hero -->
+<section class="mb-12 text-center md:text-right">
+<div class="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-primary text-xs font-medium mb-4 tracking-wide">אירוע חתונה • 12.10.2023</div>
+<h2 class="text-4xl md:text-5xl font-bold mb-4 text-white leading-tight">רגעים של אושר צרוף</h2>
+<p class="text-on-surface-variant text-lg max-w-2xl md:mr-0 mr-auto font-light leading-relaxed">גלריית האורחים הרשמית שלכם. מוזמנים לדפדף, לערוך ולשתף את הרגעים המרגשים ביותר.</p>
+</section>
+<!-- Photo Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+<!-- Featured -->
+<div class="col-span-2 row-span-2 photo-container group cursor-pointer" onclick="openLightbox(0)">
+<div class="festive-frame h-full">
+<div class="relative overflow-hidden w-full h-full rounded-sm">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5-Onq8DnVcaT1l3IWq_mOQO5G3NK0GqtFB4mY9tj7qZSFYWJRmHnpo-DLzYcAoumz1oabqlcgAkIQL9iqAZlk8Y-6ZB2t65J_LpprY60ujS_pmVJY79LGZZzZKlwI3PUfzXAaLOJQxDD3R44RVBNDPTejuam1JKk7WJ6F6U3bfg7bOF38NnepcGIWpfdh2WtM3ECAYuuD_bjiUm82N8v_ZO4y5WdDQjeTaVUlevZxTDO5cj2AZwNNWZF7T3LMYJ0TYpjTTuNipW3i"/>
+<div class="absolute inset-0 flex flex-col justify-end p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-black/80 via-transparent to-transparent">
+<div class="text-right">
+<p class="watermark text-white font-bold text-xl uppercase tracking-widest">Photo Santos</p>
+<p class="text-white/50 text-xs mt-1">Creative Photography</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Grid Items -->
+<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(1)">
+<div class="festive-frame h-64 md:h-full">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBj0W4WnAU7wdFrWuriTND90CuvLm7Ug6inTNEzcZ7LZ3la4s7Rv8bYvsfF-8J-X70HuPU00ZldJxWoxqud33CmWD_8xx-jYr7f6pnIoyh9PdvF5F1n26II_J_yRGoM__DrM4cxrnEKrV4qCxrb0D3hrsEtuwqn6yUs6N4qY8okT9ej3-moqpRjbl1EHarB9CPF5BvF9DY_V_FB9TeBNBgI7MQ74uv5GTClPYeUxL1CcswNRHkp1pEndbVUVSjo1DH1mdblXQIxLfHT"/>
+<div class="absolute bottom-4 right-4 text-right opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<p class="watermark text-white/90 font-bold text-[10px] uppercase tracking-wider">Photo Santos</p>
+</div>
+</div>
+</div>
+<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(2)">
+<div class="festive-frame h-64 md:h-full">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkJlPrGvqLsKyHDlRaQTgstnieRbfIz4-x4cr_43qpBDNDIMtKqP-yvy46PZftDj967k6zDPd19NKH9YJQNDnC4ZoXMQSGBxcNriyjtf7To522b_j_2GF4j8V-cdysuF3LdXotmRFaJyBaqEAVsv5D1ymCIILSSqeYgfguVztEKno-wjZ-X6MnNTnmIid1mVuP5APx_mk5sPxFqxFb_JJB8ZNKbusFxVN6bfzKd9Hnc3AbmQ1bkUDCv_dLl_K8SsLackLPR0Ur9WbF"/>
+<div class="absolute bottom-4 right-4 text-right opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<p class="watermark text-white/90 font-bold text-[10px] uppercase tracking-wider">Photo Santos</p>
+</div>
+</div>
+</div>
+<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(3)">
+<div class="festive-frame h-64 md:h-full">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyKraUptQpkoDnYk4qdbtHFYI1fj9mM4O5N0WsEZQqzQLpt8a6TBEJb5b-4U_hDsRxQAiKnapYwrDvXwwl1LshuIOlPe3SgBjlS1sE-BeQ09GvC7oRWqbBcKfQ_H9XKnIyRARSGXBoeXZiBRbPKl0EANADTAxckzDafeLzLVB2u2l6xceJMkpqde1Qu7lBH-q10ZqNmzH6w_ZbwGo7CWVBhgNckvW3Au5E-Nte2baR7U6W-qlXYYB3yepS9PQM-k2HR9kyHv0f8inz"/>
+<div class="absolute bottom-4 right-4 text-right opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<p class="watermark text-white/90 font-bold text-[10px] uppercase tracking-wider">Photo Santos</p>
+</div>
+</div>
+</div>
+<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(4)">
+<div class="festive-frame h-64 md:h-full">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBixvlkTDh6cEMldisyNIkkwWZRD5oEnwo3L2RdGFBQNMZ2mzAqmMZDZ6ji18NMNSgDu9UsjFw431RS_YvBHnqMZW30TTFvlxFc87snNVXRCKdhu_M0jXV_TQMU0oEct9pJSJpXZAkDMI7L0DkMFoBNqT_nkaC2kHMKSSJktqeqWdeFJMgx1fUWjE5tgz0YijSy4bnr0_KZZKWyuNgFeyHQ111KJgVDFjPX20m-BnCvFlV0EibhDrR7NvfWpD4MGUmCglMq7eBx06BF"/>
+<div class="absolute bottom-4 right-4 text-right opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<p class="watermark text-white/90 font-bold text-[10px] uppercase tracking-wider">Photo Santos</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Load More -->
+<div class="flex justify-center mt-12">
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-white border border-white/5 px-8 py-3 rounded-full flex items-center gap-2 transition-all active:scale-95 group">
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform duration-500">expand_more</span>
+<span class="text-sm font-medium">הצג תמונות נוספות</span>
+</button>
+</div>
+</main>
+<!-- Bottom Nav (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 bg-surface/95 backdrop-blur-xl border-t border-white/5 shadow-2xl">
+<a class="flex flex-col items-center text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] mt-1 font-medium">ראשי</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] mt-1 font-medium">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">auto_fix_high</span>
+<span class="text-[10px] mt-1 font-medium">עריכה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] mt-1 font-medium">פרופיל</span>
+</a>
+</nav>
+<!-- Lightbox Modal -->
+<div class="fixed inset-0 z-[100] hidden items-center justify-center glass-overlay" id="lightbox">
+<button class="absolute top-6 left-6 text-white bg-black/60 hover:bg-black/80 p-2 rounded-full transition-all duration-200 z-[110]" onclick="closeLightbox()">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+<div class="relative w-full h-full flex flex-col md:flex-row items-center justify-center p-4" id="lightbox-content">
+<!-- Main Image View -->
+<div class="relative w-full max-w-4xl max-h-[80vh] flex items-center justify-center">
+<div class="festive-frame shadow-2xl overflow-hidden bg-black/20">
+<img class="max-h-[75vh] w-auto object-contain preview-transition" id="lightbox-img" src=""/>
+<!-- Overlay Info -->
+<div class="absolute bottom-0 left-0 right-0 p-6 flex flex-row-reverse justify-between items-end bg-gradient-to-t from-black/95 via-black/40 to-transparent">
+<div class="text-right text-white">
+<p class="font-bold text-lg tracking-[0.2em] watermark uppercase">Photo Santos</p>
+<div class="flex flex-row-reverse items-center gap-1.5 text-white/60 text-[10px] mt-1">
+<span class="material-symbols-outlined text-[12px]">copyright</span>
+<span>כל הזכויות שמורות למותג</span>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="bg-primary text-on-primary p-3 rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-2 shadow-lg shadow-primary/20" onclick="toggleEditSidebar()">
+<span class="material-symbols-outlined text-lg">tune</span>
+<span class="text-xs font-bold hidden sm:block">עריכה מתקדמת</span>
+</button>
+<button class="bg-white/10 text-white p-3 rounded-xl border border-white/10 hover:bg-white/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg">download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Advanced Editor Sidebar -->
+<div class="absolute right-0 top-0 bottom-0 w-80 bg-surface/98 backdrop-blur-2xl border-l border-white/10 p-8 flex flex-col gap-8 z-[120] transform translate-x-full sidebar-transition shadow-[-10px_0_30px_rgba(0,0,0,0.5)]" id="edit-sidebar">
+<div class="flex items-center justify-between">
+<h3 class="text-white text-xl font-bold">כלי עריכה</h3>
+<button class="p-1 hover:bg-white/5 rounded-full" onclick="toggleEditSidebar(false)">
+<span class="material-symbols-outlined text-white/60">close</span>
+</button>
+</div>
+<div class="space-y-8">
+<!-- Sliders -->
+<div class="space-y-4 tool-item">
+<div class="flex justify-between text-white/90 text-sm font-medium">
+<span>בהירות</span>
+<span class="text-primary font-bold">0</span>
+</div>
+<input class="w-full appearance-none bg-transparent cursor-pointer" max="100" min="-100" type="range" value="0"/>
+</div>
+<div class="space-y-4 tool-item">
+<div class="flex justify-between text-white/90 text-sm font-medium">
+<span>ניגודיות</span>
+<span class="text-primary font-bold">12</span>
+</div>
+<input class="w-full appearance-none bg-transparent cursor-pointer" max="100" min="-100" type="range" value="12"/>
+</div>
+<div class="space-y-4 tool-item">
+<div class="flex justify-between text-white/90 text-sm font-medium">
+<span>רוויה</span>
+<span class="text-primary font-bold">5</span>
+</div>
+<input class="w-full appearance-none bg-transparent cursor-pointer" max="100" min="-100" type="range" value="5"/>
+</div>
+<div class="space-y-4 tool-item">
+<div class="flex justify-between text-white/90 text-sm font-medium">
+<span>חשיפה</span>
+<span class="text-primary font-bold">0</span>
+</div>
+<input class="w-full appearance-none bg-transparent cursor-pointer" max="100" min="-100" type="range" value="0"/>
+</div>
+</div>
+<div class="mt-auto space-y-3">
+<button class="w-full py-4 rounded-2xl bg-white text-black font-bold flex items-center justify-center gap-2 hover:bg-primary hover:text-on-primary transition-all active:scale-[0.98] interactive-btn">
+<span class="material-symbols-outlined text-lg">magic_button</span>
+                    שיפור אוטומטי
+                </button>
+<button class="w-full py-4 rounded-2xl border border-white/10 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/5 transition-all active:scale-[0.98] interactive-btn">
+<span class="material-symbols-outlined text-lg">crop</span>
+                    חיתוך וסיבוב
+                </button>
+<button class="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:brightness-110 transition-all active:scale-[0.98] interactive-btn mt-4">
+                    שמירת שינויים
+                </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+    function openLightbox(index) {
+        const images = [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1519225495810-751783d9a21b?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1522673607200-164883212c2f?auto=format&fit=crop&q=80&w=1200"
+        ];
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        img.src = images[index] || images[0];
+        lb.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        const lb = document.getElementById('lightbox');
+        lb.classList.add('hidden');
+        toggleEditSidebar(false);
+        document.body.style.overflow = 'auto';
+    }
+
+    function toggleEditSidebar(forceState) {
+        const sidebar = document.getElementById('edit-sidebar');
+        if (forceState === undefined) {
+            sidebar.classList.toggle('translate-x-full');
+        } else if (forceState) {
+            sidebar.classList.remove('translate-x-full');
+        } else {
+            sidebar.classList.add('translate-x-full');
+        }
+    }
+
+    // Close on backdrop click
+    document.getElementById('lightbox').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeLightbox();
+    });
+
+    // Simple scroll header hide/show
+    let lastScroll = 0;
+    const header = document.querySelector('header');
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        if (currentScroll > lastScroll && currentScroll > 100) {
+            header.style.transform = 'translateY(-100%)';
+        } else {
+            header.style.transform = 'translateY(0)';
+        }
+        lastScroll = currentScroll;
+    });
+</script>
+</body></html>

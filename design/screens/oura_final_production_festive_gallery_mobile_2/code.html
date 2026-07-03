@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Oura - גלריית אירוע</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#795950",
+                    "on-background": "#1d1b19",
+                    "surface-tint": "#9f402d",
+                    "on-tertiary-container": "#4e3d00",
+                    "primary-fixed": "#ffdad3",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#2c160e",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#cca72f",
+                    "outline-variant": "#ddc0ba",
+                    "on-secondary-fixed-variant": "#5d4037",
+                    "inverse-surface": "#1d1b19",
+                    "on-surface": "#1d1b19",
+                    "tertiary-fixed": "#ffe088",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#9f402d",
+                    "on-surface-variant": "#a8a29e",
+                    "inverse-on-surface": "#f5f0ec",
+                    "on-tertiary": "#ffffff",
+                    "surface-variant": "#2c2a28",
+                    "surface-container-low": "#262422",
+                    "background": "#1d1b19",
+                    "surface-container": "#32302e",
+                    "on-tertiary-fixed": "#241a00",
+                    "inverse-primary": "#ffb4a5",
+                    "surface-container-highest": "#4a4643",
+                    "tertiary": "#e9c349",
+                    "secondary": "#77574d",
+                    "surface-dim": "#151312",
+                    "on-primary-container": "#ffffff",
+                    "surface-container-high": "#3d3a37",
+                    "secondary-fixed": "#ffdbd0",
+                    "primary-fixed-dim": "#ffb4a5",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "surface-bright": "#2c2a28",
+                    "outline": "#89726d",
+                    "on-primary-fixed": "#3e0500",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "surface": "#1d1b19",
+                    "secondary-fixed-dim": "#e7bdb1",
+                    "secondary-container": "#fed3c7",
+                    "primary-container": "#e2725b",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#802918"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "xxl": "48px",
+                    "xs": "4px",
+                    "margin-desktop": "32px",
+                    "lg": "24px",
+                    "base": "4px",
+                    "sm": "8px",
+                    "gutter": "16px",
+                    "margin-mobile": "16px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Rubik"],
+                    "body-md": ["Rubik"],
+                    "body-lg": ["Rubik"],
+                    "label-lg": ["Rubik"],
+                    "display-lg": ["Rubik"],
+                    "title-lg": ["Rubik"],
+                    "label-sm": ["Rubik"],
+                    "headline-lg-mobile": ["Rubik"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
+                    "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                    "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            background: rgba(30, 28, 26, 0.75);
+        }
+        .celebratory-gradient {
+            background: linear-gradient(to top, rgba(29, 27, 25, 1) 0%, rgba(29, 27, 25, 0.4) 40%, rgba(29, 27, 25, 0) 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .btn-active:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background dark:bg-background text-on-background dark:text-inverse-on-surface overflow-x-hidden pb-24">
+<!-- Hero Section -->
+<header class="relative h-[640px] w-full overflow-hidden">
+<!-- Branding -->
+<div class="absolute top-6 left-6 z-30 w-16 h-16 bg-black/40 backdrop-blur-md rounded-xl p-2 flex items-center justify-center">
+<img alt="Oura Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnTY6Kye5ul4tYFWr6o0b1ga_ErDg5LR62jHORUunB_XOB_ZLmZI-NLoZ3tZ-z5YyZ39KUQj2QUToY1VqZrxbvqR4avaE-XyVcpuDfbmnMTT1S_bqKjPW3Eo03GEPEhV96pcNaWIB62BbqzIzcj8cMzq8MPQt_igh1_qHV2tXodIdqUyJnPDKWuPnbf6ay1jk1kQ0H11tiA4uaoflNV-Wg20GsqyVB4x_2mW_uiZP_gG7b-wiQBxzIhC5uYMqqfnjz9LQsnEcanEdA"/>
+</div>
+<!-- Hero Image -->
+<div class="absolute inset-0 z-0">
+<img alt="Wedding Celebration Hero" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMkXe4H0mICfejy-od_qWYIfRv4KjljhWNdDEoa7vHJAkdUQXnvejZuA9_XXq3JV1rtsVHNucz5o80YbqlSmOgm6-BP_YDuM9cVFIbfy1vqtfAIIvHXL7Gz2Ogmp3vfVRKgyAVwA2PGqicFvIev9rwiWgEP9klbPPPGbDnH7GYIuNkmhMIbo53Km5_6_3SAVUde3WTj_D6Hfy4o6qgmfUzA-5VvqaqUgmAm3Qf8Me1j0oiiUxDUySenumQG3NmIak9KEmXurQAX021"/>
+<div class="absolute inset-0 celebratory-gradient"></div>
+</div>
+<!-- Overlay Content -->
+<div class="absolute bottom-0 right-0 left-0 p-margin-mobile flex flex-col items-start gap-4 z-10 pb-12">
+<span class="bg-tertiary-container text-on-tertiary-container px-4 py-1.5 rounded-full font-label-lg text-label-lg shadow-lg">12.05.2024</span>
+<h1 class="font-headline-lg-mobile text-[36px] text-white font-bold leading-tight drop-shadow-xl">
+            החתונה של נועה וגיא
+        </h1>
+<p class="font-body-lg text-body-lg text-white/90 max-w-[90%] leading-relaxed drop-shadow-md">
+            רגעים קסומים מהערב המיוחד שלנו. תודה שהייתם חלק מהשמחה שלנו!
+        </p>
+<div class="flex gap-3 mt-4 w-full">
+<button class="flex-1 bg-primary hover:bg-primary-container text-white px-6 py-4 rounded-2xl flex items-center justify-center gap-2 btn-active shadow-2xl transition-all">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">download</span>
+<span class="font-bold text-lg">הורדת הגלריה</span>
+</button>
+<button class="w-16 h-16 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center text-white btn-active border border-white/20">
+<span class="material-symbols-outlined text-2xl">share</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Stats & Social -->
+<section class="px-margin-mobile -mt-8 relative z-20">
+<div class="glass-effect rounded-3xl p-6 flex justify-between items-center shadow-2xl border border-white/10">
+<div class="flex-1">
+<div class="text-white font-bold text-3xl leading-tight">428</div>
+<div class="text-on-surface-variant text-sm font-medium">תמונות הועלו</div>
+</div>
+<div class="h-12 w-px bg-white/10 mx-4"></div>
+<div class="flex gap-4">
+<button class="flex flex-col items-center gap-1.5 group">
+<div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-container-high transition-colors group-active:bg-primary">
+<span class="material-symbols-outlined text-primary group-active:text-white">whatshot</span>
+</div>
+<span class="text-[11px] font-medium text-on-surface-variant">WhatsApp</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 group">
+<div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-container-high transition-colors group-active:bg-primary">
+<span class="material-symbols-outlined text-primary group-active:text-white">camera_enhance</span>
+</div>
+<span class="text-[11px] font-medium text-on-surface-variant">Instagram</span>
+</button>
+<button class="flex flex-col items-center gap-1.5 group">
+<div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-container-high transition-colors group-active:bg-primary">
+<span class="material-symbols-outlined text-primary group-active:text-white">music_note</span>
+</div>
+<span class="text-[11px] font-medium text-on-surface-variant">TikTok</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Filter Chips -->
+<nav class="flex gap-3 overflow-x-auto px-margin-mobile py-8 scrollbar-hide">
+<button class="bg-primary text-white px-6 py-2.5 rounded-full font-bold whitespace-nowrap btn-active shadow-lg shadow-primary/20">כל התמונות</button>
+<button class="bg-surface-container-high border border-outline/20 text-on-surface-variant px-6 py-2.5 rounded-full font-medium whitespace-nowrap btn-active">קבלת פנים</button>
+<button class="bg-surface-container-high border border-outline/20 text-on-surface-variant px-6 py-2.5 rounded-full font-medium whitespace-nowrap btn-active">חופה</button>
+<button class="bg-surface-container-high border border-outline/20 text-on-surface-variant px-6 py-2.5 rounded-full font-medium whitespace-nowrap btn-active">מסיבה</button>
+</nav>
+<!-- Vertical Mobile Gallery -->
+<main class="px-margin-mobile pb-12">
+<div class="masonry-grid">
+<!-- Item 1 -->
+<div class="relative group">
+<img class="rounded-2xl w-full aspect-square object-cover shadow-lg active:scale-[0.98] transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGgwc1bcwc6mjo5GJH3lgV1faR-UPIHg3e6Lyn-z6mVNO0_aNdNNNEsftIkMEZAbBy92rAy-Fek-4-UU6uOYKNcrbqYbE36_OkCVo2QN5HNCMkLp1qBbkN1FTRivxDYI8IHnBN7MtKy6SXdLURosYfRPB031vw5DnyEN6WqYaSyhziCA7_Z_-C7g3SjjPe6Fy-XF2-l7IpO2y7ClgcFICLi9mTqaFEgnw9X0idYaOLSFoTsBttEUWrTjNgrCWm6uDAaUqwHRd-J5uS"/>
+</div>
+<!-- Item 2 -->
+<div class="relative group">
+<img class="rounded-2xl w-full aspect-square object-cover shadow-lg active:scale-[0.98] transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF1jBTFS0H1jnvbawHVWwcCAxc2l1zWHGomJzsZVfmPNVIzHSd0F33qq6n6dSB38rXblnX8QA1s8VekQZtNa9drel7niOM-tLpp33UHnKRnrmAtFnb-5RAYWZyNQ0bGFgyJiRcG26AZq4U7pusJKYnoQjBL2lkpksKHeJB5X_G5y3MtqErKU0cp_psR40tTxro_VEYFDUfwhG0PzeneAUVak3kietEzRyc5ln6HYkfaPFEPoiBy5RrurJA_NoE5dYamd1HxQn8XwvN"/>
+</div>
+<!-- Item 3 -->
+<div class="relative group">
+<img class="rounded-2xl w-full aspect-square object-cover shadow-lg active:scale-[0.98] transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgRH8UvwhUMPwFl7Eld_FnyKqbtOEZuW3JfueMWimxdzVvyvBCQxOQ7K5S34XJ5BV3UktKLaPIiXSbjAg8GZfmk-pNyD6A9-M53EecObtoutN8AR6QH2ppVKsEooN1ZGQ9RYk-5x9r-kI8WsSOCN6V5TKDBhWJ-2kKwNMLGyEeedL5oWP6auWxnAWVc7SDcsBbBlQtbKbwE3SJeAC7RfRqzpKU_UmGVTFWM7-AavSaWEADotRRM5I23edstrODzQ0UQ0IzTf5qesMG"/>
+</div>
+<!-- Item 4 -->
+<div class="relative group">
+<img class="rounded-2xl w-full aspect-square object-cover shadow-lg active:scale-[0.98] transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqmFa1U6_4SqSWY-NAQ6EDkph_XbnXhu19PlslIV0FOKS1JZGyKsRU2QCRVHzpeOZM_pyskG0JqeTtGnH7I-E2wUGbjT8V81XqONDzqbW1RuE23it6inbnwRKyVXGllKK1cTf6wdHFxuw7CxLF8poPb1ITEWYtxsYXrsJWTrj9EEhehIVHzTf2Yuve06sWAdgOt7NHRLIiBAOH8tbXZfUwEXTUz32yBHClW3QMGms11N3MYQ2bO89pkDKHy_sWh0pDyWY94d4oYqi4"/>
+</div>
+<!-- Item 5 -->
+<div class="relative group">
+<img class="rounded-2xl w-full aspect-square object-cover shadow-lg active:scale-[0.98] transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9grP3WVOQE2teDyE_ssub8vr7DxevfVzONxtjVyb7Y7ed9MDpUUByiQurJtx6VWJGT0_UhQUk-YL5k4G2xC0IDeBJh3-ky-1Nbl5A1Td0XF0JwsHIxLo72gmlKT4DUWA7gbf2LiXWhFUo8PDz-JoOT-b47XxH12z6J1Vsb5eMcqFDl22Y2NG2gTNngpnh9Y-fTWZTwqk3_kyKnaPomJTYXUjHrrGTYoudRvqkz6BzZSFm2TcKZTXeBBSmu6SgabyoS39gCuZUN88Y"/>
+</div>
+<!-- Item 6 (Selected State) -->
+<div class="relative group border-2 border-primary rounded-2xl overflow-hidden">
+<img class="w-full aspect-square object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzSnYlC-ume5eYAdqjq2eKzvsi2qzlQWR-vW9qurWg9381o96CvX06-GTIFHD1WOAQKGxgB5t58N5E2RYvTC2DBCM7-vc2L9Jbhz0CGvndkZsZBQoQknJks-wL09mHkGwWtymIYJo1FKoBhxL1mNbF3bkrQtKaJmCx8Lznab5qMnJdHKYO6_8HY4GkP2nNBGRxLz6WTKvaAN3sr1x2mzc-RYeoe2QnKNU6cFs47P5lTEPtPguUpvqYjJXFgTRZnqccRTsY3pOtTn7d"/>
+<div class="absolute top-2 right-2 bg-primary rounded-full p-1.5 shadow-lg">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-6 bg-surface-dim/95 backdrop-blur-xl border-t border-white/5 shadow-2xl">
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<span class="font-bold text-[12px] mt-1">בית</span>
+</a>
+<a class="flex flex-col items-center text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-bold text-[12px] mt-1">גלריה</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-[28px]">share</span>
+<span class="font-bold text-[12px] mt-1">שיתוף</span>
+</a>
+<a class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined text-[28px]">person</span>
+<span class="font-bold text-[12px] mt-1">פרופיל</span>
+</a>
+</nav>
+<script>
+    // Selection interaction
+    document.querySelectorAll('.masonry-grid img').forEach(img => {
+        img.parentElement.addEventListener('click', function() {
+            const container = this;
+            const isSelected = container.classList.contains('border-2');
+            
+            if(!isSelected) {
+                container.classList.add('border-2', 'border-primary', 'overflow-hidden');
+                const checkDiv = document.createElement('div');
+                checkDiv.className = 'selection-check absolute top-2 right-2 bg-primary rounded-full p-1.5 shadow-lg';
+                checkDiv.innerHTML = '<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: \'FILL\' 1;">check</span>';
+                container.appendChild(checkDiv);
+            } else {
+                container.classList.remove('border-2', 'border-primary', 'overflow-hidden');
+                const check = container.querySelector('.selection-check');
+                if(check) check.remove();
+            }
+        });
+    });
+
+    // Parallax scroll effect for hero
+    window.addEventListener('scroll', () => {
+        const scroll = window.scrollY;
+        const heroImage = document.querySelector('header img');
+        if(heroImage && scroll < 640) {
+            heroImage.style.transform = `translateY(${scroll * 0.3}px) scale(${1 + scroll * 0.0003})`;
+        }
+    });
+</script>
+</body></html>
