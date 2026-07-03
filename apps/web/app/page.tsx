@@ -4,7 +4,7 @@ export default function Home() {
       <span className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
         Oura
       </span>
-      <h1 className="font-[family-name:var(--font-hanken-grotesk)] text-4xl font-bold text-on-background sm:text-5xl">
+      <h1 className="text-4xl font-bold text-on-background sm:text-5xl">
         הרגעים שלכם, כאן ועכשיו
       </h1>
       <p className="max-w-md text-base text-on-surface-variant">

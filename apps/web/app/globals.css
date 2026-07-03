@@ -22,6 +22,8 @@
   --color-error: var(--color-error);
 
   --font-sans: var(--font-rubik);
+  /* Latin-only display font. Never apply to elements that render Hebrew text
+     (Hanken Grotesk has no Hebrew glyphs and silently falls back). */
   --font-display: var(--font-hanken-grotesk);
 
   --radius-standard: 12px;
@@ -32,5 +34,10 @@
 body {
   background: var(--color-background);
   color: var(--color-on-background);
-  font-family: var(--font-rubik), sans-serif;
+  font-family: var(--font-rubik), Heebo, Assistant, "Noto Sans Hebrew",
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: normal;
+  word-spacing: 0.05em;
 }
