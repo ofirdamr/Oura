@@ -87,6 +87,17 @@ model, surface it in one actionable line with the exact command, e.g.:
 Then proceed; don't silently burn the wrong tier, and don't announce a model when
 no task has been given yet.
 
+**Resuming after a usage-limit interruption (hard rule):** if a subagent spawn
+fails or gets cut off because of an account/session usage limit, that is not a
+signal to silently downgrade the orchestration mode. Once the limit clears,
+resume the SAME mode the Economist originally picked for that mission — if it
+was Hybrid/Parallel, go back to independent subagents for the remaining/retry
+work, don't quietly absorb it into solo Classic work just because the first
+attempt got interrupted. If the limit is still blocking and there's real
+pressure to keep moving, say so explicitly and ask before falling back to
+solo — don't decide unilaterally that "solo for now" is fine and never revisit
+it. The interruption is a temporary infrastructure fact, not a re-consult.
+
 ---
 
 ## 1. The Team (internal roles — synthesize, never narrate)
