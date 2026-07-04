@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
@@ -28,11 +28,12 @@ function supa(env: Env): SupabaseClient {
   });
 }
 
-// TODO(media): R2 public serving/signing is out of scope for this pass. Photos
-// come back with their R2 object key and a placeholder URL shape the frontend
-// can later swap for a real signed/CDN URL. Nothing here streams bytes.
-function photoUrlStub(storageKey: string): string {
-  return `/media/${storageKey}`;
+// Build an absolute URL to the Worker's own /media/:key streaming route for a
+// stored R2 object key. Absolute (not a bare relative path) so it works as an
+// <img src> from the separate Next.js origin. The origin is derived from the
+// incoming request — never a hardcoded prod hostname — so dev/preview work too.
+function photoUrlStub(c: Context, storageKey: string): string {
+  return `${new URL(c.req.url).origin}/media/${storageKey}`;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -178,7 +179,7 @@ app.get('/gallery/:token', async (c) => {
   const photos = (photoRows ?? []).map((p) => ({
     id: p.id,
     storage_key: p.storage_key,
-    url: photoUrlStub(p.storage_key), // TODO(media): real signed/CDN URL
+    url: photoUrlStub(c, p.storage_key),
     status: p.status,
   }));
 
@@ -226,7 +227,7 @@ app.get('/gallery/:token', async (c) => {
       matched.push({
         id: row.photo_id,
         storage_key: ph.storage_key,
-        url: photoUrlStub(ph.storage_key),
+        url: photoUrlStub(c, ph.storage_key),
       });
     }
 
@@ -319,6 +320,111 @@ app.post('/consent/:token', async (c) => {
     consented_at: inserted?.consented_at ?? new Date().toISOString(),
     already: false,
   });
+});
+
+// ---------------------------------------------------------------------------
+// Media streaming.
+// GET /media/*
+//   Streams a single R2 object by its stored key (the `photos.storage_key`
+//   value, e.g. events/<event_id>/orig/<uuid>.jpg — the key contains slashes, so
+//   this is a catch-all route and the key is read from the path, NOT c.req.param).
+//   Keys are content-addressed/unique per upload, so the response is immutably
+//   cacheable. 404s to { error: 'not_found' } when the object is missing.
+// ---------------------------------------------------------------------------
+app.get('/media/*', async (c) => {
+  // Everything after the literal "/media/" prefix is the R2 object key. Using the
+  // pathname (not a named param) so embedded slashes are preserved.
+  const key = c.req.path.slice('/media/'.length);
+  if (!key) return c.json({ error: 'not_found' }, 404);
+
+  const object = await c.env.MEDIA.get(key);
+  if (!object) return c.json({ error: 'not_found' }, 404);
+
+  const headers: Record<string, string> = {
+    'Content-Type': object.httpMetadata?.contentType ?? 'application/octet-stream',
+    // Content-addressed keys are unique per upload — safe to cache forever.
+    'Cache-Control': 'public, max-age=31536000, immutable',
+  };
+  if (object.httpEtag) headers['etag'] = object.httpEtag;
+
+  return c.body(object.body, 200, headers);
+});
+
+// ---------------------------------------------------------------------------
+// Photo ingest (bulk load into a seeded event).
+// POST /events/:event_id/photos
+//   Called by a one-off local Node script the founder runs — NOT from the
+//   browser — so no extra CORS/auth hardening beyond confirming the event exists.
+//   Accepts multipart/form-data with a single `file` field. Uploads the bytes to
+//   R2 and inserts a `photos` row marked 'ready' (Stage 1 has no processing
+//   pipeline yet, so ingested photos are immediately visible).
+//   Response 201: { id, event_id, storage_key }
+// ---------------------------------------------------------------------------
+app.post('/events/:event_id/photos', async (c) => {
+  const event_id = c.req.param('event_id');
+  if (!event_id) return c.json({ error: 'missing_event_id' }, 400);
+
+  const db = supa(c.env);
+
+  // Confirm the event exists (mirrors the guest-issuance route's 404 pattern).
+  const { data: event, error: eventErr } = await db
+    .from('events')
+    .select('id')
+    .eq('id', event_id)
+    .maybeSingle();
+  if (eventErr) return c.json({ error: 'lookup_failed' }, 500);
+  if (!event) return c.json({ error: 'event_not_found' }, 404);
+
+  const body = await c.req.parseBody();
+  const file = body['file'];
+  if (!(file instanceof File)) return c.json({ error: 'missing_file' }, 400);
+
+  const id = crypto.randomUUID();
+  // Derive a safe extension from the filename, falling back to content-type, then .jpg.
+  const nameExt = /\.([a-z0-9]{1,8})$/i.exec(file.name ?? '')?.[1]?.toLowerCase();
+  const typeExt = file.type?.split('/')[1]?.toLowerCase();
+  const ext = `.${nameExt || typeExt || 'jpg'}`;
+  const storage_key = `events/${event_id}/orig/${id}${ext}`;
+
+  await c.env.MEDIA.put(storage_key, await file.arrayBuffer(), {
+    httpMetadata: { contentType: file.type || 'image/jpeg' },
+  });
+
+  const { error: insertErr } = await db.from('photos').insert({
+    id,
+    event_id,
+    storage_key,
+    status: 'ready',
+    content_type: file.type || null,
+    bytes: file.size ?? null,
+  });
+  if (insertErr) return c.json({ error: 'photo_create_failed' }, 500);
+
+  return c.json({ id, event_id, storage_key }, 201);
+});
+
+// ---------------------------------------------------------------------------
+// Event code resolution.
+// GET /events/by-code/:code
+//   Resolves a short human-shareable event code (e.g. WED-2024) to the internal
+//   event UUID. Used by manual-entry / QR-deeplink guest entry. Contract with the
+//   frontend is EXACTLY { event_id } — nothing more.
+//   Response 200: { event_id } | 404 { error: 'event_not_found' }
+// ---------------------------------------------------------------------------
+app.get('/events/by-code/:code', async (c) => {
+  const code = c.req.param('code');
+  if (!code) return c.json({ error: 'event_not_found' }, 404);
+
+  const db = supa(c.env);
+  const { data: event, error } = await db
+    .from('events')
+    .select('id')
+    .eq('code', code)
+    .maybeSingle();
+  if (error) return c.json({ error: 'lookup_failed' }, 500);
+  if (!event) return c.json({ error: 'event_not_found' }, 404);
+
+  return c.json({ event_id: event.id });
 });
 
 app.get('/', (c) => c.text('oura-api'));

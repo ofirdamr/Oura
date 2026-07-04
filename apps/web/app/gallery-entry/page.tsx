@@ -8,16 +8,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { issueGuestToken } from "@/lib/api";
+import { issueGuestToken, resolveEventCode } from "@/lib/api";
 import { saveGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
-
-// TODO(follow-up): there is no real "resolve a human-readable event code
-// (e.g. WED-2024) to an event_id" endpoint yet - out of scope for this pass
-// per the task brief. Until that exists, manual code entry issues a guest
-// token against this placeholder event id regardless of what the guest typed.
-// Swap this for a real lookup call once that endpoint exists.
-const PLACEHOLDER_EVENT_ID = "00000000-0000-0000-0000-000000000000";
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -46,10 +39,27 @@ export default function GalleryEntryPage() {
 
   async function handleManualEntry() {
     setError(null);
+
+    const trimmedCode = eventCode.trim();
+    if (!trimmedCode) {
+      setError("אנא הזינו קוד אירוע");
+      return;
+    }
+
     setEntering(true);
-    // eventCode itself isn't sent anywhere yet - see PLACEHOLDER_EVENT_ID note
-    // above. Kept as a real input so the flow reads correctly to the guest.
-    const result = await issueGuestToken(PLACEHOLDER_EVENT_ID);
+    const resolveResult = await resolveEventCode(trimmedCode);
+
+    if (!resolveResult.ok) {
+      setEntering(false);
+      setError(
+        resolveResult.error === "event_not_found"
+          ? "לא מצאנו את האירוע הזה. בדקו את הקוד ונסו שוב."
+          : "משהו השתבש. בדקו את החיבור ונסו שוב.",
+      );
+      return;
+    }
+
+    const result = await issueGuestToken(resolveResult.data.event_id);
     setEntering(false);
 
     if (!result.ok) {

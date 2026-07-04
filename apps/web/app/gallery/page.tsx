@@ -1,9 +1,8 @@
 "use client";
 
 // Guest-facing Personal Gallery: face-matched results for one guest within one
-// event. Now wired to the real GET /gallery/:token (apps/api). Tile rendering
-// stays a placeholder icon-in-a-box (the API only returns a /media/<key> stub
-// URL, no real image serving yet) - only the DATA underneath is real.
+// event. Wired to the real GET /gallery/:token (apps/api), rendering real
+// photos served from the Worker's GET /media/:key R2 route.
 //
 // Consent enforcement lives here too, not just on /consent: a guest who lands
 // on this URL directly (bookmarked link, back button, shared link, etc.)
@@ -15,6 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { BottomNav } from "@/components/guest/BottomNav";
 import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
 import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
@@ -22,16 +22,26 @@ import { OuraLogo } from "@/components/brand/OuraLogo";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
 
-function PhotoTile({ aspect, matched }: { aspect: string; matched?: boolean }) {
+function PhotoTile({
+  photo,
+  aspect,
+  matched,
+}: {
+  photo: GuestPhoto;
+  aspect: string;
+  matched?: boolean;
+}) {
   return (
     <div
       className={`${aspect} relative overflow-hidden rounded-2xl border border-white/5 bg-surface-container shadow-md`}
     >
-      <div className="flex h-full w-full items-center justify-center">
-        <span className="material-symbols-outlined text-3xl text-on-surface-variant/30">
-          image
-        </span>
-      </div>
+      <Image
+        src={photo.url}
+        alt=""
+        fill
+        sizes="(min-width: 512px) 240px, 50vw"
+        className="object-cover"
+      />
       {matched && (
         <div className="absolute start-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
           <span
@@ -252,7 +262,7 @@ export default function GalleryPage() {
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {personalPhotos.map((photo, i) => (
-                <PhotoTile key={photo.id} aspect={tileAspect(i)} matched />
+                <PhotoTile key={photo.id} photo={photo} aspect={tileAspect(i)} matched />
               ))}
             </div>
           </section>
@@ -265,7 +275,7 @@ export default function GalleryPage() {
           {generalPhotos.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {generalPhotos.map((photo, i) => (
-                <PhotoTile key={photo.id} aspect={tileAspect(i)} />
+                <PhotoTile key={photo.id} photo={photo} aspect={tileAspect(i)} />
               ))}
             </div>
           ) : (

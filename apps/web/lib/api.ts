@@ -81,6 +81,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T
   return { ok: true, data: body as T };
 }
 
+export type ResolveEventCodeResponse = { event_id: string };
+
+// GET /events/by-code/:code -> resolve a human-entered event code to an event_id.
+export function resolveEventCode(code: string): Promise<ApiResult<ResolveEventCodeResponse>> {
+  return request<ResolveEventCodeResponse>(`/events/by-code/${encodeURIComponent(code)}`);
+}
+
 // POST /events/:event_id/guests -> issue a fresh guest token for this event.
 export function issueGuestToken(
   eventId: string,
