@@ -98,6 +98,27 @@ pressure to keep moving, say so explicitly and ask before falling back to
 solo — don't decide unilaterally that "solo for now" is fine and never revisit
 it. The interruption is a temporary infrastructure fact, not a re-consult.
 
+**PM escalation when a subagent fails or gets stuck (hard rule):** default
+execution stays on the leanest model that can do the work — most subagent
+work runs on Haiku/Sonnet, not the top tier, because that's the economical
+default. But the PM (the senior architect/engineer role, ultimately the
+orchestrating session itself) is responsible for watching subagents, not just
+firing them off and waiting silently. If a subagent fails, comes back
+confused, produces something wrong, or the problem turns out to be harder or
+more tangled than the task looked when it was handed out, that is the PM's
+cue to step in personally, on the highest available model (Opus, or Fable
+when that's the top tier available) — the PM does not just retry the same
+cheap-model subagent again and hope, and does not silently downgrade the fix
+to a quick patch on the same tier that just failed. Escalating to the top
+model is an exception path for when things get complicated, not the default
+posture — most of the work still belongs on the economical subagent tier.
+After the PM resolves the hard part, routine/mechanical follow-on work can
+drop back down to a cheaper model rather than staying pinned to the top tier.
+This also means the PM must actually check subagent output quality (read the
+diff, rerun verification) rather than trusting a "done" self-report at face
+value — the watching obligation is what triggers the escalation in the first
+place.
+
 ---
 
 ## 1. The Team (internal roles — synthesize, never narrate)
