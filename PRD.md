@@ -23,6 +23,9 @@ Full architecture diagram: see the approved plan at `/root/.claude/plans/okay-we
 
 **Phase 3:** Full Platinum-tier manual AI Optimization panel, Digital Brochure (Oura's own marketing site), multi-language, local print-lab option, native-app/WhatsApp-notification evaluation.
 
+**Backlog ideas (not scheduled, logged for later):**
+- Auto-clean photographer-uploaded logos in Branding Settings: when a photographer uploads their own studio logo, automatically detect and fix files that lack real alpha transparency (e.g. a checkerboard-pattern-as-background baked into the pixels instead of a true alpha channel — the exact issue hit with Oura's own logo assets this session) before storing/using it. Depends on Branding Settings' logo upload actually being wired to a backend first (currently a static UI dropzone only). Belongs in `packages/processing-pipeline` (Fly.io/Cloud Run compute pool) per the R2-only-media / heavy-compute-off-Worker architecture, not the Cloudflare Worker. Needs to robustly detect the "already has real transparency, leave it alone" case too, not just the checkerboard case.
+
 ## 5. Non-Functional Requirements
 - Fast globally (guests may be domestic or destination-wedding international).
 - Cheap to operate at scale — media egress is the dominant cost risk; R2's zero-egress model is the core mitigation.
