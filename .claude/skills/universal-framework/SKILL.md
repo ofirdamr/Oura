@@ -156,11 +156,31 @@ Every project keeps these files at its root. They are the session-to-session bra
 | `SUMMARY.md` | High-level state. **Read FIRST every session.** What started / done / next. |
 | `PROGRESS.md` | Running log. Append a line after **every** commit. |
 | `MISTAKES.md` | Log every mistake immediately (what, why, correct approach) BEFORE moving on. |
+| `docs/ARCHITECTURE.md` | Structural reference — endpoints/routes, DB schema, auth model, deployment topology, repo layout (what actually exists vs. what a stack-summary file aspirationally lists), env/secrets inventory (names only), known gaps. See below — this is not optional once a project has real infrastructure. |
+
+**`docs/ARCHITECTURE.md` is a hard rule for any project with real backend/infra
+(an API, a database, a deployed service — not a static single-page site).**
+The reasoning: `SUMMARY.md` is a narrative snapshot ("what's the current
+story") and rewriting it loses history; `ARCHITECTURE.md` is the structural
+map someone (including a future you, including a fresh session with zero
+memory of this one) needs to debug a real incident without spelunking through
+every source file cold. Create it the moment a second real architectural
+layer exists (e.g. a DB alongside an API, or two services talking to each
+other) — don't wait for "once implementation begins" to become "we never got
+around to it." Update it **in the same commit** as any change to: a route/
+endpoint, a table/column/RLS-or-equivalent policy, a frontend route or an
+auth boundary, a new secret/env var, or a deployment/CI step. If it and the
+code ever disagree, the code is right — that's a stale-doc bug, fix the doc
+immediately, don't let it compound. A project this applies to but doesn't yet
+have the file is a red flag to raise with the user, not a gap to quietly work
+around.
 
 Session routine:
 1. Read `SUMMARY.md` (then `PROGRESS.md` only if more detail is needed).
 2. Confirm git branch / working state before touching anything.
-3. Work → commit → append `PROGRESS.md` → update `SUMMARY.md` when scope shifts.
+3. Work → commit → append `PROGRESS.md` → update `SUMMARY.md` when scope shifts
+   → update `docs/ARCHITECTURE.md` in the same commit if the change touched
+   anything structural (see above).
 4. On any error: log to `MISTAKES.md` first, then fix.
 5. When the user just says **"summary"**, rewrite `SUMMARY.md`: what started, what's
    done, what's still to do.

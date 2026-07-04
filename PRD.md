@@ -34,7 +34,7 @@ Full architecture reference: `docs/ARCHITECTURE.md` — endpoints, schema, auth 
 - Biometric data handled conservatively: self-hosted embeddings, explicit consent, short retention, documented deletion.
 
 ## 6. Tech Architecture Summary
-See `CLAUDE.md` for the stack table and guardrails; full detail in the approved plan.
+See `CLAUDE.md` for the stack table and guardrails; full structural detail (endpoints, DB schema, auth model, deployment topology, repo layout, known gaps) lives in `docs/ARCHITECTURE.md`, kept current as a hard rule — see that file's own "Keeping this current" section. Do not let this drift into "the plan we meant to write down but never did" the way the original architecture doc did before `docs/ARCHITECTURE.md` existed.
 
 ## 7. Pricing (draft, pending founder numbers)
 Hybrid model — pay-per-event entry tier (matches competitor LOCA's model) plus Starter/Pro/Platinum subscriptions. "Platinum" name and its manual AI-control feature set come directly from the Stitch design, not invented. Final ILS price points, storage caps, and retention window still need founder input (see Open Questions).
