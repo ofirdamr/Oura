@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { label: "ארכיון", icon: "inventory_2", href: "#" },
   { label: "ניהול לקוחות", icon: "groups", href: "#" },
   { label: "סטטיסטיקה", icon: "analytics", href: "#" },
-  { label: "הגדרות", icon: "settings", href: "#" },
+  { label: "הגדרות", icon: "settings", href: "/admin/branding" },
 ];
 
 export function AdminShell({
@@ -45,7 +45,7 @@ export function AdminShell({
             </a>
             <a
               className="text-on-surface-variant/80 transition-colors hover:text-primary"
-              href="#"
+              href="/admin/branding"
             >
               הגדרות
             </a>
@@ -115,10 +115,13 @@ export function AdminShell({
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-3 px-4">
-          <button className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110">
+          <a
+            href="/admin/create-event"
+            className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110"
+          >
             <span className="material-symbols-outlined font-bold">add</span>
             <span className="text-sm font-bold">אירוע חדש</span>
-          </button>
+          </a>
           <hr className="mb-2 border-outline-variant opacity-30" />
           <a
             href="#"
