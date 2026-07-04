@@ -7,6 +7,16 @@
 // biometric-consent gate (not yet built) before any embedding runs.
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { issueGuestToken } from "@/lib/api";
+import { saveGuestSession } from "@/lib/guestSession";
+
+// TODO(follow-up): there is no real "resolve a human-readable event code
+// (e.g. WED-2024) to an event_id" endpoint yet - out of scope for this pass
+// per the task brief. Until that exists, manual code entry issues a guest
+// token against this placeholder event id regardless of what the guest typed.
+// Swap this for a real lookup call once that endpoint exists.
+const PLACEHOLDER_EVENT_ID = "00000000-0000-0000-0000-000000000000";
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -27,7 +37,36 @@ const HOW_IT_WORKS_STEPS = [
 ];
 
 export default function GalleryEntryPage() {
+  const router = useRouter();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [eventCode, setEventCode] = useState("");
+  const [entering, setEntering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleManualEntry() {
+    setError(null);
+    setEntering(true);
+    // eventCode itself isn't sent anywhere yet - see PLACEHOLDER_EVENT_ID note
+    // above. Kept as a real input so the flow reads correctly to the guest.
+    const result = await issueGuestToken(PLACEHOLDER_EVENT_ID);
+    setEntering(false);
+
+    if (!result.ok) {
+      setError(
+        result.error === "event_not_found"
+          ? "לא מצאנו את האירוע הזה. בדקו את הקוד ונסו שוב."
+          : "משהו השתבש. בדקו את החיבור ונסו שוב.",
+      );
+      return;
+    }
+
+    saveGuestSession({
+      token: result.data.token,
+      event_id: result.data.event_id,
+      guest_id: result.data.guest_id,
+    });
+    router.push("/consent");
+  }
 
   return (
     <main className="relative mx-auto flex min-h-screen max-w-sm flex-col items-center overflow-x-hidden p-6 md:p-10">
@@ -112,6 +151,8 @@ export default function GalleryEntryPage() {
               <input
                 id="event-code"
                 type="text"
+                value={eventCode}
+                onChange={(e) => setEventCode(e.target.value)}
                 placeholder="לדוגמה: WED-2024"
                 className="h-14 w-full rounded-xl border border-outline-variant/30 bg-black/40 px-4 text-center font-bold tracking-widest text-on-surface outline-none transition-all placeholder:font-normal placeholder:tracking-normal placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/50"
               />
@@ -119,7 +160,22 @@ export default function GalleryEntryPage() {
                 key
               </span>
             </div>
-            <button className="w-full rounded-xl border border-outline-variant/30 py-4 font-bold text-on-surface transition-all hover:bg-white/5 active:scale-[0.98]">
+            {error && (
+              <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+                {error}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleManualEntry}
+              disabled={entering}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/30 py-4 font-bold text-on-surface transition-all hover:bg-white/5 active:scale-[0.98] disabled:opacity-70"
+            >
+              {entering && (
+                <span className="material-symbols-outlined animate-spin">
+                  progress_activity
+                </span>
+              )}
               כניסה לגלריה
             </button>
           </div>

@@ -8,13 +8,17 @@
 // guest visual language (same card/typography pattern as /gallery-entry),
 // since there's no design/screens reference for it.
 //
-// UI only for this pass: the real POST /consent/:token call is being wired by
-// a separate agent in parallel against a still-undecided API contract, so
-// both actions below are stubbed with a clearly marked TODO rather than a
-// guessed request shape.
+// Wired to the now-live POST /consent/:token (apps/api). Accept records
+// consent and moves on to the personal gallery; decline routes to the general
+// gallery WITHOUT ever calling the consent endpoint - declining must never
+// create a consent record. (/gallery also enforces this server-side: it only
+// unlocks personal_gallery once a biometric_consents row actually exists, so
+// this screen isn't the only guardrail.)
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { postConsent } from "@/lib/api";
+import { loadGuestSession } from "@/lib/guestSession";
 
 const CONSENT_FACTS = [
   {
@@ -37,21 +41,43 @@ const CONSENT_FACTS = [
 export default function ConsentPage() {
   const router = useRouter();
   const [pending, setPending] = useState<"accept" | "decline" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const session = loadGuestSession();
+    if (!session) {
+      // No token at all - guest landed here without going through entry.
+      router.replace("/gallery-entry");
+      return;
+    }
+    setToken(session.token);
+  }, [router]);
 
   async function handleAccept() {
+    if (!token) return;
+    setError(null);
     setPending("accept");
-    // TODO(backend, parallel agent): POST /consent/:token { accepted: true }
-    // once the real endpoint + contract land - don't guess the shape here.
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
+    const result = await postConsent(token);
+    setPending(null);
+
+    if (!result.ok) {
+      if (result.status === 401 || result.status === 404) {
+        // Token invalid/unknown to the API - session is unusable, start over.
+        router.replace("/gallery-entry");
+        return;
+      }
+      setError("משהו השתבש בשמירת ההסכמה. נסו שוב.");
+      return;
+    }
     router.push("/gallery");
   }
 
-  async function handleDecline() {
+  function handleDecline() {
+    // Deliberately no API call here - declining must never create a consent
+    // record. /gallery will keep showing consent_required:true for this
+    // guest, which is exactly the desired state.
     setPending("decline");
-    // TODO(backend, parallel agent): POST /consent/:token { accepted: false }
-    // - declining still lets the guest browse the general event gallery,
-    // just without personal face-matched results.
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
     router.push("/festive-gallery");
   }
 
@@ -122,10 +148,15 @@ export default function ConsentPage() {
       </a>
 
       <div className="relative z-10 mt-auto w-full space-y-3">
+        {error && (
+          <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+            {error}
+          </p>
+        )}
         <button
           type="button"
           onClick={handleAccept}
-          disabled={pending !== null}
+          disabled={pending !== null || !token}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70"
         >
           {pending === "accept" ? (
@@ -140,7 +171,7 @@ export default function ConsentPage() {
         <button
           type="button"
           onClick={handleDecline}
-          disabled={pending !== null}
+          disabled={pending !== null || !token}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-4 font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-70"
         >
           {pending === "decline" && (
