@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/guest/BottomNav";
 import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
 import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
+import { OuraLogo } from "@/components/brand/OuraLogo";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
 
@@ -157,6 +158,7 @@ export default function GalleryPage() {
             </button>
           </div>
           <div className="flex items-center gap-2">
+            <OuraLogo size={28} />
             <span className="font-display text-2xl font-bold tracking-tight text-primary">
               Oura
             </span>

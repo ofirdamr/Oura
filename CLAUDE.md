@@ -20,6 +20,7 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - `--font-display` (Hanken Grotesk) has no Hebrew glyphs — never apply it to elements that render Hebrew text (already caused one fallback-font bug). Use it only for pure-Latin branding bits (e.g. "OURA", "PLATINUM" badges). Rubik (`--font-sans`) is the default for everything else.
 - Use CSS logical properties (`ms-*`/`me-*`/`ps-*`/`pe-*`/`text-start`/`text-end`), never physical `ml-*`/`mr-*`/`text-left`/`text-right`, per `hebrew-rtl-best-practices`.
 - Every task starts with a visible Token Economist consult (leanest path / model / scope guard / orchestration mode) — see `MISTAKES.md` for why this is non-negotiable here.
+- **Never design new visuals directly.** Founder runs new/missing-screen design through Stitch himself. When a task needs a screen or UI element with no existing `design/*/screen.png` source, do not freehand it — write a clear, ready-to-paste Stitch prompt (what the screen is for, key content/actions, how it fits the existing dark-luxury Hebrew/RTL visual language) and hand it to the founder to run through Stitch. Implement in code only once he brings back the resulting export. This does not apply to re-implementing an existing Stitch screen from `design/*` — that's normal code work.
 
 ## Repo layout
 ```

@@ -14,6 +14,8 @@
 // placeholder tile - no real image processing backend exists yet.
 
 import { useState } from "react";
+import { OuraLogo } from "@/components/brand/OuraLogo";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 
 type SliderKey = "brightness" | "contrast" | "saturation" | "exposure";
 
@@ -91,7 +93,7 @@ export default function PhotoEditorPage() {
             arrow_forward
           </button>
           <h1 className="text-lg font-bold text-on-surface">עריכת תמונה</h1>
-          <span className="w-6" aria-hidden="true" />
+          <OuraLogo size={24} />
         </div>
       </header>
 
@@ -122,17 +124,18 @@ export default function PhotoEditorPage() {
 
           {showFrame && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-row-reverse items-end justify-between bg-gradient-to-t from-black/90 via-black/30 to-transparent p-4">
-              <div className="text-end">
-                <p className="font-display text-base font-bold uppercase tracking-[0.2em] text-white [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]">
-                  PHOTO SANTOS
-                </p>
-                <div className="mt-1 flex flex-row-reverse items-center gap-1.5 text-white/60">
-                  <span className="material-symbols-outlined text-[12px]">
-                    copyright
-                  </span>
-                  <span className="text-[10px] font-medium">
-                    מופעל על ידי Oura — הצלם הרשמי של האירוע
-                  </span>
+              <div className="flex flex-row-reverse items-center gap-2 text-end">
+                <StudioLogo size={28} />
+                <div>
+                  <p className="font-display text-base font-bold uppercase tracking-[0.2em] text-white [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]">
+                    PHOTO SANTOS
+                  </p>
+                  <div className="mt-1 flex flex-row-reverse items-center gap-1.5 text-white/60">
+                    <OuraLogo size={12} />
+                    <span className="text-[10px] font-medium">
+                      מופעל על ידי Oura — הצלם הרשמי של האירוע
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

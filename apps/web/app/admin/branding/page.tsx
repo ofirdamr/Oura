@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 
 const FRAME_STYLES = [
   { key: "black", label: "שחור פסנתר", swatchClass: "bg-black" },
@@ -97,14 +98,16 @@ export default function BrandingSettingsPage() {
                   image
                 </span>
               </div>
-              <div className="absolute start-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+              <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+                <StudioLogo size={16} />
                 Photo Santos © 2024
               </div>
               {autoWatermark && (
                 <div
-                  className="absolute bottom-3 end-3 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
+                  className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
                   style={{ backgroundColor: accentColor }}
                 >
+                  <StudioLogo size={14} />
                   Photo Santos
                 </div>
               )}
@@ -148,13 +151,18 @@ export default function BrandingSettingsPage() {
               </p>
             </div>
             <div className="mt-3 flex flex-row-reverse items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
-              <div className="text-end">
-                <p className="text-sm font-bold text-on-surface">
-                  PhotoSantos_Platinum.png
-                </p>
-                <p className="text-xs text-on-surface-variant">
-                  24KB • גרסה אחרונה
-                </p>
+              <div className="flex flex-row-reverse items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/40 p-1">
+                  <StudioLogo size={32} />
+                </div>
+                <div className="text-end">
+                  <p className="text-sm font-bold text-on-surface">
+                    PhotoSantos_Platinum.png
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    24KB • גרסה אחרונה
+                  </p>
+                </div>
               </div>
               <button className="text-error" aria-label="מחק לוגו">
                 <span className="material-symbols-outlined">delete</span>

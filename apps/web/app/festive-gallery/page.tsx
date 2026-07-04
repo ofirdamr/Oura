@@ -9,6 +9,8 @@
 
 import { useState } from "react";
 import { BottomNav } from "@/components/guest/BottomNav";
+import { OuraLogo } from "@/components/brand/OuraLogo";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 
 const FILTERS = ["כל התמונות", "קבלת פנים", "חופה", "מסיבה"];
 
@@ -43,12 +45,8 @@ export default function FestiveGalleryPage() {
   return (
     <div className="min-h-screen overflow-x-hidden pb-24">
       <header className="relative h-[420px] w-full overflow-hidden bg-surface-container-high">
-        <div className="absolute end-4 top-4 z-20 h-14 w-14 rounded-xl bg-surface-container-highest shadow-lg">
-          <div className="flex h-full w-full items-center justify-center">
-            <span className="font-display text-xl font-bold text-primary">
-              O
-            </span>
-          </div>
+        <div className="absolute end-4 top-4 z-20 h-14 w-14 rounded-xl bg-surface-container-highest p-2 shadow-lg">
+          <OuraLogo size={40} />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="material-symbols-outlined text-6xl text-on-surface-variant/20">
@@ -67,6 +65,10 @@ export default function FestiveGalleryPage() {
           <p className="max-w-[85%] text-on-surface/90 drop-shadow-md">
             רגעים קסומים מהערב המיוחד שלנו. תודה שהייתם חלק!
           </p>
+          <div className="mt-1 flex items-center gap-1.5 text-on-surface/70 drop-shadow-md">
+            <StudioLogo size={18} />
+            <span className="text-xs font-medium">צולם על ידי Photo Santos</span>
+          </div>
           <div className="mt-2 flex w-full items-center gap-2">
             <button className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-primary px-6 py-3 font-medium text-on-primary shadow-xl transition-all active:scale-95">
               <span

@@ -1,6 +1,9 @@
+import { OuraLogo } from "@/components/brand/OuraLogo";
+
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 bg-background px-6 text-center">
+      <OuraLogo size={48} />
       <span className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
         Oura
       </span>

@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { postConsent } from "@/lib/api";
 import { loadGuestSession } from "@/lib/guestSession";
+import { OuraLogo } from "@/components/brand/OuraLogo";
 
 const CONSENT_FACTS = [
   {
@@ -87,9 +88,7 @@ export default function ConsentPage() {
 
       <header className="relative z-10 mb-6 mt-8">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
-          <span className="font-display text-3xl font-bold text-primary">
-            O
-          </span>
+          <OuraLogo size={56} />
         </div>
       </header>
 

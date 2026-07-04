@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { issueGuestToken } from "@/lib/api";
 import { saveGuestSession } from "@/lib/guestSession";
+import { OuraLogo } from "@/components/brand/OuraLogo";
 
 // TODO(follow-up): there is no real "resolve a human-readable event code
 // (e.g. WED-2024) to an event_id" endpoint yet - out of scope for this pass
@@ -74,9 +75,7 @@ export default function GalleryEntryPage() {
 
       <header className="relative z-10 mb-8 mt-8">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
-          <span className="font-display text-3xl font-bold text-primary">
-            O
-          </span>
+          <OuraLogo size={56} />
         </div>
       </header>
 

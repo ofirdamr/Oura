@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { OuraLogo } from "@/components/brand/OuraLogo";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 
 const NAV_ITEMS = [
   { label: "לוח בקרה", icon: "dashboard", href: "/admin" },
@@ -22,9 +24,7 @@ export function AdminShell({
         <div className="flex flex-row-reverse items-center gap-8">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-surface-container-highest">
-              <span className="font-display text-lg font-bold text-primary">
-                O
-              </span>
+              <OuraLogo size={32} />
             </div>
             <span className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">
               Oura
@@ -81,7 +81,9 @@ export function AdminShell({
       <aside className="fixed top-0 z-40 hidden h-screen w-64 flex-col border-s border-outline-variant bg-surface-container pb-6 pt-20 md:end-0 md:flex">
         <div className="mb-8 flex flex-col gap-2 px-4">
           <div className="flex flex-col items-center rounded-2xl border border-outline-variant/10 bg-surface-container-high p-6 text-center">
-            <div className="mb-4 h-20 w-20 rounded-full border-2 border-primary/30 bg-black p-1" />
+            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary/30 bg-black p-2">
+              <StudioLogo size={64} />
+            </div>
             <span className="mb-1 text-lg font-bold text-on-surface">
               Photo Santos
             </span>

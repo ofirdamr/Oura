@@ -18,6 +18,8 @@
 
 import { useState } from "react";
 import { BottomNav } from "@/components/guest/BottomNav";
+import { OuraLogo } from "@/components/brand/OuraLogo";
+import { StudioLogo } from "@/components/brand/StudioLogo";
 
 const FILTERS = ["הכל", "קבלת פנים", "החופה", "המסיבה"];
 
@@ -56,9 +58,7 @@ export default function MinimalGalleryPage() {
         <div className="mx-auto flex h-16 w-full max-w-lg flex-row-reverse items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-container-high">
-              <span className="font-display text-sm font-bold text-primary">
-                O
-              </span>
+              <OuraLogo size={24} />
             </div>
             <span className="font-display text-lg font-bold tracking-tight text-primary">
               Oura
@@ -88,11 +88,13 @@ export default function MinimalGalleryPage() {
           image
         </span>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent" />
-        <div className="relative z-10 text-center">
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <OuraLogo size={44} className="mb-1" />
           <span className="font-display text-4xl font-bold tracking-tight text-primary">
             Oura
           </span>
-          <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-on-surface-variant">
+          <p className="mt-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.2em] text-on-surface-variant">
+            <StudioLogo size={16} />
             Photo Santos Photography
           </p>
         </div>
@@ -193,9 +195,7 @@ export default function MinimalGalleryPage() {
         <div className="mx-auto flex max-w-lg flex-col gap-8">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-container-highest">
-              <span className="font-display text-sm font-bold text-primary">
-                O
-              </span>
+              <OuraLogo size={24} />
             </div>
             <h3 className="font-display text-xl font-bold text-primary">
               Oura
@@ -279,7 +279,8 @@ export default function MinimalGalleryPage() {
             <p className="text-xs text-on-surface-variant/70">
               כל הזכויות שמורות © 2024
             </p>
-            <p className="text-xs text-on-surface-variant/70">
+            <p className="flex items-center gap-1.5 text-xs text-on-surface-variant/70">
+              <StudioLogo size={16} />
               צולם באהבה על ידי סטודיו Photo Santos &amp; Oura
             </p>
           </div>

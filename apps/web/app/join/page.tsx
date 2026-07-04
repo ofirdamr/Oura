@@ -2,6 +2,8 @@
 // a real event (no backend); this establishes the screen per the Stitch design.
 // Preview photos are placeholders until real event media exists.
 
+import { OuraLogo } from "@/components/brand/OuraLogo";
+
 function PreviewTile({ aspect }: { aspect: string }) {
   return (
     <div
@@ -23,9 +25,7 @@ export default function JoinPage() {
 
       <header className="relative z-10 mb-8 mt-8">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
-          <span className="font-display text-3xl font-bold text-primary">
-            O
-          </span>
+          <OuraLogo size={56} />
         </div>
       </header>
 
