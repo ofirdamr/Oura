@@ -1,0 +1,19 @@
+# Oura API — Cloudflare Worker (Hono)
+# Secrets are NEVER stored here. Set them with `wrangler secret put`:
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# (see apps/api/README-DEPLOY.md)
+
+name = "oura-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# R2 binding to the existing media bucket (created by the founder).
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "ouramedia"
+
+# Non-secret vars only. Do not put keys/tokens here.
+[vars]
+ENVIRONMENT = "production"
