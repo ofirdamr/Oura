@@ -111,3 +111,71 @@ export function postConsent(token: string): Promise<ApiResult<ConsentResponse>> 
     method: "POST",
   });
 }
+
+export type UploadPhotoResponse = { id: string; event_id: string; storage_key: string };
+
+// POST /events/:event_id/photos -> photographer-authenticated photo ingest.
+// Multipart with a single `file` field, so this can't go through request()'s
+// json-only fetch path (that helper hardcodes Content-Type: application/json,
+// which would clobber the browser's multipart boundary header). Does its own
+// fetch with an explicit bearer token instead - caller reads
+// session.access_token off the Supabase client and passes it in, same as the
+// existing branding-logo upload wiring.
+export async function uploadEventPhoto(
+  eventId: string,
+  file: File,
+  accessToken: string,
+): Promise<ApiResult<UploadPhotoResponse>> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(eventId)}/photos`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: formData,
+    });
+  } catch {
+    return { ok: false, status: null, error: "network_error" };
+  }
+
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    // Non-JSON body (shouldn't happen against this API, but don't crash on it).
+  }
+
+  if (!res.ok) {
+    const error =
+      body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : `http_${res.status}`;
+    return { ok: false, status: res.status, error };
+  }
+
+  return { ok: true, data: body as UploadPhotoResponse };
+}
+
+export type DeletePhotoResponse = { id: string; event_id: string };
+
+// DELETE /events/:event_id/photos/:photo_id -> photographer-authenticated photo
+// delete (also removes the R2 object server-side - never do this via a direct
+// Supabase delete from the browser, per CLAUDE.md). No request body, so this
+// can safely go through the shared json request() helper (its hardcoded
+// Content-Type doesn't matter for a bodyless DELETE); only the Authorization
+// header needs threading through per call.
+export function deletePhoto(
+  eventId: string,
+  photoId: string,
+  accessToken: string,
+): Promise<ApiResult<DeletePhotoResponse>> {
+  return request<DeletePhotoResponse>(
+    `/events/${encodeURIComponent(eventId)}/photos/${encodeURIComponent(photoId)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+}

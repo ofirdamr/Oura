@@ -3,15 +3,18 @@
 // Photographer-facing Barcode/QR Management, ported from
 // oura_final_production_barcode_management_desktop. Shown right after Create
 // New Event completes: the event's QR code, physical/digital distribution
-// options, and a direct gallery link. Print/download/share actions are not
-// wired to anything real yet (no PDF/PNG generation, no share-target
-// integration); copy-to-clipboard on the ID and link IS real, since it's pure
-// client-side and free. The QR image itself stays a static icon placeholder -
-// generating a real scannable QR client-side is out of scope for this pass.
+// options, and a direct gallery link. The QR code is now a real, scannable
+// image generated client-side (via the bundled `qrcode` npm package - never
+// a CDN script, per CLAUDE.md) from the same gallery link used for the
+// copy-link action below. Print/share-target buttons remain stubbed - out of
+// scope for this pass; copy-to-clipboard and the PNG download ARE real,
+// since both are pure client-side and free.
 
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import QRCode from "qrcode";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
@@ -66,6 +69,7 @@ function QrManagementPageInner() {
   const [eventName, setEventName] = useState<string | null>(null);
   const [loading, setLoading] = useState(!!eventId);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!eventId) {
@@ -101,6 +105,36 @@ function QrManagementPageInner() {
     };
   }, [eventId]);
 
+  // Real, scannable QR generated client-side from the gallery link (built
+  // below from the event's `code` column) - not the static icon placeholder
+  // this screen used to show.
+  const fullGalleryLink = eventCode
+    ? `${GALLERY_ENTRY_BASE_URL}?code=${encodeURIComponent(eventCode)}`
+    : null;
+
+  useEffect(() => {
+    if (!fullGalleryLink) {
+      return;
+    }
+
+    let cancelled = false;
+    QRCode.toDataURL(fullGalleryLink, {
+      width: 512,
+      margin: 1,
+      color: { dark: "#0d1b1e", light: "#f6efe6" },
+    })
+      .then((url) => {
+        if (!cancelled) setQrDataUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setQrDataUrl(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fullGalleryLink]);
+
   if (!eventId) {
     return (
       <AdminShell active="אירועים">
@@ -119,9 +153,6 @@ function QrManagementPageInner() {
     );
   }
 
-  const fullGalleryLink = eventCode
-    ? `${GALLERY_ENTRY_BASE_URL}?code=${encodeURIComponent(eventCode)}`
-    : null;
   const displayGalleryLink = fullGalleryLink
     ? fullGalleryLink.replace(/^https:\/\//, "")
     : "טוען...";
@@ -188,12 +219,19 @@ function QrManagementPageInner() {
                   הצגה על מסך מלא באירוע
                 </span>
               </button>
-              <button className="flex w-full flex-row-reverse items-center justify-between rounded-xl border border-outline-variant px-5 py-3.5 font-medium text-on-surface transition-all hover:bg-surface-container-highest">
+              <a
+                href={qrDataUrl ?? undefined}
+                download={`oura-qr-${eventCode ?? "gallery"}.png`}
+                aria-disabled={!qrDataUrl}
+                className={`flex w-full flex-row-reverse items-center justify-between rounded-xl border border-outline-variant px-5 py-3.5 font-medium text-on-surface transition-all hover:bg-surface-container-highest ${
+                  qrDataUrl ? "" : "pointer-events-none opacity-50"
+                }`}
+              >
                 <span className="flex items-center gap-2">
                   <span className="material-symbols-outlined">download</span>
                   הורדה כקובץ PNG איכותי
                 </span>
-              </button>
+              </a>
             </div>
           </div>
 
@@ -234,13 +272,24 @@ function QrManagementPageInner() {
           <div className="rounded-3xl bg-white p-4 shadow-2xl">
             <div className="flex h-72 w-72 items-center justify-center rounded-xl bg-[#0d1b1e]">
               <div className="relative h-56 w-56 rounded-lg bg-[#f6efe6]">
-                <div className="flex h-full w-full items-center justify-center">
-                  <span
-                    className="material-symbols-outlined text-black/70"
-                    style={{ fontSize: "120px" }}
-                  >
-                    qr_code_2
-                  </span>
+                <div className="flex h-full w-full items-center justify-center p-3">
+                  {qrDataUrl ? (
+                    <Image
+                      src={qrDataUrl}
+                      alt={`קוד QR לגלריה של ${eventName ?? "האירוע"}`}
+                      width={512}
+                      height={512}
+                      unoptimized
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <span
+                      className="material-symbols-outlined text-black/70"
+                      style={{ fontSize: "120px" }}
+                    >
+                      qr_code_2
+                    </span>
+                  )}
                 </div>
                 <div className="absolute start-2 top-2 h-6 w-6 rounded-tl-sm border-t-2 border-s-2 border-primary" />
                 <div className="absolute end-2 top-2 h-6 w-6 rounded-tr-sm border-t-2 border-e-2 border-primary" />
@@ -263,9 +312,12 @@ function QrManagementPageInner() {
       </div>
 
       <div className="flex flex-row-reverse items-center justify-between border-t border-outline-variant/30 pt-6">
-        <button className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95">
+        <Link
+          href={`/admin/events/${eventId}`}
+          className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95"
+        >
           מעבר לניהול האירוע
-        </button>
+        </Link>
         <Link
           href={`/admin/branding?event_id=${eventId}`}
           className="text-sm font-medium text-on-surface-variant transition-colors hover:text-primary"

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { OuraLogo } from "@/components/brand/OuraLogo";
@@ -76,9 +77,12 @@ export function AdminShell({
           </nav>
         </div>
         <div className="flex flex-row-reverse items-center gap-6">
-          <button className="rounded-full bg-primary px-6 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/10 transition-all hover:brightness-110 active:scale-95">
+          <Link
+            href="/admin/events"
+            className="rounded-full bg-primary px-6 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/10 transition-all hover:brightness-110 active:scale-95"
+          >
             העלאת תמונות
-          </button>
+          </Link>
           <div className="flex flex-row-reverse items-center gap-4">
             <span className="material-symbols-outlined cursor-pointer text-on-surface-variant transition-colors hover:text-primary">
               notifications

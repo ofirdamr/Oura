@@ -444,6 +444,66 @@ app.post('/events/:event_id/photos', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// Photo delete.
+// DELETE /events/:event_id/photos/:photo_id
+//   Photographer-authenticated: requires `Authorization: Bearer <supabase jwt>`
+//   and the caller must own the event (same requireEventOwner gate as ingest,
+//   uniform 404 for missing/foreign event). Deletes a single photo.
+//
+//   The photo is scoped by BOTH id AND event_id, so a photo id belonging to a
+//   different event can't be deleted through this route (404 photo_not_found).
+//
+//   Ordering is deliberate and load-bearing: we delete the DB row FIRST so the
+//   gallery immediately stops showing it, THEN best-effort delete the R2 object.
+//   A failed R2 delete is non-critical (an orphaned object is a harmless
+//   storage-cost leak) and does NOT fail the request; a DB row still visible in
+//   a gallery after "delete" WOULD be a correctness bug, hence DB-first. If the
+//   DB delete itself fails we return 500 and never touch R2.
+//   Response 200: { id, event_id }
+// ---------------------------------------------------------------------------
+app.delete('/events/:event_id/photos/:photo_id', async (c) => {
+  const event_id = c.req.param('event_id');
+  const photo_id = c.req.param('photo_id');
+  if (!event_id) return c.json({ error: 'missing_event_id' }, 400);
+  if (!photo_id) return c.json({ error: 'missing_photo_id' }, 400);
+
+  const db = supa(c.env);
+
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  // Scope the lookup by BOTH id and event_id — a photo id from another event
+  // must not be deletable through this event's route.
+  const { data: photo, error: lookupErr } = await db
+    .from('photos')
+    .select('id, storage_key')
+    .eq('id', photo_id)
+    .eq('event_id', event_id)
+    .maybeSingle();
+  if (lookupErr) return c.json({ error: 'photo_delete_failed' }, 500);
+  if (!photo) return c.json({ error: 'photo_not_found' }, 404);
+
+  // DB row FIRST (see header note). Scoped by both columns again so we only ever
+  // delete the row we just authorized.
+  const { error: deleteErr } = await db
+    .from('photos')
+    .delete()
+    .eq('id', photo_id)
+    .eq('event_id', event_id);
+  if (deleteErr) return c.json({ error: 'photo_delete_failed' }, 500);
+
+  // R2 cleanup is best-effort: an orphaned object is a harmless storage-cost
+  // leak, not a correctness bug, so a failure here must NOT fail the request.
+  try {
+    await c.env.MEDIA.delete(photo.storage_key);
+  } catch (err) {
+    console.error('R2 delete failed for', photo.storage_key, err);
+  }
+
+  return c.json({ id: photo_id, event_id });
+});
+
+// ---------------------------------------------------------------------------
 // Studio logo upload (branding settings).
 // POST /events/:event_id/branding/logo
 //   Photographer-authenticated: same `Authorization: Bearer <supabase jwt>` +

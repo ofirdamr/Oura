@@ -5,10 +5,11 @@ deployed and running as of the last update below. If code and this file ever
 disagree, the code is right and this file is stale — fix the file (see
 "Keeping this current" at the bottom).
 
-**Last updated:** 2026-07-04, through Stage 3 (photographer auth + admin
-CRUD persistence). The "working MVP" milestone (photo-upload UI, event list,
-real dashboard, scannable QR, photo delete) is in flight — see `PROGRESS.md`
-for what's landed since this doc was last touched if it's ahead of this file.
+**Last updated:** 2026-07-04, through the "working MVP" milestone (real
+photo-upload UI, real event list, de-mocked dashboard, real scannable QR,
+photo delete) — landed and verified live on top of Stage 1 (real guest path)
+and Stage 3 (photographer auth + admin CRUD). Every section below reflects
+this state; the "in flight" caveats that used to be here are resolved.
 
 ## 1. System overview
 
@@ -191,12 +192,12 @@ two and enumerate event ids.
 
 | Route | Status |
 |---|---|
-| `/admin` | **Real** as of the "working MVP" milestone (was 100% fabricated data before that — check `PROGRESS.md` if this predates that landing) |
+| `/admin` | **Real** — the photographer's own recent events, real aggregate counts, no fabricated numbers |
 | `/admin/create-event` | **Real** — inserts a real `events` row |
 | `/admin/branding` | **Real** — persists `branding` jsonb, real R2-backed logo upload |
-| `/admin/qr-management` | **Real** — real code/link; QR image itself real as of the "working MVP" milestone (was a static icon before) |
-| `/admin/events` (list) | **Real** as of the "working MVP" milestone |
-| `/admin/events/[event_id]` (upload/detail) | **Real** as of the "working MVP" milestone — multi-file upload + delete |
+| `/admin/qr-management` | **Real** — real code/link, real scannable QR (client-side `qrcode` npm lib, downloadable PNG) |
+| `/admin/events` (list) | **Real** — the photographer's own events via RLS, ported from `design/screens/oura_final_production_event_list_desktop_1` |
+| `/admin/events/[event_id]` (upload/detail) | **Real** — multi-file upload to R2 via the Worker, live photo grid, per-photo delete |
 | `/admin/ai-optimization` | Static UI only — fake processing queue/metrics, no real pipeline exists |
 
 **Auth pages (no middleware, obviously):** `/login`, `/signup` — designed
