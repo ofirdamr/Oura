@@ -51,6 +51,26 @@ Deploy either with `npm run build && npx wrangler deploy` from the app's own
 directory (`apps/web` uses `npx opennextjs-cloudflare build` instead of plain
 `next build` before deploying — see its `wrangler.jsonc`).
 
+## 1a. Repo layout — what's real vs. aspirational
+
+```
+/apps/web                      Next.js app (guest gallery + photographer dashboard) — REAL, deployed
+/apps/api                      Cloudflare Worker (Hono), wrangler.toml — REAL, deployed
+/packages/processing-pipeline  face-embed, culling, transcode, overlay compositing — DOES NOT EXIST YET
+/packages/shared                shared TS types/schemas — DOES NOT EXIST YET
+/design                         Stitch export, 42 reference screens + brand spec — REAL, source of truth for UI
+/supabase/migrations             SQL migrations, applied via the Management API — REAL
+/docs/ARCHITECTURE.md            this file
+```
+
+`CLAUDE.md`'s repo-layout diagram lists `/packages/processing-pipeline` and
+`/packages/shared` as if they're standing directories — they are not; there
+is no `/packages` directory in this repo at all as of this writing. They're
+the intended home for Stage 2's face-embedding/culling/transcode pipeline
+once it's built (self-hosted compute, per CLAUDE.md, on Fly.io/Cloud Run —
+deliberately never a Cloudflare Worker, since that workload is heavy CPU/ML,
+not request/response). Don't go looking for code there; there isn't any yet.
+
 ## 2. Two auth models — do not conflate them
 
 This is the single most important thing to understand about the codebase.
@@ -153,16 +173,31 @@ two and enumerate event ids.
 
 ## 6. Frontend routes (`apps/web`)
 
-**Guest-facing (no auth, dark-luxury RTL UI):**
-`/join`, `/gallery-entry` (accepts `?code=` for QR deeplinks — auto-fills and
-auto-submits), `/consent`, `/gallery`, `/festive-gallery`, `/minimal-gallery`,
-`/gift-reveal`, `/photo-editor`.
+**`/`** — static marketing/splash landing, no auth, no data.
 
-**Photographer-facing (behind `/admin/*` auth middleware):**
-`/admin` (dashboard), `/admin/create-event`, `/admin/branding`,
-`/admin/qr-management`, `/admin/events` (list), `/admin/events/[event_id]`
-(detail/upload) — the last two landed in the "working MVP" milestone; check
-`PROGRESS.md` if this file hasn't been refreshed since.
+**Guest-facing (no auth, dark-luxury RTL UI) — wired-vs-static status:**
+
+| Route | Status |
+|---|---|
+| `/join` | Static UI only — the actual QR-scan guest landing per the Stitch design, never wired to real data (superseded in practice by `/gallery-entry`, which does the same job for real) |
+| `/gallery-entry` | **Real** — resolves `?code=`/manual code entry to a real event, issues a real guest token |
+| `/consent` | **Real** — calls the real consent endpoint |
+| `/gallery` | **Real** — real photos from R2 via the Worker; personal gallery honestly empty (Stage 2 not built) |
+| `/festive-gallery`, `/minimal-gallery` | Static UI only — alternate gallery theme variants, never wired |
+| `/gift-reveal` | Real Three.js/GSAP scene, but **not wired into the guest flow** — no navigation currently routes a guest through it; it's a standalone reachable page |
+| `/photo-editor` | Local React state only (adjustments preview live via CSS filters) — nothing persists back to a real photo |
+
+**Photographer-facing (behind `/admin/*` auth middleware) — wired-vs-static status:**
+
+| Route | Status |
+|---|---|
+| `/admin` | **Real** as of the "working MVP" milestone (was 100% fabricated data before that — check `PROGRESS.md` if this predates that landing) |
+| `/admin/create-event` | **Real** — inserts a real `events` row |
+| `/admin/branding` | **Real** — persists `branding` jsonb, real R2-backed logo upload |
+| `/admin/qr-management` | **Real** — real code/link; QR image itself real as of the "working MVP" milestone (was a static icon before) |
+| `/admin/events` (list) | **Real** as of the "working MVP" milestone |
+| `/admin/events/[event_id]` (upload/detail) | **Real** as of the "working MVP" milestone — multi-file upload + delete |
+| `/admin/ai-optimization` | Static UI only — fake processing queue/metrics, no real pipeline exists |
 
 **Auth pages (no middleware, obviously):** `/login`, `/signup` — designed
 fresh (no Stitch source existed), matching the `/consent` screen's
@@ -249,7 +284,69 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - **Phase 2 features** (Stripe billing, print orders, statistics, messaging,
   Studio Profile) are not started — see `PRD.md` §4.
 
-## 9. Keeping this current
+## 9. Deployment process (manual — there is no CI/CD)
+
+There is no GitHub Actions workflow, no CI pipeline, nothing that deploys on
+push. Every deploy so far has been a manual command run from a session:
+
+```bash
+# apps/api (Hono Worker)
+cd apps/api && npx wrangler deploy
+
+# apps/web (Next.js via OpenNext)
+cd apps/web && npx opennextjs-cloudflare build && npx wrangler deploy
+```
+
+Both need `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` in the
+environment (in this sandboxed dev environment specifically, these arrive
+with a leading space baked into the value — `echo "$VAR" | xargs` to trim
+before use, or `wrangler` will fail with an opaque "no route for that URI"
+error that looks like a wrong account id, not a whitespace bug). `apps/web`'s
+build additionally inlines `NEXT_PUBLIC_SUPABASE_URL` /
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` from `.env.local` at build time — if those
+are wrong or missing, the deployed bundle silently ships with broken/empty
+values baked in, not a build error.
+
+**If this ever needs to become real CI/CD:** there's nothing to migrate away
+from, just a `wrangler deploy` step to add to a workflow, per Worker, with
+those same env vars as repo/environment secrets.
+
+## 10. Verification & testing conventions
+
+No formal test suite exists (no Jest/Vitest/Playwright-config test files) —
+verification for every stage so far has been: `tsc --noEmit` on both apps,
+a production build (`next build`, or `opennextjs-cloudflare build` for the
+Cloudflare-targeted build), and ad hoc Playwright scripts written per
+verification pass (not checked in — they're throwaway scratch scripts).
+
+**A sandbox-specific limitation shapes how that Playwright verification is
+done, and matters if you're ever debugging "why didn't this get caught":**
+this dev environment's outbound network is HTTPS-only through a local agent
+proxy. `curl` and Node's own `fetch` (e.g. a Next.js server's own outbound
+calls, like `middleware.ts` validating a session server-side) inherit that
+proxy and reach the real internet fine. A **launched Playwright/Chromium
+browser does not** — it can't reach real external hosts (the live Workers,
+Supabase, anything) even with `proxy:` passed explicitly to `chromium.launch()`.
+So the actual verification pattern used throughout this project is:
+- Real backend/data-layer correctness (RLS isolation, endpoint auth, R2
+  round-trips) → verified directly via `curl`/`node fetch`, never a browser.
+- Real frontend logic/rendering correctness → verified via Playwright against
+  a local production build (`npm run start`), with `page.route()` intercepting
+  and mocking every call to the real Supabase/Worker URLs — this tests the
+  actual React code paths (form submit → redirect → render) without needing
+  the sandboxed browser to reach the real internet.
+- The one exception: since `middleware.ts` runs server-side in the Next.js
+  process (not the browser), a **real** session cookie (obtained via a real
+  `curl` login) can be fed into the Playwright browser context so the
+  middleware's own server-side `getUser()` call validates genuinely, while
+  the browser's own calls stay mocked. Used once to verify the auth
+  foundation end-to-end; worth reusing rather than re-deriving next time.
+- Also: the Next.js **dev server** (`next dev`, Turbopack) does not hydrate
+  in this sandbox — client `onClick` handlers and `useEffect` silently never
+  fire, which looks exactly like a real bug. Always verify interactivity
+  against `npm run build && npm run start`, never `next dev`.
+
+## 11. Keeping this current
 
 Update this file whenever any of the following changes, in the same commit
 as the code change if practical:
