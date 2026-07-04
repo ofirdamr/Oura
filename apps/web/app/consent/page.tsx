@@ -1,0 +1,159 @@
+"use client";
+
+// Biometric-consent gate: NOT part of the original 42-screen Stitch export -
+// CLAUDE.md flags it as still-missing and required before any face-matching
+// ("Face-matching may not run before the guest accepts the biometric-consent
+// gate. No exceptions"). Sits between Gallery Entry and Personal Gallery per
+// PRD.md's guest flow. Designed fresh here to match the existing dark-luxury
+// guest visual language (same card/typography pattern as /gallery-entry),
+// since there's no design/screens reference for it.
+//
+// UI only for this pass: the real POST /consent/:token call is being wired by
+// a separate agent in parallel against a still-undecided API contract, so
+// both actions below are stubbed with a clearly marked TODO rather than a
+// guessed request shape.
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const CONSENT_FACTS = [
+  {
+    icon: "face_6",
+    title: "איך זה עובד",
+    body: "נשווה את פרטי הפנים שלך מול כלל תמונות האירוע, ונרכז עבורך רק את הרגעים שבהם אתה/את מופיע/ה - בגלריה אישית ופרטית.",
+  },
+  {
+    icon: "lock",
+    title: "רק אתם רואים את התוצאה",
+    body: "התאמות הפנים זמינות רק דרך הקישור האישי שלך, ולא חשופות לשאר האורחים באירוע או לצדדים שלישיים.",
+  },
+  {
+    icon: "toggle_off",
+    title: "לגמרי אופציונלי",
+    body: "אפשר לוותר על הזיהוי האוטומטי בכל שלב - עדיין תוכל/י לדפדף ולהוריד תמונות מהגלריה הכללית של האירוע, בלי שום שיוך אישי.",
+  },
+];
+
+export default function ConsentPage() {
+  const router = useRouter();
+  const [pending, setPending] = useState<"accept" | "decline" | null>(null);
+
+  async function handleAccept() {
+    setPending("accept");
+    // TODO(backend, parallel agent): POST /consent/:token { accepted: true }
+    // once the real endpoint + contract land - don't guess the shape here.
+    await new Promise((resolve) => window.setTimeout(resolve, 500));
+    router.push("/gallery");
+  }
+
+  async function handleDecline() {
+    setPending("decline");
+    // TODO(backend, parallel agent): POST /consent/:token { accepted: false }
+    // - declining still lets the guest browse the general event gallery,
+    // just without personal face-matched results.
+    await new Promise((resolve) => window.setTimeout(resolve, 500));
+    router.push("/festive-gallery");
+  }
+
+  return (
+    <main className="relative mx-auto flex min-h-screen max-w-sm flex-col items-center overflow-x-hidden p-6 md:p-10">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,138,117,0.15)_0%,_transparent_50%)]" />
+
+      <header className="relative z-10 mb-6 mt-8">
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
+          <span className="font-display text-3xl font-bold text-primary">
+            O
+          </span>
+        </div>
+      </header>
+
+      <section className="relative z-10 mb-2 w-full text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+          <span
+            className="material-symbols-outlined text-3xl text-primary"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            face_6
+          </span>
+        </div>
+        <h1 className="mb-2 text-2xl font-semibold leading-tight text-on-surface md:text-3xl">
+          בואו נמצא אתכם בתמונות, אוטומטית
+        </h1>
+        <p className="px-2 leading-relaxed text-on-surface-variant">
+          Oura יכולה לסרוק את תמונות האירוע ולאתר עבורך, אוטומטית, את הרגעים
+          שבהם אתה/את מופיע/ה - כך שלא תצטרך/י לדפדף במאות תמונות. התהליך
+          משתמש בזיהוי פנים (מידע ביומטרי) ודורש את הסכמתך המפורשת.
+        </p>
+      </section>
+
+      <div className="relative z-10 my-6 w-full space-y-3 rounded-2xl border border-white/5 bg-surface-container/60 p-5 shadow-xl backdrop-blur-md">
+        {CONSENT_FACTS.map((fact, i) => (
+          <div key={fact.title}>
+            <div className="flex items-start gap-3 py-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
+                <span className="material-symbols-outlined text-lg text-primary">
+                  {fact.icon}
+                </span>
+              </div>
+              <div className="text-start">
+                <h3 className="text-sm font-bold text-on-surface">
+                  {fact.title}
+                </h3>
+                <p className="mt-0.5 text-sm leading-relaxed text-on-surface-variant">
+                  {fact.body}
+                </p>
+              </div>
+            </div>
+            {i < CONSENT_FACTS.length - 1 && (
+              <div className="h-px w-full bg-white/5" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <a
+        href="#"
+        className="relative z-10 mb-6 flex items-center gap-1.5 text-sm text-on-surface-variant underline underline-offset-4 transition-colors hover:text-primary"
+      >
+        <span className="material-symbols-outlined text-base">
+          privacy_tip
+        </span>
+        קראו את מדיניות הפרטיות המלאה שלנו
+      </a>
+
+      <div className="relative z-10 mt-auto w-full space-y-3">
+        <button
+          type="button"
+          onClick={handleAccept}
+          disabled={pending !== null}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70"
+        >
+          {pending === "accept" ? (
+            <span className="material-symbols-outlined animate-spin">
+              progress_activity
+            </span>
+          ) : (
+            <span className="material-symbols-outlined">check_circle</span>
+          )}
+          אני מסכים/ה לזיהוי אוטומטי
+        </button>
+        <button
+          type="button"
+          onClick={handleDecline}
+          disabled={pending !== null}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-4 font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-70"
+        >
+          {pending === "decline" && (
+            <span className="material-symbols-outlined animate-spin">
+              progress_activity
+            </span>
+          )}
+          לא תודה, אני אעיין בגלריה הכללית
+        </button>
+        <p className="pt-1 text-center text-xs text-on-surface-variant/70">
+          ניתן לשנות את ההעדפה הזו בכל עת דרך הגדרות הפרופיל.
+        </p>
+      </div>
+    </main>
+  );
+}
