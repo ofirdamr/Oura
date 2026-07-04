@@ -6,6 +6,7 @@
 // can be verified ahead of real photo data.
 
 import { useState } from "react";
+import { BottomNav } from "@/components/guest/BottomNav";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
 
@@ -151,38 +152,7 @@ export default function GalleryPage() {
         </div>
       </main>
 
-      <nav className="glass-panel fixed bottom-0 start-0 end-0 z-50 mx-auto flex max-w-lg items-center justify-around rounded-t-3xl border-t border-white/10 px-4 py-3">
-        <a
-          href="#"
-          className="flex flex-col items-center text-on-surface-variant transition-colors"
-        >
-          <span className="material-symbols-outlined">home</span>
-          <span className="mt-1 text-[11px] font-medium">בית</span>
-        </a>
-        <a href="#" className="flex flex-col items-center text-primary">
-          <span
-            className="material-symbols-outlined"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            grid_view
-          </span>
-          <span className="mt-1 text-[11px] font-bold">גלריה</span>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center text-on-surface-variant transition-colors"
-        >
-          <span className="material-symbols-outlined">share</span>
-          <span className="mt-1 text-[11px] font-medium">שיתוף</span>
-        </a>
-        <a
-          href="#"
-          className="flex flex-col items-center text-on-surface-variant transition-colors"
-        >
-          <span className="material-symbols-outlined">person</span>
-          <span className="mt-1 text-[11px] font-medium">פרופיל</span>
-        </a>
-      </nav>
+      <BottomNav active="gallery" />
     </div>
   );
 }

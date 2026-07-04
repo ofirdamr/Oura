@@ -63,6 +63,15 @@ body {
   word-spacing: 0.05em;
 }
 
+.masonry-grid {
+  columns: 2;
+  column-gap: 0.5rem;
+}
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 0.5rem;
+}
+
 .glass-panel {
   background: rgba(30, 30, 30, 0.85);
   backdrop-filter: blur(12px);
