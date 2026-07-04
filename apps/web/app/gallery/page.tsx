@@ -1,23 +1,27 @@
 "use client";
 
 // Guest-facing Personal Gallery: face-matched results for one guest within one
-// event. No real event/media wiring yet (no backend) - placeholder tiles carry
-// the match-percentage badges from the design so the layout and RTL behavior
-// can be verified ahead of real photo data.
+// event. Now wired to the real GET /gallery/:token (apps/api). Tile rendering
+// stays a placeholder icon-in-a-box (the API only returns a /media/<key> stub
+// URL, no real image serving yet) - only the DATA underneath is real.
+//
+// Consent enforcement lives here too, not just on /consent: a guest who lands
+// on this URL directly (bookmarked link, back button, shared link, etc.)
+// without ever accepting the biometric-consent gate must not see personal
+// results - so if the API says personal_gallery.consent_required, we redirect
+// to /consent instead of rendering anything personal. This mirrors the
+// server-side guardrail (face_embeddings is never queried pre-consent) with a
+// client-side one, per the task brief.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/guest/BottomNav";
+import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
+import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
 
-const PHOTOS = [
-  { aspect: "aspect-[3/4]", match: 98 },
-  { aspect: "aspect-square", match: 96 },
-  { aspect: "aspect-square", match: 94 },
-  { aspect: "aspect-[3/4]", match: 91 },
-];
-
-function PhotoTile({ aspect, match }: { aspect: string; match: number }) {
+function PhotoTile({ aspect, matched }: { aspect: string; matched?: boolean }) {
   return (
     <div
       className={`${aspect} relative overflow-hidden rounded-2xl border border-white/5 bg-surface-container shadow-md`}
@@ -27,23 +31,110 @@ function PhotoTile({ aspect, match }: { aspect: string; match: number }) {
           image
         </span>
       </div>
-      <div className="absolute start-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
-        <span
-          className="material-symbols-outlined text-primary"
-          style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
-        >
-          verified
-        </span>
-        <span className="text-[11px] font-bold tracking-tight text-white">
-          {match}%
-        </span>
-      </div>
+      {matched && (
+        <div className="absolute start-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
+          <span
+            className="material-symbols-outlined text-primary"
+            style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
+          >
+            verified
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
+// Cheap deterministic aspect variety so the grid doesn't look like a flat
+// list of identical squares - purely cosmetic, no data behind it.
+function tileAspect(i: number): string {
+  return i % 3 === 0 ? "aspect-[3/4]" : "aspect-square";
+}
+
 export default function GalleryPage() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
+  const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [data, setData] = useState<GalleryResponse | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const session = loadGuestSession();
+      if (!session) {
+        router.replace("/gallery-entry");
+        return;
+      }
+
+      setStatus("loading");
+      const result = await getGallery(session.token);
+      if (cancelled) return;
+
+      if (!result.ok) {
+        if (result.status === 401 || result.status === 404) {
+          // Tampered/unknown/stale token - the session is unusable, not a
+          // transient failure. Clear it and send the guest back to entry
+          // instead of showing an error the guest can't act on.
+          clearGuestSession();
+          router.replace("/gallery-entry");
+          return;
+        }
+        setErrorMessage("לא הצלחנו לטעון את הגלריה. בדקו את החיבור ונסו שוב.");
+        setStatus("error");
+        return;
+      }
+
+      if (result.data.personal_gallery.consent_required) {
+        // Real enforcement point, not just the consent screen's job: never
+        // render personal data for a guest who hasn't actually consented,
+        // even if they navigated here directly.
+        router.replace("/consent");
+        return;
+      }
+
+      setData(result.data);
+      setStatus("ready");
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <span className="material-symbols-outlined animate-spin text-3xl text-primary">
+          progress_activity
+        </span>
+      </div>
+    );
+  }
+
+  if (status === "error" || !data || data.personal_gallery.consent_required) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
+          {errorMessage ?? "משהו השתבש. נסו שוב."}
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="rounded-xl border border-outline-variant/40 px-6 py-3 font-medium text-on-surface transition-all hover:bg-white/5"
+        >
+          נסו שוב
+        </button>
+      </div>
+    );
+  }
+
+  const personalPhotos: GuestPhoto[] = data.personal_gallery.consent_required
+    ? []
+    : data.personal_gallery.photos;
+  const generalPhotos: GuestPhoto[] = data.photos;
 
   return (
     <div className="min-h-screen pb-24">
@@ -83,7 +174,7 @@ export default function GalleryPage() {
       <main className="mx-auto max-w-lg space-y-6 px-4 py-6">
         <section className="space-y-2">
           <h1 className="text-2xl font-bold text-on-surface md:text-3xl">
-            הגלריה האישית של יונתן לוי
+            הגלריה האישית שלך
           </h1>
           <p className="text-base leading-relaxed text-on-surface-variant">
             מצאנו{" "}
@@ -91,10 +182,13 @@ export default function GalleryPage() {
               className="font-bold text-primary"
               style={{ unicodeBidi: "isolate" }}
             >
-              12
+              {personalPhotos.length}
             </span>{" "}
-            תמונות
-            שלך מתוך 842 תמונות באירוע &apos;החתונה של דניאל ומיכל&apos;.
+            תמונות שלך מתוך{" "}
+            <span className="font-bold" style={{ unicodeBidi: "isolate" }}>
+              {generalPhotos.length}
+            </span>{" "}
+            תמונות באירוע.
           </p>
         </section>
 
@@ -120,10 +214,14 @@ export default function GalleryPage() {
           </div>
           <div>
             <h3 className="text-sm font-bold text-primary">
-              זיהוי פנים הושלם בהצלחה
+              {personalPhotos.length > 0
+                ? "זיהוי פנים הושלם בהצלחה"
+                : "עדיין מחפשים אותך בתמונות"}
             </h3>
             <p className="mt-0.5 text-xs text-on-surface-variant">
-              כל התמונות סוננו עבורך באופן אוטומטי
+              {personalPhotos.length > 0
+                ? "כל התמונות סוננו עבורך באופן אוטומטי"
+                : "נעדכן אותך ברגע שנמצא תמונות שאתה/את מופיע/ה בהן"}
             </p>
           </div>
         </div>
@@ -145,11 +243,35 @@ export default function GalleryPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pb-8">
-          {PHOTOS.map((photo, i) => (
-            <PhotoTile key={i} aspect={photo.aspect} match={photo.match} />
-          ))}
-        </div>
+        {personalPhotos.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-sm font-bold text-on-surface-variant">
+              התמונות האישיות שלך
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {personalPhotos.map((photo, i) => (
+                <PhotoTile key={photo.id} aspect={tileAspect(i)} matched />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="space-y-3 pb-8">
+          <h2 className="text-sm font-bold text-on-surface-variant">
+            כל התמונות מהאירוע
+          </h2>
+          {generalPhotos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {generalPhotos.map((photo, i) => (
+                <PhotoTile key={photo.id} aspect={tileAspect(i)} />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-xl border border-white/5 bg-surface-container/60 p-4 text-center text-sm text-on-surface-variant">
+              טרם הועלו תמונות לאירוע הזה.
+            </p>
+          )}
+        </section>
       </main>
 
       <BottomNav active="gallery" />
