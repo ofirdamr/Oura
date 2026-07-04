@@ -6,8 +6,8 @@
 // itself trigger face-matching, which still requires the separate
 // biometric-consent gate (not yet built) before any embedding runs.
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { issueGuestToken, resolveEventCode } from "@/lib/api";
 import { saveGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
@@ -31,16 +31,36 @@ const HOW_IT_WORKS_STEPS = [
 ];
 
 export default function GalleryEntryPage() {
+  return (
+    <Suspense fallback={null}>
+      <GalleryEntryPageInner />
+    </Suspense>
+  );
+}
+
+function GalleryEntryPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [eventCode, setEventCode] = useState("");
   const [entering, setEntering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleManualEntry() {
+  // QR deeplinks encode the event code as ?code=WED-2024 so a scan skips
+  // manual typing entirely - prefill and auto-submit once on arrival.
+  useEffect(() => {
+    const codeFromQr = searchParams.get("code");
+    if (codeFromQr && codeFromQr.trim()) {
+      setEventCode(codeFromQr.trim());
+      void handleManualEntry(codeFromQr.trim());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleManualEntry(codeOverride?: string) {
     setError(null);
 
-    const trimmedCode = eventCode.trim();
+    const trimmedCode = (codeOverride ?? eventCode).trim();
     if (!trimmedCode) {
       setError("אנא הזינו קוד אירוע");
       return;
@@ -176,7 +196,7 @@ export default function GalleryEntryPage() {
             )}
             <button
               type="button"
-              onClick={handleManualEntry}
+              onClick={() => handleManualEntry()}
               disabled={entering}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/30 py-4 font-bold text-on-surface transition-all hover:bg-white/5 active:scale-[0.98] disabled:opacity-70"
             >
