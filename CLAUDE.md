@@ -36,3 +36,4 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - `SUMMARY.md` — current build state snapshot, read first each session.
 - `PROGRESS.md` — append-only session log.
 - `MISTAKES.md` — append-only lessons log.
+- `docs/ARCHITECTURE.md` — structural reference: endpoints, DB schema, auth model, deployment topology. **Hard rule: update it in the same commit as any change to a route, table/column/RLS policy, frontend route, or env var/secret** — this is what stands between a real incident and debugging blind. `SUMMARY.md` is the narrative snapshot; this is the structural one. Never let it silently drift stale.

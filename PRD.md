@@ -13,7 +13,7 @@ Event photographers do the work but stay invisible — guests rarely see the pho
 
 **Guest flow:** Scan QR → Landing Page → (biometric consent gate) → Personal Gallery (face-matched) or full event Gallery → browse/select → Photo Editor (adjust + auto-optimize + branded frame) → Share (branded export) or Order Print/Canvas → Checkout → Order Confirmation.
 
-Full architecture diagram: see the approved plan at `/root/.claude/plans/okay-we-are-going-sunny-steele.md` (mirrored into this repo's `docs/ARCHITECTURE.md` once implementation begins).
+Full architecture reference: `docs/ARCHITECTURE.md` — endpoints, schema, auth model, deployment topology. Kept current as a hard rule (see that file's own "Keeping this current" section and `CLAUDE.md`'s Docs list); if it and the code ever disagree, the code is right and the doc is stale, fix the doc.
 
 ## 4. Feature List by Phase
 
