@@ -5,12 +5,19 @@
 // numbered variants per the established "pick the cleanest one" pattern -
 // desktop_1's screen.png is actually a mismatched Gallery Entry screen, same
 // class of folder/content bug already logged for gallery_entry_desktop).
-// UI only for this pass: frame/color/watermark selections are local state,
-// not yet persisted to events.branding in Supabase.
+// Frame/color/watermark selections are persisted to the `branding` jsonb
+// column on the `events` row identified by the `?event_id=` query param
+// (threaded through from create-event -> branding -> qr-management, since
+// branding lives per-event in this schema, not on a separate studio-profile
+// table).
 
-import { useState } from "react";
+import Link from "next/link";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { StudioLogo } from "@/components/brand/StudioLogo";
+import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
+import { API_BASE_URL } from "@/lib/api";
 
 const FRAME_STYLES = [
   { key: "black", label: "שחור פסנתר", swatchClass: "bg-black" },
@@ -19,14 +26,164 @@ const FRAME_STYLES = [
   { key: "silver", label: "כסף קלאסי", swatchClass: "bg-gradient-to-br from-gray-300 to-gray-400" },
 ] as const;
 
+type FrameKey = (typeof FRAME_STYLES)[number]["key"];
+
+const FRAME_KEYS = FRAME_STYLES.map((f) => f.key) as readonly string[];
+
 const BACKGROUND_THUMBS = ["globe", "ring", "gradient", "waves"] as const;
 
+type SaveState = "idle" | "saving" | "saved" | "error";
+
 export default function BrandingSettingsPage() {
-  const [frame, setFrame] = useState<(typeof FRAME_STYLES)[number]["key"]>("crystal");
+  return (
+    <Suspense fallback={null}>
+      <BrandingSettingsPageInner />
+    </Suspense>
+  );
+}
+
+function BrandingSettingsPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("event_id");
+
+  const [frame, setFrame] = useState<FrameKey>("crystal");
   const [accentColor, setAccentColor] = useState("#FF8A75");
   const [autoWatermark, setAutoWatermark] = useState(true);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [activeBg, setActiveBg] = useState(3);
+
+  const [eventName, setEventName] = useState<string | null>(null);
+  // Full branding object as last read from the row - preserved and merged on
+  // save so we never clobber keys another part of the system (e.g. the
+  // logo-upload endpoint) may have already written, like `logo_key`.
+  const [existingBranding, setExistingBranding] = useState<Record<string, unknown>>({});
+  const [loading, setLoading] = useState(!!eventId);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!eventId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function load(id: string) {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("events")
+        .select("name, branding, gallery_theme")
+        .eq("id", id)
+        .single();
+
+      if (cancelled) return;
+
+      if (error || !data) {
+        setLoadError("לא הצלחנו לטעון את פרטי האירוע. נסו לרענן את הדף.");
+        setLoading(false);
+        return;
+      }
+
+      setEventName(typeof data.name === "string" ? data.name : null);
+
+      const branding = (data.branding ?? {}) as Record<string, unknown>;
+      setExistingBranding(branding);
+
+      if (typeof branding.frame === "string" && FRAME_KEYS.includes(branding.frame)) {
+        setFrame(branding.frame as FrameKey);
+      }
+      if (typeof branding.primary_color === "string") {
+        setAccentColor(branding.primary_color);
+      }
+      if (typeof branding.auto_watermark === "boolean") {
+        setAutoWatermark(branding.auto_watermark);
+      }
+      if (typeof branding.logo_key === "string" && branding.logo_key) {
+        setLogoUrl(`${API_BASE_URL}/media/${branding.logo_key}`);
+      }
+
+      setLoading(false);
+    }
+
+    void load(eventId);
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  async function handleLogoFileSelected(file: File | undefined) {
+    if (!file || !eventId) return;
+    setLogoError(null);
+    setLogoUploading(true);
+
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setLogoUploading(false);
+      setLogoError("יש להתחבר מחדש כדי להעלות לוגו.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${eventId}/branding/logo`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      });
+      const body = (await res.json().catch(() => null)) as { logo_key?: string; url?: string } | null;
+
+      if (!res.ok || !body?.logo_key) {
+        setLogoError("העלאת הלוגו נכשלה. נסו שוב.");
+        setLogoUploading(false);
+        return;
+      }
+
+      setExistingBranding((prev) => ({ ...prev, logo_key: body.logo_key }));
+      setLogoUrl(body.url ?? `${API_BASE_URL}/media/${body.logo_key}`);
+    } catch {
+      setLogoError("העלאת הלוגו נכשלה. בדקו את החיבור ונסו שוב.");
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!eventId || saveState === "saving") return;
+
+    setSaveState("saving");
+    const supabase = createSupabaseBrowserClient();
+    const nextBranding = {
+      ...existingBranding,
+      frame,
+      primary_color: accentColor,
+      auto_watermark: autoWatermark,
+    };
+
+    const { error } = await supabase
+      .from("events")
+      .update({ branding: nextBranding })
+      .eq("id", eventId);
+
+    if (error) {
+      setSaveState("error");
+      return;
+    }
+
+    setExistingBranding(nextBranding);
+    setSaveState("saved");
+    router.push(`/admin/qr-management?event_id=${eventId}`);
+  }
 
   const frameFrameClass =
     frame === "none"
@@ -37,6 +194,24 @@ export default function BrandingSettingsPage() {
           ? "border-[10px] border-gray-300"
           : "border-[10px] border-white";
 
+  if (!eventId) {
+    return (
+      <AdminShell active="הגדרות">
+        <div className="mx-auto max-w-md py-20 text-center">
+          <p className="mb-4 text-on-surface-variant">
+            לא נבחר אירוע לעריכת מיתוג. יש ליצור אירוע חדש כדי להמשיך.
+          </p>
+          <Link
+            href="/admin/create-event"
+            className="font-bold text-primary underline underline-offset-4"
+          >
+            צור אירוע חדש
+          </Link>
+        </div>
+      </AdminShell>
+    );
+  }
+
   return (
     <AdminShell active="הגדרות">
       <div className="flex flex-row-reverse items-start justify-between gap-4">
@@ -46,22 +221,52 @@ export default function BrandingSettingsPage() {
             מהדורת פלטינום
           </span>
           <h1 className="text-3xl font-bold text-on-surface">
-            מיתוג ולוגו: Photo Santos
+            מיתוג ולוגו: {eventName ?? "טוען..."}
           </h1>
           <p className="mt-1 max-w-xl text-sm text-on-surface-variant">
             נהל את הזהות הוויזואלית של הסטודיו שלך. הגדרות אלו יחולו באופן
             אוטומטי על כל הגלריות והאירועים שתיצור במערכת Oura.
           </p>
         </div>
-        <div className="flex shrink-0 flex-row-reverse gap-3">
-          <button className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95">
-            שמור שינויים
-          </button>
-          <button className="rounded-xl border border-outline-variant px-6 py-3 font-bold text-on-surface transition-all hover:bg-surface-container-highest">
-            ביטול
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex flex-row-reverse gap-3">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={loading || saveState === "saving"}
+              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
+            >
+              {saveState === "saving" && (
+                <span className="material-symbols-outlined animate-spin text-lg">
+                  sync
+                </span>
+              )}
+              {saveState === "saving"
+                ? "שומר..."
+                : saveState === "saved"
+                  ? "נשמר!"
+                  : "שמור שינויים"}
+            </button>
+            <Link
+              href="/admin"
+              className="rounded-xl border border-outline-variant px-6 py-3 font-bold text-on-surface transition-all hover:bg-surface-container-highest"
+            >
+              ביטול
+            </Link>
+          </div>
+          {saveState === "error" && (
+            <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+              שמירת המיתוג נכשלה. נסו שוב.
+            </p>
+          )}
         </div>
       </div>
+
+      {loadError && (
+        <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+          {loadError}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
         {/* Live preview */}
@@ -141,33 +346,48 @@ export default function BrandingSettingsPage() {
               <span className="material-symbols-outlined text-base">add_photo_alternate</span>
               העלאת לוגו הסטודיו
             </h2>
-            <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant/50 p-8 text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                void handleLogoFileSelected(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={logoUploading}
+              className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant/50 p-8 text-center transition-colors hover:border-primary/50 disabled:opacity-60"
+            >
               <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
-                add_photo_alternate
+                {logoUploading ? "progress_activity" : "add_photo_alternate"}
               </span>
-              <p className="text-sm font-medium text-on-surface">גרור לוגו לכאן</p>
+              <p className="text-sm font-medium text-on-surface">
+                {logoUploading ? "מעלה לוגו..." : "לחצו להעלאת לוגו"}
+              </p>
               <p className="text-xs text-on-surface-variant">
                 PNG, SVG (רקע שקוף מומלץ)
               </p>
-            </div>
-            <div className="mt-3 flex flex-row-reverse items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
-              <div className="flex flex-row-reverse items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/40 p-1">
-                  <StudioLogo size={32} />
-                </div>
-                <div className="text-end">
-                  <p className="text-sm font-bold text-on-surface">
-                    PhotoSantos_Platinum.png
-                  </p>
-                  <p className="text-xs text-on-surface-variant">
-                    24KB • גרסה אחרונה
-                  </p>
+            </button>
+            {logoError && (
+              <p className="mt-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+                {logoError}
+              </p>
+            )}
+            {logoUrl && (
+              <div className="mt-3 flex flex-row-reverse items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
+                <div className="flex flex-row-reverse items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-black/40 p-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed */}
+                    <img src={logoUrl} alt="לוגו הסטודיו" className="h-full w-full object-contain" />
+                  </div>
+                  <p className="text-sm font-bold text-on-surface">הלוגו הנוכחי</p>
                 </div>
               </div>
-              <button className="text-error" aria-label="מחק לוגו">
-                <span className="material-symbols-outlined">delete</span>
-              </button>
-            </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">

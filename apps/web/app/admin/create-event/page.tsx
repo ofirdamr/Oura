@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 type SubmitState = "idle" | "submitting" | "success";
 
@@ -12,17 +14,124 @@ const inputClasses =
 const iconClasses =
   "material-symbols-outlined pointer-events-none absolute end-3 top-3 text-on-surface-variant/60";
 
-export default function CreateEventPage() {
-  const [submitState, setSubmitState] = useState<SubmitState>("idle");
+// Postgres unique_violation - see `code` column's partial-unique constraint
+// added in migration 0002 (supabase/migrations).
+const UNIQUE_VIOLATION = "23505";
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+// Transliterating Hebrew to Latin well is out of scope here (per CLAUDE.md
+// guardrail against over-engineering this) - we only keep Latin/digit
+// characters already present in the name and fall back to a short random
+// code (matching the UI's own "WED-2024"-style placeholder) when the name
+// has none, e.g. for Hebrew-only event names.
+function slugifyEventName(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "") // strip combining accents left by NFKD
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function randomSuffix(length: number, alphabet: string): string {
+  let out = "";
+  for (let i = 0; i < length; i++) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return out;
+}
+
+const LOWER_ALPHANUMERIC = "abcdefghijklmnopqrstuvwxyz0123456789";
+const UPPER_ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function generateEventCode(name: string): string {
+  const slug = slugifyEventName(name);
+  if (slug) {
+    return `${slug}-${randomSuffix(4, LOWER_ALPHANUMERIC)}`;
+  }
+  return `EVT-${randomSuffix(4, UPPER_ALPHANUMERIC)}`;
+}
+
+export default function CreateEventPage() {
+  const router = useRouter();
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitState !== "idle") return;
-    // TODO: wire to POST /events (backend agent working in parallel) — this
-    // is a UI-only local-state simulation for now, matching the source
-    // design's own front-end-only interaction script.
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("event_name") ?? "").trim();
+    const date = String(formData.get("event_date") ?? "").trim();
+    // Location isn't a column on `events` yet (see migration 0001) - captured
+    // visually only for now, matching the current schema.
+
+    if (!name) {
+      setError("אנא הזינו שם אירוע");
+      return;
+    }
+
+    setError(null);
     setSubmitState("submitting");
-    setTimeout(() => setSubmitState("success"), 1500);
+
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setSubmitState("idle");
+      setError("לא ניתן לזהות את המשתמש המחובר. נסו להתחבר מחדש.");
+      return;
+    }
+
+    const startsAt = date ? new Date(date).toISOString() : null;
+
+    let insertedId: string | null = null;
+    let lastErrorCode: string | undefined;
+
+    for (let attempt = 0; attempt < 2 && !insertedId; attempt++) {
+      const code = generateEventCode(name);
+      const { data, error: insertError } = await supabase
+        .from("events")
+        .insert({
+          photographer_id: user.id,
+          name,
+          starts_at: startsAt,
+          status: "live",
+          gallery_theme: "festive",
+          code,
+          branding: {},
+        })
+        .select()
+        .single();
+
+      if (!insertError && data) {
+        insertedId = data.id as string;
+        break;
+      }
+
+      lastErrorCode = insertError?.code;
+      // Only retry once on a code collision - any other error should surface
+      // immediately rather than silently retrying.
+      if (insertError?.code !== UNIQUE_VIOLATION) {
+        break;
+      }
+    }
+
+    if (!insertedId) {
+      setSubmitState("idle");
+      setError(
+        lastErrorCode === UNIQUE_VIOLATION
+          ? "לא הצלחנו להפיק קוד אירוע ייחודי. נסו שוב."
+          : "משהו השתבש ביצירת האירוע. בדקו את החיבור ונסו שוב.",
+      );
+      return;
+    }
+
+    setSubmitState("success");
+    router.push(`/admin/branding?event_id=${insertedId}`);
   }
 
   return (
@@ -61,6 +170,7 @@ export default function CreateEventPage() {
               <div className="relative">
                 <input
                   id="event_name"
+                  name="event_name"
                   type="text"
                   required
                   placeholder="למשל: חתונת יוסי ודנה"
@@ -82,6 +192,7 @@ export default function CreateEventPage() {
                 <div className="relative">
                   <input
                     id="event_date"
+                    name="event_date"
                     type="date"
                     required
                     className={inputClasses}
@@ -99,6 +210,7 @@ export default function CreateEventPage() {
                 <div className="relative">
                   <input
                     id="event_location"
+                    name="event_location"
                     type="text"
                     placeholder="שם האולם או העיר"
                     className={inputClasses}
@@ -131,6 +243,12 @@ export default function CreateEventPage() {
                 </div>
               </div>
             </div>
+
+            {error && (
+              <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+                {error}
+              </p>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col gap-4 pt-2 md:flex-row-reverse">

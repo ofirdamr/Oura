@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 import {
   signGuestToken,
   verifyGuestToken,
@@ -34,6 +34,50 @@ function supa(env: Env): SupabaseClient {
 // incoming request — never a hardcoded prod hostname — so dev/preview work too.
 function photoUrlStub(c: Context, storageKey: string): string {
   return `${new URL(c.req.url).origin}/media/${storageKey}`;
+}
+
+// ---------------------------------------------------------------------------
+// Photographer auth + event ownership gate.
+// Shared by every photographer-authenticated route (photo ingest, branding).
+// Steps: (1) pull the Supabase access token from `Authorization: Bearer <jwt>`;
+// (2) validate it server-side via `auth.getUser(token)` — this calls Supabase
+// Auth to verify the token using the service-role client, so no JWT-secret
+// handling lives here; (3) confirm the event exists AND is owned by the caller.
+//
+// Ownership failures are DELIBERATELY indistinguishable from "no such event":
+// both return 404 event_not_found so a non-owner can't probe which event ids
+// exist. Returns a discriminated result the caller maps to a JSON response.
+type OwnerResult =
+  | { ok: true; user: User }
+  | { ok: false; status: 401 | 404 | 500; error: string };
+
+async function requireEventOwner(
+  c: Context,
+  db: SupabaseClient,
+  event_id: string,
+): Promise<OwnerResult> {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : undefined;
+  if (!token) return { ok: false, status: 401, error: 'missing_auth' };
+
+  // Validate the access token against Supabase Auth and resolve the user.
+  const { data, error } = await db.auth.getUser(token);
+  if (error || !data?.user) return { ok: false, status: 401, error: 'invalid_auth' };
+
+  const { data: event, error: eventErr } = await db
+    .from('events')
+    .select('id, photographer_id')
+    .eq('id', event_id)
+    .maybeSingle();
+  if (eventErr) return { ok: false, status: 500, error: 'lookup_failed' };
+  // Uniform 404 for both "missing" and "owned by someone else" — no existence leak.
+  if (!event || event.photographer_id !== data.user.id) {
+    return { ok: false, status: 404, error: 'event_not_found' };
+  }
+
+  return { ok: true, user: data.user };
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -351,10 +395,12 @@ app.get('/media/*', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// Photo ingest (bulk load into a seeded event).
+// Photo ingest.
 // POST /events/:event_id/photos
-//   Called by a one-off local Node script the founder runs — NOT from the
-//   browser — so no extra CORS/auth hardening beyond confirming the event exists.
+//   Photographer-authenticated: requires `Authorization: Bearer <supabase jwt>`
+//   and the caller must own the event (see requireEventOwner). Originally an
+//   unauthenticated founder-run bulk-ingest endpoint; it is now called from the
+//   photographer dashboard in the browser, so real auth is enforced here.
 //   Accepts multipart/form-data with a single `file` field. Uploads the bytes to
 //   R2 and inserts a `photos` row marked 'ready' (Stage 1 has no processing
 //   pipeline yet, so ingested photos are immediately visible).
@@ -366,14 +412,8 @@ app.post('/events/:event_id/photos', async (c) => {
 
   const db = supa(c.env);
 
-  // Confirm the event exists (mirrors the guest-issuance route's 404 pattern).
-  const { data: event, error: eventErr } = await db
-    .from('events')
-    .select('id')
-    .eq('id', event_id)
-    .maybeSingle();
-  if (eventErr) return c.json({ error: 'lookup_failed' }, 500);
-  if (!event) return c.json({ error: 'event_not_found' }, 404);
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
 
   const body = await c.req.parseBody();
   const file = body['file'];
@@ -401,6 +441,65 @@ app.post('/events/:event_id/photos', async (c) => {
   if (insertErr) return c.json({ error: 'photo_create_failed' }, 500);
 
   return c.json({ id, event_id, storage_key }, 201);
+});
+
+// ---------------------------------------------------------------------------
+// Studio logo upload (branding settings).
+// POST /events/:event_id/branding/logo
+//   Photographer-authenticated: same `Authorization: Bearer <supabase jwt>` +
+//   event-ownership gate as photo ingest (uniform 404 for missing/foreign event).
+//   Accepts multipart/form-data with a single `file` field (an image). The bytes
+//   land in R2 — NEVER Supabase storage (CLAUDE.md hard guardrail) — under a
+//   FIXED per-event key, so re-uploading replaces the studio's current logo
+//   (intended: a studio has exactly one current logo). We then merge
+//   { logo_key } into the event's `branding` jsonb, preserving any other keys
+//   (e.g. primary_color) written by the branding-CRUD flow.
+//   Response 200: { logo_key, url }
+// ---------------------------------------------------------------------------
+app.post('/events/:event_id/branding/logo', async (c) => {
+  const event_id = c.req.param('event_id');
+  if (!event_id) return c.json({ error: 'missing_event_id' }, 400);
+
+  const db = supa(c.env);
+
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  const body = await c.req.parseBody();
+  const file = body['file'];
+  if (!(file instanceof File)) return c.json({ error: 'missing_file' }, 400);
+
+  // Derive a safe extension from the filename, falling back to content-type, then
+  // .png (logos are typically PNG). Mirrors the photo-ingest extension logic.
+  const nameExt = /\.([a-z0-9]{1,8})$/i.exec(file.name ?? '')?.[1]?.toLowerCase();
+  const typeExt = file.type?.split('/')[1]?.toLowerCase();
+  const ext = `.${nameExt || typeExt || 'png'}`;
+  // Fixed filename per event — a re-upload overwrites the previous logo by design.
+  const storage_key = `events/${event_id}/branding/logo${ext}`;
+
+  await c.env.MEDIA.put(storage_key, await file.arrayBuffer(), {
+    httpMetadata: { contentType: file.type || 'image/png' },
+  });
+
+  // Merge logo_key into the existing branding jsonb without clobbering sibling
+  // keys (read-modify-write, since Postgres jsonb has no partial patch here).
+  const { data: current, error: readErr } = await db
+    .from('events')
+    .select('branding')
+    .eq('id', event_id)
+    .maybeSingle();
+  if (readErr) return c.json({ error: 'lookup_failed' }, 500);
+
+  const existingBranding =
+    current?.branding && typeof current.branding === 'object' && !Array.isArray(current.branding)
+      ? (current.branding as Record<string, unknown>)
+      : {};
+  const branding = { ...existingBranding, logo_key: storage_key };
+
+  const { error: updateErr } = await db.from('events').update({ branding }).eq('id', event_id);
+  if (updateErr) return c.json({ error: 'branding_update_failed' }, 500);
+
+  return c.json({ logo_key: storage_key, url: photoUrlStub(c, storage_key) });
 });
 
 // ---------------------------------------------------------------------------

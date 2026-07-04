@@ -3,16 +3,20 @@
 // Photographer-facing Barcode/QR Management, ported from
 // oura_final_production_barcode_management_desktop. Shown right after Create
 // New Event completes: the event's QR code, physical/digital distribution
-// options, and a direct gallery link. UI only for this pass - print/download/
-// share actions are not wired to anything real yet (no PDF/PNG generation, no
-// share-target integration); copy-to-clipboard on the ID and link IS real,
-// since it's pure client-side and free.
+// options, and a direct gallery link. Print/download/share actions are not
+// wired to anything real yet (no PDF/PNG generation, no share-target
+// integration); copy-to-clipboard on the ID and link IS real, since it's pure
+// client-side and free. The QR image itself stays a static icon placeholder -
+// generating a real scannable QR client-side is out of scope for this pass.
 
-import { useState } from "react";
+import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
-const EVENT_ID = "PHOTO-8829-PS";
-const GALLERY_LINK = "photosantos.co/gallery/ps-8829-xl";
+// Stable public URL of the deployed guest-facing frontend (not a secret).
+const GALLERY_ENTRY_BASE_URL = "https://oura-web.oura-events.workers.dev/gallery-entry";
 
 const SHARE_TARGETS = [
   { label: "אימייל", accent: false },
@@ -46,7 +50,81 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 }
 
 export default function QrManagementPage() {
+  return (
+    <Suspense fallback={null}>
+      <QrManagementPageInner />
+    </Suspense>
+  );
+}
+
+function QrManagementPageInner() {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("event_id");
+
   const [printOpen, setPrintOpen] = useState(false);
+  const [eventCode, setEventCode] = useState<string | null>(null);
+  const [eventName, setEventName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!!eventId);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!eventId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function load(id: string) {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("events")
+        .select("code, name")
+        .eq("id", id)
+        .single();
+
+      if (cancelled) return;
+
+      if (error || !data) {
+        setLoadError("לא הצלחנו לטעון את פרטי האירוע. נסו לרענן את הדף.");
+        setLoading(false);
+        return;
+      }
+
+      setEventCode(typeof data.code === "string" ? data.code : null);
+      setEventName(typeof data.name === "string" ? data.name : null);
+      setLoading(false);
+    }
+
+    void load(eventId);
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  if (!eventId) {
+    return (
+      <AdminShell active="אירועים">
+        <div className="mx-auto max-w-md py-20 text-center">
+          <p className="mb-4 text-on-surface-variant">
+            לא נבחר אירוע. יש ליצור אירוע חדש כדי לקבל קוד וברקוד.
+          </p>
+          <Link
+            href="/admin/create-event"
+            className="font-bold text-primary underline underline-offset-4"
+          >
+            צור אירוע חדש
+          </Link>
+        </div>
+      </AdminShell>
+    );
+  }
+
+  const fullGalleryLink = eventCode
+    ? `${GALLERY_ENTRY_BASE_URL}?code=${encodeURIComponent(eventCode)}`
+    : null;
+  const displayGalleryLink = fullGalleryLink
+    ? fullGalleryLink.replace(/^https:\/\//, "")
+    : "טוען...";
 
   return (
     <AdminShell active="אירועים">
@@ -60,8 +138,13 @@ export default function QrManagementPage() {
           האירוע נוצר בהצלחה!
         </h1>
         <p className="mt-1 text-on-surface-variant">
-          הגלריה של Photo Santos מוכנה. הנה הקוד לסריקה וגישה מהירה.
+          הגלריה של {eventName ?? "האירוע"} מוכנה. הנה הקוד לסריקה וגישה מהירה.
         </p>
+        {loadError && (
+          <p className="mt-3 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+            {loadError}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -136,13 +219,13 @@ export default function QrManagementPage() {
             <div className="mt-3 flex flex-row-reverse items-center justify-between gap-3 rounded-xl bg-background px-4 py-3">
               <div className="min-w-0 text-end">
                 <p className="text-xs text-on-surface-variant">
-                  קישור ישיר לגלריה של Photo Santos
+                  קישור ישיר לגלריה של {eventName ?? "האירוע"}
                 </p>
                 <p className="truncate font-mono text-sm text-primary" dir="ltr">
-                  {GALLERY_LINK}
+                  {displayGalleryLink}
                 </p>
               </div>
-              <CopyButton value={`https://${GALLERY_LINK}`} label="העתק קישור" />
+              <CopyButton value={fullGalleryLink ?? ""} label="העתק קישור" />
             </div>
           </div>
         </div>
@@ -168,13 +251,13 @@ export default function QrManagementPage() {
           </div>
 
           <div className="mt-4 flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container px-4 py-2">
-            <CopyButton value={EVENT_ID} label="העתק מזהה" />
+            <CopyButton value={eventCode ?? ""} label="העתק מזהה" />
             <span className="font-mono text-sm font-bold tracking-wide text-primary" dir="ltr">
-              ID: {EVENT_ID}
+              ID: {loading ? "..." : (eventCode ?? "—")}
             </span>
           </div>
           <p className="mt-2 max-w-xs text-center text-sm text-on-surface-variant">
-            סרקו כדי לצפות בגלריה בזמן אמת דרך Photo Santos
+            סרקו כדי לצפות בגלריה בזמן אמת דרך {eventName ?? "Oura"}
           </p>
         </div>
       </div>
@@ -183,12 +266,12 @@ export default function QrManagementPage() {
         <button className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95">
           מעבר לניהול האירוע
         </button>
-        <a
-          href="/admin/branding"
+        <Link
+          href={`/admin/branding?event_id=${eventId}`}
           className="text-sm font-medium text-on-surface-variant transition-colors hover:text-primary"
         >
           עריכת פרטי הגלריה
-        </a>
+        </Link>
       </div>
     </AdminShell>
   );

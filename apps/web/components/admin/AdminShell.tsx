@@ -1,6 +1,10 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 import { StudioLogo } from "@/components/brand/StudioLogo";
+import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 const NAV_ITEMS = [
   { label: "לוח בקרה", icon: "dashboard", href: "/admin" },
@@ -18,6 +22,26 @@ export function AdminShell({
   active: string;
   children: ReactNode;
 }) {
+  const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+
+  // Fetch the logged-in photographer's identity client-side so every existing
+  // <AdminShell active="..."> call site stays unchanged (no server prop wiring
+  // needed across all admin pages). Middleware already guarantees a session
+  // exists by the time this renders.
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  async function handleLogout() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
   return (
     <div className="min-h-screen bg-surface text-on-surface">
       <header className="fixed z-50 flex h-16 w-full flex-row-reverse items-center justify-between border-b border-outline-variant bg-surface-container/90 px-6 backdrop-blur-md md:px-20">
@@ -66,8 +90,8 @@ export function AdminShell({
                 </span>
               </div>
               <div className="hidden flex-col items-end md:flex">
-                <span className="text-sm font-bold leading-none">
-                  יוסי דוסנטוס
+                <span className="text-sm font-bold leading-none" dir="ltr">
+                  {email ?? "..."}
                 </span>
                 <span className="text-[10px] font-medium text-on-surface-variant/60">
                   צלם מורשה
@@ -125,13 +149,14 @@ export function AdminShell({
             <span className="text-sm font-bold">אירוע חדש</span>
           </a>
           <hr className="mb-2 border-outline-variant opacity-30" />
-          <a
-            href="#"
+          <button
+            type="button"
+            onClick={handleLogout}
             className="flex flex-row-reverse items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
           >
             <span className="material-symbols-outlined">logout</span>
             <span className="text-sm font-bold">התנתקות</span>
-          </a>
+          </button>
         </div>
       </aside>
 
