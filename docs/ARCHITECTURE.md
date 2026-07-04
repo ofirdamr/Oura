@@ -173,6 +173,53 @@ dark-luxury card visual language.
 lives per-event in this schema, so there's one event at a time moving through
 the onboarding sequence).
 
+## 6a. Frontend structural conventions (true since the project's first screens)
+
+These predate Stage 1 and haven't changed — they're the visual/rendering
+architecture, not the data architecture, but a "debugging in the dark"
+incident is just as likely to be a rendering bug as an API bug.
+
+- **RTL is structural, not cosmetic.** `<html lang="he" dir="rtl">` in
+  `apps/web/app/layout.tsx`. Every component uses CSS logical properties
+  (`ms-`/`me-`/`ps-`/`pe-`/`text-start`/`text-end`) — never physical
+  `ml-`/`mr-`/`text-left`/`text-right`. This is a CLAUDE.md hard guardrail,
+  not a style preference; physical properties silently break under RTL
+  (see `MISTAKES.md` for the specific bug classes this has caused: bidi
+  space-collapse around inline numbers, mis-centered elements when a logical
+  inset is mixed with a physical transform, inverted toggle-switch
+  directions).
+- **Fonts are self-hosted npm packages** (`next/font/google` at build time,
+  no CDN `<link>` tags) — Rubik (`--font-sans`, the default for all Hebrew
+  text) and Hanken Grotesk (`--font-display`, Latin-only — it has no Hebrew
+  glyphs, so it's only used on pure-Latin branding bits like the "OURA"
+  wordmark, never on Hebrew copy; applying it to Hebrew text is a specific
+  bug class already hit once).
+- **Brand logos** are wrapped by `apps/web/components/brand/OuraLogo.tsx`
+  and `StudioLogo.tsx` (both thin `next/image` wrappers, `variant:
+  "icon"|"lockup"`). The two brands (Oura the platform, the demo "Photo
+  Santos" studio) never share a label in the UI — each always shows only its
+  own name, by explicit product decision.
+- **The 3D Gift Box Reveal** (`/gift-reveal`) is the one non-static guest
+  screen: a real Three.js + GSAP scene in
+  `apps/web/components/guest/GiftBoxReveal.tsx`, dynamic-imported with
+  `ssr:false` (WebGL/canvas don't exist server-side) and fully self-managing
+  its lifecycle inside a single `useEffect` (rAF cancel, GSAP tween kill,
+  listener/ResizeObserver cleanup, geometry/material/texture `.dispose()`,
+  `renderer.dispose()` + `forceContextLoss()` on unmount) — this is the one
+  place in the app doing manual GPU resource management, worth knowing about
+  before debugging a memory leak or a blank canvas.
+- **Design source of truth:** `/design` holds the original 42-screen Stitch
+  export (reference `screen.png` + `code.html` per screen) plus the brand
+  spec. Per CLAUDE.md, a screen's implementation must match its actual
+  `screen.png` content, not its folder name — several folder/content
+  mismatches were found and documented in `PROGRESS.md`/`MISTAKES.md` during
+  the initial port (e.g. a folder named for one screen whose `screen.png`
+  was actually a different screen entirely). Screens with no design source
+  at all (`/consent`, `/login`, `/signup`) were designed fresh, matching the
+  established dark-luxury card pattern, with explicit founder sign-off each
+  time per CLAUDE.md's "never freehand new visuals without either an
+  existing source or explicit approval" rule.
+
 ## 7. Environment / secrets inventory (names only — never values)
 
 **`apps/api` (Wrangler secrets, `wrangler secret put <name>`):**
