@@ -25,6 +25,7 @@ export function AdminShell({
 }) {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Fetch the logged-in photographer's identity client-side so every existing
   // <AdminShell active="..."> call site stays unchanged (no server prop wiring
@@ -77,6 +78,14 @@ export function AdminShell({
           </nav>
         </div>
         <div className="flex flex-row-reverse items-center gap-6">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="פתיחת תפריט"
+            className="material-symbols-outlined text-on-surface transition-colors hover:text-primary lg:hidden"
+          >
+            menu
+          </button>
           <Link
             href="/admin/events"
             className="rounded-full bg-primary px-6 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/10 transition-all hover:brightness-110 active:scale-95"
@@ -184,6 +193,85 @@ export function AdminShell({
           {children}
         </div>
       </main>
+
+      {/* Mobile nav drawer - below `lg` the top nav and sidebar are both
+          hidden, so this menu button is the only way to reach other admin
+          sections on a phone. */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="absolute end-0 top-0 flex h-full w-72 max-w-[80vw] flex-col border-s border-outline-variant bg-surface-container pb-6 pt-6">
+            <div className="mb-6 flex items-center justify-between px-4">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="סגירת תפריט"
+                className="material-symbols-outlined text-on-surface-variant transition-colors hover:text-primary"
+              >
+                close
+              </button>
+              <span className="text-sm font-bold text-on-surface">Photo Santos</span>
+            </div>
+            <nav className="flex flex-1 flex-col gap-1 px-3">
+              {NAV_ITEMS.map((item) =>
+                item.href ? (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={
+                      item.label === active
+                        ? "flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                        : "flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                    }
+                  >
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </a>
+                ) : (
+                  <span
+                    key={item.label}
+                    aria-disabled="true"
+                    title="בקרוב"
+                    className="flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+                  >
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="ms-auto rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
+                      בקרוב
+                    </span>
+                  </span>
+                ),
+              )}
+            </nav>
+            <div className="mt-auto flex flex-col gap-3 px-4">
+              <a
+                href="/admin/create-event"
+                onClick={() => setMenuOpen(false)}
+                className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110"
+              >
+                <span className="material-symbols-outlined font-bold">add</span>
+                <span className="text-sm font-bold">אירוע חדש</span>
+              </a>
+              <hr className="mb-2 border-outline-variant opacity-30" />
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  void handleLogout();
+                }}
+                className="flex flex-row-reverse items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+              >
+                <span className="material-symbols-outlined">logout</span>
+                <span className="text-sm font-bold">התנתקות</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
