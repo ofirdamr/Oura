@@ -44,6 +44,12 @@ export default function ConsentPage() {
   const [pending, setPending] = useState<"accept" | "decline" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  // Guardian/age confirmation (Stage 2 legal-review requirement): folded into
+  // this existing consent screen as an additional required checkbox rather
+  // than a separate new "age gate" screen (avoids a second Stitch design
+  // round-trip for what is substantively one more consent gesture). The API
+  // enforces this server-side too - see POST /consent/:token in apps/api.
+  const [guardianConfirmed, setGuardianConfirmed] = useState(false);
 
   useEffect(() => {
     const session = loadGuestSession();
@@ -56,10 +62,10 @@ export default function ConsentPage() {
   }, [router]);
 
   async function handleAccept() {
-    if (!token) return;
+    if (!token || !guardianConfirmed) return;
     setError(null);
     setPending("accept");
-    const result = await postConsent(token);
+    const result = await postConsent(token, guardianConfirmed);
     setPending(null);
 
     if (!result.ok) {
@@ -152,10 +158,24 @@ export default function ConsentPage() {
             {error}
           </p>
         )}
+        <label className="flex items-start gap-3 rounded-xl border border-white/5 bg-surface-container/60 p-3 text-start">
+          <input
+            type="checkbox"
+            checked={guardianConfirmed}
+            onChange={(e) => setGuardianConfirmed(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+          />
+          <span className="text-sm leading-relaxed text-on-surface-variant">
+            אני מסכים/ה ומאשר/ת שאני מעל גיל 16 (או שהורה/אפוטרופוס אישר עבורי
+            את השימוש), ומבקש/ת לבצע סריקה חד-פעמית של פניי לצורך איתור
+            תמונותיי באירוע. ידוע לי שהמידע הביומטרי נמחק מיד לאחר ההתאמה
+            ואינו נשמר.
+          </span>
+        </label>
         <button
           type="button"
           onClick={handleAccept}
-          disabled={pending !== null || !token}
+          disabled={pending !== null || !token || !guardianConfirmed}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70"
         >
           {pending === "accept" ? (

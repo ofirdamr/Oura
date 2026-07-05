@@ -57,20 +57,23 @@ directory (`apps/web` uses `npx opennextjs-cloudflare build` instead of plain
 ```
 /apps/web                      Next.js app (guest gallery + photographer dashboard) — REAL, deployed
 /apps/api                      Cloudflare Worker (Hono), wrangler.toml — REAL, deployed
-/packages/processing-pipeline  face-embed, culling, transcode, overlay compositing — DOES NOT EXIST YET
+/packages/processing-pipeline  face-embed service (InsightFace/ArcFace) — REAL CODE, NOT YET DEPLOYED
 /packages/shared                shared TS types/schemas — DOES NOT EXIST YET
 /design                         Stitch export, 42 reference screens + brand spec — REAL, source of truth for UI
 /supabase/migrations             SQL migrations, applied via the Management API — REAL
 /docs/ARCHITECTURE.md            this file
 ```
 
-`CLAUDE.md`'s repo-layout diagram lists `/packages/processing-pipeline` and
-`/packages/shared` as if they're standing directories — they are not; there
-is no `/packages` directory in this repo at all as of this writing. They're
-the intended home for Stage 2's face-embedding/culling/transcode pipeline
-once it's built (self-hosted compute, per CLAUDE.md, on Fly.io/Cloud Run —
-deliberately never a Cloudflare Worker, since that workload is heavy CPU/ML,
-not request/response). Don't go looking for code there; there isn't any yet.
+`packages/processing-pipeline` now has real code (FastAPI + InsightFace
+`buffalo_l`, `POST /embed`/`GET /health`, a portable `Dockerfile`) — but it
+has never been deployed to a real host. This dev sandbox has no Fly.io/GCP
+credentials, only Cloudflare's, so the container was built and its HTTP-layer
+logic tested locally (model stubbed — the sandbox's proxy allowlist blocks
+GitHub release downloads, so the actual InsightFace weights were never
+fetched/exercised here). `apps/api/wrangler.toml`'s `EMBED_SERVICE_URL` is
+still a placeholder until a real host (Fly.io vs Cloud Run, not yet decided)
+is picked and deployed to. `packages/shared` remains aspirational — no
+`/packages/shared` directory exists.
 
 ## 2. Two auth models — do not conflate them
 
@@ -114,6 +117,13 @@ egress). Never edit an already-applied migration file; add a new one.
 - `supabase/migrations/0002_event_code.sql` — adds `events.code` (partial
   unique index, `where code is not null`) — the human-shareable code used
   for manual entry and QR deeplinks.
+- `supabase/migrations/0003_stage2_pipeline.sql` — Stage 2 foundations:
+  a trigger defaulting `biometric_consents.retention_expires_at` to
+  `consented_at + 30 days` (plus a one-time backfill of pre-existing NULL
+  rows), `biometric_consents.guardian_confirmed`, `photos.embed_status`, and
+  the shared `match_faces(event_id, query_embedding, limit)` pgvector ANN-
+  search RPC. **Written but NOT YET APPLIED to the live DB** — needs a fresh
+  Supabase personal access token (see §9) before it can run.
 
 Key tables (see the migration files for full column lists/constraints):
 
@@ -125,14 +135,26 @@ Key tables (see the migration files for full column lists/constraints):
 - **`guests`** — one row per event-scoped guest session. `token_hash` only
   (SHA-256 of the opaque token) — the raw token is never stored.
 - **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
-  bytes, content_type, phash, captured_at, created_at`. No binary data —
-  `storage_key` is the only pointer to R2.
+  bytes, content_type, phash, captured_at, created_at, embed_status
+  ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
+  `storage_key` is the only pointer to R2. `embed_status` is pipeline-only
+  observability/retry state, deliberately separate from `status` (the
+  upload/visibility lifecycle gating the general gallery — must never be
+  coupled to face-processing state).
 - **`face_embeddings`** — `pgvector(512)`, HNSW cosine index, `person_id`
-  (cluster id) + `guest_id` (nullable link once a guest's consented selfie
-  matches). **Unpopulated** — Stage 2 (the face pipeline) hasn't been built.
+  (cluster id, assigned by `apps/api/src/pipeline/cluster.ts`) + `guest_id`
+  (nullable link, set by `POST /guests/:token/selfie` once a guest's selfie
+  matches a cluster). **Still unpopulated on the live DB** — the pipeline code
+  exists (queue consumer, embedding service) but the embedding service hasn't
+  been deployed to a real host yet, so no photo has actually been embedded
+  live.
 - **`biometric_consents`** — one row per guest who has consented.
-  `retention_expires_at` is deliberately nullable with no default — the
-  retention policy is an open legal question (PRD §8), not decided in code.
+  `retention_expires_at`: as of migration 0003, defaults to `consented_at +
+  30 days` (a decided value — the founder received an informal draft legal
+  opinion recommending a 30-90 day window and formal sign-off is pending, see
+  §8) — no longer left NULL. `guardian_confirmed boolean` (0003): required
+  `true` by `POST /consent/:token`, folded into the existing `/consent`
+  screen as an additional checkbox rather than a new "age gate" screen.
 
 ## 4. Guest-facing API (`apps/api`, service-role, bypasses RLS)
 
@@ -144,7 +166,8 @@ auth — they're the guest path, gated only by the opaque token.
 | `GET /health` | Liveness + binding/secret presence check (never leaks values) |
 | `POST /events/:event_id/guests` | Issues a fresh opaque guest token for an event. Generates `guest_id` server-side, stores only `SHA-256(token)`. |
 | `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent. `face_embeddings` is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. |
-| `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). `retention_expires_at` left NULL. |
+| `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). Body **requires** `{ guardian_confirmed: true }` (400s otherwise, migration 0003) — `retention_expires_at` is now set by a DB trigger, not left NULL. |
+| `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
 
@@ -152,6 +175,36 @@ auth — they're the guest path, gated only by the opaque token.
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
 `verifyGuestToken`/`tokenHash`) — no JWT library. Constant-time verification.
 The token never expires today (see Known Gaps) and travels in the URL path.
+
+### 4a. Stage 2 pipeline architecture (built, not yet live)
+
+- **Photo-side embedding**: `POST /events/:event_id/photos` best-effort
+  enqueues `{photo_id, event_id, storage_key}` to the `face-embed-queue`
+  Cloudflare Queue (non-blocking — upload response is unaffected either way).
+  The Worker's own `queue()` handler (`apps/api/src/queueConsumer.ts`) pulls
+  the photo from R2, calls the embedding service, and for each detected face
+  assigns a `person_id` cluster (`apps/api/src/pipeline/cluster.ts` — greedy
+  nearest-neighbor via `match_faces`, threshold `CLUSTER_MATCH_THRESHOLD`,
+  deliberately conservative/high to avoid merging two different guests into
+  one cluster) before inserting the `face_embeddings` row.
+- **Guest-side matching**: see `POST /guests/:token/selfie` above.
+  `GUEST_MATCH_THRESHOLD` is deliberately more lenient than the clustering
+  threshold (a single uncontrolled selfie shot vs. curated event photos), and
+  the route links every cluster above threshold in the top-`GUEST_MATCH_TOPK`
+  results, not just the single nearest, to compensate for ingestion-time
+  over-splitting.
+- **Retention enforcement**: a daily Cloudflare Cron Trigger (`0 3 * * *`,
+  `apps/api/src/scheduledCleanup.ts`) deletes `face_embeddings` rows whose
+  guest's `retention_expires_at` has passed. Scoped to embeddings only —
+  `guests`/`biometric_consents` rows are kept indefinitely as audit metadata.
+- **Embedding service**: `packages/processing-pipeline` (self-hosted
+  InsightFace/ArcFace, never a per-call managed API per CLAUDE.md) — see
+  §1a for its deploy status.
+- **Not yet built**: the real `/selfie` capture screen (needs a founder-run
+  Stitch export — no design source exists for a camera-capture UI) and
+  wiring `/consent`'s redirect + `/gift-reveal` into the post-selfie sequence.
+  Both ship together in a follow-up pass, never split (splitting would 404
+  live guests mid-flow).
 
 ## 5. Photographer-facing API (`apps/api`, JWT-authenticated + ownership-gated)
 
@@ -261,9 +314,25 @@ incident is just as likely to be a rendering bug as an API bug.
 **`apps/api` (Wrangler secrets, `wrangler secret put <name>`):**
 `SUPABASE_URL` (bare project URL, NOT the `/rest/v1/`-suffixed PostgREST
 base — see Known Gaps/Mistakes), `SUPABASE_SERVICE_ROLE_KEY`,
-`GUEST_TOKEN_SECRET` (HMAC key for guest tokens).
+`GUEST_TOKEN_SECRET` (HMAC key for guest tokens), `EMBED_SERVICE_TOKEN`
+(Stage 2 — bearer secret shared with `packages/processing-pipeline`; not yet
+set since the service isn't deployed anywhere real yet).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
+
+**`apps/api` (Queue binding + Cron, `wrangler.toml`):** `FACE_EMBED_QUEUE` →
+`face-embed-queue` (+ `face-embed-queue-dlq` dead-letter queue) — created via
+`wrangler queues create`, not yet run in this dev session. Daily cron
+`0 3 * * *` for retention cleanup.
+
+**`apps/api` (non-secret vars, `wrangler.toml`):** `EMBED_SERVICE_URL`
+(placeholder until the embedding service is deployed), `CLUSTER_MATCH_THRESHOLD`
+(0.5), `GUEST_MATCH_THRESHOLD` (0.42), `GUEST_MATCH_TOPK` (20) — cosine-
+similarity tuning knobs, first things to adjust after watching real pilot-
+event match rates.
+
+**`packages/processing-pipeline` (container env):** `EMBED_SERVICE_TOKEN` —
+same value as the Worker secret above, checked on every `/embed` call.
 
 **`apps/web` (build-time, `.env.local` / CI env — these get INLINED into the
 client bundle, so "secret" here just means "not committed," not "hidden from
@@ -272,10 +341,22 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ## 8. Known gaps (honest, not oversights — see PRD.md for phase boundaries)
 
-- **Face-matching pipeline (Stage 2) doesn't exist.** `face_embeddings` is
-  never written to. The personal gallery honestly shows "still searching for
-  you," not fake matches. Blocked on PRD §8's biometric legal review, which
-  is deferred (founder's explicit call, not yet started).
+- **Face-matching pipeline (Stage 2) is built but not live.** Code exists
+  end-to-end (queue-based photo embedding, guest selfie matching, retention
+  cleanup, migration 0003) and typechecks clean, but: (a) migration 0003
+  hasn't been applied to the live DB yet (needs a fresh Supabase access
+  token), (b) the embedding service has never been deployed to a real host
+  (no Fly.io/GCP credentials in this dev sandbox — built and logic-tested
+  locally with the model stubbed out only), and (c) the real `/selfie`
+  capture screen doesn't exist yet (needs a founder-run Stitch export). Until
+  all three land, `face_embeddings` stays unpopulated and the personal
+  gallery still honestly shows "still searching for you." Legal basis: the
+  founder received an informal draft legal opinion (from a lawyer-friend,
+  formal signed version to follow) recommending a 30-day retention window,
+  an active consent gesture, and guardian/age confirmation — and explicitly
+  decided to proceed building on that basis, accepting the risk ahead of the
+  formal signed opinion. PRD §8 should be read alongside this note, not as
+  fully resolved.
 - **Guest tokens never expire** and travel in the URL path (loggable at
   edges/proxies). Flagged by an earlier security review, not yet addressed.
 - **No photographer password-reset flow.** Founder's account had a password
@@ -311,6 +392,22 @@ values baked in, not a build error.
 **If this ever needs to become real CI/CD:** there's nothing to migrate away
 from, just a `wrangler deploy` step to add to a workflow, per Worker, with
 those same env vars as repo/environment secrets.
+
+**Stage 2 deploy steps, not yet done (in order):**
+1. Apply `supabase/migrations/0003_stage2_pipeline.sql` via the Management
+   API (needs a fresh founder-issued `sbp_...` personal access token, same
+   one-time-use-then-revoke pattern as 0001/0002 — see Mistakes).
+2. `npx wrangler queues create face-embed-queue` and
+   `npx wrangler queues create face-embed-queue-dlq`.
+3. Deploy `packages/processing-pipeline`'s container to a real host (Fly.io
+   vs Cloud Run — not yet decided; the `Dockerfile` is portable to either).
+   Not possible from this dev sandbox — no Fly.io/GCP credentials here.
+4. `wrangler secret put EMBED_SERVICE_TOKEN`, and update `EMBED_SERVICE_URL`
+   in `wrangler.toml` to the real deployed host, then `npx wrangler deploy`.
+5. Get the founder's Stitch export for the selfie-capture screen, build
+   `apps/web/app/selfie/page.tsx`, flip `/consent`'s redirect target from
+   `/gallery` to `/selfie`, and wire `/gift-reveal` into the sequence — all
+   in the same deploy (splitting would 404 live guests mid-flow).
 
 ## 10. Verification & testing conventions
 

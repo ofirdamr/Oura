@@ -7,6 +7,9 @@ import {
   tokenHash,
   type GuestTokenPayload,
 } from './token';
+import { embed } from './pipeline/embedClient';
+import { handleQueue, type PhotoEmbedMessage } from './queueConsumer';
+import { handleScheduled } from './scheduledCleanup';
 
 // Bindings & secrets available on the Worker env.
 // Secrets are injected via `wrangler secret put` — never hardcoded (CLAUDE.md).
@@ -17,6 +20,13 @@ export type Env = {
   SUPABASE_SERVICE_ROLE_KEY: string;
   // HMAC key for signing/verifying opaque guest tokens. Set via wrangler secret.
   GUEST_TOKEN_SECRET: string;
+  // Stage 2 face-matching pipeline.
+  FACE_EMBED_QUEUE: Queue<PhotoEmbedMessage>;
+  EMBED_SERVICE_URL: string;
+  EMBED_SERVICE_TOKEN: string;
+  CLUSTER_MATCH_THRESHOLD: string;
+  GUEST_MATCH_THRESHOLD: string;
+  GUEST_MATCH_TOPK: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -293,6 +303,12 @@ app.get('/gallery/:token', async (c) => {
 // ---------------------------------------------------------------------------
 // Biometric consent.
 // POST /consent/:token
+//   Body: { guardian_confirmed: true } — REQUIRED. The founder's Stage 2 legal
+//   review (informal draft, formal version pending) requires an active
+//   guardian/age-confirmation gesture before biometric consent is recorded,
+//   folded into the existing consent screen as an additional checkbox rather
+//   than a new screen. Enforced here in code, not trusted from the UI alone —
+//   same guardrail philosophy as the rest of the consent gate.
 //   Verifies the token, then records the guest's biometric consent. Idempotent:
 //   a second call for an already-consented guest confirms rather than errors.
 //   This is what the (parallel-built) consent-gate screen's "I agree" calls.
@@ -301,6 +317,11 @@ app.get('/gallery/:token', async (c) => {
 app.post('/consent/:token', async (c) => {
   const token = c.req.param('token');
   if (!token) return c.json({ error: 'missing_token' }, 400);
+
+  const body = (await c.req.json().catch(() => ({}))) as { guardian_confirmed?: unknown };
+  if (body?.guardian_confirmed !== true) {
+    return c.json({ error: 'guardian_confirmation_required' }, 400);
+  }
 
   const db = supa(c.env);
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
@@ -330,11 +351,12 @@ app.post('/consent/:token', async (c) => {
     });
   }
 
-  // NOTE: retention_expires_at is intentionally left NULL — the retention policy
-  // is an open legal question (schema note / PRD §8). Do not backfill a default.
+  // retention_expires_at is set automatically by the DB trigger added in
+  // migration 0003 (consented_at + 30 days) — no longer left NULL now that the
+  // founder has accepted the risk of proceeding on an informal legal draft.
   const { data: inserted, error: insertErr } = await db
     .from('biometric_consents')
-    .insert({ guest_id: guest.id, event_id: payload.event_id })
+    .insert({ guest_id: guest.id, event_id: payload.event_id, guardian_confirmed: true })
     .select('consented_at')
     .maybeSingle();
 
@@ -364,6 +386,94 @@ app.post('/consent/:token', async (c) => {
     consented_at: inserted?.consented_at ?? new Date().toISOString(),
     already: false,
   });
+});
+
+// ---------------------------------------------------------------------------
+// Guest selfie submission (Stage 2 face-matching).
+// POST /guests/:token/selfie
+//   Body: raw image bytes (multipart 'file' field). Zero-retention design: the
+//   guest's own selfie and its computed embedding are NEVER persisted anywhere
+//   — the embedding lives only as a local variable used as the match query,
+//   then falls out of scope when the request ends. Only the resulting
+//   guest_id<->person_id LINK (an update to EXISTING face_embeddings rows) is
+//   persisted.
+//   CONSENT GATE — enforced in code, not trusted from the frontend sequence:
+//   no face computation happens before a biometric_consents row exists for
+//   this guest, same guardrail as the /gallery personal-gallery section.
+//   Response 200: { matched: boolean, clusters_linked?: number }
+// ---------------------------------------------------------------------------
+app.post('/guests/:token/selfie', async (c) => {
+  const token = c.req.param('token');
+  if (!token) return c.json({ error: 'missing_token' }, 400);
+
+  const db = supa(c.env);
+  const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
+  if (!resolved.ok) {
+    return c.json(
+      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      resolved.status,
+    );
+  }
+  const { payload, guest } = resolved;
+
+  // CONSENT GATE — see header note. No exceptions.
+  const { data: consent } = await db
+    .from('biometric_consents')
+    .select('id')
+    .eq('guest_id', guest.id)
+    .maybeSingle();
+  if (!consent) return c.json({ error: 'consent_required' }, 403);
+
+  const body = await c.req.parseBody();
+  const file = body['file'];
+  if (!(file instanceof File)) return c.json({ error: 'missing_file' }, 400);
+
+  let faces: Awaited<ReturnType<typeof embed>>;
+  try {
+    faces = await embed(await file.arrayBuffer(), {
+      EMBED_SERVICE_URL: c.env.EMBED_SERVICE_URL,
+      EMBED_SERVICE_TOKEN: c.env.EMBED_SERVICE_TOKEN,
+    });
+  } catch (err) {
+    console.error('selfie embed failed', err);
+    return c.json({ error: 'embed_service_unavailable' }, 502);
+  }
+  if (faces.length === 0) return c.json({ error: 'no_face_detected' }, 422);
+
+  // A selfie is expected to contain one person — pick the highest-confidence
+  // detection if more than one face is found (simplest defensible MVP heuristic).
+  const selfieFace = faces.reduce((best, f) => (f.detection_score > best.detection_score ? f : best));
+
+  const { data: candidates } = await db.rpc('match_faces', {
+    p_event_id: payload.event_id,
+    p_query_embedding: selfieFace.embedding,
+    p_match_limit: Number(c.env.GUEST_MATCH_TOPK ?? '20'),
+  });
+
+  const threshold = Number(c.env.GUEST_MATCH_THRESHOLD ?? '0.42');
+  const matchedPersonIds = Array.from(
+    new Set(
+      ((candidates ?? []) as { person_id: string | null; distance: number }[])
+        .filter((row) => row.person_id && 1 - row.distance >= threshold)
+        .map((row) => row.person_id as string),
+    ),
+  );
+
+  if (matchedPersonIds.length === 0) {
+    return c.json({ matched: false });
+  }
+
+  // Link every plausible cluster (mitigates ingestion-time over-splitting), but
+  // never overwrite a DIFFERENT guest's already-established link.
+  const { error: linkErr } = await db
+    .from('face_embeddings')
+    .update({ guest_id: guest.id })
+    .eq('event_id', payload.event_id)
+    .in('person_id', matchedPersonIds)
+    .or(`guest_id.is.null,guest_id.eq.${guest.id}`);
+  if (linkErr) return c.json({ error: 'match_link_failed' }, 500);
+
+  return c.json({ matched: true, clusters_linked: matchedPersonIds.length });
 });
 
 // ---------------------------------------------------------------------------
@@ -439,6 +549,15 @@ app.post('/events/:event_id/photos', async (c) => {
     bytes: file.size ?? null,
   });
   if (insertErr) return c.json({ error: 'photo_create_failed' }, 500);
+
+  // Best-effort enqueue for face-embedding (Stage 2). Never blocks or fails the
+  // upload response — `photos.status` stays 'ready' immediately, exactly as
+  // before; `embed_status` (default 'pending') is separate, pipeline-only state.
+  try {
+    await c.env.FACE_EMBED_QUEUE.send({ photo_id: id, event_id, storage_key });
+  } catch (err) {
+    console.error('enqueue face-embed failed for', id, err);
+  }
 
   return c.json({ id, event_id, storage_key }, 201);
 });
@@ -588,4 +707,11 @@ app.get('/events/by-code/:code', async (c) => {
 
 app.get('/', (c) => c.text('oura-api'));
 
-export default app;
+// Cloudflare Queues (queue) and Cron Triggers (scheduled) require handlers on
+// the same default export as fetch — a bare Hono app (`export default app`)
+// only implements fetch, so this must be an explicit ExportedHandler object.
+export default {
+  fetch: app.fetch,
+  queue: (batch: MessageBatch<PhotoEmbedMessage>, env: Env) => handleQueue(batch, env, supa),
+  scheduled: (event: ScheduledController, env: Env) => handleScheduled(event, env, supa),
+} satisfies ExportedHandler<Env, PhotoEmbedMessage>;

@@ -106,10 +106,59 @@ export function getGallery(token: string): Promise<ApiResult<GalleryResponse>> {
 }
 
 // POST /consent/:token -> record biometric consent for this guest. Idempotent.
-export function postConsent(token: string): Promise<ApiResult<ConsentResponse>> {
+// guardianConfirmed is REQUIRED by the API (Stage 2 legal-review requirement:
+// an active guardian/age-confirmation gesture, folded into this same consent
+// screen rather than a separate age-gate screen) - the API 400s without it.
+export function postConsent(
+  token: string,
+  guardianConfirmed: boolean,
+): Promise<ApiResult<ConsentResponse>> {
   return request<ConsentResponse>(`/consent/${encodeURIComponent(token)}`, {
     method: "POST",
+    body: JSON.stringify({ guardian_confirmed: guardianConfirmed }),
   });
+}
+
+export type SelfieResponse = { matched: boolean; clusters_linked?: number };
+
+// POST /guests/:token/selfie -> submit a guest selfie for face-matching.
+// Multipart with a single `file` field (same reasoning as uploadEventPhoto:
+// can't go through the json-only request() helper). Zero-retention by design
+// on the server - the selfie/its embedding are never persisted, only the
+// resulting match link.
+export async function postSelfie(
+  token: string,
+  file: Blob,
+): Promise<ApiResult<SelfieResponse>> {
+  const formData = new FormData();
+  formData.append("file", file, "selfie.jpg");
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/guests/${encodeURIComponent(token)}/selfie`, {
+      method: "POST",
+      body: formData,
+    });
+  } catch {
+    return { ok: false, status: null, error: "network_error" };
+  }
+
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    // Non-JSON body (shouldn't happen against this API, but don't crash on it).
+  }
+
+  if (!res.ok) {
+    const error =
+      body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : `http_${res.status}`;
+    return { ok: false, status: res.status, error };
+  }
+
+  return { ok: true, data: body as SelfieResponse };
 }
 
 export type UploadPhotoResponse = { id: string; event_id: string; storage_key: string };

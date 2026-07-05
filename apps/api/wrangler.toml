@@ -14,6 +14,35 @@ compatibility_flags = ["nodejs_compat"]
 binding = "MEDIA"
 bucket_name = "ouramedia"
 
+# Stage 2 face-embedding queue: photo uploads enqueue here, the Worker's own
+# `queue()` handler (src/queueConsumer.ts) consumes it. Created via
+# `npx wrangler queues create face-embed-queue` / `face-embed-queue-dlq`.
+[[queues.producers]]
+queue = "face-embed-queue"
+binding = "FACE_EMBED_QUEUE"
+
+[[queues.consumers]]
+queue = "face-embed-queue"
+max_batch_size = 5
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "face-embed-queue-dlq"
+
+# Daily biometric-retention cleanup (src/scheduledCleanup.ts) — enforces the
+# 30-day TTL set by migration 0003's trigger on biometric_consents.
+[triggers]
+crons = ["0 3 * * *"]
+
 # Non-secret vars only. Do not put keys/tokens here.
 [vars]
 ENVIRONMENT = "production"
+# EMBED_SERVICE_URL points at the self-hosted InsightFace/ArcFace service
+# (packages/processing-pipeline). Placeholder until it's deployed to a real
+# host (Fly.io/Cloud Run — not yet decided) and this value is updated.
+EMBED_SERVICE_URL = "https://embed.oura.example.invalid"
+# Cosine-similarity tuning knobs — first things to adjust after watching real
+# pilot-event match rates, without a code redeploy. See src/pipeline/cluster.ts
+# and the /guests/:token/selfie route for the asymmetric-threshold rationale.
+CLUSTER_MATCH_THRESHOLD = "0.5"
+GUEST_MATCH_THRESHOLD = "0.42"
+GUEST_MATCH_TOPK = "20"
