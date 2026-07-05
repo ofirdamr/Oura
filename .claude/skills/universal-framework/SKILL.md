@@ -89,6 +89,14 @@ and comes before any other role. The Economist returns three things:
    screenshot per element or per page state. Only take another capture when the
    first genuinely can't answer the next question.
 
+   **This is a cost-management instruction, not a permission to skip visual QA.**
+   Any UI/visual change still requires an actual Playwright screenshot before it
+   is called done (see §4) — the scope guard says *batch and reuse captures*, it
+   never says *skip the capture*. If a session's own environment cannot reach the
+   real live target with a browser, that is a blind spot to disclose up front
+   (§4), not a reason to substitute a code read or a confident description for
+   an actual screenshot.
+
    **Conversation-length is part of scope guard too, not just individual tool
    calls.** A long-running conversation costs tokens on every single subsequent
    turn, since the whole transcript rides along each time — many turns, large
@@ -268,6 +276,17 @@ that skips the exact code path you changed), say so explicitly up front. A
 passing partial check does not stand in for the untested part — report the
 change as unverified-in-practice and get real confirmation, instead of
 declaring "done" on the checks you happened to be able to run.
+
+**Hard rule: any UI/visual change gets an actual Playwright screenshot before
+it is reported done — not a code read, not "this should render correctly."**
+`tsc`/build passing verifies the code compiles, not that a human looking at
+the screen sees the right thing. If the real live target is reachable by a
+browser from this session, screenshot *that* — a local build is a fallback,
+not the goal, and the two can render differently (a real device/browser can
+disagree with a local headless one). When only the local build is reachable,
+say so out loud in the same message as the screenshot, every time, so "I
+verified it" is never quietly stretched to cover ground it didn't. Never
+report a UI fix as done on the strength of a build/typecheck pass alone.
 
 **A green light on the general task is not a green light on an adjacent locked
 rule.** If the project marks something locked/ask-first (an architecture
