@@ -288,6 +288,22 @@ say so out loud in the same message as the screenshot, every time, so "I
 verified it" is never quietly stretched to cover ground it didn't. Never
 report a UI fix as done on the strength of a build/typecheck pass alone.
 
+**The PM owns this gate — it is not satisfied by a subagent or a specialist
+role saying "done."** Before any screen or flow is reported complete, the PM:
+- Consults Front-End/UX-UI (§1) specifically on whether the result is actually
+  good UX, not just present — does it read clearly, does it match the
+  established visual language, is the interaction obvious, not just "a button
+  exists."
+- Enumerates every interactive control on the screen (button, link, toggle,
+  input) and confirms each one performs its real, intended action — not a
+  sample, not "the main one," every one. A control that looks clickable but
+  has no handler, or that fires the wrong destination, is a bug regardless of
+  how minor it looks — it does not get silently left for later without being
+  named to the user first.
+- Only after both checks does the PM report the surface done. "It builds and
+  the happy path works" is not the bar; "every control on this screen does
+  its job well" is.
+
 **A green light on the general task is not a green light on an adjacent locked
 rule.** If the project marks something locked/ask-first (an architecture
 pattern, a file, a deploy step) and the task sits next to that boundary, don't
