@@ -315,15 +315,18 @@ incident is just as likely to be a rendering bug as an API bug.
 `SUPABASE_URL` (bare project URL, NOT the `/rest/v1/`-suffixed PostgREST
 base — see Known Gaps/Mistakes), `SUPABASE_SERVICE_ROLE_KEY`,
 `GUEST_TOKEN_SECRET` (HMAC key for guest tokens), `EMBED_SERVICE_TOKEN`
-(Stage 2 — bearer secret shared with `packages/processing-pipeline`; not yet
-set since the service isn't deployed anywhere real yet).
+(Stage 2 — bearer secret shared with `packages/processing-pipeline`; **set
+live** via `wrangler secret put`, but the value it needs to match on the
+embedding-service side doesn't matter yet since that service isn't deployed
+anywhere real — will need to be re-set/confirmed once it is).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
 
 **`apps/api` (Queue binding + Cron, `wrangler.toml`):** `FACE_EMBED_QUEUE` →
-`face-embed-queue` (+ `face-embed-queue-dlq` dead-letter queue) — created via
-`wrangler queues create`, not yet run in this dev session. Daily cron
-`0 3 * * *` for retention cleanup.
+`face-embed-queue` (+ `face-embed-queue-dlq` dead-letter queue) — **created
+live** via `wrangler queues create` and deployed. Daily cron `0 3 * * *` for
+retention cleanup, live (harmless no-op until real consents cross the 30-day
+mark).
 
 **`apps/api` (non-secret vars, `wrangler.toml`):** `EMBED_SERVICE_URL`
 (placeholder until the embedding service is deployed), `CLUSTER_MATCH_THRESHOLD`
@@ -341,19 +344,27 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ## 8. Known gaps (honest, not oversights — see PRD.md for phase boundaries)
 
-- **Face-matching pipeline (Stage 2) is built but not live.** Code exists
-  end-to-end (queue-based photo embedding, guest selfie matching, retention
-  cleanup, migration 0003) and typechecks clean, but: (a) migration 0003
-  hasn't been applied to the live DB yet (needs a fresh Supabase access
-  token), (b) the embedding service has never been deployed to a real host
-  (no Fly.io/GCP credentials in this dev sandbox — built and logic-tested
-  locally with the model stubbed out only), and (c) the real `/selfie`
-  capture screen doesn't exist yet (needs a founder-run Stitch export). Until
-  all three land, `face_embeddings` stays unpopulated and the personal
-  gallery still honestly shows "still searching for you." Legal basis: the
-  founder received an informal draft legal opinion (from a lawyer-friend,
-  formal signed version to follow) recommending a 30-day retention window,
-  an active consent gesture, and guardian/age confirmation — and explicitly
+- **Face-matching pipeline (Stage 2) is deployed at the infrastructure level
+  but the embedding service itself isn't live yet.** Migration 0003 is
+  applied to the live DB (verified: zero NULL `retention_expires_at` rows,
+  `guardian_confirmed`/`embed_status` columns present, `match_faces` RPC
+  callable). `apps/api` is deployed with the queue (`face-embed-queue` +
+  DLQ, created live), the daily retention cron, `POST /consent/:token`
+  requiring `guardian_confirmed`, and `POST /guests/:token/selfie` — all
+  verified live against a throwaway test guest on the real `WED-2024` event
+  (guardian gate 400s correctly, consent sets `retention_expires_at` at
+  exactly +30 days, selfie 403s pre-consent and 502s post-consent with
+  `embed_service_unavailable` — expected, not a bug). What's still missing:
+  (a) the embedding service has never been deployed to a real host (no
+  Fly.io/GCP credentials in this dev sandbox — built and logic-tested
+  locally with the model stubbed out only, `EMBED_SERVICE_URL` is still a
+  placeholder), and (b) the real `/selfie` capture screen doesn't exist yet
+  (needs a founder-run Stitch export, prompt already handed over). Until
+  both land, `face_embeddings` stays unpopulated and the personal gallery
+  still honestly shows "still searching for you." Legal basis: the founder
+  received an informal draft legal opinion (from a lawyer-friend, formal
+  signed version to follow) recommending a 30-day retention window, an
+  active consent gesture, and guardian/age confirmation — and explicitly
   decided to proceed building on that basis, accepting the risk ahead of the
   formal signed opinion. PRD §8 should be read alongside this note, not as
   fully resolved.
@@ -393,18 +404,21 @@ values baked in, not a build error.
 from, just a `wrangler deploy` step to add to a workflow, per Worker, with
 those same env vars as repo/environment secrets.
 
-**Stage 2 deploy steps, not yet done (in order):**
-1. Apply `supabase/migrations/0003_stage2_pipeline.sql` via the Management
-   API (needs a fresh founder-issued `sbp_...` personal access token, same
-   one-time-use-then-revoke pattern as 0001/0002 — see Mistakes).
-2. `npx wrangler queues create face-embed-queue` and
-   `npx wrangler queues create face-embed-queue-dlq`.
-3. Deploy `packages/processing-pipeline`'s container to a real host (Fly.io
-   vs Cloud Run — not yet decided; the `Dockerfile` is portable to either).
-   Not possible from this dev sandbox — no Fly.io/GCP credentials here.
-4. `wrangler secret put EMBED_SERVICE_TOKEN`, and update `EMBED_SERVICE_URL`
-   in `wrangler.toml` to the real deployed host, then `npx wrangler deploy`.
-5. Get the founder's Stitch export for the selfie-capture screen, build
+**Stage 2 deploy steps:**
+1. ✅ Applied `supabase/migrations/0003_stage2_pipeline.sql` via the
+   Management API (founder-issued `sbp_...` token, revoked immediately after
+   — same one-time-use pattern as 0001/0002, see Mistakes). Verified live.
+2. ✅ `npx wrangler queues create face-embed-queue` /
+   `face-embed-queue-dlq`, both created live.
+3. ✅ `wrangler secret put EMBED_SERVICE_TOKEN` and `npx wrangler deploy` —
+   `oura-api` is live with the queue producer/consumer, cron, and new routes.
+   Verified live against a throwaway test guest (see Known Gaps).
+4. **Not done — needs external inputs this dev sandbox doesn't have:**
+   deploy `packages/processing-pipeline`'s container to a real host (Fly.io
+   vs Cloud Run, not yet decided; the `Dockerfile` is portable to either; no
+   Fly.io/GCP credentials in this sandbox), then update `EMBED_SERVICE_URL`
+   in `wrangler.toml` to the real host and re-`wrangler deploy`.
+5. **Not done — needs the founder's Stitch export:** build
    `apps/web/app/selfie/page.tsx`, flip `/consent`'s redirect target from
    `/gallery` to `/selfie`, and wire `/gift-reveal` into the sequence — all
    in the same deploy (splitting would 404 live guests mid-flow).

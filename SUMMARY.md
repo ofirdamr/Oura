@@ -32,20 +32,23 @@ Optimization's pipeline, `/join`/`/festive-gallery`/`/minimal-gallery`
 (static UI, superseded or unused so far), `/gift-reveal` (built, not wired
 into any navigation flow yet).
 
-**Face-matching (Stage 2): code complete, not live.** All of the backend/
-schema work is written and typechecks clean — DB migration
-(`supabase/migrations/0003_stage2_pipeline.sql`), the queue-based photo
-embedding pipeline, the guest selfie-matching endpoint
-(`POST /guests/:token/selfie`, zero-retention by design), the 30-day
-retention cleanup cron, and a self-hosted InsightFace/ArcFace embedding
-service (`packages/processing-pipeline`). None of it is live yet:
-- Migration 0003 hasn't been applied to the live DB (needs a fresh founder-
-  issued Supabase access token).
-- The embedding service has never been deployed to a real host — this dev
-  sandbox has no Fly.io/GCP credentials, only Cloudflare's. Built and its
-  HTTP-layer logic tested locally with the model stubbed (the sandbox's
-  proxy allowlist blocks GitHub release downloads, so InsightFace's actual
-  weights were never fetched here).
+**Face-matching (Stage 2): infrastructure deployed, embedding service still
+pending.** DB migration applied to the live DB (verified: retention backfill
+clean, `guardian_confirmed`/`embed_status` columns present, `match_faces` RPC
+callable). `apps/api` deployed with the queue-based photo embedding pipeline,
+the guest selfie-matching endpoint (`POST /guests/:token/selfie`,
+zero-retention by design), the 30-day retention cleanup cron, and the
+guardian-confirmation consent gate — all verified live against a throwaway
+test guest on the real `WED-2024` event (guardian gate 400s correctly,
+consent sets `retention_expires_at` at exactly +30 days, selfie 403s
+pre-consent and fails gracefully post-consent since no embedding host exists
+yet). What's still pending:
+- The self-hosted InsightFace/ArcFace embedding service
+  (`packages/processing-pipeline`) has never been deployed to a real host —
+  this dev sandbox has no Fly.io/GCP credentials, only Cloudflare's. Built
+  and its HTTP-layer logic tested locally with the model stubbed (the
+  sandbox's proxy allowlist blocks GitHub release downloads, so
+  InsightFace's actual weights were never fetched here).
 - The real selfie-capture screen doesn't exist — no design source, needs a
   founder-run Stitch export (prompt already handed over). `/consent`'s
   redirect and `/gift-reveal`'s wiring intentionally weren't touched yet —
@@ -101,12 +104,10 @@ one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 
 ## Next milestone: finish deploying Stage 2
 
-In order (see `docs/ARCHITECTURE.md` §9 for the exact commands):
-1. Apply migration 0003 (needs a fresh Supabase access token from the founder).
-2. Create the Cloudflare Queues and deploy `apps/api`.
-3. Deploy `packages/processing-pipeline` to a real host (Fly.io vs Cloud
+Remaining (see `docs/ARCHITECTURE.md` §9 for exact steps):
+1. Deploy `packages/processing-pipeline` to a real host (Fly.io vs Cloud
    Run — not yet decided) and wire its URL/token into `apps/api`.
-4. Get the founder's Stitch export for the selfie-capture screen, build it,
+2. Get the founder's Stitch export for the selfie-capture screen, build it,
    flip `/consent`'s redirect, wire `/gift-reveal` in — one deploy.
 
 Other rough edges not yet addressed, still worth a Plan/PM consult on
