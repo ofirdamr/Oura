@@ -196,7 +196,7 @@ export default function AdminDashboardPage() {
                         {themeIcon(event.gallery_theme)}
                       </span>
                     </div>
-                    <div className="text-end">
+                    <div className="text-start">
                       <h4 className="font-bold text-on-surface">
                         {event.name}
                       </h4>

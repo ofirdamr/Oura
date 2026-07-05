@@ -134,7 +134,7 @@ export default function GiftRevealPage() {
         {/* Memories gallery */}
         <section className="mb-12">
           <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row-reverse sm:items-end">
-            <div className="text-start sm:text-end">
+            <div className="text-start sm:text-start">
               <h2 className="mb-1 text-2xl font-bold text-on-surface md:text-3xl">
                 זיכרונות מהאירוע
               </h2>

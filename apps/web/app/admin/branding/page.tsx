@@ -226,7 +226,7 @@ function BrandingSettingsPageInner() {
   return (
     <AdminShell active="הגדרות">
       <div className="flex items-start justify-between gap-4">
-        <div className="text-end">
+        <div className="text-start">
           <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
             <span className="material-symbols-outlined text-sm">workspace_premium</span>
             מהדורת פלטינום
@@ -409,7 +409,7 @@ function BrandingSettingsPageInner() {
         {/* Settings */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">add_photo_alternate</span>
               העלאת לוגו הסטודיו
             </h2>
@@ -458,7 +458,7 @@ function BrandingSettingsPageInner() {
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">grid_view</span>
               סגנון מסגרת פרימיום
             </h2>
@@ -481,12 +481,12 @@ function BrandingSettingsPageInner() {
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">palette</span>
               צבעי המותג
             </h2>
             <div className="flex flex-row-reverse items-center justify-between">
-              <div className="text-end">
+              <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">צבע דגש ראשי</p>
                 <p className="text-xs text-on-surface-variant">
                   צבע הלחצנים והאלמנטים בגלריה
@@ -507,7 +507,7 @@ function BrandingSettingsPageInner() {
             </div>
             <hr className="my-4 border-outline-variant/20" />
             <div className="flex flex-row-reverse items-center justify-between">
-              <div className="text-end">
+              <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">
                   סימן מים אוטומטי
                 </p>

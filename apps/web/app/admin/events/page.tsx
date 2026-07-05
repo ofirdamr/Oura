@@ -151,7 +151,7 @@ export default function EventsListPage() {
       {!loading && totalEvents > 0 && (
         <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="flex flex-row-reverse items-center justify-between rounded-2xl border border-primary/10 bg-surface-container p-5">
-            <div className="text-end">
+            <div className="text-start">
               <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">
                 סה&quot;כ אירועים
               </p>
@@ -164,7 +164,7 @@ export default function EventsListPage() {
             </div>
           </div>
           <div className="flex flex-row-reverse items-center justify-between rounded-2xl border border-primary/10 bg-surface-container p-5">
-            <div className="text-end">
+            <div className="text-start">
               <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">
                 פעילים כעת
               </p>
@@ -175,7 +175,7 @@ export default function EventsListPage() {
             </div>
           </div>
           <div className="flex flex-row-reverse items-center justify-between rounded-2xl border border-primary/10 bg-surface-container p-5">
-            <div className="text-end">
+            <div className="text-start">
               <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60">
                 תמונות (אחסון)
               </p>
@@ -227,7 +227,7 @@ export default function EventsListPage() {
       {!loading && totalEvents > 0 && (
         <section className="overflow-hidden rounded-3xl border border-outline-variant/30 bg-surface-container shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] border-collapse text-end">
+            <table className="w-full min-w-[720px] border-collapse text-start">
               <thead>
                 <tr className="border-b border-outline-variant/20 bg-surface-container-high/60">
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant/60">
@@ -256,7 +256,7 @@ export default function EventsListPage() {
                       className="transition-colors hover:bg-surface-container-highest/40"
                     >
                       <td className="px-6 py-4">
-                        <div className="text-end">
+                        <div className="text-start">
                           <p className="font-bold text-on-surface">
                             {event.name}
                           </p>

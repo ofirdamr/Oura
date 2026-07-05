@@ -176,7 +176,7 @@ function GalleryEntryPageInner() {
         <div className="rounded-2xl border border-white/5 bg-surface-container/60 p-6 shadow-xl backdrop-blur-md">
           <div className="space-y-4">
             <label
-              className="block text-end font-medium text-primary"
+              className="block text-start font-medium text-primary"
               htmlFor="event-code"
             >
               הכנס קוד אירוע ידנית

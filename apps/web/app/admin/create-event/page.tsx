@@ -9,7 +9,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 type SubmitState = "idle" | "submitting" | "success";
 
 const inputClasses =
-  "h-12 w-full rounded-lg border border-outline-variant bg-surface-container-high ps-4 pe-11 text-end font-medium text-on-surface placeholder:font-normal placeholder:text-on-surface-variant/50 transition-all focus:border-2 focus:border-primary focus:outline-none";
+  "h-12 w-full rounded-lg border border-outline-variant bg-surface-container-high ps-4 pe-11 text-start font-medium text-on-surface placeholder:font-normal placeholder:text-on-surface-variant/50 transition-all focus:border-2 focus:border-primary focus:outline-none";
 
 const iconClasses =
   "material-symbols-outlined pointer-events-none absolute end-3 top-3 text-on-surface-variant/60";
@@ -163,7 +163,7 @@ export default function CreateEventPage() {
             <div className="space-y-1.5">
               <label
                 htmlFor="event_name"
-                className="block text-end text-sm font-bold text-on-surface-variant"
+                className="block text-start text-sm font-bold text-on-surface-variant"
               >
                 שם האירוע
               </label>
@@ -185,7 +185,7 @@ export default function CreateEventPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="event_date"
-                  className="block text-end text-sm font-bold text-on-surface-variant"
+                  className="block text-start text-sm font-bold text-on-surface-variant"
                 >
                   תאריך האירוע
                 </label>
@@ -203,7 +203,7 @@ export default function CreateEventPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="event_location"
-                  className="block text-end text-sm font-bold text-on-surface-variant"
+                  className="block text-start text-sm font-bold text-on-surface-variant"
                 >
                   מיקום
                 </label>
@@ -234,7 +234,7 @@ export default function CreateEventPage() {
                   qr_code_2
                 </span>
               </div>
-              <div className="flex-1 text-end">
+              <div className="flex-1 text-start">
                 <div className="text-sm font-bold text-primary">
                   הפקת ברקוד אוטומטית
                 </div>

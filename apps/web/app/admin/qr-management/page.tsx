@@ -181,7 +181,7 @@ function QrManagementPageInner() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">print</span>
               ניהול פיזי ותצוגה
             </h2>
@@ -204,10 +204,10 @@ function QrManagementPageInner() {
                 </button>
                 {printOpen && (
                   <div className="flex flex-col divide-y divide-outline-variant/20 bg-surface-container-high">
-                    <button className="px-5 py-3 text-end text-sm text-on-surface transition-colors hover:text-primary">
+                    <button className="px-5 py-3 text-start text-sm text-on-surface transition-colors hover:text-primary">
                       עמוד מלא (A4)
                     </button>
-                    <button className="px-5 py-3 text-end text-sm text-on-surface transition-colors hover:text-primary">
+                    <button className="px-5 py-3 text-start text-sm text-on-surface transition-colors hover:text-primary">
                       מדבקות מיתוג (Photo Santos)
                     </button>
                   </div>
@@ -236,7 +236,7 @@ function QrManagementPageInner() {
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">share</span>
               שיתוף דיגיטלי
             </h2>
@@ -255,7 +255,7 @@ function QrManagementPageInner() {
               ))}
             </div>
             <div className="mt-3 flex flex-row-reverse items-center justify-between gap-3 rounded-xl bg-background px-4 py-3">
-              <div className="min-w-0 text-end">
+              <div className="min-w-0 text-start">
                 <p className="text-xs text-on-surface-variant">
                   קישור ישיר לגלריה של {eventName ?? "האירוע"}
                 </p>

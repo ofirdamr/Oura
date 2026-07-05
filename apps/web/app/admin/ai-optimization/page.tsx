@@ -53,7 +53,7 @@ export default function AiOptimizationPage() {
   return (
     <AdminShell active="הגדרות">
       <div className="flex flex-row-reverse items-start justify-between gap-4">
-        <div className="text-end">
+        <div className="text-start">
           <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />
             פעיל אוטומטית
@@ -167,7 +167,7 @@ export default function AiOptimizationPage() {
 
         <div className="space-y-6">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">insights</span>
               מדדי דיוק
             </h2>
@@ -210,7 +210,7 @@ export default function AiOptimizationPage() {
               <span className="material-symbols-outlined text-success">
                 verified
               </span>
-              <div className="text-end">
+              <div className="text-start">
                 <p className="text-sm font-bold text-success">
                   אימות VIP מאושר
                 </p>
@@ -222,7 +222,7 @@ export default function AiOptimizationPage() {
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">warning</span>
               סיכום התראות מערכת
             </h2>
@@ -230,7 +230,7 @@ export default function AiOptimizationPage() {
               {ERROR_LOG.map((entry, i) => (
                 <div
                   key={i}
-                  className={`rounded-xl border-s-4 p-3 text-end ${
+                  className={`rounded-xl border-s-4 p-3 text-start ${
                     entry.tone === "error"
                       ? "border-error bg-error/5"
                       : "border-outline-variant bg-surface-container-high"

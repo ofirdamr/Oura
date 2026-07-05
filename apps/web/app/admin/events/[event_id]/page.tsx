@@ -230,7 +230,7 @@ export default function EventManagementPage() {
   return (
     <AdminShell active="אירועים">
       <div className="flex flex-row-reverse items-start justify-between gap-4">
-        <div className="text-end">
+        <div className="text-start">
           <h1 className="text-3xl font-bold text-on-surface">
             {loading ? "טוען..." : (eventRow?.name ?? "האירוע")}
           </h1>
@@ -266,7 +266,7 @@ export default function EventManagementPage() {
       )}
 
       <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-        <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+        <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
           <span className="material-symbols-outlined text-base">add_photo_alternate</span>
           העלאת תמונות
         </h2>
@@ -298,7 +298,7 @@ export default function EventManagementPage() {
             {uploads.map((u) => (
               <li
                 key={u.key}
-                className="flex flex-row-reverse items-center justify-between gap-3 rounded-xl bg-surface-container-high px-4 py-2.5 text-end"
+                className="flex flex-row-reverse items-center justify-between gap-3 rounded-xl bg-surface-container-high px-4 py-2.5 text-start"
               >
                 <span className="truncate text-sm text-on-surface" dir="ltr">
                   {u.name}
