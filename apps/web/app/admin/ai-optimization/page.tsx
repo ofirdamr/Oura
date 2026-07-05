@@ -52,7 +52,7 @@ export default function AiOptimizationPage() {
 
   return (
     <AdminShell active="הגדרות">
-      <div className="flex flex-row-reverse items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div className="text-start">
           <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
             <span className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -72,7 +72,7 @@ export default function AiOptimizationPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <div className="mb-3 flex flex-row-reverse items-center justify-between">
+            <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-bold text-on-surface">
                 תור עיבוד חי
               </h2>
@@ -133,7 +133,12 @@ export default function AiOptimizationPage() {
                 <span className="material-symbols-outlined text-5xl text-on-surface-variant/20">
                   image
                 </span>
-                <span className="absolute start-3 top-3 rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-on-primary">
+                {/* Stays in the always-visible "optimized" region regardless
+                    of slider position, since the original overlay grows
+                    inward from the start (right) edge - anchoring this badge
+                    to the opposite (end/left) edge is what keeps it
+                    unobscured, matching the design's fixed top-left badge. */}
+                <span className="absolute end-3 top-3 rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-on-primary">
                   OPTIMIZED
                 </span>
               </div>
@@ -144,7 +149,13 @@ export default function AiOptimizationPage() {
                 <span className="material-symbols-outlined text-5xl text-on-surface-variant/10">
                   image
                 </span>
-                <span className="absolute end-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">
+                {/* This panel is anchored at start-0 (right edge), so its own
+                    `start` edge is the container's fixed right edge - placing
+                    the badge there keeps it pinned top-right regardless of
+                    slider position, matching the design's fixed top-right
+                    badge (rather than drifting with the panel's shrinking
+                    end/left edge). */}
+                <span className="absolute start-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">
                   ORIGINAL
                 </span>
               </div>
@@ -174,7 +185,7 @@ export default function AiOptimizationPage() {
             <div className="space-y-4">
               {ACCURACY_METRICS.map((metric) => (
                 <div key={metric.label}>
-                  <div className="mb-1 flex flex-row-reverse items-baseline justify-between">
+                  <div className="mb-1 flex items-baseline justify-between">
                     <span className="text-xs text-on-surface-variant">
                       {metric.label}
                     </span>
@@ -206,7 +217,7 @@ export default function AiOptimizationPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex flex-row-reverse items-center gap-3 rounded-xl bg-success/5 p-3">
+            <div className="mt-4 flex items-center gap-3 rounded-xl bg-success/5 p-3">
               <span className="material-symbols-outlined text-success">
                 verified
               </span>
@@ -236,7 +247,7 @@ export default function AiOptimizationPage() {
                       : "border-outline-variant bg-surface-container-high"
                   }`}
                 >
-                  <div className="flex flex-row-reverse items-center justify-between">
+                  <div className="flex items-center justify-between">
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wide ${
                         entry.tone === "error" ? "text-error" : "text-on-surface-variant"

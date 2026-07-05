@@ -118,11 +118,16 @@ function GalleryEntryPageInner() {
           בגלריה המותאמת עבורכם.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-on-surface-variant/90">
+          {/* Design (gallery_entry_mobile) places this info icon trailing
+              at the far/left end of the line, opposite the help row below it
+              (whose "?" icon sits at the right, leading the text) - DOM
+              order here is text-then-icon (not the usual icon-then-text) so
+              a plain RTL row lands the icon at the end (left) to match. */}
           <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-base">info</span>
             <p className="text-sm font-medium">
               המערכת תזהה אתכם בתמונות באופן אוטומטי
             </p>
+            <span className="material-symbols-outlined text-base">info</span>
           </div>
           <span className="hidden text-outline-variant/40 md:inline">|</span>
           <button
@@ -159,8 +164,11 @@ function GalleryEntryPageInner() {
               title="סריקה בתוך הדפדפן עדיין לא זמינה - סרקו עם מצלמת הטלפון הרגילה או הזינו קוד למטה"
               className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-primary/40 py-4 font-bold text-on-primary/60 shadow-lg shadow-primary/10"
             >
-              <span className="material-symbols-outlined">photo_camera</span>
+              {/* Design (gallery_entry_mobile) puts the camera icon at the
+                  left of this label, not the right - text before icon in
+                  DOM order matches that under a plain RTL row. */}
               הפעל מצלמה לסריקה (בקרוב)
+              <span className="material-symbols-outlined">photo_camera</span>
             </button>
           </div>
         </div>
@@ -190,7 +198,14 @@ function GalleryEntryPageInner() {
                 placeholder="לדוגמה: WED-2024"
                 className="h-14 w-full rounded-xl border border-outline-variant/30 bg-black/40 px-4 text-center font-bold tracking-widest text-on-surface outline-none transition-all placeholder:font-normal placeholder:tracking-normal placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/50"
               />
-              <span className="material-symbols-outlined absolute end-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">
+              {/* material-symbols-outlined forces `direction: ltr` on itself
+                  (needed so the ligature glyph name shapes correctly), so
+                  inset-inline start/end on this element resolve LTR, not
+                  page-RTL - `end-4` here actually lands at the physical
+                  right (measured left:313/right:337 in a left:67/right:353
+                  box). Design (gallery_entry_mobile) puts this icon at the
+                  left, which needs `start-4` given the flipped direction. */}
+              <span className="material-symbols-outlined absolute start-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">
                 key
               </span>
             </div>

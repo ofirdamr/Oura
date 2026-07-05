@@ -111,7 +111,14 @@ export default function FestiveGalleryPage() {
             ))}
           </div>
           <div className="h-10 w-px bg-white/10" />
-          <div className="flex-1 px-2 text-start">
+          {/* Design (festive_gallery_mobile_1) shows this stat flush against
+              the card's far (left) edge, opposite the social icons/divider -
+              `text-start` would hug the box's right edge instead, right next
+              to the divider (measured at left:251/right:288 inside a
+              left:33/right:296 box before this fix). `text-end` is the
+              deliberate opposite-side exception documented in the RTL skill,
+              not the usual body-text case. */}
+          <div className="flex-1 px-2 text-end">
             <div
               className="text-lg font-bold leading-none text-on-surface"
               style={{ unicodeBidi: "isolate" }}

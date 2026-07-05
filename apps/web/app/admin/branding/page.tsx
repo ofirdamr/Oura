@@ -284,9 +284,16 @@ function BrandingSettingsPageInner() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
+      {/* Design (branding_settings_desktop_2) puts the live preview on the
+          left and the settings cards on the right. A plain DOM-order grid
+          under dir="rtl" auto-places the first child into the rightmost
+          track, which put the preview (written first for readability) on
+          the wrong side - measured live at left:787/right:1340 (right half)
+          before this fix. Both panels are pinned with `order` to match the
+          design instead of relying on source order. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_1fr]">
         {/* Live preview */}
-        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
+        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5 lg:order-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-1.5 text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">visibility</span>
@@ -428,7 +435,7 @@ function BrandingSettingsPageInner() {
         )}
 
         {/* Settings */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:order-1">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">add_photo_alternate</span>
@@ -478,8 +485,8 @@ function BrandingSettingsPageInner() {
               </p>
             )}
             {logoUrl && (
-              <div className="mt-3 flex flex-row-reverse items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
-                <div className="flex flex-row-reverse items-center gap-3">
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
+                <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-black/40 p-1">
                     {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed */}
                     <img src={logoUrl} alt="לוגו הסטודיו" className="h-full w-full object-contain" />
@@ -518,7 +525,7 @@ function BrandingSettingsPageInner() {
               <span className="material-symbols-outlined text-base">palette</span>
               צבעי המותג
             </h2>
-            <div className="flex flex-row-reverse items-center justify-between">
+            <div className="flex items-center justify-between">
               <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">צבע דגש ראשי</p>
                 <p className="text-xs text-on-surface-variant">
@@ -539,7 +546,7 @@ function BrandingSettingsPageInner() {
               </div>
             </div>
             <hr className="my-4 border-outline-variant/20" />
-            <div className="flex flex-row-reverse items-center justify-between">
+            <div className="flex items-center justify-between">
               <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">
                   סימן מים אוטומטי
