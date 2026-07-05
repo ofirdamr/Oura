@@ -513,3 +513,75 @@ as the code change if practical:
 session continuity; this file is the structural reference — endpoints,
 schema, auth model, deployment topology. They serve different purposes and
 both need to stay accurate, not just one.
+
+## 12. Vendor portability — what's actually locked in vs. not
+
+Written because the founder asked for this to be genuinely easy later, not
+hypothetically. No code was restructured to "future-proof" this — the
+project is at pilot scale, and adding abstraction layers for a migration
+that isn't happening yet would be pure complexity tax. This is an honest
+audit of what's already portable by how it was built, and what specifically
+would need real work, per service — a playbook for when/if it's needed.
+
+**Cloud Run (embedding service) — easiest to move, already achieved.**
+`packages/processing-pipeline` is a plain Docker container, configured
+entirely by two env vars (`EMBED_SERVICE_URL`, `EMBED_SERVICE_TOKEN`). No
+Google Cloud SDK or API is called from inside the app itself — FastAPI +
+InsightFace, nothing GCP-specific. Moving to Fly.io, AWS Fargate, or any
+Docker host: deploy the same `Dockerfile` there, update
+`EMBED_SERVICE_URL` in `apps/api/wrangler.toml`, re-set
+`EMBED_SERVICE_TOKEN` to match on both sides, `wrangler deploy`. No code
+changes. What doesn't move: the GCP project/billing/service-account setup
+itself (that's Google-specific account admin, not portable, just re-done
+fresh on whichever platform is next).
+
+**Supabase — the database is portable, the auth system is not.**
+The schema (`supabase/migrations/*.sql`) is vanilla Postgres plus the
+open-source `vector` (pgvector) and `pgcrypto` extensions — nothing
+Supabase-proprietary in the tables themselves. A `pg_dump`/`pg_restore` to
+any Postgres host with `pgvector` installed (Neon, RDS, self-hosted, even a
+different Supabase-like provider) carries the schema and data over cleanly.
+The genuinely sticky part is **Supabase Auth**: `events.photographer_id`
+references `auth.users(id)`, and every RLS policy is keyed on `auth.uid()`
+— a function Supabase's Auth layer provides, not a table you own. Leaving
+Supabase Auth means: migrating photographer accounts to a new provider (or
+standing up a parallel `photographers` table), rewriting every RLS policy
+to key on a different identity mechanism (or moving ownership checks into
+`requireEventOwner()` in application code instead of the database), and
+replacing the `auth.getUser(token)` verification call in `apps/api`. The
+`supabase-js`/PostgREST query style (`.from().select().eq()`) used
+throughout is a thin, mechanically-rewritable layer over plain SQL — real
+effort to swap, but not a deep architectural dependency like Auth is.
+
+**Cloudflare (Workers, R2, Queues, Cron) — mixed.** Hono itself (the
+`apps/api` framework) is not Cloudflare-specific — it runs on Node/Bun/Deno
+too, and none of the route *logic* depends on Cloudflare. What's actually
+Cloudflare-specific is the `Env` bindings: the `R2Bucket` interface, the
+`Queue<T>` binding + `queue()` handler, and the `ScheduledController` cron
+handler. None of these have a drop-in universal replacement:
+- **R2 → any other storage**: R2 already speaks the S3 API at the protocol
+  level, so the *data* is portable via any S3-compatible sync tool
+  (`rclone`, `aws s3 sync`). The *code* uses R2's native Worker binding
+  (`c.env.MEDIA.get(key)`), which would become a generic S3 SDK call if
+  moving off Workers entirely — a small, mechanical rewrite, not a redesign.
+  Worth flagging: R2's zero-egress pricing is *why* it was chosen (CLAUDE.md)
+  — moving to a provider that charges egress reintroduces a real cost on
+  read-heavy media serving, a genuine tradeoff, not just an engineering one.
+- **Queues → any other queue**: Cloudflare Queues' batching/retry/DLQ model
+  (`src/queueConsumer.ts`) doesn't have a universal equivalent — swapping to
+  SQS, Cloud Tasks, or a Postgres-backed queue is real rework, not a config
+  change.
+- **Cron → any scheduler**: trivial to replace (any host's own cron, a
+  GitHub Actions schedule, a hosted cron service) — `scheduledCleanup.ts`'s
+  actual logic doesn't depend on Cloudflare at all.
+- **`apps/web`**: the OpenNext Cloudflare adapter is the only
+  Cloudflare-specific layer — the app underneath is a standard Next.js app.
+  Dropping the adapter and deploying with plain `next build`/`next start`
+  (or to Vercel, or any Node host) is straightforward; Next.js itself isn't
+  what's locking this in.
+
+**Bottom line for a future move:** Cloud Run is a non-event (already
+designed to be swappable). Supabase's *database* is a non-event; Supabase
+*Auth* is the one genuinely hard migration in this stack. Cloudflare is the
+mixed case — R2 and Cron are cheap to leave, Queues is the real work, and
+`apps/web` is barely tied to Cloudflare at all under the adapter.
