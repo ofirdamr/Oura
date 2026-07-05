@@ -75,6 +75,7 @@ function BrandingSettingsPageInner() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -321,7 +322,12 @@ function BrandingSettingsPageInner() {
                 </span>
               </div>
               <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                <StudioLogo size={16} />
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                  <img src={logoUrl} alt="לוגו הסטודיו" className="h-4 w-4 object-contain" />
+                ) : (
+                  <StudioLogo size={16} />
+                )}
                 Photo Santos © 2024
               </div>
               {autoWatermark && (
@@ -329,7 +335,12 @@ function BrandingSettingsPageInner() {
                   className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
                   style={{ backgroundColor: accentColor }}
                 >
-                  <StudioLogo size={14} />
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                    <img src={logoUrl} alt="לוגו הסטודיו" className="h-3.5 w-3.5 object-contain" />
+                  ) : (
+                    <StudioLogo size={14} />
+                  )}
                   Photo Santos
                 </div>
               )}
@@ -390,7 +401,12 @@ function BrandingSettingsPageInner() {
                 </span>
               </div>
               <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                <StudioLogo size={16} />
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                  <img src={logoUrl} alt="לוגו הסטודיו" className="h-4 w-4 object-contain" />
+                ) : (
+                  <StudioLogo size={16} />
+                )}
                 Photo Santos © 2024
               </div>
               {autoWatermark && (
@@ -398,7 +414,12 @@ function BrandingSettingsPageInner() {
                   className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
                   style={{ backgroundColor: accentColor }}
                 >
-                  <StudioLogo size={14} />
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                    <img src={logoUrl} alt="לוגו הסטודיו" className="h-3.5 w-3.5 object-contain" />
+                  ) : (
+                    <StudioLogo size={14} />
+                  )}
                   Photo Santos
                 </div>
               )}
@@ -426,14 +447,26 @@ function BrandingSettingsPageInner() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                void handleLogoFileSelected(e.dataTransfer.files?.[0]);
+              }}
               disabled={logoUploading}
-              className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant/50 p-8 text-center transition-colors hover:border-primary/50 disabled:opacity-60"
+              className={`flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors disabled:opacity-60 ${
+                dragOver ? "border-primary bg-primary/5" : "border-outline-variant/50 hover:border-primary/50"
+              }`}
             >
               <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
                 {logoUploading ? "progress_activity" : "add_photo_alternate"}
               </span>
               <p className="text-sm font-medium text-on-surface">
-                {logoUploading ? "מעלה לוגו..." : "לחצו להעלאת לוגו"}
+                {logoUploading ? "מעלה לוגו..." : "גררו לוגו לכאן או לחצו לבחירה"}
               </p>
               <p className="text-xs text-on-surface-variant">
                 PNG, SVG (רקע שקוף מומלץ)

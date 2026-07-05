@@ -131,7 +131,7 @@ export default function EventsListPage() {
 
   return (
     <AdminShell active="אירועים">
-      <div className="flex flex-row-reverse items-center justify-between">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-on-surface">האירועים שלי</h1>
         <Link
           href="/admin/create-event"
