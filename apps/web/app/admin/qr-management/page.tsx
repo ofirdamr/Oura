@@ -22,10 +22,10 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 const GALLERY_ENTRY_BASE_URL = "https://oura-web.oura-events.workers.dev/gallery-entry";
 
 const SHARE_TARGETS = [
-  { label: "אימייל", accent: false },
   { label: "WhatsApp", accent: true },
-  { label: "Telegram", accent: false },
+  { label: "אימייל", accent: false },
   { label: "Instagram", accent: false },
+  { label: "Telegram", accent: false },
 ] as const;
 
 function CopyButton({ value, label }: { value: string; label: string }) {
@@ -137,7 +137,7 @@ function QrManagementPageInner() {
 
   if (!eventId) {
     return (
-      <AdminShell active="אירועים">
+      <AdminShell active="אירועים פעילים">
         <div className="mx-auto max-w-md py-20 text-center">
           <p className="mb-4 text-on-surface-variant">
             לא נבחר אירוע. יש ליצור אירוע חדש כדי לקבל קוד וברקוד.
@@ -158,7 +158,7 @@ function QrManagementPageInner() {
     : "טוען...";
 
   return (
-    <AdminShell active="אירועים">
+    <AdminShell active="אירועים פעילים">
       <div className="mx-auto max-w-3xl text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
           <span className="material-symbols-outlined text-3xl text-primary">
@@ -192,7 +192,7 @@ function QrManagementPageInner() {
                   onClick={() => setPrintOpen((v) => !v)}
                   className="flex w-full flex-row-reverse items-center justify-between bg-primary px-5 py-3.5 font-bold text-on-primary transition-all hover:brightness-110"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex flex-row-reverse items-center gap-2">
                     <span className="material-symbols-outlined">print</span>
                     הדפסת קוד QR
                   </span>
@@ -214,7 +214,7 @@ function QrManagementPageInner() {
                 )}
               </div>
               <button className="flex w-full flex-row-reverse items-center justify-between rounded-xl border border-outline-variant px-5 py-3.5 font-medium text-on-surface transition-all hover:bg-surface-container-highest">
-                <span className="flex items-center gap-2">
+                <span className="flex flex-row-reverse items-center gap-2">
                   <span className="material-symbols-outlined">fullscreen</span>
                   הצגה על מסך מלא באירוע
                 </span>
@@ -227,7 +227,7 @@ function QrManagementPageInner() {
                   qrDataUrl ? "" : "pointer-events-none opacity-50"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex flex-row-reverse items-center gap-2">
                   <span className="material-symbols-outlined">download</span>
                   הורדה כקובץ PNG איכותי
                 </span>
@@ -311,7 +311,7 @@ function QrManagementPageInner() {
         </div>
       </div>
 
-      <div className="flex flex-row-reverse items-center justify-between border-t border-outline-variant/30 pt-6">
+      <div className="flex items-center justify-between border-t border-outline-variant/30 pt-6">
         <Link
           href={`/admin/events/${eventId}`}
           className="rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95"

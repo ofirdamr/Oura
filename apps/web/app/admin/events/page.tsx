@@ -64,10 +64,44 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(decimals)} ${units[unitIndex]}`;
 }
 
+const STATUS_FILTERS: { key: EventStatus | "all"; label: string }[] = [
+  { key: "all", label: "הכל" },
+  { key: "live", label: "פעיל" },
+  { key: "draft", label: "טיוטה" },
+  { key: "archived", label: "בארכיון" },
+];
+
+function exportEventsCsv(rows: EventRow[], photoStats: Record<string, PhotoStats>) {
+  const header = ["שם האירוע", "קוד", "נוצר בתאריך", "סטטוס", "תמונות"];
+  const lines = rows.map((event) =>
+    [
+      event.name,
+      event.code ?? "",
+      formatDate(event.created_at),
+      STATUS_LABEL[event.status],
+      String(photoStats[event.id]?.count ?? 0),
+    ]
+      .map((field) => `"${field.replace(/"/g, '""')}"`)
+      .join(","),
+  );
+  const csv = ["﻿" + header.join(","), ...lines].join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "אירועים.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function EventsListPage() {
   const [events, setEvents] = useState<EventRow[] | null>(null);
   const [photoStats, setPhotoStats] = useState<Record<string, PhotoStats>>({});
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<EventStatus | "all">("all");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [view, setView] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     let cancelled = false;
@@ -129,8 +163,19 @@ export default function EventsListPage() {
     0,
   );
 
+  const filteredRows = rows.filter((event) => {
+    if (statusFilter !== "all" && event.status !== statusFilter) return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      const matchesName = event.name.toLowerCase().includes(q);
+      const matchesCode = event.code?.toLowerCase().includes(q) ?? false;
+      if (!matchesName && !matchesCode) return false;
+    }
+    return true;
+  });
+
   return (
-    <AdminShell active="אירועים">
+    <AdminShell active="אירועים פעילים">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-on-surface">האירועים שלי</h1>
         <Link
@@ -140,6 +185,19 @@ export default function EventsListPage() {
           <span className="material-symbols-outlined text-lg">add</span>
           אירוע חדש
         </Link>
+      </div>
+
+      <div className="relative">
+        <span className="material-symbols-outlined pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">
+          search
+        </span>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="חיפוש לפי שם או קוד..."
+          className="h-12 w-full rounded-xl border border-outline-variant/30 bg-surface-container px-4 pe-11 text-sm text-on-surface outline-none transition-all placeholder:text-on-surface-variant/40 focus:border-primary/50"
+        />
       </div>
 
       {error && (
@@ -225,6 +283,139 @@ export default function EventsListPage() {
       )}
 
       {!loading && totalEvents > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 rounded-lg bg-surface-container-high p-1">
+            <button
+              type="button"
+              onClick={() => setView("grid")}
+              aria-label="תצוגת רשת"
+              aria-pressed={view === "grid"}
+              className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors ${view === "grid" ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}
+            >
+              <span className="material-symbols-outlined text-lg">grid_view</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              aria-label="תצוגת רשימה"
+              aria-pressed={view === "list"}
+              className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors ${view === "list" ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}
+            >
+              <span className="material-symbols-outlined text-lg">view_list</span>
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setFilterOpen((v) => !v)}
+                className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary/30"
+              >
+                <span className="material-symbols-outlined text-lg">filter_list</span>
+                סינון
+              </button>
+              {filterOpen && (
+                <div className="absolute top-full z-20 mt-2 w-40 overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-high shadow-2xl" style={{ insetInlineEnd: 0 }}>
+                  {STATUS_FILTERS.map((f) => (
+                    <button
+                      key={f.key}
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter(f.key);
+                        setFilterOpen(false);
+                      }}
+                      className={`block w-full px-4 py-2.5 text-start text-sm transition-colors hover:bg-surface-container-highest ${
+                        statusFilter === f.key ? "font-bold text-primary" : "text-on-surface"
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => exportEventsCsv(filteredRows, photoStats)}
+              className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm font-medium text-on-surface transition-colors hover:border-primary/30"
+            >
+              <span className="material-symbols-outlined text-lg">download</span>
+              ייצוא נתונים
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!loading && totalEvents > 0 && filteredRows.length === 0 && (
+        <p className="rounded-lg border border-outline-variant/30 bg-surface-container px-4 py-6 text-center text-sm text-on-surface-variant">
+          לא נמצאו אירועים התואמים את החיפוש/הסינון.
+        </p>
+      )}
+
+      {!loading && filteredRows.length > 0 && view === "grid" && (
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredRows.map((event) => {
+            const stats = photoStats[event.id];
+            return (
+              <div
+                key={event.id}
+                className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <span
+                    className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold ${STATUS_BADGE_CLASSES[event.status]}`}
+                  >
+                    {event.status === "live" && (
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                    )}
+                    {STATUS_LABEL[event.status]}
+                  </span>
+                  <span className="text-xs text-on-surface-variant/60">
+                    {formatDate(event.created_at)}
+                  </span>
+                </div>
+                <p className="font-bold text-on-surface">{event.name}</p>
+                {event.code && (
+                  <p className="font-mono text-xs text-on-surface-variant/60" dir="ltr">
+                    {event.code}
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-on-surface-variant">
+                  {(stats?.count ?? 0).toLocaleString("he-IL")} תמונות
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-2 border-t border-outline-variant/20 pt-4">
+                  <Link
+                    href={`/admin/branding?event_id=${event.id}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/30 bg-surface-container-high text-on-surface-variant transition-all hover:border-primary/30 hover:text-primary"
+                    title="עריכת מיתוג"
+                    aria-label="עריכת מיתוג"
+                  >
+                    <span className="material-symbols-outlined text-lg">edit</span>
+                  </Link>
+                  <Link
+                    href={`/admin/qr-management?event_id=${event.id}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/30 bg-surface-container-high text-on-surface-variant transition-all hover:border-primary/30 hover:text-primary"
+                    title="קוד QR"
+                    aria-label="קוד QR"
+                  >
+                    <span className="material-symbols-outlined text-lg">qr_code</span>
+                  </Link>
+                  <Link
+                    href={`/admin/events/${event.id}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/30 bg-surface-container-high text-on-surface-variant transition-all hover:border-primary/30 hover:text-primary"
+                    title="ניהול תמונות"
+                    aria-label="ניהול תמונות"
+                  >
+                    <span className="material-symbols-outlined text-lg">photo_library</span>
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      {!loading && filteredRows.length > 0 && view === "list" && (
         <section className="overflow-hidden rounded-3xl border border-outline-variant/30 bg-surface-container shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] border-collapse text-start">
@@ -248,7 +439,7 @@ export default function EventsListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
-                {rows.map((event) => {
+                {filteredRows.map((event) => {
                   const stats = photoStats[event.id];
                   return (
                     <tr

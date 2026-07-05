@@ -80,7 +80,7 @@ export function AdminShell({
             </a>
           </nav>
         </div>
-        <div className="flex flex-row-reverse items-center gap-6">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-3 border-e border-outline-variant pe-4">
             <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container-highest">
               <span className="material-symbols-outlined text-primary">
@@ -138,8 +138,8 @@ export function AdminShell({
                 href={item.href}
                 className={
                   item.label === active
-                    ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                    : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                    ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                 }
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
@@ -158,13 +158,13 @@ export function AdminShell({
                 key={item.label}
                 aria-disabled="true"
                 title="בקרוב"
-                className="flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+                className="flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
               >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <span className="text-sm font-medium">{item.label}</span>
                 <span className="rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
                   בקרוב
                 </span>
-                <span className="text-sm font-medium">{item.label}</span>
-                <span className="material-symbols-outlined">{item.icon}</span>
               </span>
             ),
           )}
@@ -182,8 +182,8 @@ export function AdminShell({
             href="/admin/branding"
             className={
               active === "הגדרות"
-                ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
             }
           >
             <span className="material-symbols-outlined">settings</span>
@@ -192,7 +192,7 @@ export function AdminShell({
           <button
             type="button"
             onClick={handleLogout}
-            className="flex flex-row-reverse items-center justify-end gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+            className="flex items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
           >
             <span className="material-symbols-outlined">logout</span>
             <span className="text-sm font-bold">התנתקות</span>
@@ -236,8 +236,8 @@ export function AdminShell({
                     onClick={() => setMenuOpen(false)}
                     className={
                       item.label === active
-                        ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                        : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                        ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                        : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                     }
                   >
                     <span className="material-symbols-outlined">{item.icon}</span>
@@ -248,13 +248,13 @@ export function AdminShell({
                     key={item.label}
                     aria-disabled="true"
                     title="בקרוב"
-                    className="flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+                    className="flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
                   >
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
                     <span className="rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
                       בקרוב
                     </span>
-                    <span className="text-sm font-medium">{item.label}</span>
-                    <span className="material-symbols-outlined">{item.icon}</span>
                   </span>
                 ),
               )}
@@ -274,8 +274,8 @@ export function AdminShell({
                 onClick={() => setMenuOpen(false)}
                 className={
                   active === "הגדרות"
-                    ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                    : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                    ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                 }
               >
                 <span className="material-symbols-outlined">settings</span>
@@ -287,7 +287,7 @@ export function AdminShell({
                   setMenuOpen(false);
                   void handleLogout();
                 }}
-                className="flex flex-row-reverse items-center justify-end gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+                className="flex items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
               >
                 <span className="material-symbols-outlined">logout</span>
                 <span className="text-sm font-bold">התנתקות</span>

@@ -61,7 +61,7 @@ export default function GiftRevealPage() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-20 max-w-7xl flex-row-reverse items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <OuraLogo size={36} />
             <span className="font-display text-2xl font-bold tracking-tight text-on-surface">

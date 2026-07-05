@@ -135,11 +135,11 @@ export default function CreateEventPage() {
   }
 
   return (
-    <AdminShell active="אירועים">
+    <AdminShell active="אירועים פעילים">
       <div className="flex justify-center">
         <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-outline-variant bg-surface-container shadow-2xl">
           {/* Header */}
-          <div className="flex flex-row-reverse items-center justify-between border-b border-outline-variant bg-surface-container-high px-6 py-5 md:px-8 md:py-6">
+          <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-high px-6 py-5 md:px-8 md:py-6">
             <div className="flex flex-col items-end">
               <h1 className="text-2xl font-bold text-primary md:text-3xl">
                 אירוע חדש

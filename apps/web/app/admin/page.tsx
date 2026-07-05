@@ -188,7 +188,7 @@ export default function AdminDashboardPage() {
                 <Link
                   key={event.id}
                   href={`/admin/events/${event.id}`}
-                  className="flex flex-row-reverse items-center justify-between rounded-2xl border border-primary/10 bg-surface-container p-4 transition-colors hover:bg-surface-container-high"
+                  className="flex items-center justify-between rounded-2xl border border-primary/10 bg-surface-container p-4 transition-colors hover:bg-surface-container-high"
                 >
                   <div className="flex flex-row-reverse items-center gap-4">
                     <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-highest">

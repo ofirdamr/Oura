@@ -43,7 +43,7 @@ function PhotoTile({
         className="object-cover"
       />
       {matched && (
-        <div className="absolute start-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
+        <div className="absolute end-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
           <span
             className="material-symbols-outlined text-primary"
             style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}

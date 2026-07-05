@@ -211,7 +211,7 @@ export default function EventManagementPage() {
 
   if (notFound) {
     return (
-      <AdminShell active="אירועים">
+      <AdminShell active="אירועים פעילים">
         <div className="mx-auto max-w-md py-20 text-center">
           <p className="mb-4 text-on-surface-variant">
             האירוע המבוקש לא נמצא, או שאין לך הרשאה לצפות בו.
@@ -228,8 +228,8 @@ export default function EventManagementPage() {
   }
 
   return (
-    <AdminShell active="אירועים">
-      <div className="flex flex-row-reverse items-start justify-between gap-4">
+    <AdminShell active="אירועים פעילים">
+      <div className="flex items-start justify-between gap-4">
         <div className="text-start">
           <h1 className="text-3xl font-bold text-on-surface">
             {loading ? "טוען..." : (eventRow?.name ?? "האירוע")}
