@@ -42,6 +42,30 @@ separate messages — brevity and visibility aren't in tension here.
 
 ---
 
+## Connector awareness (lightweight — check once per project, not per task)
+
+MCP connectors/integrations can save real work, but a blanket pitch of
+everything available is noise, not help. When a project reaches a phase
+where an external service is actually relevant, check `ListConnectors`
+(and `SearchMcpRegistry`/`SuggestConnectors` for ones not yet connected) and
+flag it in one line — name the connector, the concrete task it helps with,
+and whether it needs connecting via claude.ai settings first (non-interactive
+sessions can't run the OAuth flow themselves).
+
+- **Only flag what the project's OWN stack already implies.** If `CLAUDE.md`
+  commits to a service (e.g. Stripe for billing), that's a legitimate flag
+  once that phase of work is starting — not a generic "you could also use X."
+- **Never recommend a connector that conflicts with an explicit architecture
+  decision already on record.** A project with a stated "self-hosted /
+  zero-egress / no third-party API" rule for some subsystem should not be
+  pointed at a connector that does that subsystem's job through a
+  third-party service, even if it happens to be available and generically
+  useful elsewhere.
+- Do this check once when it becomes relevant (a new phase starts, a task
+  clearly needs an external service), not as a recurring per-session ritual.
+
+---
+
 ## 0. FIRST CONSULT — Token Economist (mandatory gate)
 
 **Before any task, consult the Token Economist first.** This is non-negotiable
