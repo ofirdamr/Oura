@@ -7,13 +7,16 @@ import { OuraLogo } from "@/components/brand/OuraLogo";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
+// Labels/icons/order verified against the actual design
+// (design/screens/oura_final_production_event_list_desktop_1 and _2 - both
+// consistent): 5 main nav items, "הגדרות מערכת" sits at the bottom near
+// logout, not in this list.
 const NAV_ITEMS = [
   { label: "לוח בקרה", icon: "dashboard", href: "/admin" },
-  { label: "אירועים", icon: "photo_camera", href: "/admin/events" },
-  { label: "ארכיון", icon: "inventory_2", href: null },
-  { label: "ניהול לקוחות", icon: "groups", href: null },
-  { label: "סטטיסטיקה", icon: "analytics", href: null },
-  { label: "הגדרות", icon: "settings", href: "/admin/branding" },
+  { label: "אירועים פעילים", icon: "calendar_month", href: "/admin/events" },
+  { label: "ארכיון אירועים", icon: "inventory_2", href: null },
+  { label: "לקוחות VIP", icon: "workspace_premium", href: null },
+  { label: "ניתוח נתונים", icon: "analytics", href: null },
 ];
 
 export function AdminShell({
@@ -135,8 +138,8 @@ export function AdminShell({
                 href={item.href}
                 className={
                   item.label === active
-                    ? "flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                    : "flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                    ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                 }
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
@@ -155,13 +158,13 @@ export function AdminShell({
                 key={item.label}
                 aria-disabled="true"
                 title="בקרוב"
-                className="flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+                className="flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
               >
-                <span className="material-symbols-outlined">{item.icon}</span>
-                <span className="text-sm font-medium">{item.label}</span>
-                <span className="ms-auto rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
                   בקרוב
                 </span>
+                <span className="text-sm font-medium">{item.label}</span>
+                <span className="material-symbols-outlined">{item.icon}</span>
               </span>
             ),
           )}
@@ -175,10 +178,21 @@ export function AdminShell({
             <span className="text-sm font-bold">אירוע חדש</span>
           </a>
           <hr className="mb-2 border-outline-variant opacity-30" />
+          <a
+            href="/admin/branding"
+            className={
+              active === "הגדרות"
+                ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+            }
+          >
+            <span className="material-symbols-outlined">settings</span>
+            <span className={active === "הגדרות" ? "text-sm font-bold" : "text-sm font-medium"}>הגדרות מערכת</span>
+          </a>
           <button
             type="button"
             onClick={handleLogout}
-            className="flex flex-row-reverse items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+            className="flex flex-row-reverse items-center justify-end gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
           >
             <span className="material-symbols-outlined">logout</span>
             <span className="text-sm font-bold">התנתקות</span>
@@ -222,8 +236,8 @@ export function AdminShell({
                     onClick={() => setMenuOpen(false)}
                     className={
                       item.label === active
-                        ? "flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                        : "flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                        ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                        : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                     }
                   >
                     <span className="material-symbols-outlined">{item.icon}</span>
@@ -234,13 +248,13 @@ export function AdminShell({
                     key={item.label}
                     aria-disabled="true"
                     title="בקרוב"
-                    className="flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+                    className="flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
                   >
-                    <span className="material-symbols-outlined">{item.icon}</span>
-                    <span className="text-sm font-medium">{item.label}</span>
-                    <span className="ms-auto rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
+                    <span className="rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
                       בקרוב
                     </span>
+                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="material-symbols-outlined">{item.icon}</span>
                   </span>
                 ),
               )}
@@ -255,13 +269,25 @@ export function AdminShell({
                 <span className="text-sm font-bold">אירוע חדש</span>
               </a>
               <hr className="mb-2 border-outline-variant opacity-30" />
+              <a
+                href="/admin/branding"
+                onClick={() => setMenuOpen(false)}
+                className={
+                  active === "הגדרות"
+                    ? "flex flex-row-reverse items-center justify-end gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex flex-row-reverse items-center justify-end gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                }
+              >
+                <span className="material-symbols-outlined">settings</span>
+                <span className={active === "הגדרות" ? "text-sm font-bold" : "text-sm font-medium"}>הגדרות מערכת</span>
+              </a>
               <button
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
                   void handleLogout();
                 }}
-                className="flex flex-row-reverse items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+                className="flex flex-row-reverse items-center justify-end gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
               >
                 <span className="material-symbols-outlined">logout</span>
                 <span className="text-sm font-bold">התנתקות</span>
