@@ -89,6 +89,20 @@ and comes before any other role. The Economist returns three things:
    screenshot per element or per page state. Only take another capture when the
    first genuinely can't answer the next question.
 
+   **Conversation-length is part of scope guard too, not just individual tool
+   calls.** A long-running conversation costs tokens on every single subsequent
+   turn, since the whole transcript rides along each time — many turns, large
+   tool outputs, screenshots, and long back-and-forth (e.g. walking someone
+   through a console UI step by step) add up fast. Once the project's MD files
+   are current (a real commit has just landed, `SUMMARY.md`/`PROGRESS.md`/
+   `docs/ARCHITECTURE.md` reflect the actual state), that is the signal to
+   **proactively recommend — without being asked — that the user start a fresh
+   session/conversation and continue there**, rather than waiting for the user
+   to notice and ask for it. Give the Session Handover output (§6) right then.
+   Do not do this mid-task with loose ends hanging (an in-flight deploy, an
+   unresolved question) — finish or clearly park the immediate thread first, so
+   the MD files actually capture a clean stopping point, not a half-done one.
+
 4. **Orchestration mode** — picks HOW the work runs, per task:
    | Mode | What it is | Use when |
    |------|-----------|----------|
@@ -284,6 +298,10 @@ extend to reinterpreting what a locked rule covers.
 ---
 
 ## 6. Session Handover (end every working session with this)
+
+Triggered either at a natural stopping point, or proactively by the Token
+Economist's conversation-length scope guard (§0.3) — don't wait for the user
+to ask "are we done" before offering this.
 
 ```
 ### Handover Output
