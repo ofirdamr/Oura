@@ -14,13 +14,11 @@
 // (CLAUDE.md: no CDN tags in production builds) in favor of the app's already-
 // bundled fonts/Tailwind build.
 //
-// Sits between /consent and /gift-reveal in the intended guest sequence, but
-// nothing currently links here except a direct URL - the founder has NOT yet
-// flipped /consent's redirect target from /gallery to /selfie, because the
-// self-hosted embedding service (packages/processing-pipeline) has no real
-// host deployed yet, so a live guest reaching this screen today would always
-// hit a dead-end "matching unavailable" state. That switch happens together
-// with the embedding-service deploy, not before.
+// Sits between /consent and /gift-reveal in the guest sequence. The
+// self-hosted embedding service (packages/processing-pipeline) is now
+// deployed to Cloud Run, so /consent's redirect target was flipped from
+// /gallery to /selfie in the same pass as the embedding-service deploy - this
+// screen is now part of the real, live guest flow, not just direct-URL-only.
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";

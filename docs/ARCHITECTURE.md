@@ -57,22 +57,21 @@ directory (`apps/web` uses `npx opennextjs-cloudflare build` instead of plain
 ```
 /apps/web                      Next.js app (guest gallery + photographer dashboard) — REAL, deployed
 /apps/api                      Cloudflare Worker (Hono), wrangler.toml — REAL, deployed
-/packages/processing-pipeline  face-embed service (InsightFace/ArcFace) — REAL CODE, NOT YET DEPLOYED
+/packages/processing-pipeline  face-embed service (InsightFace/ArcFace) — REAL, deployed (Cloud Run)
 /packages/shared                shared TS types/schemas — DOES NOT EXIST YET
 /design                         Stitch export, 42 reference screens + brand spec — REAL, source of truth for UI
 /supabase/migrations             SQL migrations, applied via the Management API — REAL
 /docs/ARCHITECTURE.md            this file
 ```
 
-`packages/processing-pipeline` now has real code (FastAPI + InsightFace
-`buffalo_l`, `POST /embed`/`GET /health`, a portable `Dockerfile`) — but it
-has never been deployed to a real host. This dev sandbox has no Fly.io/GCP
-credentials, only Cloudflare's, so the container was built and its HTTP-layer
-logic tested locally (model stubbed — the sandbox's proxy allowlist blocks
-GitHub release downloads, so the actual InsightFace weights were never
-fetched/exercised here). `apps/api/wrangler.toml`'s `EMBED_SERVICE_URL` is
-still a placeholder until a real host (Fly.io vs Cloud Run, not yet decided)
-is picked and deployed to. `packages/shared` remains aspirational — no
+`packages/processing-pipeline` (FastAPI + InsightFace `buffalo_l`,
+`POST /embed`/`GET /health`) is deployed to Cloud Run (project
+`ouraforphotographers`, region `us-central1`, service `oura-embed`) — the
+model itself was unreachable/untestable from this dev sandbox (its proxy
+allowlist blocks GitHub release downloads), but Cloud Build's own network
+access isn't sandbox-restricted, so the real weights downloaded and loaded
+fine there. `apps/api/wrangler.toml`'s `EMBED_SERVICE_URL` points at the real
+deployed host. `packages/shared` remains aspirational — no
 `/packages/shared` directory exists.
 
 ## 2. Two auth models — do not conflate them
@@ -176,7 +175,7 @@ signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
 `verifyGuestToken`/`tokenHash`) — no JWT library. Constant-time verification.
 The token never expires today (see Known Gaps) and travels in the URL path.
 
-### 4a. Stage 2 pipeline architecture (built, not yet live)
+### 4a. Stage 2 pipeline architecture (live)
 
 - **Photo-side embedding**: `POST /events/:event_id/photos` best-effort
   enqueues `{photo_id, event_id, storage_key}` to the `face-embed-queue`
@@ -198,13 +197,26 @@ The token never expires today (see Known Gaps) and travels in the URL path.
   guest's `retention_expires_at` has passed. Scoped to embeddings only —
   `guests`/`biometric_consents` rows are kept indefinitely as audit metadata.
 - **Embedding service**: `packages/processing-pipeline` (self-hosted
-  InsightFace/ArcFace, never a per-call managed API per CLAUDE.md) — see
-  §1a for its deploy status.
-- **Not yet built**: the real `/selfie` capture screen (needs a founder-run
-  Stitch export — no design source exists for a camera-capture UI) and
-  wiring `/consent`'s redirect + `/gift-reveal` into the post-selfie sequence.
-  Both ship together in a follow-up pass, never split (splitting would 404
-  live guests mid-flow).
+  InsightFace/ArcFace, never a per-call managed API per CLAUDE.md), deployed
+  to **Cloud Run** (project `ouraforphotographers`, region `us-central1`,
+  service `oura-embed`). Publicly reachable at the network level
+  (`--no-allow-unauthenticated` was tried first and reverted — Cloud Run's
+  own IAM auth would reject the Worker's calls before they reach the app,
+  since there's no VPC peering between Cloudflare and Cloud Run; the
+  `EMBED_SERVICE_TOKEN` bearer check inside the FastAPI app is the actual
+  access control). CPU boost enabled on the service to reduce cold-start
+  latency without paying for an always-on instance (`min-instances` stays 0).
+  The GCP service account used to deploy needed three roles added
+  incrementally (Cloud Run Admin, Artifact Registry Writer, Service Account
+  User — the standard trio for a Cloud-Run-deploying account) plus Cloud
+  Run/Cloud Build/Artifact Registry APIs enabled on the project.
+- **Guest flow fully wired**: `/consent`'s redirect now points to `/selfie`
+  (not `/gallery`) on accept, and `/selfie`'s confirm-submit routes to
+  `/gift-reveal` regardless of match outcome (both "matched" and "still
+  searching" are legitimate, already-handled states) before landing on
+  `/gallery`. Verified live end-to-end against throwaway test guests on the
+  real `WED-2024` event: consent → selfie submission → real Cloud Run
+  embedding call → correct `no_face_detected`/`matched` response.
 
 ## 5. Photographer-facing API (`apps/api`, JWT-authenticated + ownership-gated)
 
@@ -334,8 +346,20 @@ mark).
 similarity tuning knobs, first things to adjust after watching real pilot-
 event match rates.
 
-**`packages/processing-pipeline` (container env):** `EMBED_SERVICE_TOKEN` —
-same value as the Worker secret above, checked on every `/embed` call.
+**`packages/processing-pipeline` (Cloud Run env var):** `EMBED_SERVICE_TOKEN` —
+same value as the Worker secret above (both re-set together whenever rotated,
+since Cloudflare secrets are write-only and can't be read back to confirm a
+match), checked on every `/embed` call. Set via `--set-env-vars` at deploy
+time, not Secret Manager — a deliberate simplification consistent with the
+project's MVP scale, equivalent in practice to the Worker-secret model (not
+exposed in logs, just an env var on the container).
+
+**GCP project (`ouraforphotographers`):** hosts the Cloud Run service. A
+dedicated deploy-time service account needs three IAM roles — Cloud Run
+Admin, Artifact Registry Writer, Service Account User — plus the Cloud Run,
+Cloud Build, and Artifact Registry APIs enabled on the project. Any session
+redeploying this service needs a fresh service-account JSON key from the
+founder (same one-time-credential pattern as the Supabase access token).
 
 **`apps/web` (build-time, `.env.local` / CI env — these get INLINED into the
 client bundle, so "secret" here just means "not committed," not "hidden from
@@ -344,34 +368,17 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ## 8. Known gaps (honest, not oversights — see PRD.md for phase boundaries)
 
-- **Face-matching pipeline (Stage 2) is deployed at the infrastructure level
-  but the embedding service itself isn't live yet.** Migration 0003 is
-  applied to the live DB (verified: zero NULL `retention_expires_at` rows,
-  `guardian_confirmed`/`embed_status` columns present, `match_faces` RPC
-  callable). `apps/api` is deployed with the queue (`face-embed-queue` +
-  DLQ, created live), the daily retention cron, `POST /consent/:token`
-  requiring `guardian_confirmed`, and `POST /guests/:token/selfie` — all
-  verified live against a throwaway test guest on the real `WED-2024` event
-  (guardian gate 400s correctly, consent sets `retention_expires_at` at
-  exactly +30 days, selfie 403s pre-consent and 502s post-consent with
-  `embed_service_unavailable` — expected, not a bug). `apps/web/app/selfie`
-  is also built and deployed now (from the founder's returned Stitch
-  export), verified with Playwright, but reachable only by direct URL —
-  same status as `/gift-reveal`. What's still missing: the embedding service
-  has never been deployed to a real host (no Fly.io/GCP credentials in this
-  dev sandbox — built and logic-tested locally with the model stubbed out
-  only, `EMBED_SERVICE_URL` is still a placeholder). Until it is, `/consent`'s
-  redirect stays pointed at `/gallery` (not `/selfie`) on purpose —
-  flipping it now would send every real guest through a camera prompt for a
-  feature that can't yet match anything. Until the embedding host is live
-  and that redirect is flipped, `face_embeddings` stays unpopulated and the
-  personal gallery still honestly shows "still searching for you." Legal basis: the founder
-  received an informal draft legal opinion (from a lawyer-friend, formal
-  signed version to follow) recommending a 30-day retention window, an
-  active consent gesture, and guardian/age confirmation — and explicitly
-  decided to proceed building on that basis, accepting the risk ahead of the
-  formal signed opinion. PRD §8 should be read alongside this note, not as
-  fully resolved.
+- **Face-matching pipeline (Stage 2) is fully live** — see §4/§4a. Real
+  guests now go consent → selfie → gift-reveal → gallery, with actual
+  InsightFace/ArcFace matching running on Cloud Run. Residual, honest
+  caveats: (a) `CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD` are initial
+  domain-convention guesses, not measured against real pilot-event data yet
+  — they're `wrangler.toml` vars specifically so they can be tuned without a
+  redeploy once real match-rate data exists; (b) legal basis is an informal
+  draft opinion (from a lawyer-friend, formal signed version still to
+  follow) — the founder explicitly decided to proceed building on that
+  basis, accepting the risk ahead of the formal signed opinion; PRD §8
+  should be read alongside this note, not as fully resolved.
 - **Guest tokens never expire** and travel in the URL path (loggable at
   edges/proxies). Flagged by an earlier security review, not yet addressed.
 - **No photographer password-reset flow.** Founder's account had a password
@@ -417,12 +424,21 @@ those same env vars as repo/environment secrets.
 3. ✅ `wrangler secret put EMBED_SERVICE_TOKEN` and `npx wrangler deploy` —
    `oura-api` is live with the queue producer/consumer, cron, and new routes.
    Verified live against a throwaway test guest (see Known Gaps).
-4. **Not done — needs external inputs this dev sandbox doesn't have:**
-   deploy `packages/processing-pipeline`'s container to a real host (Fly.io
-   vs Cloud Run, not yet decided — see recommendation below; the `Dockerfile`
-   is portable to either; no Fly.io/GCP credentials in this sandbox), then
-   update `EMBED_SERVICE_URL` in `wrangler.toml` to the real host and
-   re-`wrangler deploy`.
+4. ✅ Deployed `packages/processing-pipeline` to Cloud Run (project
+   `ouraforphotographers`, region `us-central1`, service `oura-embed`) —
+   founder created a GCP project + billing + a deploy service account (whose
+   IAM roles had to be added incrementally: Cloud Run Admin, Artifact
+   Registry Writer, Service Account User) and handed a service-account JSON
+   key to this session. Fixed a real Dockerfile bug along the way
+   (`insightface`/`stringzilla` need a C/C++ compiler to build from source —
+   moved to a multi-stage build with `build-essential` in the builder stage
+   only). Deployed with `--no-allow-unauthenticated` first, then reverted to
+   public+bearer-token auth once it became clear Cloud Run's own IAM layer
+   would reject the Worker's calls before they reached the app (no VPC
+   peering exists between Cloudflare and Cloud Run). CPU boost enabled to
+   reduce cold-start latency while keeping `min-instances=0`. Updated
+   `EMBED_SERVICE_URL` in `wrangler.toml` to the real host and
+   `re-wrangler deploy`'d `apps/api`. Verified live end-to-end.
 5. ✅ Built `apps/web/app/selfie/page.tsx` from the founder's Stitch export
    (`oura_ai_desktop.html`/`oura_ai_mobile.html`) and deployed it — reachable
    at `/selfie` by direct URL only, same status as `/gift-reveal`. Verified
@@ -441,13 +457,12 @@ those same env vars as repo/environment secrets.
    collide with different meanings (the export's `text-primary` is white;
    the app's `--color-primary` is the copper accent, so a literal class copy
    would have silently recolored that text orange).
-   **Deliberately NOT done yet, same reasoning as before:** `/consent`'s
-   redirect target is still `/gallery`, not `/selfie`, and `/gift-reveal` is
-   still unreachable through the normal flow. Flipping that redirect now
-   would put every real guest through a camera-permission prompt for a
-   feature that can't actually match anything yet (step 4 isn't done), so
-   the guest would always land on the "matching unavailable" fallback path.
-   That switch happens together with the embedding-service deploy.
+6. ✅ Flipped `/consent`'s redirect target from `/gallery` to `/selfie`, and
+   confirmed `/selfie`'s confirm-submit routes to `/gift-reveal` (both
+   "matched" and "still searching" outcomes) before landing on `/gallery`.
+   Deployed and verified live end-to-end against throwaway test guests on
+   the real `WED-2024` event. **Stage 2 is now fully live**, no remaining
+   deploy steps.
 
 ## 10. Verification & testing conventions
 

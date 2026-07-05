@@ -8,12 +8,14 @@
 // guest visual language (same card/typography pattern as /gallery-entry),
 // since there's no design/screens reference for it.
 //
-// Wired to the now-live POST /consent/:token (apps/api). Accept records
-// consent and moves on to the personal gallery; decline routes to the general
-// gallery WITHOUT ever calling the consent endpoint - declining must never
-// create a consent record. (/gallery also enforces this server-side: it only
-// unlocks personal_gallery once a biometric_consents row actually exists, so
-// this screen isn't the only guardrail.)
+// Wired to the now-live POST /consent/:token (apps/api). Accept requires the
+// guardian/age-confirmation checkbox (Stage 2 legal-review requirement) and
+// moves on to /selfie (the real capture screen, live now that the embedding
+// service is deployed); decline routes to the general gallery WITHOUT ever
+// calling the consent endpoint - declining must never create a consent
+// record. (/gallery also enforces this server-side: it only unlocks
+// personal_gallery once a biometric_consents row actually exists, so this
+// screen isn't the only guardrail.)
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,7 +79,9 @@ export default function ConsentPage() {
       setError("משהו השתבש בשמירת ההסכמה. נסו שוב.");
       return;
     }
-    router.push("/gallery");
+    // Stage 2 embedding service is live (Cloud Run) - route into the real
+    // selfie-capture step instead of straight to the gallery.
+    router.push("/selfie");
   }
 
   function handleDecline() {

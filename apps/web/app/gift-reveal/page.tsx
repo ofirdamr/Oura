@@ -10,11 +10,13 @@
 // folder name" guardrail, the product-sales chrome is intentionally NOT ported;
 // this is the guest reveal, built responsively from the desktop composition.
 //
-// Where it fits in the guest flow: consent gate (accept) -> THIS reveal ->
-// /gallery. It's the celebratory "your gift is ready" moment before the personal
-// gallery. Real inbound navigation from /consent isn't wired here (out of scope
-// this pass, matching how sibling screens were left) - the reveal's CTA routes
-// forward to /gallery once the box is opened.
+// Where it fits in the guest flow: consent gate (accept) -> /selfie (capture)
+// -> THIS reveal -> /gallery. It's the celebratory "your gift is ready" moment
+// after the selfie submission (matched or not - both are legitimate outcomes,
+// the personal gallery already handles "still searching for you" gracefully).
+// Now genuinely reachable through the real flow, not just a direct URL - wired
+// from /selfie's confirm-submit handler once the embedding service went live.
+// The reveal's own CTA still routes forward to /gallery once the box is opened.
 //
 // The 3D scene (Three.js + GSAP) lives in GiftBoxReveal and is dynamic-imported
 // with ssr:false, since WebGL/canvas APIs don't exist server-side.
