@@ -239,7 +239,11 @@ function BrandingSettingsPageInner() {
             אוטומטי על כל הגלריות והאירועים שתיצור במערכת Oura.
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        {/* Desktop only (matches oura_final_production_branding_settings_desktop_2):
+            Save/Cancel sit beside the title. On mobile the actual design
+            (branding_settings_mobile_2) moves these to a full-width stacked
+            pair at the very end of the page instead - see below. */}
+        <div className="hidden shrink-0 flex-col items-end gap-2 lg:flex">
           <div className="flex flex-row-reverse gap-3">
             <button
               type="button"
@@ -529,6 +533,39 @@ function BrandingSettingsPageInner() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile only (matches branding_settings_mobile_2): full-width stacked
+          Save/Cancel at the end of the page, not beside the title. */}
+      <div className="flex flex-col gap-3 lg:hidden">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={loading || saveState === "saving"}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
+        >
+          {saveState === "saving" && (
+            <span className="material-symbols-outlined animate-spin text-lg">
+              sync
+            </span>
+          )}
+          {saveState === "saving"
+            ? "שומר..."
+            : saveState === "saved"
+              ? "נשמר!"
+              : "שמירת שינויים"}
+        </button>
+        <Link
+          href="/admin"
+          className="w-full rounded-xl border border-outline-variant px-6 py-3 text-center font-bold text-on-surface transition-all hover:bg-surface-container-highest"
+        >
+          ביטול
+        </Link>
+        {saveState === "error" && (
+          <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+            שמירת המיתוג נכשלה. נסו שוב.
+          </p>
+        )}
       </div>
     </AdminShell>
   );
