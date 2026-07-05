@@ -220,6 +220,36 @@ Confirm the exact import name and setup against the current MUI RTL guide (https
 7. Charts -- x-axis may need to reverse for Hebrew readers
 8. Shadows and gradients -- physical offsets/angles do not auto-flip (see Step 3)
 
+### Step 8: Verify with Measurements, Never by Eyeballing a Screenshot
+
+Every RTL bug documented in the Gotchas below (row-reverse double-flip, missing `justify-content`, `text-end` vs `text-start`, icon/label ordering) was first "fixed" incorrectly at least once by reasoning about the CSS in the abstract, or by eyeballing a screenshot — both are unreliable. Screenshots mislead in two specific ways: (1) short/single-line content can't expose an alignment bug (there's nothing to misalign), and (2) a human glance at a cropped or unfamiliar layout is a poor judge of "is this hugging the right edge or just centered." The only reliable check is to measure the actual rendered DOM.
+
+**The procedure, in order, every time a layout must match a specific direction/order:**
+
+1. **Open the actual design reference first** (`design/*/screen.png` for this project). Do not derive the expected order/side from RTL first-principles reasoning or from what a previous fix concluded — look at the pixels. If a row's ordering has been "corrected" more than once, that itself is the signal to stop reasoning and go look at the image.
+2. **Measure the live/dev-built DOM**, not a screenshot, using `getBoundingClientRect()` (for element/row order and edge-hugging) or `getClientRects()` on a `Range` around a text node (for multi-line text alignment). A Playwright `page.evaluate()` snippet for element order/positioning:
+
+```js
+const data = await page.evaluate(() => {
+  const row = document.querySelector('[data-testid="the-row"]');
+  const rowBox = row.getBoundingClientRect();
+  return {
+    row: { left: rowBox.left, right: rowBox.right },
+    children: Array.from(row.children).map((c) => {
+      const b = c.getBoundingClientRect();
+      return { text: c.textContent.trim(), left: b.left, right: b.right };
+    }),
+  };
+});
+```
+
+Compare each child's `left`/`right` against the row's edges and against each other — "hugs the right edge" means the rightmost child's `right` is within a few px (the padding) of the row's `right`, not just "looks like it's over there" in a picture.
+
+3. **Only then** take a screenshot, and only as a human-readable illustration to send the user alongside the original design image — never as the sole evidence a fix is correct.
+4. If the result of step 2 contradicts what a screenshot seems to show, trust the measurement. Screenshots can be cropped oddly, scaled, or just misjudged at a glance; a bounding-box number is not.
+
+This is not optional for menu/nav/icon-order work specifically — it is exactly the category of bug that has been gotten wrong multiple times in this project by skipping straight to a screenshot or to CSS reasoning.
+
 ## Examples
 
 ### Example 1: Convert LTR Component to RTL
