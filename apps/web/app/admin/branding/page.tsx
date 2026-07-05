@@ -214,7 +214,7 @@ function BrandingSettingsPageInner() {
 
   return (
     <AdminShell active="הגדרות">
-      <div className="flex flex-row-reverse items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div className="text-end">
           <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
             <span className="material-symbols-outlined text-sm">workspace_premium</span>
@@ -271,7 +271,7 @@ function BrandingSettingsPageInner() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
         {/* Live preview */}
         <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-          <div className="mb-4 flex flex-row-reverse items-center justify-between">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-1.5 text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">visibility</span>
               תצוגה מקדימה חיה
