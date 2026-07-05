@@ -30,7 +30,17 @@ type FrameKey = (typeof FRAME_STYLES)[number]["key"];
 
 const FRAME_KEYS = FRAME_STYLES.map((f) => f.key) as readonly string[];
 
-const BACKGROUND_THUMBS = ["globe", "ring", "gradient", "waves"] as const;
+// Lets the photographer preview their frame/logo/watermark against a few
+// different photo moods (a bright outdoor shot, a dark reception shot, etc.)
+// since a frame that looks great on one photo can look wrong on another.
+// Real gradient/icon swap in the live preview below, not just a selected
+// state with no visible effect.
+const BACKGROUND_THUMBS = [
+  { key: "globe", icon: "public", gradient: "from-indigo-950 via-indigo-900 to-black" },
+  { key: "ring", icon: "album", gradient: "from-cyan-950 via-cyan-900 to-black" },
+  { key: "gradient", icon: "gradient", gradient: "from-fuchsia-950 via-fuchsia-900 to-black" },
+  { key: "waves", icon: "waves", gradient: "from-teal-950 via-teal-900 to-black" },
+] as const;
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -61,6 +71,7 @@ function BrandingSettingsPageInner() {
   const [loading, setLoading] = useState(!!eventId);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [showEnlarged, setShowEnlarged] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -298,9 +309,11 @@ function BrandingSettingsPageInner() {
             <div
               className={`relative overflow-hidden rounded-sm bg-black shadow-2xl ${frameFrameClass} ${device === "mobile" ? "aspect-[9/16] w-40" : "aspect-square w-64"}`}
             >
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface-container-high to-black">
-                <span className="material-symbols-outlined text-5xl text-on-surface-variant/20">
-                  image
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${BACKGROUND_THUMBS[activeBg].gradient}`}
+              >
+                <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">
+                  {BACKGROUND_THUMBS[activeBg].icon}
                 </span>
               </div>
               <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
@@ -322,22 +335,72 @@ function BrandingSettingsPageInner() {
           <div className="mt-4 flex justify-center gap-2">
             {BACKGROUND_THUMBS.map((thumb, i) => (
               <button
-                key={thumb}
+                key={thumb.key}
+                type="button"
                 onClick={() => setActiveBg(i)}
-                className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-surface-container-high text-xs font-bold text-on-surface-variant transition-all ${
+                aria-label={`תצוגה מקדימה על רקע ${thumb.key}`}
+                aria-pressed={activeBg === i}
+                className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-gradient-to-br text-on-surface-variant transition-all ${thumb.gradient} ${
                   activeBg === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
-                {i + 1}
+                <span className="material-symbols-outlined text-lg">{thumb.icon}</span>
               </button>
             ))}
           </div>
 
-          <button className="mx-auto mt-4 flex items-center gap-1.5 rounded-full border border-outline-variant px-4 py-2 text-xs font-medium text-on-surface-variant transition-colors hover:text-primary">
+          <button
+            type="button"
+            onClick={() => setShowEnlarged(true)}
+            className="mx-auto mt-4 flex items-center gap-1.5 rounded-full border border-outline-variant px-4 py-2 text-xs font-medium text-on-surface-variant transition-colors hover:text-primary"
+          >
             הגדל תצוגה
             <span className="material-symbols-outlined text-sm">zoom_in</span>
           </button>
         </div>
+
+        {showEnlarged && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-6 backdrop-blur-md"
+            onClick={() => setShowEnlarged(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setShowEnlarged(false)}
+              aria-label="סגור"
+              className="absolute end-6 top-6 rounded-full bg-surface-container-high p-2 text-on-surface transition-colors hover:text-primary"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <div
+              className={`relative overflow-hidden rounded-sm bg-black shadow-2xl ${frameFrameClass} ${
+                device === "mobile" ? "aspect-[9/16] w-72" : "aspect-square w-[28rem] max-w-[85vw]"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${BACKGROUND_THUMBS[activeBg].gradient}`}
+              >
+                <span className="material-symbols-outlined text-7xl text-on-surface-variant/30">
+                  {BACKGROUND_THUMBS[activeBg].icon}
+                </span>
+              </div>
+              <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+                <StudioLogo size={16} />
+                Photo Santos © 2024
+              </div>
+              {autoWatermark && (
+                <div
+                  className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  <StudioLogo size={14} />
+                  Photo Santos
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Settings */}
         <div className="space-y-6">

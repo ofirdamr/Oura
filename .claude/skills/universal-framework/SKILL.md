@@ -223,6 +223,7 @@ Every project keeps these files at its root. They are the session-to-session bra
 | `PROGRESS.md` | Running log. Append a line after **every** commit. |
 | `MISTAKES.md` | Log every mistake immediately (what, why, correct approach) BEFORE moving on. |
 | `docs/ARCHITECTURE.md` | Structural reference — endpoints/routes, DB schema, auth model, deployment topology, repo layout (what actually exists vs. what a stack-summary file aspirationally lists), env/secrets inventory (names only), known gaps. See below — this is not optional once a project has real infrastructure. |
+| `PRD.md` (if the project has one) | Product spec — personas, phases, pricing, open questions. **Check this before deciding sequencing or calling something "deferred/Phase 2."** A screen looking unfinished is not evidence it's out of scope — the PRD's own phase list is the actual source of truth for what belongs in this pass versus later. Update it the moment a real scope/phase decision changes, not on a schedule — it's a living doc, not a changelog (that's `PROGRESS.md`'s job). |
 
 **`docs/ARCHITECTURE.md` is a hard rule for any project with real backend/infra
 (an API, a database, a deployed service — not a static single-page site).**
