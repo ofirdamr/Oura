@@ -37,9 +37,11 @@ crons = ["0 3 * * *"]
 [vars]
 ENVIRONMENT = "production"
 # EMBED_SERVICE_URL points at the self-hosted InsightFace/ArcFace service
-# (packages/processing-pipeline). Placeholder until it's deployed to a real
-# host (Fly.io/Cloud Run — not yet decided) and this value is updated.
-EMBED_SERVICE_URL = "https://embed.oura.example.invalid"
+# (packages/processing-pipeline), deployed to Cloud Run (project
+# ouraforphotographers, region us-central1) — publicly reachable at the
+# network level, gated by the EMBED_SERVICE_TOKEN bearer secret below, not
+# Google IAM (no VPC peering between this Worker and Cloud Run exists).
+EMBED_SERVICE_URL = "https://oura-embed-932309994000.us-central1.run.app"
 # Cosine-similarity tuning knobs — first things to adjust after watching real
 # pilot-event match rates, without a code redeploy. See src/pipeline/cluster.ts
 # and the /guests/:token/selfie route for the asymmetric-threshold rationale.
