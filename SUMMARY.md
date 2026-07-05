@@ -51,13 +51,29 @@ export), which routes to `/gift-reveal` on completion, landing on
 `/gallery`. Verified live end-to-end against throwaway test guests on the
 real `WED-2024` event.
 
-Two honest residual caveats, not blockers: (1) the cosine-similarity match
+One honest residual caveat, not a blocker: the cosine-similarity match
 thresholds are initial domain-convention guesses, not yet tuned against real
 pilot-event match rates — they're config vars specifically so that's cheap
-to fix later without a redeploy; (2) legal basis is an informal draft
-opinion (from a lawyer-friend, formal signed version still to follow) — the
-founder explicitly decided to proceed on that basis, accepting the risk
-ahead of formal sign-off. See `PRD.md` §8 and `docs/ARCHITECTURE.md` §8.
+to fix later without a redeploy. Legal basis is now resolved: the founder
+confirmed the formal signed legal opinion has been received (previously an
+informal draft only). See `PRD.md` §8 and `docs/ARCHITECTURE.md` §8.
+
+**2026-07-05 fix: pre-Stage-2 photos weren't actually being matched.** A real
+guest selfie test against the live `WED-2024` demo event found no match
+despite the guest appearing in nearly every photo. Root cause: the event's 17
+photos were seeded before Stage 2's enqueue-on-upload existed, so they were
+stuck at `embed_status:'pending'` forever with zero `face_embeddings` rows —
+nothing existed for a selfie to match against. Fixed with a new operator
+route, `POST /admin/backfill-embeddings` (bearer-gated, re-enqueues any
+photo not yet `done`), run live against `WED-2024`: 15/17 photos now fully
+embedded (262 `face_embeddings` rows, 96 person clusters), 1 failed, 1 still
+hangs on retry. Also fixed a related bug hit while running the backfill:
+`embedClient.ts`'s `fetch()` to the Cloud Run embedding service had no
+timeout, so a single stalled response could hang a queue message
+indefinitely — added a 25s timeout so stalls now fail into the existing
+retry/DLQ path instead. See `MISTAKES.md` and `docs/ARCHITECTURE.md` §4/§8
+for detail; the one still-hanging photo is a narrow follow-up, not a
+blocker — retest the selfie flow on `WED-2024` now, it should match.
 
 ## How we got here (compressed — see `PROGRESS.md` for full detail)
 
@@ -108,8 +124,6 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 - Match thresholds (`CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD`) are
   untuned guesses — worth revisiting once a real pilot event generates
   actual match-rate data.
-- The formal signed legal opinion is still pending (informal draft only so
-  far) — worth checking status before any real pilot with paying guests.
 - **Supabase free-tier 500MB DB cap — not a concern yet, no action needed.**
   Checked live: current usage is a few KB (1 event, 4 guests, 17 photo
   metadata rows, 0 face-embedding rows — photo binaries live in R2, never

@@ -5,11 +5,13 @@ deployed and running as of the last update below. If code and this file ever
 disagree, the code is right and this file is stale — fix the file (see
 "Keeping this current" at the bottom).
 
-**Last updated:** 2026-07-04, through the "working MVP" milestone (real
-photo-upload UI, real event list, de-mocked dashboard, real scannable QR,
-photo delete) — landed and verified live on top of Stage 1 (real guest path)
-and Stage 3 (photographer auth + admin CRUD). Every section below reflects
-this state; the "in flight" caveats that used to be here are resolved.
+**Last updated:** 2026-07-05, after fixing a live bug found via a real guest
+selfie test on `WED-2024`: pre-Stage-2 photos were never embedded (added
+`POST /admin/backfill-embeddings`, §4) and the embed client had no request
+timeout (added one, §8). Builds on the "working MVP" milestone (2026-07-04:
+real photo-upload UI, real event list, de-mocked dashboard, real scannable
+QR, photo delete) on top of Stage 1 (real guest path) and Stage 3
+(photographer auth + admin CRUD).
 
 ## 1. System overview
 
@@ -169,6 +171,7 @@ auth — they're the guest path, gated only by the opaque token.
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
+| `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string }`. Re-enqueues every photo not yet `embed_status:'done'` into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. Needed once live: all 17 `WED-2024` photos were still `embed_status:'pending'` with zero `face_embeddings` rows, which is why an early real-guest selfie test against that event found no match despite the guest appearing in nearly every photo. |
 
 **Opaque guest token format:** `base64url(JSON{event_id,guest_id,iat}).base64url(HMAC-SHA256)`,
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
@@ -331,6 +334,9 @@ base — see Known Gaps/Mistakes), `SUPABASE_SERVICE_ROLE_KEY`,
 live** via `wrangler secret put`, but the value it needs to match on the
 embedding-service side doesn't matter yet since that service isn't deployed
 anywhere real — will need to be re-set/confirmed once it is).
+`ADMIN_BACKFILL_TOKEN` (gates `POST /admin/backfill-embeddings`, see §4 —
+write-only like every other Wrangler secret; re-set via `wrangler secret put`
+if it needs to be used again and the value has been lost).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
 
@@ -374,11 +380,28 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   caveats: (a) `CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD` are initial
   domain-convention guesses, not measured against real pilot-event data yet
   — they're `wrangler.toml` vars specifically so they can be tuned without a
-  redeploy once real match-rate data exists; (b) legal basis is an informal
-  draft opinion (from a lawyer-friend, formal signed version still to
-  follow) — the founder explicitly decided to proceed building on that
-  basis, accepting the risk ahead of the formal signed opinion; PRD §8
-  should be read alongside this note, not as fully resolved.
+  redeploy once real match-rate data exists; (b) legal basis: **resolved** —
+  the founder confirmed the formal signed legal opinion has now been
+  received (previously an informal draft only, from a lawyer-friend). PRD §8
+  should be updated to reflect this the next time it's touched.
+- **Photos ingested before Stage 2's enqueue-on-upload existed never get
+  embedded on their own** — fixed operationally via `POST
+  /admin/backfill-embeddings` (§4), which re-enqueues any photo not yet
+  `embed_status:'done'`. Run once already against the live `WED-2024` set
+  (2026-07-05): 17/17 photos re-enqueued, 15 processed to `done` cleanly
+  (262 `face_embeddings` rows, 96 person clusters), 1 landed in a terminal
+  `failed` state, 1 still hung past the embed-client's own timeout on retry
+  (see next bullet and `MISTAKES.md`) — worth a follow-up check on that one
+  photo specifically if it matters for a real pilot event. Any future
+  manually-seeded/bulk-imported event needs this same backfill run once.
+- **`embedClient.ts`'s `fetch()` had no timeout**, so a stalled Cloud Run
+  response could hang a queue consumer invocation indefinitely instead of
+  failing into the existing retry/DLQ path. Fixed with a 25s
+  `AbortController` timeout (2026-07-05). One photo still hung past that
+  timeout on retry during the live backfill above — if this recurs, the
+  stall likely isn't only in the embed round-trip; the R2 `.get()` call and
+  the Supabase `match_faces`/insert calls have no timeouts of their own
+  either.
 - **Guest tokens never expire** and travel in the URL path (loggable at
   edges/proxies). Flagged by an earlier security review, not yet addressed.
 - **No photographer password-reset flow.** Founder's account had a password

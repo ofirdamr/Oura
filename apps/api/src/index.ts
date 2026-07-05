@@ -27,6 +27,9 @@ export type Env = {
   CLUSTER_MATCH_THRESHOLD: string;
   GUEST_MATCH_THRESHOLD: string;
   GUEST_MATCH_TOPK: string;
+  // Bearer secret gating /admin/backfill-embeddings — an operator action, not
+  // a photographer-dashboard feature, so it isn't behind requireEventOwner.
+  ADMIN_BACKFILL_TOKEN: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -689,6 +692,49 @@ app.post('/events/:event_id/branding/logo', async (c) => {
 //   frontend is EXACTLY { event_id } — nothing more.
 //   Response 200: { event_id } | 404 { error: 'event_not_found' }
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Backfill: re-enqueues photos whose embed_status isn't 'done' yet.
+// POST /admin/backfill-embeddings  body: { event_id?: string }
+//   Exists because the enqueue-on-upload (above) only fires for photos
+//   ingested after Stage 2 shipped — photos inserted earlier (e.g. the
+//   hand-seeded WED-2024 demo set) never passed through it and are stuck at
+//   the default 'pending' forever with zero face_embeddings rows. Gated by a
+//   dedicated bearer secret rather than requireEventOwner: this is an
+//   operator action, not something the photographer dashboard exposes.
+// ---------------------------------------------------------------------------
+app.post('/admin/backfill-embeddings', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+
+  const db = supa(c.env);
+  const body = await c.req.json().catch(() => ({}) as Record<string, unknown>);
+  const event_id = typeof body.event_id === 'string' ? body.event_id : undefined;
+
+  let query = db.from('photos').select('id,event_id,storage_key').neq('embed_status', 'done');
+  if (event_id) query = query.eq('event_id', event_id);
+  const { data: photos, error } = await query;
+  if (error) return c.json({ error: 'query_failed' }, 500);
+
+  let enqueued = 0;
+  for (const photo of photos ?? []) {
+    try {
+      await c.env.FACE_EMBED_QUEUE.send({
+        photo_id: photo.id,
+        event_id: photo.event_id,
+        storage_key: photo.storage_key,
+      });
+      enqueued++;
+    } catch (err) {
+      console.error('backfill enqueue failed for', photo.id, err);
+    }
+  }
+
+  return c.json({ enqueued, total_candidates: photos?.length ?? 0 });
+});
+
 app.get('/events/by-code/:code', async (c) => {
   const code = c.req.param('code');
   if (!code) return c.json({ error: 'event_not_found' }, 404);

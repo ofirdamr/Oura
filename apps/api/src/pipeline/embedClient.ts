@@ -14,15 +14,32 @@ export type EmbedEnv = {
   EMBED_SERVICE_TOKEN: string;
 };
 
+// Bounded so a stalled Cloud Run response (observed live: a request that
+// never resolves, not even with an error) fails fast and lets the caller
+// retry, instead of hanging for the queue consumer's entire execution
+// budget — which is what happened before this existed.
+const EMBED_TIMEOUT_MS = 25_000;
+
 export async function embed(bytes: ArrayBuffer, env: EmbedEnv): Promise<EmbedFace[]> {
-  const res = await fetch(`${env.EMBED_SERVICE_URL}/embed`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.EMBED_SERVICE_TOKEN}`,
-      'Content-Type': 'application/octet-stream',
-    },
-    body: bytes,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), EMBED_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${env.EMBED_SERVICE_URL}/embed`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.EMBED_SERVICE_TOKEN}`,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: bytes,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (controller.signal.aborted) throw new Error('embed_service_timeout');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!res.ok) {
     throw new Error(`embed_service_error_${res.status}`);
   }
