@@ -354,14 +354,18 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   verified live against a throwaway test guest on the real `WED-2024` event
   (guardian gate 400s correctly, consent sets `retention_expires_at` at
   exactly +30 days, selfie 403s pre-consent and 502s post-consent with
-  `embed_service_unavailable` — expected, not a bug). What's still missing:
-  (a) the embedding service has never been deployed to a real host (no
-  Fly.io/GCP credentials in this dev sandbox — built and logic-tested
-  locally with the model stubbed out only, `EMBED_SERVICE_URL` is still a
-  placeholder), and (b) the real `/selfie` capture screen doesn't exist yet
-  (needs a founder-run Stitch export, prompt already handed over). Until
-  both land, `face_embeddings` stays unpopulated and the personal gallery
-  still honestly shows "still searching for you." Legal basis: the founder
+  `embed_service_unavailable` — expected, not a bug). `apps/web/app/selfie`
+  is also built and deployed now (from the founder's returned Stitch
+  export), verified with Playwright, but reachable only by direct URL —
+  same status as `/gift-reveal`. What's still missing: the embedding service
+  has never been deployed to a real host (no Fly.io/GCP credentials in this
+  dev sandbox — built and logic-tested locally with the model stubbed out
+  only, `EMBED_SERVICE_URL` is still a placeholder). Until it is, `/consent`'s
+  redirect stays pointed at `/gallery` (not `/selfie`) on purpose —
+  flipping it now would send every real guest through a camera prompt for a
+  feature that can't yet match anything. Until the embedding host is live
+  and that redirect is flipped, `face_embeddings` stays unpopulated and the
+  personal gallery still honestly shows "still searching for you." Legal basis: the founder
   received an informal draft legal opinion (from a lawyer-friend, formal
   signed version to follow) recommending a 30-day retention window, an
   active consent gesture, and guardian/age confirmation — and explicitly
@@ -415,13 +419,35 @@ those same env vars as repo/environment secrets.
    Verified live against a throwaway test guest (see Known Gaps).
 4. **Not done — needs external inputs this dev sandbox doesn't have:**
    deploy `packages/processing-pipeline`'s container to a real host (Fly.io
-   vs Cloud Run, not yet decided; the `Dockerfile` is portable to either; no
-   Fly.io/GCP credentials in this sandbox), then update `EMBED_SERVICE_URL`
-   in `wrangler.toml` to the real host and re-`wrangler deploy`.
-5. **Not done — needs the founder's Stitch export:** build
-   `apps/web/app/selfie/page.tsx`, flip `/consent`'s redirect target from
-   `/gallery` to `/selfie`, and wire `/gift-reveal` into the sequence — all
-   in the same deploy (splitting would 404 live guests mid-flow).
+   vs Cloud Run, not yet decided — see recommendation below; the `Dockerfile`
+   is portable to either; no Fly.io/GCP credentials in this sandbox), then
+   update `EMBED_SERVICE_URL` in `wrangler.toml` to the real host and
+   re-`wrangler deploy`.
+5. ✅ Built `apps/web/app/selfie/page.tsx` from the founder's Stitch export
+   (`oura_ai_desktop.html`/`oura_ai_mobile.html`) and deployed it — reachable
+   at `/selfie` by direct URL only, same status as `/gift-reveal`. Verified
+   with Playwright (fake-camera-device flags, mocked API routes): correct
+   RTL/layout, camera → capture → review → confirm flow, navigates to
+   `/gift-reveal` on completion, no console errors. Two real bugs fixed
+   during the port, not just a literal copy of the export: (a) the desktop
+   export's capture-button Hebrew text was set to Hanken Grotesk
+   (`font-headline-md`), which has no Hebrew glyphs — moved to Rubik
+   (`font-sans`), matching every other Hebrew element and the CLAUDE.md
+   guardrail; (b) the export's CDN Tailwind/Google-Fonts `<script>`/`<link>`
+   tags were dropped entirely in favor of the app's already-bundled
+   fonts/Tailwind build (CLAUDE.md: no CDN tags in production builds). Also
+   translated the export's ad-hoc local color-token names onto the app's
+   actual `globals.css` theme rather than copying them literally — several
+   collide with different meanings (the export's `text-primary` is white;
+   the app's `--color-primary` is the copper accent, so a literal class copy
+   would have silently recolored that text orange).
+   **Deliberately NOT done yet, same reasoning as before:** `/consent`'s
+   redirect target is still `/gallery`, not `/selfie`, and `/gift-reveal` is
+   still unreachable through the normal flow. Flipping that redirect now
+   would put every real guest through a camera-permission prompt for a
+   feature that can't actually match anything yet (step 4 isn't done), so
+   the guest would always land on the "matching unavailable" fallback path.
+   That switch happens together with the embedding-service deploy.
 
 ## 10. Verification & testing conventions
 

@@ -42,18 +42,23 @@ guardian-confirmation consent gate — all verified live against a throwaway
 test guest on the real `WED-2024` event (guardian gate 400s correctly,
 consent sets `retention_expires_at` at exactly +30 days, selfie 403s
 pre-consent and fails gracefully post-consent since no embedding host exists
-yet). What's still pending:
+yet). The real `/selfie` capture screen is also now built and deployed (from
+the founder's returned Stitch export, two real bugs fixed during the port:
+a Hebrew-text-on-Hanken-Grotesk font bug, and the export's CDN Tailwind/
+Google-Fonts tags dropped for the app's bundled equivalents) and verified
+with Playwright — but reachable only by direct URL, same as `/gift-reveal`.
+What's still pending:
 - The self-hosted InsightFace/ArcFace embedding service
   (`packages/processing-pipeline`) has never been deployed to a real host —
   this dev sandbox has no Fly.io/GCP credentials, only Cloudflare's. Built
   and its HTTP-layer logic tested locally with the model stubbed (the
   sandbox's proxy allowlist blocks GitHub release downloads, so
   InsightFace's actual weights were never fetched here).
-- The real selfie-capture screen doesn't exist — no design source, needs a
-  founder-run Stitch export (prompt already handed over). `/consent`'s
-  redirect and `/gift-reveal`'s wiring intentionally weren't touched yet —
-  both ship together with the real `/selfie` screen in one deploy, never
-  split (splitting would 404 live guests mid-flow).
+- `/consent`'s redirect and `/gift-reveal`'s wiring intentionally weren't
+  touched yet — flipping them now, before the embedding host is live, would
+  send every real guest through a camera prompt for a feature that can't
+  yet match anything. That switch happens together with the embedding-
+  service deploy, never split.
 
 Legal basis for building ahead of full sign-off: the founder received an
 informal draft legal opinion (from a lawyer-friend, formal signed version to
@@ -90,10 +95,11 @@ basis, accepting the risk. See `PRD.md` §8 and `docs/ARCHITECTURE.md` §8.
 6. **Stage 2 build (this pass):** installed an `israeli-privacy-shield`
    reference skill for Israeli Privacy Law/Amendment 13 guidance; founder
    obtained an informal draft legal opinion and accepted the risk of
-   proceeding ahead of formal sign-off; built the full face-matching
-   pipeline (migration, queue consumer, selfie-match endpoint, retention
-   cron, embedding service) per the sequencing in item 6 above — see the
-   "Face-matching (Stage 2)" section for exactly what's live vs. pending.
+   proceeding ahead of formal sign-off; built and deployed the full
+   face-matching pipeline infrastructure (migration, queue consumer,
+   selfie-match endpoint, retention cron, embedding service, real `/selfie`
+   screen from the founder's Stitch export) — see the "Face-matching
+   (Stage 2)" section for exactly what's live vs. pending.
 
 **Process note for continuity:** this project runs on genuine hybrid
 orchestration — a Plan/PM agent decides sequencing at each milestone
@@ -105,10 +111,16 @@ one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 ## Next milestone: finish deploying Stage 2
 
 Remaining (see `docs/ARCHITECTURE.md` §9 for exact steps):
-1. Deploy `packages/processing-pipeline` to a real host (Fly.io vs Cloud
-   Run — not yet decided) and wire its URL/token into `apps/api`.
-2. Get the founder's Stitch export for the selfie-capture screen, build it,
-   flip `/consent`'s redirect, wire `/gift-reveal` in — one deploy.
+1. Deploy `packages/processing-pipeline` to a real host — recommended Cloud
+   Run over Fly.io for this founder's stated need (perpetual free tier +
+   true scale-to-zero fits "pay only once there are paying customers";
+   Fly.io dropped its free tier in 2024 and now requires payment from day
+   one). Needs a GCP account with billing enabled (not charged within the
+   free tier, but a card must be on file) — either the founder deploys it
+   himself with the `gcloud run deploy` command already in
+   `packages/processing-pipeline/README.md`, or provides GCP credentials to
+   a future session. Then wire its URL/token into `apps/api` and flip
+   `/consent`'s redirect + wire `/gift-reveal` in, together, one deploy.
 
 Other rough edges not yet addressed, still worth a Plan/PM consult on
 sequencing: guest tokens never expire and travel in the URL path (flagged by
