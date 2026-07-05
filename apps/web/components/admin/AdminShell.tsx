@@ -9,10 +9,10 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 const NAV_ITEMS = [
   { label: "לוח בקרה", icon: "dashboard", href: "/admin" },
-  { label: "אירועים", icon: "photo_camera", href: "#" },
-  { label: "ארכיון", icon: "inventory_2", href: "#" },
-  { label: "ניהול לקוחות", icon: "groups", href: "#" },
-  { label: "סטטיסטיקה", icon: "analytics", href: "#" },
+  { label: "אירועים", icon: "photo_camera", href: "/admin/events" },
+  { label: "ארכיון", icon: "inventory_2", href: null },
+  { label: "ניהול לקוחות", icon: "groups", href: null },
+  { label: "סטטיסטיקה", icon: "analytics", href: null },
   { label: "הגדרות", icon: "settings", href: "/admin/branding" },
 ];
 
@@ -64,7 +64,7 @@ export function AdminShell({
             </a>
             <a
               className="text-on-surface-variant/80 transition-colors hover:text-primary"
-              href="#"
+              href="/admin/events"
             >
               אירועים
             </a>
@@ -121,28 +121,43 @@ export function AdminShell({
           </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={
-                item.label === active
-                  ? "flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                  : "flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
-              }
-            >
-              <span className="material-symbols-outlined">{item.icon}</span>
-              <span
+          {NAV_ITEMS.map((item) =>
+            item.href ? (
+              <a
+                key={item.label}
+                href={item.href}
                 className={
                   item.label === active
-                    ? "text-sm font-bold"
-                    : "text-sm font-medium"
+                    ? "flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                 }
               >
-                {item.label}
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <span
+                  className={
+                    item.label === active
+                      ? "text-sm font-bold"
+                      : "text-sm font-medium"
+                  }
+                >
+                  {item.label}
+                </span>
+              </a>
+            ) : (
+              <span
+                key={item.label}
+                aria-disabled="true"
+                title="בקרוב"
+                className="flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+              >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <span className="text-sm font-medium">{item.label}</span>
+                <span className="ms-auto rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
+                  בקרוב
+                </span>
               </span>
-            </a>
-          ))}
+            ),
+          )}
         </nav>
         <div className="mt-auto flex flex-col gap-3 px-4">
           <a

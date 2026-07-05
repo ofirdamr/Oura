@@ -153,9 +153,14 @@ function GalleryEntryPageInner() {
               <div className="absolute bottom-4 end-4 h-6 w-6 rounded-br-sm border-b-2 border-e-2 border-primary/60" />
               <div className="absolute bottom-4 start-4 h-6 w-6 rounded-bl-sm border-b-2 border-s-2 border-primary/60" />
             </div>
-            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+            <button
+              type="button"
+              disabled
+              title="סריקה בתוך הדפדפן עדיין לא זמינה - סרקו עם מצלמת הטלפון הרגילה או הזינו קוד למטה"
+              className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-primary/40 py-4 font-bold text-on-primary/60 shadow-lg shadow-primary/10"
+            >
               <span className="material-symbols-outlined">photo_camera</span>
-              הפעל מצלמה לסריקה
+              הפעל מצלמה לסריקה (בקרוב)
             </button>
           </div>
         </div>
@@ -213,11 +218,7 @@ function GalleryEntryPageInner() {
 
       <footer className="relative z-10 mt-auto w-full py-12 text-center">
         <p className="flex flex-wrap items-center justify-center gap-1 text-xs text-on-surface-variant/70">
-          נתקלתם בבעיה?
-          <button className="font-medium text-primary underline underline-offset-4">
-            מרכז הסיוע שלנו
-          </button>
-          זמין עבורכם
+          נתקלתם בבעיה? פנו לצלם/ת שהזמינו אתכם לאירוע
         </p>
       </footer>
 
