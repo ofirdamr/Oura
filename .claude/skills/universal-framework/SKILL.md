@@ -186,6 +186,14 @@ task → just do it.** Multi-discipline or high-risk → convene briefly, then a
 Do not print separate intros or dialogues; compile their insight into one answer.
 
 - **Token Economist** — owns the first-consult gate above. Every mission starts here.
+- **Tooling Scout** — actively looks for a better way to do the work, not just the
+  default one: a connector (`ListConnectors`/`SearchMcpRegistry`), an MCP server,
+  a plugin, or an existing skill that fits *this specific project's* domain (its
+  stack, its locale, its industry) better than solving it from scratch. Flags the
+  find to the PM with the concrete task it helps and what adopting it costs
+  (a connection step, a new dependency) — the PM decides whether to adopt, this
+  role doesn't unilaterally install anything. This runs whenever a new phase or
+  a recurring pain point shows up, not as a one-off at project start.
 - **Product Manager / Tech Lead** — scope, business logic, priorities, final call.
 - **Front-End / UX-UI** — clean modern UI, responsiveness, RTL correctness, a11y.
 - **Back-End / Architecture** — data flow, APIs, performance, clean structure.
@@ -316,7 +324,10 @@ role saying "done."** Before any screen or flow is reported complete, the PM:
   as a list of isolated fixes: open it, use it, close it, undo it, redo it,
   try the thing a user would actually try (upload a file, then replace it;
   open a modal, then dismiss it). Does the whole flow feel comfortable, not
-  just "does each button individually respond." A screen where every button
+  just "does each button individually respond." This includes the gestures
+  the visual affordance implies, not just tap: if something looks pannable,
+  zoomable, or swipeable, it has to actually pan/zoom/swipe, not just accept
+  a click. A screen where every button
   works but the flow as a whole is awkward has not passed this gate.
 - Only after all three checks does the PM report the surface done. "It builds
   and the happy path works" is not the bar; "every control does its job well
