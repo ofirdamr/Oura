@@ -28,6 +28,18 @@ The point is proof the stage actually ran, not a narrated essay:
 1. **Read the project's `CLAUDE.md` and `SUMMARY.md`.** They define the hard rules
    and current state. Obey them — they override this generic skill on conflict.
    → confirm: `Read CLAUDE.md + SUMMARY.md — OK.`
+1a. **If `CLAUDE.md` names a specific skill as applying to a category of work
+   (e.g. "the hebrew-rtl-best-practices skill applies to all UI work"), load
+   that skill via the Skill tool NOW if this session is going to touch that
+   category at all — do not wait until a UI file is already open, do not treat
+   the CLAUDE.md sentence as satisfied by having merely read it. A rule that
+   "applies to all X work" is a mechanical gate to invoke, not background
+   knowledge to keep in mind. If a later task in the same conversation crosses
+   into a category whose skill wasn't loaded yet (first UI edit, first payment
+   code, whatever the project flags), load it at that moment, before the first
+   edit in that category, every single time — this is not a once-per-session
+   checkbox, it's once-per-category-per-session at first touch.
+   → confirm: `Loaded <skill-name> — OK` (or `No category-specific skill applies yet`).
 2. **Execute the project's git/branch & setup rule as a real action, now.** If
    `CLAUDE.md` mandates a branch (e.g. "work on `main`"), run `git branch
    --show-current` and actually switch (`git checkout -B <branch> origin/<branch>`)
@@ -300,9 +312,15 @@ role saying "done."** Before any screen or flow is reported complete, the PM:
   has no handler, or that fires the wrong destination, is a bug regardless of
   how minor it looks — it does not get silently left for later without being
   named to the user first.
-- Only after both checks does the PM report the surface done. "It builds and
-  the happy path works" is not the bar; "every control on this screen does
-  its job well" is.
+- Steps back and looks at the whole surface the way a real user would, not
+  as a list of isolated fixes: open it, use it, close it, undo it, redo it,
+  try the thing a user would actually try (upload a file, then replace it;
+  open a modal, then dismiss it). Does the whole flow feel comfortable, not
+  just "does each button individually respond." A screen where every button
+  works but the flow as a whole is awkward has not passed this gate.
+- Only after all three checks does the PM report the surface done. "It builds
+  and the happy path works" is not the bar; "every control does its job well
+  AND the whole thing feels right end to end" is.
 
 **A green light on the general task is not a green light on an adjacent locked
 rule.** If the project marks something locked/ask-first (an architecture
