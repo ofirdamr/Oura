@@ -118,7 +118,6 @@ one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 Rough edges worth a Plan/PM consult on sequencing, none blocking:
 - Guest tokens never expire and travel in the URL path (flagged by an
   earlier security review).
-- No photographer password-reset flow.
 - `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens
   worth either wiring or removing.
 - Match thresholds (`CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD`) are

@@ -138,3 +138,8 @@
 - Final live state: 15/17 photos `done` (262 `face_embeddings` rows, 96 person clusters), 1 `failed`, 1 still hangs past the new timeout on retry — logged as a narrower follow-up in `MISTAKES.md` (the stall may not be only in the embed round-trip; R2 `.get()` and the Supabase RPC/insert calls have no timeouts of their own either). 15/17 is enough to fix the reported symptom — the founder should retest the selfie flow on `WED-2024` now.
 - Updated `SUMMARY.md`, `docs/ARCHITECTURE.md` (§4, §7, §8), and `MISTAKES.md` in the same pass.
 - Separately: founder confirmed the formal signed legal opinion has now been received (previously informal draft only) — updated `SUMMARY.md`/`docs/ARCHITECTURE.md` to close that known gap.
+
+### 2026-07-05 (cont.) — Photographer self-service password reset shipped
+- Built `/forgot-password` (request reset email via Supabase Auth's `resetPasswordForEmail`) and `/reset-password` (lands from the emailed link, waits for the auto-detected recovery session, then `updateUser({password})`), linked from a new "שכחתם סיסמה?" link on `/login`. Matches the existing dark-luxury auth-card pattern. `tsc --noEmit` clean, deployed live, both routes confirmed 200.
+- Got the founder logged in immediately via the Supabase Admin API directly (bypassing email, since this project's outbound email deliverability isn't confirmed configured) - looked up the user id, set a new password, verified it live with a real password-grant token request before handing it over.
+- Closes the "no photographer password-reset flow" known gap in `SUMMARY.md`/`docs/ARCHITECTURE.md`.

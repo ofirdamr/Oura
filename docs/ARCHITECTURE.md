@@ -268,9 +268,13 @@ two and enumerate event ids.
 | `/admin/events/[event_id]` (upload/detail) | **Real** — multi-file upload to R2 via the Worker, live photo grid, per-photo delete |
 | `/admin/ai-optimization` | Static UI only — fake processing queue/metrics, no real pipeline exists |
 
-**Auth pages (no middleware, obviously):** `/login`, `/signup` — designed
-fresh (no Stitch source existed), matching the `/consent` screen's
-dark-luxury card visual language.
+**Auth pages (no middleware, obviously):** `/login`, `/signup`,
+`/forgot-password`, `/reset-password` — designed fresh (no Stitch source
+existed), matching the `/consent` screen's dark-luxury card visual language.
+`/forgot-password` calls Supabase Auth's `resetPasswordForEmail`;
+`/reset-password` is where the emailed link lands — the browser client
+auto-detects the recovery session from the URL, then `updateUser({password})`
+sets the new one. Closes the "no password reset" known gap (§8).
 
 `create-event` → `branding` → `qr-management` are threaded together via a
 `?event_id=` query param (not a separate studio-profile table — `branding`
@@ -404,8 +408,8 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   either.
 - **Guest tokens never expire** and travel in the URL path (loggable at
   edges/proxies). Flagged by an earlier security review, not yet addressed.
-- **No photographer password-reset flow.** Founder's account had a password
-  set once via the Supabase Admin API; there's no self-service reset UI.
+- ~~No photographer password-reset flow.~~ **Resolved (2026-07-05):**
+  `/forgot-password` + `/reset-password` ship a real self-service flow (§6).
 - **AI Optimization admin screen and Photo Editor persistence are UI-only** —
   local React state, no real backend behind either.
 - **Phase 2 features** (Stripe billing, print orders, statistics, messaging,
