@@ -110,6 +110,16 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
   actual match-rate data.
 - The formal signed legal opinion is still pending (informal draft only so
   far) — worth checking status before any real pilot with paying guests.
+- **Supabase free-tier 500MB DB cap — not a concern yet, no action needed.**
+  Checked live: current usage is a few KB (1 event, 4 guests, 17 photo
+  metadata rows, 0 face-embedding rows — photo binaries live in R2, never
+  Postgres). Rough math: a fully-processed real wedding (~500 photos, ~3
+  faces/photo) costs ~4MB of DB space, dominated by face-embedding vectors;
+  hitting 500MB would take 100+ such events, by which point paying
+  Supabase's $25/mo is trivial next to that revenue, not a reason to
+  migrate. Deliberately not worth an automated monitor at this growth rate
+  — just re-check actual usage (`select count(*)` per table, or Supabase's
+  own dashboard) if this project scales to many dozens of real events.
 
 **Open questions still blocking Phase 2 (not this milestone):** see `PRD.md`
 §8 — final ILS pricing, print fulfillment partner choice.
