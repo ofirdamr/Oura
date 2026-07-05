@@ -177,6 +177,23 @@ diff, rerun verification) rather than trusting a "done" self-report at face
 value — the watching obligation is what triggers the escalation in the first
 place.
 
+**Stop-and-re-consult when the orchestrating session itself is the one
+struggling (hard rule):** the escalation trigger above isn't only for
+subagents — it applies just as much when the main session doing the work
+solo is the one repeating mistakes, second-guessing its own fixes, or
+needing several corrected attempts at the same class of bug. That is a
+signal to stop mid-task and go back to the Token Economist/PM decision
+point, out loud, before continuing — not to grind forward on the same
+approach hoping the next attempt lands. The re-consult explicitly
+reconsiders all of: should the PM (this session) keep doing it solo, should
+the work fan out to independent subagents (Parallel/Hybrid instead of
+Classic — e.g. an audit-many-screens task is exactly this shape), should a
+specific role take it with fresh eyes, or should the model change via the
+Token Economist. State the re-consult and its outcome in one visible line,
+then proceed under whatever it decides — don't silently keep pushing the
+same failing approach because stopping feels like it wastes the effort
+already spent.
+
 ---
 
 ## 1. The Team (internal roles — synthesize, never narrate)
