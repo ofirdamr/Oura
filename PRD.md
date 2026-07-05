@@ -40,7 +40,7 @@ See `CLAUDE.md` for the stack table and guardrails; full structural detail (endp
 Hybrid model — pay-per-event entry tier (matches competitor LOCA's model) plus Starter/Pro/Platinum subscriptions. "Platinum" name and its manual AI-control feature set come directly from the Stitch design, not invented. Final ILS price points, storage caps, and retention window still need founder input (see Open Questions).
 
 ## 8. Open Questions Log
-1. Biometric consent/retention policy — needs legal review before any pilot with real guests (minors routinely present at weddings). **Status: open.**
+1. Biometric consent/retention policy — needs legal review before any pilot with real guests (minors routinely present at weddings). **Status: in progress, risk accepted.** The founder received an informal draft legal opinion (from a lawyer-friend, formal signed version still to follow) recommending a 30-day retention window, an active opt-in consent gesture, and guardian/age confirmation before camera access, and explicitly decided to proceed building Stage 2 on that basis ahead of the formal signature. Not fully resolved — see `docs/ARCHITECTURE.md` §8.
 2. Final ILS pricing + retention window per tier. **Status: open.**
 3. Print fulfillment: global POD (Gelato/Prodigi) vs local Israeli lab, and who owns shipping/returns. **Status: open.**
 4. Is print commission revenue-share near-term (decides if Stripe Connect is needed in Phase 2)? **Status: open.**

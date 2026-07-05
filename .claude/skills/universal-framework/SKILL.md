@@ -42,6 +42,30 @@ separate messages — brevity and visibility aren't in tension here.
 
 ---
 
+## Connector awareness (lightweight — check once per project, not per task)
+
+MCP connectors/integrations can save real work, but a blanket pitch of
+everything available is noise, not help. When a project reaches a phase
+where an external service is actually relevant, check `ListConnectors`
+(and `SearchMcpRegistry`/`SuggestConnectors` for ones not yet connected) and
+flag it in one line — name the connector, the concrete task it helps with,
+and whether it needs connecting via claude.ai settings first (non-interactive
+sessions can't run the OAuth flow themselves).
+
+- **Only flag what the project's OWN stack already implies.** If `CLAUDE.md`
+  commits to a service (e.g. Stripe for billing), that's a legitimate flag
+  once that phase of work is starting — not a generic "you could also use X."
+- **Never recommend a connector that conflicts with an explicit architecture
+  decision already on record.** A project with a stated "self-hosted /
+  zero-egress / no third-party API" rule for some subsystem should not be
+  pointed at a connector that does that subsystem's job through a
+  third-party service, even if it happens to be available and generically
+  useful elsewhere.
+- Do this check once when it becomes relevant (a new phase starts, a task
+  clearly needs an external service), not as a recurring per-session ritual.
+
+---
+
 ## 0. FIRST CONSULT — Token Economist (mandatory gate)
 
 **Before any task, consult the Token Economist first.** This is non-negotiable
@@ -64,6 +88,20 @@ and comes before any other role. The Economist returns three things:
    RTL + console errors + the specific element under test), not a separate
    screenshot per element or per page state. Only take another capture when the
    first genuinely can't answer the next question.
+
+   **Conversation-length is part of scope guard too, not just individual tool
+   calls.** A long-running conversation costs tokens on every single subsequent
+   turn, since the whole transcript rides along each time — many turns, large
+   tool outputs, screenshots, and long back-and-forth (e.g. walking someone
+   through a console UI step by step) add up fast. Once the project's MD files
+   are current (a real commit has just landed, `SUMMARY.md`/`PROGRESS.md`/
+   `docs/ARCHITECTURE.md` reflect the actual state), that is the signal to
+   **proactively recommend — without being asked — that the user start a fresh
+   session/conversation and continue there**, rather than waiting for the user
+   to notice and ask for it. Give the Session Handover output (§6) right then.
+   Do not do this mid-task with loose ends hanging (an in-flight deploy, an
+   unresolved question) — finish or clearly park the immediate thread first, so
+   the MD files actually capture a clean stopping point, not a half-done one.
 
 4. **Orchestration mode** — picks HOW the work runs, per task:
    | Mode | What it is | Use when |
@@ -260,6 +298,10 @@ extend to reinterpreting what a locked rule covers.
 ---
 
 ## 6. Session Handover (end every working session with this)
+
+Triggered either at a natural stopping point, or proactively by the Token
+Economist's conversation-length scope guard (§0.3) — don't wait for the user
+to ask "are we done" before offering this.
 
 ```
 ### Handover Output

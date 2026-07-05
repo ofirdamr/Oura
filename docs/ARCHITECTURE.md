@@ -57,20 +57,22 @@ directory (`apps/web` uses `npx opennextjs-cloudflare build` instead of plain
 ```
 /apps/web                      Next.js app (guest gallery + photographer dashboard) — REAL, deployed
 /apps/api                      Cloudflare Worker (Hono), wrangler.toml — REAL, deployed
-/packages/processing-pipeline  face-embed, culling, transcode, overlay compositing — DOES NOT EXIST YET
+/packages/processing-pipeline  face-embed service (InsightFace/ArcFace) — REAL, deployed (Cloud Run)
 /packages/shared                shared TS types/schemas — DOES NOT EXIST YET
 /design                         Stitch export, 42 reference screens + brand spec — REAL, source of truth for UI
 /supabase/migrations             SQL migrations, applied via the Management API — REAL
 /docs/ARCHITECTURE.md            this file
 ```
 
-`CLAUDE.md`'s repo-layout diagram lists `/packages/processing-pipeline` and
-`/packages/shared` as if they're standing directories — they are not; there
-is no `/packages` directory in this repo at all as of this writing. They're
-the intended home for Stage 2's face-embedding/culling/transcode pipeline
-once it's built (self-hosted compute, per CLAUDE.md, on Fly.io/Cloud Run —
-deliberately never a Cloudflare Worker, since that workload is heavy CPU/ML,
-not request/response). Don't go looking for code there; there isn't any yet.
+`packages/processing-pipeline` (FastAPI + InsightFace `buffalo_l`,
+`POST /embed`/`GET /health`) is deployed to Cloud Run (project
+`ouraforphotographers`, region `us-central1`, service `oura-embed`) — the
+model itself was unreachable/untestable from this dev sandbox (its proxy
+allowlist blocks GitHub release downloads), but Cloud Build's own network
+access isn't sandbox-restricted, so the real weights downloaded and loaded
+fine there. `apps/api/wrangler.toml`'s `EMBED_SERVICE_URL` points at the real
+deployed host. `packages/shared` remains aspirational — no
+`/packages/shared` directory exists.
 
 ## 2. Two auth models — do not conflate them
 
@@ -114,6 +116,13 @@ egress). Never edit an already-applied migration file; add a new one.
 - `supabase/migrations/0002_event_code.sql` — adds `events.code` (partial
   unique index, `where code is not null`) — the human-shareable code used
   for manual entry and QR deeplinks.
+- `supabase/migrations/0003_stage2_pipeline.sql` — Stage 2 foundations:
+  a trigger defaulting `biometric_consents.retention_expires_at` to
+  `consented_at + 30 days` (plus a one-time backfill of pre-existing NULL
+  rows), `biometric_consents.guardian_confirmed`, `photos.embed_status`, and
+  the shared `match_faces(event_id, query_embedding, limit)` pgvector ANN-
+  search RPC. **Written but NOT YET APPLIED to the live DB** — needs a fresh
+  Supabase personal access token (see §9) before it can run.
 
 Key tables (see the migration files for full column lists/constraints):
 
@@ -125,14 +134,26 @@ Key tables (see the migration files for full column lists/constraints):
 - **`guests`** — one row per event-scoped guest session. `token_hash` only
   (SHA-256 of the opaque token) — the raw token is never stored.
 - **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
-  bytes, content_type, phash, captured_at, created_at`. No binary data —
-  `storage_key` is the only pointer to R2.
+  bytes, content_type, phash, captured_at, created_at, embed_status
+  ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
+  `storage_key` is the only pointer to R2. `embed_status` is pipeline-only
+  observability/retry state, deliberately separate from `status` (the
+  upload/visibility lifecycle gating the general gallery — must never be
+  coupled to face-processing state).
 - **`face_embeddings`** — `pgvector(512)`, HNSW cosine index, `person_id`
-  (cluster id) + `guest_id` (nullable link once a guest's consented selfie
-  matches). **Unpopulated** — Stage 2 (the face pipeline) hasn't been built.
+  (cluster id, assigned by `apps/api/src/pipeline/cluster.ts`) + `guest_id`
+  (nullable link, set by `POST /guests/:token/selfie` once a guest's selfie
+  matches a cluster). **Still unpopulated on the live DB** — the pipeline code
+  exists (queue consumer, embedding service) but the embedding service hasn't
+  been deployed to a real host yet, so no photo has actually been embedded
+  live.
 - **`biometric_consents`** — one row per guest who has consented.
-  `retention_expires_at` is deliberately nullable with no default — the
-  retention policy is an open legal question (PRD §8), not decided in code.
+  `retention_expires_at`: as of migration 0003, defaults to `consented_at +
+  30 days` (a decided value — the founder received an informal draft legal
+  opinion recommending a 30-90 day window and formal sign-off is pending, see
+  §8) — no longer left NULL. `guardian_confirmed boolean` (0003): required
+  `true` by `POST /consent/:token`, folded into the existing `/consent`
+  screen as an additional checkbox rather than a new "age gate" screen.
 
 ## 4. Guest-facing API (`apps/api`, service-role, bypasses RLS)
 
@@ -144,7 +165,8 @@ auth — they're the guest path, gated only by the opaque token.
 | `GET /health` | Liveness + binding/secret presence check (never leaks values) |
 | `POST /events/:event_id/guests` | Issues a fresh opaque guest token for an event. Generates `guest_id` server-side, stores only `SHA-256(token)`. |
 | `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent. `face_embeddings` is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. |
-| `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). `retention_expires_at` left NULL. |
+| `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). Body **requires** `{ guardian_confirmed: true }` (400s otherwise, migration 0003) — `retention_expires_at` is now set by a DB trigger, not left NULL. |
+| `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
 
@@ -152,6 +174,49 @@ auth — they're the guest path, gated only by the opaque token.
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
 `verifyGuestToken`/`tokenHash`) — no JWT library. Constant-time verification.
 The token never expires today (see Known Gaps) and travels in the URL path.
+
+### 4a. Stage 2 pipeline architecture (live)
+
+- **Photo-side embedding**: `POST /events/:event_id/photos` best-effort
+  enqueues `{photo_id, event_id, storage_key}` to the `face-embed-queue`
+  Cloudflare Queue (non-blocking — upload response is unaffected either way).
+  The Worker's own `queue()` handler (`apps/api/src/queueConsumer.ts`) pulls
+  the photo from R2, calls the embedding service, and for each detected face
+  assigns a `person_id` cluster (`apps/api/src/pipeline/cluster.ts` — greedy
+  nearest-neighbor via `match_faces`, threshold `CLUSTER_MATCH_THRESHOLD`,
+  deliberately conservative/high to avoid merging two different guests into
+  one cluster) before inserting the `face_embeddings` row.
+- **Guest-side matching**: see `POST /guests/:token/selfie` above.
+  `GUEST_MATCH_THRESHOLD` is deliberately more lenient than the clustering
+  threshold (a single uncontrolled selfie shot vs. curated event photos), and
+  the route links every cluster above threshold in the top-`GUEST_MATCH_TOPK`
+  results, not just the single nearest, to compensate for ingestion-time
+  over-splitting.
+- **Retention enforcement**: a daily Cloudflare Cron Trigger (`0 3 * * *`,
+  `apps/api/src/scheduledCleanup.ts`) deletes `face_embeddings` rows whose
+  guest's `retention_expires_at` has passed. Scoped to embeddings only —
+  `guests`/`biometric_consents` rows are kept indefinitely as audit metadata.
+- **Embedding service**: `packages/processing-pipeline` (self-hosted
+  InsightFace/ArcFace, never a per-call managed API per CLAUDE.md), deployed
+  to **Cloud Run** (project `ouraforphotographers`, region `us-central1`,
+  service `oura-embed`). Publicly reachable at the network level
+  (`--no-allow-unauthenticated` was tried first and reverted — Cloud Run's
+  own IAM auth would reject the Worker's calls before they reach the app,
+  since there's no VPC peering between Cloudflare and Cloud Run; the
+  `EMBED_SERVICE_TOKEN` bearer check inside the FastAPI app is the actual
+  access control). CPU boost enabled on the service to reduce cold-start
+  latency without paying for an always-on instance (`min-instances` stays 0).
+  The GCP service account used to deploy needed three roles added
+  incrementally (Cloud Run Admin, Artifact Registry Writer, Service Account
+  User — the standard trio for a Cloud-Run-deploying account) plus Cloud
+  Run/Cloud Build/Artifact Registry APIs enabled on the project.
+- **Guest flow fully wired**: `/consent`'s redirect now points to `/selfie`
+  (not `/gallery`) on accept, and `/selfie`'s confirm-submit routes to
+  `/gift-reveal` regardless of match outcome (both "matched" and "still
+  searching" are legitimate, already-handled states) before landing on
+  `/gallery`. Verified live end-to-end against throwaway test guests on the
+  real `WED-2024` event: consent → selfie submission → real Cloud Run
+  embedding call → correct `no_face_detected`/`matched` response.
 
 ## 5. Photographer-facing API (`apps/api`, JWT-authenticated + ownership-gated)
 
@@ -261,9 +326,40 @@ incident is just as likely to be a rendering bug as an API bug.
 **`apps/api` (Wrangler secrets, `wrangler secret put <name>`):**
 `SUPABASE_URL` (bare project URL, NOT the `/rest/v1/`-suffixed PostgREST
 base — see Known Gaps/Mistakes), `SUPABASE_SERVICE_ROLE_KEY`,
-`GUEST_TOKEN_SECRET` (HMAC key for guest tokens).
+`GUEST_TOKEN_SECRET` (HMAC key for guest tokens), `EMBED_SERVICE_TOKEN`
+(Stage 2 — bearer secret shared with `packages/processing-pipeline`; **set
+live** via `wrangler secret put`, but the value it needs to match on the
+embedding-service side doesn't matter yet since that service isn't deployed
+anywhere real — will need to be re-set/confirmed once it is).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
+
+**`apps/api` (Queue binding + Cron, `wrangler.toml`):** `FACE_EMBED_QUEUE` →
+`face-embed-queue` (+ `face-embed-queue-dlq` dead-letter queue) — **created
+live** via `wrangler queues create` and deployed. Daily cron `0 3 * * *` for
+retention cleanup, live (harmless no-op until real consents cross the 30-day
+mark).
+
+**`apps/api` (non-secret vars, `wrangler.toml`):** `EMBED_SERVICE_URL`
+(placeholder until the embedding service is deployed), `CLUSTER_MATCH_THRESHOLD`
+(0.5), `GUEST_MATCH_THRESHOLD` (0.42), `GUEST_MATCH_TOPK` (20) — cosine-
+similarity tuning knobs, first things to adjust after watching real pilot-
+event match rates.
+
+**`packages/processing-pipeline` (Cloud Run env var):** `EMBED_SERVICE_TOKEN` —
+same value as the Worker secret above (both re-set together whenever rotated,
+since Cloudflare secrets are write-only and can't be read back to confirm a
+match), checked on every `/embed` call. Set via `--set-env-vars` at deploy
+time, not Secret Manager — a deliberate simplification consistent with the
+project's MVP scale, equivalent in practice to the Worker-secret model (not
+exposed in logs, just an env var on the container).
+
+**GCP project (`ouraforphotographers`):** hosts the Cloud Run service. A
+dedicated deploy-time service account needs three IAM roles — Cloud Run
+Admin, Artifact Registry Writer, Service Account User — plus the Cloud Run,
+Cloud Build, and Artifact Registry APIs enabled on the project. Any session
+redeploying this service needs a fresh service-account JSON key from the
+founder (same one-time-credential pattern as the Supabase access token).
 
 **`apps/web` (build-time, `.env.local` / CI env — these get INLINED into the
 client bundle, so "secret" here just means "not committed," not "hidden from
@@ -272,10 +368,17 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ## 8. Known gaps (honest, not oversights — see PRD.md for phase boundaries)
 
-- **Face-matching pipeline (Stage 2) doesn't exist.** `face_embeddings` is
-  never written to. The personal gallery honestly shows "still searching for
-  you," not fake matches. Blocked on PRD §8's biometric legal review, which
-  is deferred (founder's explicit call, not yet started).
+- **Face-matching pipeline (Stage 2) is fully live** — see §4/§4a. Real
+  guests now go consent → selfie → gift-reveal → gallery, with actual
+  InsightFace/ArcFace matching running on Cloud Run. Residual, honest
+  caveats: (a) `CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD` are initial
+  domain-convention guesses, not measured against real pilot-event data yet
+  — they're `wrangler.toml` vars specifically so they can be tuned without a
+  redeploy once real match-rate data exists; (b) legal basis is an informal
+  draft opinion (from a lawyer-friend, formal signed version still to
+  follow) — the founder explicitly decided to proceed building on that
+  basis, accepting the risk ahead of the formal signed opinion; PRD §8
+  should be read alongside this note, not as fully resolved.
 - **Guest tokens never expire** and travel in the URL path (loggable at
   edges/proxies). Flagged by an earlier security review, not yet addressed.
 - **No photographer password-reset flow.** Founder's account had a password
@@ -311,6 +414,55 @@ values baked in, not a build error.
 **If this ever needs to become real CI/CD:** there's nothing to migrate away
 from, just a `wrangler deploy` step to add to a workflow, per Worker, with
 those same env vars as repo/environment secrets.
+
+**Stage 2 deploy steps:**
+1. ✅ Applied `supabase/migrations/0003_stage2_pipeline.sql` via the
+   Management API (founder-issued `sbp_...` token, revoked immediately after
+   — same one-time-use pattern as 0001/0002, see Mistakes). Verified live.
+2. ✅ `npx wrangler queues create face-embed-queue` /
+   `face-embed-queue-dlq`, both created live.
+3. ✅ `wrangler secret put EMBED_SERVICE_TOKEN` and `npx wrangler deploy` —
+   `oura-api` is live with the queue producer/consumer, cron, and new routes.
+   Verified live against a throwaway test guest (see Known Gaps).
+4. ✅ Deployed `packages/processing-pipeline` to Cloud Run (project
+   `ouraforphotographers`, region `us-central1`, service `oura-embed`) —
+   founder created a GCP project + billing + a deploy service account (whose
+   IAM roles had to be added incrementally: Cloud Run Admin, Artifact
+   Registry Writer, Service Account User) and handed a service-account JSON
+   key to this session. Fixed a real Dockerfile bug along the way
+   (`insightface`/`stringzilla` need a C/C++ compiler to build from source —
+   moved to a multi-stage build with `build-essential` in the builder stage
+   only). Deployed with `--no-allow-unauthenticated` first, then reverted to
+   public+bearer-token auth once it became clear Cloud Run's own IAM layer
+   would reject the Worker's calls before they reached the app (no VPC
+   peering exists between Cloudflare and Cloud Run). CPU boost enabled to
+   reduce cold-start latency while keeping `min-instances=0`. Updated
+   `EMBED_SERVICE_URL` in `wrangler.toml` to the real host and
+   `re-wrangler deploy`'d `apps/api`. Verified live end-to-end.
+5. ✅ Built `apps/web/app/selfie/page.tsx` from the founder's Stitch export
+   (`oura_ai_desktop.html`/`oura_ai_mobile.html`) and deployed it — reachable
+   at `/selfie` by direct URL only, same status as `/gift-reveal`. Verified
+   with Playwright (fake-camera-device flags, mocked API routes): correct
+   RTL/layout, camera → capture → review → confirm flow, navigates to
+   `/gift-reveal` on completion, no console errors. Two real bugs fixed
+   during the port, not just a literal copy of the export: (a) the desktop
+   export's capture-button Hebrew text was set to Hanken Grotesk
+   (`font-headline-md`), which has no Hebrew glyphs — moved to Rubik
+   (`font-sans`), matching every other Hebrew element and the CLAUDE.md
+   guardrail; (b) the export's CDN Tailwind/Google-Fonts `<script>`/`<link>`
+   tags were dropped entirely in favor of the app's already-bundled
+   fonts/Tailwind build (CLAUDE.md: no CDN tags in production builds). Also
+   translated the export's ad-hoc local color-token names onto the app's
+   actual `globals.css` theme rather than copying them literally — several
+   collide with different meanings (the export's `text-primary` is white;
+   the app's `--color-primary` is the copper accent, so a literal class copy
+   would have silently recolored that text orange).
+6. ✅ Flipped `/consent`'s redirect target from `/gallery` to `/selfie`, and
+   confirmed `/selfie`'s confirm-submit routes to `/gift-reveal` (both
+   "matched" and "still searching" outcomes) before landing on `/gallery`.
+   Deployed and verified live end-to-end against throwaway test guests on
+   the real `WED-2024` event. **Stage 2 is now fully live**, no remaining
+   deploy steps.
 
 ## 10. Verification & testing conventions
 
@@ -361,3 +513,75 @@ as the code change if practical:
 session continuity; this file is the structural reference — endpoints,
 schema, auth model, deployment topology. They serve different purposes and
 both need to stay accurate, not just one.
+
+## 12. Vendor portability — what's actually locked in vs. not
+
+Written because the founder asked for this to be genuinely easy later, not
+hypothetically. No code was restructured to "future-proof" this — the
+project is at pilot scale, and adding abstraction layers for a migration
+that isn't happening yet would be pure complexity tax. This is an honest
+audit of what's already portable by how it was built, and what specifically
+would need real work, per service — a playbook for when/if it's needed.
+
+**Cloud Run (embedding service) — easiest to move, already achieved.**
+`packages/processing-pipeline` is a plain Docker container, configured
+entirely by two env vars (`EMBED_SERVICE_URL`, `EMBED_SERVICE_TOKEN`). No
+Google Cloud SDK or API is called from inside the app itself — FastAPI +
+InsightFace, nothing GCP-specific. Moving to Fly.io, AWS Fargate, or any
+Docker host: deploy the same `Dockerfile` there, update
+`EMBED_SERVICE_URL` in `apps/api/wrangler.toml`, re-set
+`EMBED_SERVICE_TOKEN` to match on both sides, `wrangler deploy`. No code
+changes. What doesn't move: the GCP project/billing/service-account setup
+itself (that's Google-specific account admin, not portable, just re-done
+fresh on whichever platform is next).
+
+**Supabase — the database is portable, the auth system is not.**
+The schema (`supabase/migrations/*.sql`) is vanilla Postgres plus the
+open-source `vector` (pgvector) and `pgcrypto` extensions — nothing
+Supabase-proprietary in the tables themselves. A `pg_dump`/`pg_restore` to
+any Postgres host with `pgvector` installed (Neon, RDS, self-hosted, even a
+different Supabase-like provider) carries the schema and data over cleanly.
+The genuinely sticky part is **Supabase Auth**: `events.photographer_id`
+references `auth.users(id)`, and every RLS policy is keyed on `auth.uid()`
+— a function Supabase's Auth layer provides, not a table you own. Leaving
+Supabase Auth means: migrating photographer accounts to a new provider (or
+standing up a parallel `photographers` table), rewriting every RLS policy
+to key on a different identity mechanism (or moving ownership checks into
+`requireEventOwner()` in application code instead of the database), and
+replacing the `auth.getUser(token)` verification call in `apps/api`. The
+`supabase-js`/PostgREST query style (`.from().select().eq()`) used
+throughout is a thin, mechanically-rewritable layer over plain SQL — real
+effort to swap, but not a deep architectural dependency like Auth is.
+
+**Cloudflare (Workers, R2, Queues, Cron) — mixed.** Hono itself (the
+`apps/api` framework) is not Cloudflare-specific — it runs on Node/Bun/Deno
+too, and none of the route *logic* depends on Cloudflare. What's actually
+Cloudflare-specific is the `Env` bindings: the `R2Bucket` interface, the
+`Queue<T>` binding + `queue()` handler, and the `ScheduledController` cron
+handler. None of these have a drop-in universal replacement:
+- **R2 → any other storage**: R2 already speaks the S3 API at the protocol
+  level, so the *data* is portable via any S3-compatible sync tool
+  (`rclone`, `aws s3 sync`). The *code* uses R2's native Worker binding
+  (`c.env.MEDIA.get(key)`), which would become a generic S3 SDK call if
+  moving off Workers entirely — a small, mechanical rewrite, not a redesign.
+  Worth flagging: R2's zero-egress pricing is *why* it was chosen (CLAUDE.md)
+  — moving to a provider that charges egress reintroduces a real cost on
+  read-heavy media serving, a genuine tradeoff, not just an engineering one.
+- **Queues → any other queue**: Cloudflare Queues' batching/retry/DLQ model
+  (`src/queueConsumer.ts`) doesn't have a universal equivalent — swapping to
+  SQS, Cloud Tasks, or a Postgres-backed queue is real rework, not a config
+  change.
+- **Cron → any scheduler**: trivial to replace (any host's own cron, a
+  GitHub Actions schedule, a hosted cron service) — `scheduledCleanup.ts`'s
+  actual logic doesn't depend on Cloudflare at all.
+- **`apps/web`**: the OpenNext Cloudflare adapter is the only
+  Cloudflare-specific layer — the app underneath is a standard Next.js app.
+  Dropping the adapter and deploying with plain `next build`/`next start`
+  (or to Vercel, or any Node host) is straightforward; Next.js itself isn't
+  what's locking this in.
+
+**Bottom line for a future move:** Cloud Run is a non-event (already
+designed to be swappable). Supabase's *database* is a non-event; Supabase
+*Auth* is the one genuinely hard migration in this stack. Cloudflare is the
+mixed case — R2 and Cron are cheap to leave, Queues is the real work, and
+`apps/web` is barely tied to Cloudflare at all under the adapter.
