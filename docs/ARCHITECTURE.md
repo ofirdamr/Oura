@@ -229,7 +229,7 @@ photographer-facing is direct-to-Supabase from the browser (§2).
 | Route | Purpose |
 |---|---|
 | `POST /events/:event_id/photos` | Multipart photo upload. Requires `Authorization: Bearer <supabase access token>` + event ownership. Writes to R2 (`events/<event_id>/orig/<uuid>.<ext>`), inserts a `photos` row (`status:'ready'` — no processing pipeline exists yet). |
-| `POST /events/:event_id/branding/logo` | Multipart logo upload. Same auth. Fixed key per event (`events/<event_id>/branding/logo.<ext>` — re-upload overwrites by design). Read-modify-writes `events.branding` jsonb, merging `logo_key` without clobbering sibling keys. |
+| `POST /events/:event_id/branding/logo` | Multipart logo upload. Same auth. Content-addressed key per upload (`events/<event_id>/branding/logo-<uuid>.<ext>` — NOT a fixed filename; `/media/*` caches every key for a year as immutable, so a fixed key would keep serving the old bytes after a re-upload). Read-modify-writes `events.branding` jsonb, merging `logo_key` without clobbering sibling keys, then best-effort deletes the previous logo's R2 object. |
 | `DELETE /events/:event_id/photos/:photo_id` | Deletes a photo: DB row first (so the gallery stops showing it immediately), then best-effort R2 object delete (a failed R2 delete doesn't fail the request — an orphaned R2 object is a harmless storage-cost leak, not a correctness bug). |
 
 **Shared auth helper:** `requireEventOwner(c, db, event_id)` in

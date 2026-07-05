@@ -632,10 +632,16 @@ app.delete('/events/:event_id/photos/:photo_id', async (c) => {
 //   event-ownership gate as photo ingest (uniform 404 for missing/foreign event).
 //   Accepts multipart/form-data with a single `file` field (an image). The bytes
 //   land in R2 — NEVER Supabase storage (CLAUDE.md hard guardrail) — under a
-//   FIXED per-event key, so re-uploading replaces the studio's current logo
-//   (intended: a studio has exactly one current logo). We then merge
-//   { logo_key } into the event's `branding` jsonb, preserving any other keys
-//   (e.g. primary_color) written by the branding-CRUD flow.
+//   fresh, content-addressed key per upload (a random id, same as photo ingest),
+//   NOT a fixed per-event filename. The shared `/media/*` route below serves
+//   every key with a one-year `immutable` Cache-Control, which is only safe for
+//   keys that never change contents — a fixed `.../logo.png` key would mean a
+//   re-uploaded logo keeps the exact same URL, so the browser (and any CDN edge
+//   cache) would keep serving the byte-for-byte OLD image for up to a year after
+//   a "successful" re-upload, which looked from the UI like the upload silently
+//   did nothing. Old logo object is best-effort deleted from R2 after the DB
+//   write succeeds (mirrors the delete-photo cleanup below), since a studio only
+//   ever has one current logo.
 //   Response 200: { logo_key, url }
 // ---------------------------------------------------------------------------
 app.post('/events/:event_id/branding/logo', async (c) => {
@@ -656,8 +662,8 @@ app.post('/events/:event_id/branding/logo', async (c) => {
   const nameExt = /\.([a-z0-9]{1,8})$/i.exec(file.name ?? '')?.[1]?.toLowerCase();
   const typeExt = file.type?.split('/')[1]?.toLowerCase();
   const ext = `.${nameExt || typeExt || 'png'}`;
-  // Fixed filename per event — a re-upload overwrites the previous logo by design.
-  const storage_key = `events/${event_id}/branding/logo${ext}`;
+  // Unique per upload — see the route comment above for why a fixed filename breaks caching.
+  const storage_key = `events/${event_id}/branding/logo-${crypto.randomUUID()}${ext}`;
 
   await c.env.MEDIA.put(storage_key, await file.arrayBuffer(), {
     httpMetadata: { contentType: file.type || 'image/png' },
@@ -676,10 +682,20 @@ app.post('/events/:event_id/branding/logo', async (c) => {
     current?.branding && typeof current.branding === 'object' && !Array.isArray(current.branding)
       ? (current.branding as Record<string, unknown>)
       : {};
+  const previousLogoKey =
+    typeof existingBranding.logo_key === 'string' ? existingBranding.logo_key : undefined;
   const branding = { ...existingBranding, logo_key: storage_key };
 
   const { error: updateErr } = await db.from('events').update({ branding }).eq('id', event_id);
   if (updateErr) return c.json({ error: 'branding_update_failed' }, 500);
+
+  if (previousLogoKey && previousLogoKey !== storage_key) {
+    try {
+      await c.env.MEDIA.delete(previousLogoKey);
+    } catch (err) {
+      console.error('R2 delete failed for', previousLogoKey, err);
+    }
+  }
 
   return c.json({ logo_key: storage_key, url: photoUrlStub(c, storage_key) });
 });
