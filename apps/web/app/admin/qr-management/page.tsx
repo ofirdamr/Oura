@@ -179,6 +179,48 @@ function QrManagementPageInner() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="flex flex-col items-center">
+          <div className="rounded-3xl bg-white p-4 shadow-2xl">
+            <div className="flex h-72 w-72 items-center justify-center rounded-xl bg-[#0d1b1e]">
+              <div className="relative h-56 w-56 rounded-lg bg-[#f6efe6]">
+                <div className="flex h-full w-full items-center justify-center p-3">
+                  {qrDataUrl ? (
+                    <Image
+                      src={qrDataUrl}
+                      alt={`קוד QR לגלריה של ${eventName ?? "האירוע"}`}
+                      width={512}
+                      height={512}
+                      unoptimized
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <span
+                      className="material-symbols-outlined text-black/70"
+                      style={{ fontSize: "120px" }}
+                    >
+                      qr_code_2
+                    </span>
+                  )}
+                </div>
+                <div className="absolute start-2 top-2 h-6 w-6 rounded-tl-sm border-t-2 border-s-2 border-primary" />
+                <div className="absolute end-2 top-2 h-6 w-6 rounded-tr-sm border-t-2 border-e-2 border-primary" />
+                <div className="absolute bottom-2 start-2 h-6 w-6 rounded-bl-sm border-b-2 border-s-2 border-primary" />
+                <div className="absolute bottom-2 end-2 h-6 w-6 rounded-br-sm border-b-2 border-e-2 border-primary" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container px-4 py-2">
+            <CopyButton value={eventCode ?? ""} label="העתק מזהה" />
+            <span className="font-mono text-sm font-bold tracking-wide text-primary" dir="ltr">
+              ID: {loading ? "..." : (eventCode ?? "—")}
+            </span>
+          </div>
+          <p className="mt-2 max-w-xs text-center text-sm text-on-surface-variant">
+            סרקו כדי לצפות בגלריה בזמן אמת דרך {eventName ?? "Oura"}
+          </p>
+        </div>
+
         <div className="space-y-6">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
@@ -266,48 +308,6 @@ function QrManagementPageInner() {
               <CopyButton value={fullGalleryLink ?? ""} label="העתק קישור" />
             </div>
           </div>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <div className="rounded-3xl bg-white p-4 shadow-2xl">
-            <div className="flex h-72 w-72 items-center justify-center rounded-xl bg-[#0d1b1e]">
-              <div className="relative h-56 w-56 rounded-lg bg-[#f6efe6]">
-                <div className="flex h-full w-full items-center justify-center p-3">
-                  {qrDataUrl ? (
-                    <Image
-                      src={qrDataUrl}
-                      alt={`קוד QR לגלריה של ${eventName ?? "האירוע"}`}
-                      width={512}
-                      height={512}
-                      unoptimized
-                      className="h-full w-full object-contain"
-                    />
-                  ) : (
-                    <span
-                      className="material-symbols-outlined text-black/70"
-                      style={{ fontSize: "120px" }}
-                    >
-                      qr_code_2
-                    </span>
-                  )}
-                </div>
-                <div className="absolute start-2 top-2 h-6 w-6 rounded-tl-sm border-t-2 border-s-2 border-primary" />
-                <div className="absolute end-2 top-2 h-6 w-6 rounded-tr-sm border-t-2 border-e-2 border-primary" />
-                <div className="absolute bottom-2 start-2 h-6 w-6 rounded-bl-sm border-b-2 border-s-2 border-primary" />
-                <div className="absolute bottom-2 end-2 h-6 w-6 rounded-br-sm border-b-2 border-e-2 border-primary" />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container px-4 py-2">
-            <CopyButton value={eventCode ?? ""} label="העתק מזהה" />
-            <span className="font-mono text-sm font-bold tracking-wide text-primary" dir="ltr">
-              ID: {loading ? "..." : (eventCode ?? "—")}
-            </span>
-          </div>
-          <p className="mt-2 max-w-xs text-center text-sm text-on-surface-variant">
-            סרקו כדי לצפות בגלריה בזמן אמת דרך {eventName ?? "Oura"}
-          </p>
         </div>
       </div>
 

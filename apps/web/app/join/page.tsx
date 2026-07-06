@@ -25,7 +25,7 @@ export default function JoinPage() {
 
       <header className="relative z-10 mb-8 mt-8">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
-          <OuraLogo size={56} />
+          <OuraLogo variant="lockup" size={56} />
         </div>
       </header>
 
@@ -44,10 +44,10 @@ export default function JoinPage() {
           <h2 className="text-lg font-medium text-primary">
             תמונות אחרונות מהאירוע
           </h2>
-          <button className="flex items-center gap-1 text-sm font-medium text-tertiary hover:opacity-80">
+          <button className="flex items-center gap-1 text-sm font-medium text-[#f4cd4d] hover:opacity-80">
             <span>לגלריה המלאה</span>
             <span className="material-symbols-outlined text-base">
-              arrow_back
+              arrow_forward
             </span>
           </button>
         </div>

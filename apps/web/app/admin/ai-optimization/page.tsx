@@ -19,11 +19,15 @@
 import { useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 
+// Order matches the design's right-to-left reading order for this
+// `grid-cols-4` row (DOM order 1..4 fills right-to-left under RTL): the
+// in-progress tile sits at the far right, the three completed tiles follow
+// to its left.
 const QUEUE_ITEMS = [
-  { status: "done" as const },
-  { status: "done" as const },
-  { status: "done" as const },
   { status: "scanning" as const, progress: 74 },
+  { status: "done" as const },
+  { status: "done" as const },
+  { status: "done" as const },
 ];
 
 const ACCURACY_METRICS = [
@@ -180,7 +184,7 @@ export default function AiOptimizationPage() {
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">insights</span>
-              מדדי דיוק
+              מדדי דיוק פלטינום
             </h2>
             <div className="space-y-4">
               {ACCURACY_METRICS.map((metric) => (
@@ -235,7 +239,7 @@ export default function AiOptimizationPage() {
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">warning</span>
-              סיכום התראות מערכת
+              סיכום שגיאות זיהוי
             </h2>
             <div className="space-y-3">
               {ERROR_LOG.map((entry, i) => (

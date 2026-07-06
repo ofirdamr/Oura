@@ -129,11 +129,10 @@ egress). Never edit an already-applied migration file; add a new one.
   backfilled to the same on existing rows), enforced in
   `apps/api/src/index.ts`'s `resolveGuest()` alongside the existing
   `token_hash` lookup. Closes the "guest tokens never expire" known gap
-  (§8). **Written but NOT YET APPLIED to the live DB** — needs a fresh
-  Supabase personal access token (see §9) before it can run; `apps/api`
-  must NOT be redeployed with this change until the column exists, or every
-  guest route (`/gallery`, `/consent`, `/guests/:token/selfie`) 500s on the
-  `select token_expires_at`.
+  (§8). Applied (2026-07-06) — verified `NOT NULL`/default landed correctly
+  and all 8 live `guests` rows backfilled; `apps/api` redeployed with the
+  enforcement live, verified against a throwaway `WED-2024` test guest (a
+  backdated `token_expires_at` correctly produced `401 token_expired`).
 
 Key tables (see the migration files for full column lists/constraints):
 
@@ -189,7 +188,7 @@ auth — they're the guest path, gated only by the opaque token.
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
 `verifyGuestToken`/`tokenHash`) — no JWT library. Constant-time verification.
 The signed payload itself has no expiry claim; expiry is enforced via
-`guests.token_expires_at` (migration 0004, pending application — see §3) in
+`guests.token_expires_at` (migration 0004, applied and live — see §3) in
 `resolveGuest()`, checked on the same row already fetched for the
 `token_hash` lookup (no extra query). The token still travels in the URL
 path (still loggable at proxies/CDNs — a separate, larger fix, not attempted
@@ -268,9 +267,9 @@ two and enumerate event ids.
 | `/join` | Static UI only — the actual QR-scan guest landing per the Stitch design, never wired to real data (superseded in practice by `/gallery-entry`, which does the same job for real) |
 | `/gallery-entry` | **Real** — resolves `?code=`/manual code entry to a real event, issues a real guest token |
 | `/consent` | **Real** — calls the real consent endpoint |
-| `/gallery` | **Real** — real photos from R2 via the Worker; personal gallery honestly empty (Stage 2 not built) |
+| `/gallery` | **Real** — real photos from R2 via the Worker; personal gallery is real Stage 2 face-matched photos (populated once consented) |
 | `/festive-gallery`, `/minimal-gallery` | Static UI only — alternate gallery theme variants, never wired |
-| `/gift-reveal` | Real Three.js/GSAP scene, but **not wired into the guest flow** — no navigation currently routes a guest through it; it's a standalone reachable page |
+| `/gift-reveal` | **Real** Three.js/GSAP scene, wired into the guest flow — `/selfie`'s confirm-submit routes here (matched or not), landing on `/gallery` |
 | `/photo-editor` | Local React state only (adjustments preview live via CSS filters) — nothing persists back to a real photo |
 
 **Photographer-facing (behind `/admin/*` auth middleware) — wired-vs-static status:**
@@ -423,15 +422,26 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   stall likely isn't only in the embed round-trip; the R2 `.get()` call and
   the Supabase `match_faces`/insert calls have no timeouts of their own
   either.
-- ~~Guest tokens never expire~~ **Resolved in code (2026-07-06), not yet
-  deployed:** `guests.token_expires_at` (migration 0004, 90 days from
-  creation) is now checked in `resolveGuest()` — needs the migration applied
-  (fresh Supabase PAT) before `apps/api` can be redeployed with this change
-  (see §3). Tokens still travel in the URL path (loggable at edges/proxies)
-  — that half of the original flag is a separate, larger fix, not attempted
-  here.
+- ~~Guest tokens never expire~~ **Resolved and deployed (2026-07-06):**
+  `guests.token_expires_at` (migration 0004, 90 days from creation) is
+  live and enforced in `resolveGuest()`, verified against a real expired
+  test token (§3). Tokens still travel in the URL path (loggable at
+  edges/proxies) — that half of the original flag is a separate, larger
+  fix, not attempted here.
 - ~~No photographer password-reset flow.~~ **Resolved (2026-07-05):**
   `/forgot-password` + `/reset-password` ship a real self-service flow (§6).
+- ~~Password-reset email link redirects to `localhost:3000`.~~ **Resolved
+  (2026-07-06):** the live Supabase Auth config's `site_url` was actually
+  already pointed at the production domain (not `localhost:3000` as
+  earlier documented — someone/some session had partially fixed this
+  without updating the docs), but `uri_allow_list` had a real typo bug —
+  `.../reset-passwordto` instead of `.../reset-password` — so the redirect
+  never matched the app's actual `redirectTo` and silently fell back to
+  `site_url` (the homepage, not `/reset-password`). Fixed via
+  `PATCH /v1/projects/:ref/config/auth` (`uri_allow_list`); reset-email
+  sender is still Supabase's unbranded shared sender — that part (needs
+  custom SMTP + a founder-owned domain) is separately tracked in
+  `SUMMARY.md`, not resolved here.
 - **AI Optimization admin screen and Photo Editor persistence are UI-only** —
   local React state, no real backend behind either.
 - **Phase 2 features** (Stripe billing, print orders, statistics, messaging,

@@ -22,11 +22,12 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import gsap from "gsap";
 
-// Map onto the app's canonical brand tokens (globals.css), not the mockup's
-// older #9f402d primary: coral primary for ribbons + inner glow, near-black
-// metallic for the box body.
-const PRIMARY = 0xff8a75;
-const BOX_DARK = 0x171717;
+// Colors match the original Stitch source (design/screens/
+// oura_final_production_gift_box_reveal_desktop/code.html) exactly, not the
+// app's generic brand primary - the ribbon/light color there is a distinct
+// muted rust (#9f402d), not the app-wide coral primary.
+const PRIMARY = 0x9f402d;
+const BOX_DARK = 0x121212;
 
 // Draws the placeholder "gift" that rises out of the box - deliberately the
 // same visual language as the app's PhotoTile placeholders (dark card, muted
@@ -131,32 +132,28 @@ export function GiftBoxReveal({
     const group = new THREE.Group();
     scene.add(group);
 
-    const bodyMat = new THREE.MeshStandardMaterial({
+    // One shared material for body + lid, matching the original source's
+    // single `boxMaterial` exactly (color/roughness/metalness), including
+    // reusing the same instance rather than two separately-tuned ones.
+    const boxMat = new THREE.MeshStandardMaterial({
       color: BOX_DARK,
-      roughness: 0.25,
-      metalness: 0.75,
-    });
-    const bodyGeo = new THREE.BoxGeometry(2, 1.5, 2);
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    group.add(body);
-
-    const lidMat = new THREE.MeshStandardMaterial({
-      color: BOX_DARK,
-      roughness: 0.2,
+      roughness: 0.1,
       metalness: 0.8,
     });
-    const lidGeo = new THREE.BoxGeometry(2.16, 0.38, 2.16);
-    const lid = new THREE.Mesh(lidGeo, lidMat);
+    const bodyGeo = new THREE.BoxGeometry(2, 1.5, 2);
+    const body = new THREE.Mesh(bodyGeo, boxMat);
+    group.add(body);
+
+    const lidGeo = new THREE.BoxGeometry(2.1, 0.4, 2.1);
+    const lid = new THREE.Mesh(lidGeo, boxMat);
     lid.position.y = 0.9;
     group.add(lid);
 
-    // Crossed ribbons in primary.
+    // Crossed ribbons - plain matte MeshStandardMaterial with only a color,
+    // matching the original source exactly (no metalness/emissive override
+    // there, so this takes the material's own defaults).
     const ribbonMat = new THREE.MeshStandardMaterial({
       color: PRIMARY,
-      roughness: 0.35,
-      metalness: 0.3,
-      emissive: PRIMARY,
-      emissiveIntensity: 0.12,
     });
     const ribbonGeo = new THREE.BoxGeometry(0.26, 1.62, 2.2);
     const ribbon1 = new THREE.Mesh(ribbonGeo, ribbonMat);
@@ -319,8 +316,7 @@ export function GiftBoxReveal({
       lidGeo.dispose();
       ribbonGeo.dispose();
       cardGeo.dispose();
-      bodyMat.dispose();
-      lidMat.dispose();
+      boxMat.dispose();
       ribbonMat.dispose();
       cardMat.dispose();
       cardTex.dispose();

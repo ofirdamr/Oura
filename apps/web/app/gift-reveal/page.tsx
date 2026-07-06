@@ -78,14 +78,11 @@ export default function GiftRevealPage() {
       <main className="relative z-10 mx-auto max-w-7xl px-6 py-10 md:py-14">
         {/* Hero + 3D reveal */}
         <section className="mb-16 text-center md:mb-24">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-primary/80">
-            חוויה אינטראקטיבית
-          </p>
           <h1 className="mb-4 text-4xl font-bold leading-tight tracking-tight text-on-surface md:text-6xl">
             משהו מיוחד מחכה לך
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-on-surface-variant md:text-xl">
-            הקופסה האישית שלך מוכנה. געו בה כדי לגלות את המתנה שלכם.
+            הקופסה האישית שלך מוכנה. לחץ כדי לגלות את המתנה שלך.
           </p>
 
           <div className="relative mx-auto max-w-4xl">
@@ -102,7 +99,7 @@ export default function GiftRevealPage() {
               >
                 {opened
                   ? "הקופסה נפתחה! המתנה שלך מוכנה"
-                  : "גררו כדי לסובב · הקישו כדי לפתוח"}
+                  : "גרור כדי לסובב | לחץ כדי לפתוח"}
               </div>
             </div>
 

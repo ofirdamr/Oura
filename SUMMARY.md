@@ -144,11 +144,8 @@ implementation work in parallel git worktrees, the orchestrating session
 integrates + verifies live + deploys. This is a standing rule, not a
 one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 
-## Two known Supabase Auth config bugs — real, unfixed, need founder action
+## One known Supabase Auth config gap — needs a founder business decision
 
-Found while founder tested the real password-reset flow live (not yet fixed,
-since neither is a code change — both are Supabase project dashboard
-settings this assistant has no Management API token for):
 - **Reset email sends from Supabase's own shared sender, not "Oura."**
   Needs custom SMTP wired into Supabase (Authentication → SMTP Settings),
   which needs a real transactional-email provider account + a domain the
@@ -162,43 +159,132 @@ settings this assistant has no Management API token for):
   verification, more friction for no real benefit here). **Still waiting on
   the founder to actually register a domain and pick a name** before this
   can move forward.
-- **Password-reset email link redirects to `localhost:3000`, not the live
-  site.** The app code is correct (`redirectTo: window.location.origin +
-  "/reset-password"`) — Supabase validates that URL against an allow-list
-  (Auth → URL Configuration → Site URL + Redirect URLs) and silently falls
-  back to the configured Site URL if the production URL isn't on that list.
-  Site URL is still set to `localhost:3000` from early local dev. **Fix (not
-  yet confirmed done):** in the Supabase dashboard
-  (https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/auth/url-configuration),
-  set Site URL to `https://oura-web.oura-events.workers.dev` and add
-  `https://oura-web.oura-events.workers.dev/reset-password` to Redirect
-  URLs. This is a founder-only dashboard action — no Supabase Management API
-  token exists in this environment to do it directly.
+
+**2026-07-06: password-reset redirect fixed.** The previously-documented
+"Site URL is stuck on `localhost:3000`" gap turned out to be stale — the
+live Supabase Auth config's `site_url` was already correctly set to
+`https://oura-web.oura-events.workers.dev/` (fixed by someone/some session
+without updating this doc). The real live bug was in `uri_allow_list`: a
+typo (`.../reset-passwordto`) meant the app's actual `redirectTo` never
+matched the allow-list, so Supabase silently fell back to `site_url` (the
+homepage) instead of landing on `/reset-password`. Fixed via
+`PATCH /v1/projects/:ref/config/auth` using a founder-issued Supabase PAT;
+verified the corrected value persisted on a fresh `GET`. Sender branding
+(above) is still open and separate.
+
+## 2026-07-06: Design-fidelity pass — real fixes shipped, trust is currently low, read this before touching more screens
+
+The founder demanded pixel-perfect fidelity to the original Stitch design
+(`design/screens/*/screen.png` + `code.html`) across every screen: same
+text, buttons, colors, RTL ordering — fix only genuine bugs (RTL, dead
+buttons), change nothing else. What actually happened, honestly:
+
+- Three parallel subagents audited every screen against its real design
+  source and found concrete, real bugs — not invented ones. Fixed and
+  **deployed and verified live** (see `docs/ARCHITECTURE.md` verification
+  method below): RTL grid-ordering bugs in `admin/branding` (device toggle,
+  frame-swatch grid order, watermark `end-3`→`start-3`), `admin/qr-management`
+  (whole two-column layout was mirrored), `admin/ai-optimization` (processing
+  queue tile order, two drifted card titles), `minimal-gallery` (header
+  icon order, view-toggle position, footer share icon+color), `join` and
+  `gallery-entry` (missing "Oura" wordmark under the logo icon — `OuraLogo`
+  has an unused `variant="lockup"` for exactly this — plus a wrong link
+  arrow direction/color), `gallery` (same wordmark-order bug, removed an
+  extra heading not in the design), `festive-gallery` (logo position +
+  wordmark, date-badge color), `admin/create-event` (modal close-button
+  side), `gift-reveal` (removed an added label, fixed two drifted lines of
+  copy, **and** restored the 3D gift box's actual color — a previous
+  session had deliberately swapped Stitch's own specified ribbon color
+  (`#9f402d`, taken straight from the Stitch export's own Three.js code in
+  `code.html` — Stitch DOES specify a real color/material for this box, it's
+  just embedded in code since a static screenshot can't capture a 3D scene)
+  for the app's generic brand coral "for consistency" — reverted to match
+  the actual source).
+- **The critical failure this session: both fix commits (`ce5c0f8`,
+  `242a929`) were never deployed.** `apps/web` stayed frozen on the *first*
+  audit round's deploy through two more rounds of "fixes" the founder was
+  shown and correctly rejected as unchanged — because on the one thing that
+  matters (the live site), they were. Full write-up and the exact
+  verification method (live-URL curl for SSR'd routes; md5 hash of the
+  actual deployed `/_next/static/chunks/*.js` file against the local build
+  for client-rendered routes, since those bail to
+  `BAILOUT_TO_CLIENT_SIDE_RENDERING` and a plain curl shows nothing either
+  way) is in `MISTAKES.md`'s 2026-07-06 "never deployed either one" entry —
+  **read it before doing any more design-fidelity work.** The box-color fix
+  (commit `8df1b49`) was deployed and hash-verified live correctly, so that
+  process gap is now understood, not still active — but confirm it stays
+  that way.
+- A face-matching investigation (founder reported "not working, and it
+  worked yesterday"): confirmed via direct DB query that the founder's own
+  guest session from 2026-07-05 has 11 real photos linked to one face
+  cluster (that data is still intact — nothing regressed), then proved the
+  entire live pipeline still works right now by submitting a real event
+  photo through the actual live `/guests/:token/selfie` endpoint and getting
+  a correct match. His 2026-07-06 session had zero links — so either the
+  selfie was never actually submitted (declined/backed out/camera denied)
+  or that specific photo failed face detection. **Waiting on the founder to
+  retry and report the exact behavior** (error message vs. silent
+  continue) — don't assume this is a code bug until that comes back.
+
+**Known, real, NOT yet fixed** (found this session, confirmed in code, not
+touched pending founder go-ahead — see chat history for exact files/lines):
+- Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
+  photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
+  print sub-options + fullscreen-display button.
+- Content genuinely missing vs. the design (needs real backend/feature
+  work, not a CSS fix): personal-gallery's name-based headline + event-name
+  line + per-photo match-confidence badges; dashboard's 3rd stat card + AI
+  panel + tip card; events-list's 4th stat card ("צפיות השבוע").
+- The in-app "activate camera to scan" button on `/gallery-entry`/`/join` is
+  honestly labeled "(בקרוב)" (coming soon) — never built. Guests currently
+  reach their gallery by scanning the printed QR with their **phone's own**
+  camera app (which opens a deep link with `?code=` prefilled) — that part
+  works. An in-browser scanner does not exist.
+- `/join`, `/festive-gallery`, `/minimal-gallery` orphaned-screens decision
+  (remove vs. build as real selectable themes) is still open — see below,
+  unchanged from before this session.
+
+**Founder trust is currently low** after the deploy-gap discovery, on top
+of an earlier round where the verification *tooling itself* (a screenshot
+comparison artifact) had three of its own successive bugs (cropped
+screenshots, icon font rendering as literal text, a stale screenshot
+reused) before the underlying audit even started. He has explicitly asked
+for a Plan/PM decision on how to proceed next, not another round of
+solo fixes — see whatever the PM agent decided, check `PROGRESS.md` for
+its full reasoning if this doc doesn't have it yet.
 
 ## Next milestone: not yet decided
 
-**2026-07-06: guest token expiry (code complete, blocked on deploy).** Added
+**2026-07-06: guest token expiry — shipped and verified live.** Added
 `guests.token_expires_at` (migration `0004_guest_token_expiry.sql`, 90 days
 from creation, backfilled for existing rows) and enforced it in
 `resolveGuest()` (`apps/api/src/index.ts`) — a leaked/logged guest token now
-stops working after 90 days instead of granting indefinite access. `tsc
---noEmit` clean. **Not yet applied to the live DB and `apps/api` NOT
-redeployed** — this session had no Supabase Management API personal access
-token available, and deploying the Worker code first would 500 every guest
-route (`/gallery`, `/consent`, `/guests/:token/selfie`) since the column
-wouldn't exist yet. Needs, in order: (1) a fresh founder-issued Supabase PAT
-to apply `0004_guest_token_expiry.sql` via the Management API, (2) redeploy
-`apps/api`. See `docs/ARCHITECTURE.md` §3/§4/§8 for full detail. The other
-half of the original flag — tokens traveling in the URL path, loggable at
-proxies/CDNs — is unaddressed, deliberately out of scope for this pass (a
-larger structural change, see ARCHITECTURE.md §4).
+stops working after 90 days instead of granting indefinite access. Applied
+the migration live via a founder-issued Supabase PAT (verified `NOT NULL` +
+correct default + all 8 existing `guests` rows backfilled), redeployed
+`apps/api`, and verified end-to-end against a throwaway `WED-2024` test
+guest: fresh token → `200`, tampered token → `401 invalid_token`, a
+deliberately backdated `token_expires_at` → `401 token_expired`. Test guest
+row deleted afterward. The other half of the original flag — tokens
+traveling in the URL path, loggable at proxies/CDNs — remains unaddressed,
+deliberately out of scope for this pass (a larger structural change, see
+`docs/ARCHITECTURE.md` §4). **Founder: the PAT used for this can now be
+revoked** (supabase.com/dashboard/account/tokens), same as prior sessions.
 
 Rough edges worth a Plan/PM consult on sequencing, none blocking:
-- `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens
-  worth either wiring or removing.
+- `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens —
+  zero live inbound/outbound links today, but `PRD.md` §4 lists Festive/
+  Minimal/Personal Gallery as three separate MVP features, so the intended
+  scope (remove vs. build out as a real selectable per-event gallery theme)
+  needs a founder call before more code gets written here, not another
+  guess — see the PM consult in this session's history for the two very
+  different implementation paths and their tradeoffs.
 - Match thresholds (`CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD`) are
   untuned guesses — worth revisiting once a real pilot event generates
-  actual match-rate data.
+  actual match-rate data. Deliberately not manufacturing tuning data early
+  (e.g. logging raw selfie match scores) since that would itself be new
+  biometric-adjacent retained data requiring the same legal sign-off Stage 2
+  already went through — parked until a real pilot happens, not actioned.
 - **Supabase free-tier 500MB DB cap — not a concern yet, no action needed.**
   Checked live: current usage is a few KB (1 event, 4 guests, 17 photo
   metadata rows, 0 face-embedding rows — photo binaries live in R2, never

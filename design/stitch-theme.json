@@ -1,0 +1,52 @@
+{
+  "$comment": "Design tokens reference, extracted from design/oura_design_specifications_final.md (Stitch's own generated brand spec) and cross-checked against apps/web/app/globals.css, where these values are already implemented as the app's live CSS theme. This file documents the existing single source of truth — it is not consumed by the app and does not change any code.",
+  "color": {
+    "primary": "#ff8a75",
+    "onPrimary": "#3f0300",
+    "background": "#121212",
+    "surface": "#0e0e0e",
+    "surfaceContainer": "#1e1e1e",
+    "surfaceContainerHigh": "#2d2d2d",
+    "surfaceContainerHighest": "#3a3a3a",
+    "onSurface": "#ffffff",
+    "onSurfaceVariant": "#b0b0b0",
+    "outlineVariant": "#353534",
+    "tertiary": "#51dcba",
+    "success": "#4caf50",
+    "error": "#cf6679"
+  },
+  "typography": {
+    "fontDisplay": {
+      "family": "Hanken Grotesk",
+      "note": "Latin-only glyphs. Never applied to Hebrew text (CLAUDE.md guardrail) — used only for pure-Latin branding bits like \"OURA\"/\"PLATINUM\" badges."
+    },
+    "fontSans": {
+      "family": "Rubik",
+      "note": "Default for all body/UI text, including Hebrew."
+    },
+    "scale": {
+      "displayLarge": { "size": "48px", "weight": 700, "lineHeight": 1.2, "tailwind": "text-5xl" },
+      "headlineMedium": { "size": "32px", "weight": 600, "lineHeight": 1.3, "tailwind": "arbitrary (no exact Tailwind default; text-[32px] or nearest text-3xl/text-4xl used ad hoc)" },
+      "titleMedium": { "size": "20px", "weight": 500, "lineHeight": 1.4, "tailwind": "text-xl" },
+      "bodyLarge": { "size": "16px", "weight": 400, "lineHeight": 1.6, "tailwind": "text-base" },
+      "labelSmall": { "size": "12px", "weight": 500, "lineHeight": 1.5, "tailwind": "text-xs" }
+    }
+  },
+  "radius": {
+    "standard": "12px",
+    "input": "8px",
+    "luxury": "24px"
+  },
+  "shadow": {
+    "elevated": "0 10px 30px rgba(0,0,0,0.5)"
+  },
+  "spacing": {
+    "baseUnit": "8px",
+    "gutter": "16px",
+    "stackSmall": "16px",
+    "stackMedium": "32px",
+    "stackLarge": "64px",
+    "containerMarginMobile": "24px",
+    "containerMarginDesktop": "80px"
+  }
+}
