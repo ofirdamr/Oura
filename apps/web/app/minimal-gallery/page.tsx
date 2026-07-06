@@ -68,16 +68,16 @@ export default function MinimalGalleryPage() {
             <button
               type="button"
               className="material-symbols-outlined text-on-surface-variant transition-colors hover:text-primary"
-              aria-label="התראות"
+              aria-label="פרופיל"
             >
-              notifications
+              account_circle
             </button>
             <button
               type="button"
               className="material-symbols-outlined text-on-surface-variant transition-colors hover:text-primary"
-              aria-label="פרופיל"
+              aria-label="התראות"
             >
-              account_circle
+              notifications
             </button>
           </div>
         </div>
@@ -102,22 +102,6 @@ export default function MinimalGalleryPage() {
 
       <section className="sticky top-16 z-40 border-y border-outline-variant/20 bg-background/95 px-4 py-4 backdrop-blur-md">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-4">
-          <div className="no-scrollbar flex flex-row-reverse items-center gap-2 overflow-x-auto">
-            {FILTERS.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setActiveFilter(filter)}
-                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm transition-colors ${
-                  activeFilter === filter
-                    ? "bg-primary font-bold text-on-primary"
-                    : "bg-surface-container-high text-on-surface-variant hover:text-primary"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
           <div className="flex shrink-0 items-center gap-3">
             <button
               type="button"
@@ -151,6 +135,22 @@ export default function MinimalGalleryPage() {
             >
               view_agenda
             </button>
+          </div>
+          <div className="no-scrollbar flex flex-row-reverse items-center gap-2 overflow-x-auto">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setActiveFilter(filter)}
+                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm transition-colors ${
+                  activeFilter === filter
+                    ? "bg-primary font-bold text-on-primary"
+                    : "bg-surface-container-high text-on-surface-variant hover:text-primary"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
           </div>
         </div>
       </section>
@@ -259,20 +259,20 @@ export default function MinimalGalleryPage() {
             <div className="flex gap-3">
               <button
                 type="button"
+                aria-label="שיתוף"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-tertiary text-background transition-all hover:opacity-90"
+              >
+                <span className="material-symbols-outlined text-xl">
+                  share
+                </span>
+              </button>
+              <button
+                type="button"
                 aria-label="אימייל"
                 className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-on-surface-variant transition-all hover:bg-primary hover:text-on-primary"
               >
                 <span className="material-symbols-outlined text-xl">
                   alternate_email
-                </span>
-              </button>
-              <button
-                type="button"
-                aria-label="אתר"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant text-on-surface-variant transition-all hover:bg-primary hover:text-on-primary"
-              >
-                <span className="material-symbols-outlined text-xl">
-                  language
                 </span>
               </button>
             </div>

@@ -19,11 +19,16 @@ import { StudioLogo } from "@/components/brand/StudioLogo";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { API_BASE_URL } from "@/lib/api";
 
+// Order matches the design's 2x2 grid reading right-to-left per row (row 1:
+// crystal right/black left; row 2: silver right/none left) — a plain
+// `grid-cols-2` places DOM order 1..4 into row1-col1(right)/row1-col2(left)/
+// row2-col1(right)/row2-col2(left) under RTL, so this array order IS the
+// visual order, not just a data list.
 const FRAME_STYLES = [
-  { key: "black", label: "שחור פסנתר", swatchClass: "bg-black" },
   { key: "crystal", label: "לבן קריסטל", swatchClass: "bg-white" },
-  { key: "none", label: "ללא מסגרת", swatchClass: "border-2 border-dashed border-outline-variant bg-transparent" },
+  { key: "black", label: "שחור פסנתר", swatchClass: "bg-black" },
   { key: "silver", label: "כסף קלאסי", swatchClass: "bg-gradient-to-br from-gray-300 to-gray-400" },
+  { key: "none", label: "ללא מסגרת", swatchClass: "border-2 border-dashed border-outline-variant bg-transparent" },
 ] as const;
 
 type FrameKey = (typeof FRAME_STYLES)[number]["key"];
@@ -301,18 +306,18 @@ function BrandingSettingsPageInner() {
             </h2>
             <div className="flex gap-1 rounded-lg bg-surface-container-high p-1">
               <button
-                onClick={() => setDevice("desktop")}
-                className={`rounded-md p-1.5 ${device === "desktop" ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}
-                aria-label="תצוגת מחשב"
-              >
-                <span className="material-symbols-outlined text-lg">computer</span>
-              </button>
-              <button
                 onClick={() => setDevice("mobile")}
                 className={`rounded-md p-1.5 ${device === "mobile" ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}
                 aria-label="תצוגת נייד"
               >
                 <span className="material-symbols-outlined text-lg">smartphone</span>
+              </button>
+              <button
+                onClick={() => setDevice("desktop")}
+                className={`rounded-md p-1.5 ${device === "desktop" ? "bg-primary text-on-primary" : "text-on-surface-variant"}`}
+                aria-label="תצוגת מחשב"
+              >
+                <span className="material-symbols-outlined text-lg">computer</span>
               </button>
             </div>
           </div>
@@ -339,7 +344,7 @@ function BrandingSettingsPageInner() {
               </div>
               {autoWatermark && (
                 <div
-                  className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
+                  className="absolute bottom-3 start-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
                   style={{ backgroundColor: accentColor }}
                 >
                   {logoUrl ? (
@@ -418,7 +423,7 @@ function BrandingSettingsPageInner() {
               </div>
               {autoWatermark && (
                 <div
-                  className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
+                  className="absolute bottom-3 start-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
                   style={{ backgroundColor: accentColor }}
                 >
                   {logoUrl ? (
