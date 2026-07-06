@@ -105,7 +105,7 @@ function GalleryEntryPageInner() {
 
       <header className="relative z-10 mb-8 mt-8">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
-          <OuraLogo size={56} />
+          <OuraLogo variant="lockup" size={56} />
         </div>
       </header>
 

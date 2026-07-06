@@ -172,10 +172,12 @@ export default function GalleryPage() {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <OuraLogo size={28} />
             <span className="font-display text-2xl font-bold tracking-tight text-primary">
               Oura
             </span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-container-high">
+              <OuraLogo variant="lockup" size={28} />
+            </div>
           </div>
           <button
             type="button"
@@ -274,9 +276,6 @@ export default function GalleryPage() {
         )}
 
         <section className="space-y-3 pb-8">
-          <h2 className="text-sm font-bold text-on-surface-variant">
-            כל התמונות מהאירוע
-          </h2>
           {generalPhotos.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {generalPhotos.map((photo, i) => (

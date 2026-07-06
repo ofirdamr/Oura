@@ -45,8 +45,8 @@ export default function FestiveGalleryPage() {
   return (
     <div className="min-h-screen overflow-x-hidden pb-24">
       <header className="relative h-[420px] w-full overflow-hidden bg-surface-container-high">
-        <div className="absolute end-4 top-4 z-20 h-14 w-14 rounded-xl bg-surface-container-highest p-2 shadow-lg">
-          <OuraLogo size={40} />
+        <div className="absolute start-4 top-4 z-20 h-14 w-14 rounded-xl bg-surface-container-highest p-2 shadow-lg">
+          <OuraLogo variant="lockup" size={40} />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="material-symbols-outlined text-6xl text-on-surface-variant/20">
@@ -56,7 +56,7 @@ export default function FestiveGalleryPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-start gap-2 p-6">
-          <span className="rounded-full bg-tertiary/20 px-3 py-1 text-sm font-medium text-tertiary">
+          <span className="rounded-full bg-[#cca72f] px-3 py-1 text-sm font-medium text-black">
             12.05.2024
           </span>
           <h1 className="text-2xl font-bold leading-tight text-on-surface drop-shadow-lg">
