@@ -123,8 +123,17 @@ egress). Never edit an already-applied migration file; add a new one.
   `consented_at + 30 days` (plus a one-time backfill of pre-existing NULL
   rows), `biometric_consents.guardian_confirmed`, `photos.embed_status`, and
   the shared `match_faces(event_id, query_embedding, limit)` pgvector ANN-
-  search RPC. **Written but NOT YET APPLIED to the live DB** — needs a fresh
-  Supabase personal access token (see §9) before it can run.
+  search RPC. Applied.
+- `supabase/migrations/0004_guest_token_expiry.sql` — adds
+  `guests.token_expires_at` (defaults to `created_at + 90 days` for new rows;
+  backfilled to the same on existing rows), enforced in
+  `apps/api/src/index.ts`'s `resolveGuest()` alongside the existing
+  `token_hash` lookup. Closes the "guest tokens never expire" known gap
+  (§8). **Written but NOT YET APPLIED to the live DB** — needs a fresh
+  Supabase personal access token (see §9) before it can run; `apps/api`
+  must NOT be redeployed with this change until the column exists, or every
+  guest route (`/gallery`, `/consent`, `/guests/:token/selfie`) 500s on the
+  `select token_expires_at`.
 
 Key tables (see the migration files for full column lists/constraints):
 
@@ -135,6 +144,9 @@ Key tables (see the migration files for full column lists/constraints):
   studio_name }` — no fixed schema, additive by convention.
 - **`guests`** — one row per event-scoped guest session. `token_hash` only
   (SHA-256 of the opaque token) — the raw token is never stored.
+  `token_expires_at` (migration 0004): defaults to `created_at + 90 days`,
+  a plain column (not re-derived from the token payload) so an individual
+  guest's access can be shortened/extended later without reissuing tokens.
 - **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
   bytes, content_type, phash, captured_at, created_at, embed_status
   ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
@@ -176,7 +188,12 @@ auth — they're the guest path, gated only by the opaque token.
 **Opaque guest token format:** `base64url(JSON{event_id,guest_id,iat}).base64url(HMAC-SHA256)`,
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
 `verifyGuestToken`/`tokenHash`) — no JWT library. Constant-time verification.
-The token never expires today (see Known Gaps) and travels in the URL path.
+The signed payload itself has no expiry claim; expiry is enforced via
+`guests.token_expires_at` (migration 0004, pending application — see §3) in
+`resolveGuest()`, checked on the same row already fetched for the
+`token_hash` lookup (no extra query). The token still travels in the URL
+path (still loggable at proxies/CDNs — a separate, larger fix, not attempted
+in this pass).
 
 ### 4a. Stage 2 pipeline architecture (live)
 
@@ -406,8 +423,13 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   stall likely isn't only in the embed round-trip; the R2 `.get()` call and
   the Supabase `match_faces`/insert calls have no timeouts of their own
   either.
-- **Guest tokens never expire** and travel in the URL path (loggable at
-  edges/proxies). Flagged by an earlier security review, not yet addressed.
+- ~~Guest tokens never expire~~ **Resolved in code (2026-07-06), not yet
+  deployed:** `guests.token_expires_at` (migration 0004, 90 days from
+  creation) is now checked in `resolveGuest()` — needs the migration applied
+  (fresh Supabase PAT) before `apps/api` can be redeployed with this change
+  (see §3). Tokens still travel in the URL path (loggable at edges/proxies)
+  — that half of the original flag is a separate, larger fix, not attempted
+  here.
 - ~~No photographer password-reset flow.~~ **Resolved (2026-07-05):**
   `/forgot-password` + `/reset-password` ship a real self-service flow (§6).
 - **AI Optimization admin screen and Photo Editor persistence are UI-only** —

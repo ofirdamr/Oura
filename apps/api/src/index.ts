@@ -168,30 +168,38 @@ app.post('/events/:event_id/guests', async (c) => {
 });
 
 // Shared token resolution: verify signature, then look the guest up by
-// (event_id, token_hash). Returns the payload + guest row, or an error code the
-// caller maps to an HTTP status. Never compares or stores the raw token.
+// (event_id, token_hash), then check expiry. Returns the payload + guest row, or
+// an error the caller maps to an HTTP response. Never compares or stores the raw token.
 async function resolveGuest(
   db: SupabaseClient,
   token: string,
   secret: string,
 ): Promise<
   | { ok: true; payload: GuestTokenPayload; guest: { id: string; event_id: string } }
-  | { ok: false; status: 401 | 404 }
+  | { ok: false; status: 401; error: 'invalid_token' | 'token_expired' }
+  | { ok: false; status: 404; error: 'guest_not_found' }
 > {
   const payload = await verifyGuestToken(token, secret);
-  if (!payload) return { ok: false, status: 401 };
+  if (!payload) return { ok: false, status: 401, error: 'invalid_token' };
 
   const token_hash = await tokenHash(token);
   const { data: guest } = await db
     .from('guests')
-    .select('id, event_id')
+    .select('id, event_id, token_expires_at')
     .eq('event_id', payload.event_id)
     .eq('token_hash', token_hash)
     .maybeSingle();
 
   // Signature valid but no matching row (revoked/deleted, or id/hash mismatch).
-  if (!guest || guest.id !== payload.guest_id) return { ok: false, status: 404 };
-  return { ok: true, payload, guest };
+  if (!guest || guest.id !== payload.guest_id) {
+    return { ok: false, status: 404, error: 'guest_not_found' };
+  }
+  // Expiry lives on the guest row (migration 0004), not re-derived from the token
+  // payload — so access can be shortened/extended per-guest without reissuing tokens.
+  if (new Date(guest.token_expires_at).getTime() <= Date.now()) {
+    return { ok: false, status: 401, error: 'token_expired' };
+  }
+  return { ok: true, payload, guest: { id: guest.id, event_id: guest.event_id } };
 }
 
 // ---------------------------------------------------------------------------
@@ -215,7 +223,7 @@ app.get('/gallery/:token', async (c) => {
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
   if (!resolved.ok) {
     return c.json(
-      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      { error: resolved.error },
       resolved.status,
     );
   }
@@ -330,7 +338,7 @@ app.post('/consent/:token', async (c) => {
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
   if (!resolved.ok) {
     return c.json(
-      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      { error: resolved.error },
       resolved.status,
     );
   }
@@ -413,7 +421,7 @@ app.post('/guests/:token/selfie', async (c) => {
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
   if (!resolved.ok) {
     return c.json(
-      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      { error: resolved.error },
       resolved.status,
     );
   }

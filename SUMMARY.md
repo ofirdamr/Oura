@@ -146,9 +146,23 @@ one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 
 ## Next milestone: not yet decided
 
+**2026-07-06: guest token expiry (code complete, blocked on deploy).** Added
+`guests.token_expires_at` (migration `0004_guest_token_expiry.sql`, 90 days
+from creation, backfilled for existing rows) and enforced it in
+`resolveGuest()` (`apps/api/src/index.ts`) — a leaked/logged guest token now
+stops working after 90 days instead of granting indefinite access. `tsc
+--noEmit` clean. **Not yet applied to the live DB and `apps/api` NOT
+redeployed** — this session had no Supabase Management API personal access
+token available, and deploying the Worker code first would 500 every guest
+route (`/gallery`, `/consent`, `/guests/:token/selfie`) since the column
+wouldn't exist yet. Needs, in order: (1) a fresh founder-issued Supabase PAT
+to apply `0004_guest_token_expiry.sql` via the Management API, (2) redeploy
+`apps/api`. See `docs/ARCHITECTURE.md` §3/§4/§8 for full detail. The other
+half of the original flag — tokens traveling in the URL path, loggable at
+proxies/CDNs — is unaddressed, deliberately out of scope for this pass (a
+larger structural change, see ARCHITECTURE.md §4).
+
 Rough edges worth a Plan/PM consult on sequencing, none blocking:
-- Guest tokens never expire and travel in the URL path (flagged by an
-  earlier security review).
 - `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens
   worth either wiring or removing.
 - Match thresholds (`CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD`) are
