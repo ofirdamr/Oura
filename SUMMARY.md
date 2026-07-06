@@ -172,6 +172,87 @@ homepage) instead of landing on `/reset-password`. Fixed via
 verified the corrected value persisted on a fresh `GET`. Sender branding
 (above) is still open and separate.
 
+## 2026-07-06: Design-fidelity pass — real fixes shipped, trust is currently low, read this before touching more screens
+
+The founder demanded pixel-perfect fidelity to the original Stitch design
+(`design/screens/*/screen.png` + `code.html`) across every screen: same
+text, buttons, colors, RTL ordering — fix only genuine bugs (RTL, dead
+buttons), change nothing else. What actually happened, honestly:
+
+- Three parallel subagents audited every screen against its real design
+  source and found concrete, real bugs — not invented ones. Fixed and
+  **deployed and verified live** (see `docs/ARCHITECTURE.md` verification
+  method below): RTL grid-ordering bugs in `admin/branding` (device toggle,
+  frame-swatch grid order, watermark `end-3`→`start-3`), `admin/qr-management`
+  (whole two-column layout was mirrored), `admin/ai-optimization` (processing
+  queue tile order, two drifted card titles), `minimal-gallery` (header
+  icon order, view-toggle position, footer share icon+color), `join` and
+  `gallery-entry` (missing "Oura" wordmark under the logo icon — `OuraLogo`
+  has an unused `variant="lockup"` for exactly this — plus a wrong link
+  arrow direction/color), `gallery` (same wordmark-order bug, removed an
+  extra heading not in the design), `festive-gallery` (logo position +
+  wordmark, date-badge color), `admin/create-event` (modal close-button
+  side), `gift-reveal` (removed an added label, fixed two drifted lines of
+  copy, **and** restored the 3D gift box's actual color — a previous
+  session had deliberately swapped Stitch's own specified ribbon color
+  (`#9f402d`, taken straight from the Stitch export's own Three.js code in
+  `code.html` — Stitch DOES specify a real color/material for this box, it's
+  just embedded in code since a static screenshot can't capture a 3D scene)
+  for the app's generic brand coral "for consistency" — reverted to match
+  the actual source).
+- **The critical failure this session: both fix commits (`ce5c0f8`,
+  `242a929`) were never deployed.** `apps/web` stayed frozen on the *first*
+  audit round's deploy through two more rounds of "fixes" the founder was
+  shown and correctly rejected as unchanged — because on the one thing that
+  matters (the live site), they were. Full write-up and the exact
+  verification method (live-URL curl for SSR'd routes; md5 hash of the
+  actual deployed `/_next/static/chunks/*.js` file against the local build
+  for client-rendered routes, since those bail to
+  `BAILOUT_TO_CLIENT_SIDE_RENDERING` and a plain curl shows nothing either
+  way) is in `MISTAKES.md`'s 2026-07-06 "never deployed either one" entry —
+  **read it before doing any more design-fidelity work.** The box-color fix
+  (commit `8df1b49`) was deployed and hash-verified live correctly, so that
+  process gap is now understood, not still active — but confirm it stays
+  that way.
+- A face-matching investigation (founder reported "not working, and it
+  worked yesterday"): confirmed via direct DB query that the founder's own
+  guest session from 2026-07-05 has 11 real photos linked to one face
+  cluster (that data is still intact — nothing regressed), then proved the
+  entire live pipeline still works right now by submitting a real event
+  photo through the actual live `/guests/:token/selfie` endpoint and getting
+  a correct match. His 2026-07-06 session had zero links — so either the
+  selfie was never actually submitted (declined/backed out/camera denied)
+  or that specific photo failed face detection. **Waiting on the founder to
+  retry and report the exact behavior** (error message vs. silent
+  continue) — don't assume this is a code bug until that comes back.
+
+**Known, real, NOT yet fixed** (found this session, confirmed in code, not
+touched pending founder go-ahead — see chat history for exact files/lines):
+- Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
+  photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
+  print sub-options + fullscreen-display button.
+- Content genuinely missing vs. the design (needs real backend/feature
+  work, not a CSS fix): personal-gallery's name-based headline + event-name
+  line + per-photo match-confidence badges; dashboard's 3rd stat card + AI
+  panel + tip card; events-list's 4th stat card ("צפיות השבוע").
+- The in-app "activate camera to scan" button on `/gallery-entry`/`/join` is
+  honestly labeled "(בקרוב)" (coming soon) — never built. Guests currently
+  reach their gallery by scanning the printed QR with their **phone's own**
+  camera app (which opens a deep link with `?code=` prefilled) — that part
+  works. An in-browser scanner does not exist.
+- `/join`, `/festive-gallery`, `/minimal-gallery` orphaned-screens decision
+  (remove vs. build as real selectable themes) is still open — see below,
+  unchanged from before this session.
+
+**Founder trust is currently low** after the deploy-gap discovery, on top
+of an earlier round where the verification *tooling itself* (a screenshot
+comparison artifact) had three of its own successive bugs (cropped
+screenshots, icon font rendering as literal text, a stale screenshot
+reused) before the underlying audit even started. He has explicitly asked
+for a Plan/PM decision on how to proceed next, not another round of
+solo fixes — see whatever the PM agent decided, check `PROGRESS.md` for
+its full reasoning if this doc doesn't have it yet.
+
 ## Next milestone: not yet decided
 
 **2026-07-06: guest token expiry — shipped and verified live.** Added
