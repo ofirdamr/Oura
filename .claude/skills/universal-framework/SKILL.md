@@ -194,6 +194,42 @@ then proceed under whatever it decides — don't silently keep pushing the
 same failing approach because stopping feels like it wastes the effort
 already spent.
 
+**Session handoff protocol (hard rule):** recommending "start a fresh
+session" is not the end of the job — a handoff done sloppily wastes exactly
+the tokens/time it was supposed to save, because the next session either
+repeats work, stalls on a decision that evaporated with the old chat, or
+sits on code that never went live. This happened for real on this project:
+a session recommended a fresh start, the user had *already* opened the next
+one, and only then did it surface that a PR was still unmerged and an open
+question had never been written down anywhere the new session could see.
+Do it right, every time, in this order:
+
+1. **Recognize the trigger yourself, before being asked.** Signals: this
+   conversation has already been through a context compaction, it has
+   covered 3+ unrelated workstreams, or a natural milestone/PR boundary was
+   just reached. Say so out loud the moment you notice — don't wait for the
+   user to notice the conversation has become unwieldy.
+2. **Merge before you recommend, don't leave it as a future question.** If
+   an open PR's code is already deployed/live, "should this be merged" is
+   not a decision to defer to later — merging it IS part of closing out the
+   session cleanly. Do it now, then tell the user it's done, rather than
+   asking them to remember to ask you.
+3. **Every open question gets resolved or written down — never just
+   dropped.** Before recommending a handoff, check: is there any question
+   asked this session that never got a final answer? Either get the answer
+   now, or if the user genuinely isn't ready to decide, write the open
+   question into `SUMMARY.md` explicitly (what's being asked, why, what the
+   options were) so it survives the handoff as a real artifact, not as
+   something only visible in this chat's history.
+4. **Hand over a self-contained first message** that references only
+   committed state (file paths, branch name, PR number) — never "as we
+   discussed" or anything that assumes the next session can see this one's
+   history.
+5. **State plainly that this protocol just ran** ("recognizing this is a
+   good handoff point, checked: PR merged, docs current, no dangling
+   questions — here's the first message for the next session") so the user
+   sees the check happened, not just its output.
+
 ---
 
 ## 1. The Team (internal roles — synthesize, never narrate)
