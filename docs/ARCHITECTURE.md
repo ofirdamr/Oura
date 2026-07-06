@@ -267,9 +267,9 @@ two and enumerate event ids.
 | `/join` | Static UI only — the actual QR-scan guest landing per the Stitch design, never wired to real data (superseded in practice by `/gallery-entry`, which does the same job for real) |
 | `/gallery-entry` | **Real** — resolves `?code=`/manual code entry to a real event, issues a real guest token |
 | `/consent` | **Real** — calls the real consent endpoint |
-| `/gallery` | **Real** — real photos from R2 via the Worker; personal gallery honestly empty (Stage 2 not built) |
+| `/gallery` | **Real** — real photos from R2 via the Worker; personal gallery is real Stage 2 face-matched photos (populated once consented) |
 | `/festive-gallery`, `/minimal-gallery` | Static UI only — alternate gallery theme variants, never wired |
-| `/gift-reveal` | Real Three.js/GSAP scene, but **not wired into the guest flow** — no navigation currently routes a guest through it; it's a standalone reachable page |
+| `/gift-reveal` | **Real** Three.js/GSAP scene, wired into the guest flow — `/selfie`'s confirm-submit routes here (matched or not), landing on `/gallery` |
 | `/photo-editor` | Local React state only (adjustments preview live via CSS filters) — nothing persists back to a real photo |
 
 **Photographer-facing (behind `/admin/*` auth middleware) — wired-vs-static status:**
