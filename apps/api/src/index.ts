@@ -27,6 +27,9 @@ export type Env = {
   CLUSTER_MATCH_THRESHOLD: string;
   GUEST_MATCH_THRESHOLD: string;
   GUEST_MATCH_TOPK: string;
+  // Bearer secret gating /admin/backfill-embeddings — an operator action, not
+  // a photographer-dashboard feature, so it isn't behind requireEventOwner.
+  ADMIN_BACKFILL_TOKEN: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -165,30 +168,38 @@ app.post('/events/:event_id/guests', async (c) => {
 });
 
 // Shared token resolution: verify signature, then look the guest up by
-// (event_id, token_hash). Returns the payload + guest row, or an error code the
-// caller maps to an HTTP status. Never compares or stores the raw token.
+// (event_id, token_hash), then check expiry. Returns the payload + guest row, or
+// an error the caller maps to an HTTP response. Never compares or stores the raw token.
 async function resolveGuest(
   db: SupabaseClient,
   token: string,
   secret: string,
 ): Promise<
   | { ok: true; payload: GuestTokenPayload; guest: { id: string; event_id: string } }
-  | { ok: false; status: 401 | 404 }
+  | { ok: false; status: 401; error: 'invalid_token' | 'token_expired' }
+  | { ok: false; status: 404; error: 'guest_not_found' }
 > {
   const payload = await verifyGuestToken(token, secret);
-  if (!payload) return { ok: false, status: 401 };
+  if (!payload) return { ok: false, status: 401, error: 'invalid_token' };
 
   const token_hash = await tokenHash(token);
   const { data: guest } = await db
     .from('guests')
-    .select('id, event_id')
+    .select('id, event_id, token_expires_at')
     .eq('event_id', payload.event_id)
     .eq('token_hash', token_hash)
     .maybeSingle();
 
   // Signature valid but no matching row (revoked/deleted, or id/hash mismatch).
-  if (!guest || guest.id !== payload.guest_id) return { ok: false, status: 404 };
-  return { ok: true, payload, guest };
+  if (!guest || guest.id !== payload.guest_id) {
+    return { ok: false, status: 404, error: 'guest_not_found' };
+  }
+  // Expiry lives on the guest row (migration 0004), not re-derived from the token
+  // payload — so access can be shortened/extended per-guest without reissuing tokens.
+  if (new Date(guest.token_expires_at).getTime() <= Date.now()) {
+    return { ok: false, status: 401, error: 'token_expired' };
+  }
+  return { ok: true, payload, guest: { id: guest.id, event_id: guest.event_id } };
 }
 
 // ---------------------------------------------------------------------------
@@ -212,7 +223,7 @@ app.get('/gallery/:token', async (c) => {
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
   if (!resolved.ok) {
     return c.json(
-      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      { error: resolved.error },
       resolved.status,
     );
   }
@@ -327,7 +338,7 @@ app.post('/consent/:token', async (c) => {
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
   if (!resolved.ok) {
     return c.json(
-      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      { error: resolved.error },
       resolved.status,
     );
   }
@@ -410,7 +421,7 @@ app.post('/guests/:token/selfie', async (c) => {
   const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
   if (!resolved.ok) {
     return c.json(
-      { error: resolved.status === 401 ? 'invalid_token' : 'guest_not_found' },
+      { error: resolved.error },
       resolved.status,
     );
   }
@@ -629,10 +640,16 @@ app.delete('/events/:event_id/photos/:photo_id', async (c) => {
 //   event-ownership gate as photo ingest (uniform 404 for missing/foreign event).
 //   Accepts multipart/form-data with a single `file` field (an image). The bytes
 //   land in R2 — NEVER Supabase storage (CLAUDE.md hard guardrail) — under a
-//   FIXED per-event key, so re-uploading replaces the studio's current logo
-//   (intended: a studio has exactly one current logo). We then merge
-//   { logo_key } into the event's `branding` jsonb, preserving any other keys
-//   (e.g. primary_color) written by the branding-CRUD flow.
+//   fresh, content-addressed key per upload (a random id, same as photo ingest),
+//   NOT a fixed per-event filename. The shared `/media/*` route below serves
+//   every key with a one-year `immutable` Cache-Control, which is only safe for
+//   keys that never change contents — a fixed `.../logo.png` key would mean a
+//   re-uploaded logo keeps the exact same URL, so the browser (and any CDN edge
+//   cache) would keep serving the byte-for-byte OLD image for up to a year after
+//   a "successful" re-upload, which looked from the UI like the upload silently
+//   did nothing. Old logo object is best-effort deleted from R2 after the DB
+//   write succeeds (mirrors the delete-photo cleanup below), since a studio only
+//   ever has one current logo.
 //   Response 200: { logo_key, url }
 // ---------------------------------------------------------------------------
 app.post('/events/:event_id/branding/logo', async (c) => {
@@ -653,8 +670,8 @@ app.post('/events/:event_id/branding/logo', async (c) => {
   const nameExt = /\.([a-z0-9]{1,8})$/i.exec(file.name ?? '')?.[1]?.toLowerCase();
   const typeExt = file.type?.split('/')[1]?.toLowerCase();
   const ext = `.${nameExt || typeExt || 'png'}`;
-  // Fixed filename per event — a re-upload overwrites the previous logo by design.
-  const storage_key = `events/${event_id}/branding/logo${ext}`;
+  // Unique per upload — see the route comment above for why a fixed filename breaks caching.
+  const storage_key = `events/${event_id}/branding/logo-${crypto.randomUUID()}${ext}`;
 
   await c.env.MEDIA.put(storage_key, await file.arrayBuffer(), {
     httpMetadata: { contentType: file.type || 'image/png' },
@@ -673,10 +690,20 @@ app.post('/events/:event_id/branding/logo', async (c) => {
     current?.branding && typeof current.branding === 'object' && !Array.isArray(current.branding)
       ? (current.branding as Record<string, unknown>)
       : {};
+  const previousLogoKey =
+    typeof existingBranding.logo_key === 'string' ? existingBranding.logo_key : undefined;
   const branding = { ...existingBranding, logo_key: storage_key };
 
   const { error: updateErr } = await db.from('events').update({ branding }).eq('id', event_id);
   if (updateErr) return c.json({ error: 'branding_update_failed' }, 500);
+
+  if (previousLogoKey && previousLogoKey !== storage_key) {
+    try {
+      await c.env.MEDIA.delete(previousLogoKey);
+    } catch (err) {
+      console.error('R2 delete failed for', previousLogoKey, err);
+    }
+  }
 
   return c.json({ logo_key: storage_key, url: photoUrlStub(c, storage_key) });
 });
@@ -689,6 +716,49 @@ app.post('/events/:event_id/branding/logo', async (c) => {
 //   frontend is EXACTLY { event_id } — nothing more.
 //   Response 200: { event_id } | 404 { error: 'event_not_found' }
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Backfill: re-enqueues photos whose embed_status isn't 'done' yet.
+// POST /admin/backfill-embeddings  body: { event_id?: string }
+//   Exists because the enqueue-on-upload (above) only fires for photos
+//   ingested after Stage 2 shipped — photos inserted earlier (e.g. the
+//   hand-seeded WED-2024 demo set) never passed through it and are stuck at
+//   the default 'pending' forever with zero face_embeddings rows. Gated by a
+//   dedicated bearer secret rather than requireEventOwner: this is an
+//   operator action, not something the photographer dashboard exposes.
+// ---------------------------------------------------------------------------
+app.post('/admin/backfill-embeddings', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+
+  const db = supa(c.env);
+  const body = await c.req.json().catch(() => ({}) as Record<string, unknown>);
+  const event_id = typeof body.event_id === 'string' ? body.event_id : undefined;
+
+  let query = db.from('photos').select('id,event_id,storage_key').neq('embed_status', 'done');
+  if (event_id) query = query.eq('event_id', event_id);
+  const { data: photos, error } = await query;
+  if (error) return c.json({ error: 'query_failed' }, 500);
+
+  let enqueued = 0;
+  for (const photo of photos ?? []) {
+    try {
+      await c.env.FACE_EMBED_QUEUE.send({
+        photo_id: photo.id,
+        event_id: photo.event_id,
+        storage_key: photo.storage_key,
+      });
+      enqueued++;
+    } catch (err) {
+      console.error('backfill enqueue failed for', photo.id, err);
+    }
+  }
+
+  return c.json({ enqueued, total_candidates: photos?.length ?? 0 });
+});
+
 app.get('/events/by-code/:code', async (c) => {
   const code = c.req.param('code');
   if (!code) return c.json({ error: 'event_not_found' }, 404);

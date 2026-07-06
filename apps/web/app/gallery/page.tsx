@@ -43,7 +43,7 @@ function PhotoTile({
         className="object-cover"
       />
       {matched && (
-        <div className="absolute start-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
+        <div className="absolute end-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
           <span
             className="material-symbols-outlined text-primary"
             style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
@@ -154,15 +154,19 @@ export default function GalleryPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="material-symbols-outlined text-on-surface transition-opacity hover:opacity-70"
-              aria-label="התראות"
+              disabled
+              title="בקרוב"
+              className="material-symbols-outlined cursor-not-allowed text-on-surface/30"
+              aria-label="התראות (בקרוב)"
             >
               notifications
             </button>
             <button
               type="button"
-              className="material-symbols-outlined text-on-surface transition-opacity hover:opacity-70"
-              aria-label="פרופיל"
+              disabled
+              title="בקרוב"
+              className="material-symbols-outlined cursor-not-allowed text-on-surface/30"
+              aria-label="פרופיל (בקרוב)"
             >
               account_circle
             </button>
@@ -175,6 +179,7 @@ export default function GalleryPage() {
           </div>
           <button
             type="button"
+            onClick={() => router.back()}
             className="material-symbols-outlined text-on-surface transition-opacity hover:opacity-70"
             aria-label="חזרה"
           >

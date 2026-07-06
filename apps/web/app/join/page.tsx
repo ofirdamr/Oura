@@ -81,10 +81,15 @@ export default function JoinPage() {
               <div className="absolute bottom-0 start-0 h-8 w-8 rounded-br-xl border-b-2 border-e-2 border-primary/60" />
             </div>
             <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary transition-all active:scale-[0.98]">
+              {/* Design (guest_landing_page_mobile) puts the camera icon at
+                  the left of this label, not the right - measured live at
+                  center-x 288 (right-of-center in a 49-371 button) before
+                  this fix; text-then-icon under a plain RTL row lands it
+                  left instead. */}
+              הפעל מצלמה לסריקה
               <span className="material-symbols-outlined">
                 camera_enhance
               </span>
-              הפעל מצלמה לסריקה
             </button>
           </div>
         </div>
@@ -98,7 +103,7 @@ export default function JoinPage() {
         <div className="rounded-2xl border border-white/5 bg-surface-container/60 p-6 backdrop-blur-md">
           <div className="space-y-4">
             <label
-              className="block text-end font-medium text-primary"
+              className="block text-start font-medium text-primary"
               htmlFor="event-code"
             >
               הכנס קוד אירוע ידנית

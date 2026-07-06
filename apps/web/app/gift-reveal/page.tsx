@@ -61,7 +61,7 @@ export default function GiftRevealPage() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-20 max-w-7xl flex-row-reverse items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <OuraLogo size={36} />
             <span className="font-display text-2xl font-bold tracking-tight text-on-surface">
@@ -134,7 +134,7 @@ export default function GiftRevealPage() {
         {/* Memories gallery */}
         <section className="mb-12">
           <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row-reverse sm:items-end">
-            <div className="text-start sm:text-end">
+            <div className="text-start sm:text-start">
               <h2 className="mb-1 text-2xl font-bold text-on-surface md:text-3xl">
                 זיכרונות מהאירוע
               </h2>

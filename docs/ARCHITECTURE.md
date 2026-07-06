@@ -5,11 +5,13 @@ deployed and running as of the last update below. If code and this file ever
 disagree, the code is right and this file is stale — fix the file (see
 "Keeping this current" at the bottom).
 
-**Last updated:** 2026-07-04, through the "working MVP" milestone (real
-photo-upload UI, real event list, de-mocked dashboard, real scannable QR,
-photo delete) — landed and verified live on top of Stage 1 (real guest path)
-and Stage 3 (photographer auth + admin CRUD). Every section below reflects
-this state; the "in flight" caveats that used to be here are resolved.
+**Last updated:** 2026-07-05, after fixing a live bug found via a real guest
+selfie test on `WED-2024`: pre-Stage-2 photos were never embedded (added
+`POST /admin/backfill-embeddings`, §4) and the embed client had no request
+timeout (added one, §8). Builds on the "working MVP" milestone (2026-07-04:
+real photo-upload UI, real event list, de-mocked dashboard, real scannable
+QR, photo delete) on top of Stage 1 (real guest path) and Stage 3
+(photographer auth + admin CRUD).
 
 ## 1. System overview
 
@@ -121,8 +123,17 @@ egress). Never edit an already-applied migration file; add a new one.
   `consented_at + 30 days` (plus a one-time backfill of pre-existing NULL
   rows), `biometric_consents.guardian_confirmed`, `photos.embed_status`, and
   the shared `match_faces(event_id, query_embedding, limit)` pgvector ANN-
-  search RPC. **Written but NOT YET APPLIED to the live DB** — needs a fresh
-  Supabase personal access token (see §9) before it can run.
+  search RPC. Applied.
+- `supabase/migrations/0004_guest_token_expiry.sql` — adds
+  `guests.token_expires_at` (defaults to `created_at + 90 days` for new rows;
+  backfilled to the same on existing rows), enforced in
+  `apps/api/src/index.ts`'s `resolveGuest()` alongside the existing
+  `token_hash` lookup. Closes the "guest tokens never expire" known gap
+  (§8). **Written but NOT YET APPLIED to the live DB** — needs a fresh
+  Supabase personal access token (see §9) before it can run; `apps/api`
+  must NOT be redeployed with this change until the column exists, or every
+  guest route (`/gallery`, `/consent`, `/guests/:token/selfie`) 500s on the
+  `select token_expires_at`.
 
 Key tables (see the migration files for full column lists/constraints):
 
@@ -133,6 +144,9 @@ Key tables (see the migration files for full column lists/constraints):
   studio_name }` — no fixed schema, additive by convention.
 - **`guests`** — one row per event-scoped guest session. `token_hash` only
   (SHA-256 of the opaque token) — the raw token is never stored.
+  `token_expires_at` (migration 0004): defaults to `created_at + 90 days`,
+  a plain column (not re-derived from the token payload) so an individual
+  guest's access can be shortened/extended later without reissuing tokens.
 - **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
   bytes, content_type, phash, captured_at, created_at, embed_status
   ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
@@ -169,11 +183,17 @@ auth — they're the guest path, gated only by the opaque token.
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
+| `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string }`. Re-enqueues every photo not yet `embed_status:'done'` into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. Needed once live: all 17 `WED-2024` photos were still `embed_status:'pending'` with zero `face_embeddings` rows, which is why an early real-guest selfie test against that event found no match despite the guest appearing in nearly every photo. |
 
 **Opaque guest token format:** `base64url(JSON{event_id,guest_id,iat}).base64url(HMAC-SHA256)`,
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
 `verifyGuestToken`/`tokenHash`) — no JWT library. Constant-time verification.
-The token never expires today (see Known Gaps) and travels in the URL path.
+The signed payload itself has no expiry claim; expiry is enforced via
+`guests.token_expires_at` (migration 0004, pending application — see §3) in
+`resolveGuest()`, checked on the same row already fetched for the
+`token_hash` lookup (no extra query). The token still travels in the URL
+path (still loggable at proxies/CDNs — a separate, larger fix, not attempted
+in this pass).
 
 ### 4a. Stage 2 pipeline architecture (live)
 
@@ -226,7 +246,7 @@ photographer-facing is direct-to-Supabase from the browser (§2).
 | Route | Purpose |
 |---|---|
 | `POST /events/:event_id/photos` | Multipart photo upload. Requires `Authorization: Bearer <supabase access token>` + event ownership. Writes to R2 (`events/<event_id>/orig/<uuid>.<ext>`), inserts a `photos` row (`status:'ready'` — no processing pipeline exists yet). |
-| `POST /events/:event_id/branding/logo` | Multipart logo upload. Same auth. Fixed key per event (`events/<event_id>/branding/logo.<ext>` — re-upload overwrites by design). Read-modify-writes `events.branding` jsonb, merging `logo_key` without clobbering sibling keys. |
+| `POST /events/:event_id/branding/logo` | Multipart logo upload. Same auth. Content-addressed key per upload (`events/<event_id>/branding/logo-<uuid>.<ext>` — NOT a fixed filename; `/media/*` caches every key for a year as immutable, so a fixed key would keep serving the old bytes after a re-upload). Read-modify-writes `events.branding` jsonb, merging `logo_key` without clobbering sibling keys, then best-effort deletes the previous logo's R2 object. |
 | `DELETE /events/:event_id/photos/:photo_id` | Deletes a photo: DB row first (so the gallery stops showing it immediately), then best-effort R2 object delete (a failed R2 delete doesn't fail the request — an orphaned R2 object is a harmless storage-cost leak, not a correctness bug). |
 
 **Shared auth helper:** `requireEventOwner(c, db, event_id)` in
@@ -265,9 +285,13 @@ two and enumerate event ids.
 | `/admin/events/[event_id]` (upload/detail) | **Real** — multi-file upload to R2 via the Worker, live photo grid, per-photo delete |
 | `/admin/ai-optimization` | Static UI only — fake processing queue/metrics, no real pipeline exists |
 
-**Auth pages (no middleware, obviously):** `/login`, `/signup` — designed
-fresh (no Stitch source existed), matching the `/consent` screen's
-dark-luxury card visual language.
+**Auth pages (no middleware, obviously):** `/login`, `/signup`,
+`/forgot-password`, `/reset-password` — designed fresh (no Stitch source
+existed), matching the `/consent` screen's dark-luxury card visual language.
+`/forgot-password` calls Supabase Auth's `resetPasswordForEmail`;
+`/reset-password` is where the emailed link lands — the browser client
+auto-detects the recovery session from the URL, then `updateUser({password})`
+sets the new one. Closes the "no password reset" known gap (§8).
 
 `create-event` → `branding` → `qr-management` are threaded together via a
 `?event_id=` query param (not a separate studio-profile table — `branding`
@@ -331,6 +355,9 @@ base — see Known Gaps/Mistakes), `SUPABASE_SERVICE_ROLE_KEY`,
 live** via `wrangler secret put`, but the value it needs to match on the
 embedding-service side doesn't matter yet since that service isn't deployed
 anywhere real — will need to be re-set/confirmed once it is).
+`ADMIN_BACKFILL_TOKEN` (gates `POST /admin/backfill-embeddings`, see §4 —
+write-only like every other Wrangler secret; re-set via `wrangler secret put`
+if it needs to be used again and the value has been lost).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
 
@@ -374,15 +401,37 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   caveats: (a) `CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD` are initial
   domain-convention guesses, not measured against real pilot-event data yet
   — they're `wrangler.toml` vars specifically so they can be tuned without a
-  redeploy once real match-rate data exists; (b) legal basis is an informal
-  draft opinion (from a lawyer-friend, formal signed version still to
-  follow) — the founder explicitly decided to proceed building on that
-  basis, accepting the risk ahead of the formal signed opinion; PRD §8
-  should be read alongside this note, not as fully resolved.
-- **Guest tokens never expire** and travel in the URL path (loggable at
-  edges/proxies). Flagged by an earlier security review, not yet addressed.
-- **No photographer password-reset flow.** Founder's account had a password
-  set once via the Supabase Admin API; there's no self-service reset UI.
+  redeploy once real match-rate data exists; (b) legal basis: **resolved** —
+  the founder confirmed the formal signed legal opinion has now been
+  received (previously an informal draft only, from a lawyer-friend). PRD §8
+  should be updated to reflect this the next time it's touched.
+- **Photos ingested before Stage 2's enqueue-on-upload existed never get
+  embedded on their own** — fixed operationally via `POST
+  /admin/backfill-embeddings` (§4), which re-enqueues any photo not yet
+  `embed_status:'done'`. Run once already against the live `WED-2024` set
+  (2026-07-05): 17/17 photos re-enqueued, 15 processed to `done` cleanly
+  (262 `face_embeddings` rows, 96 person clusters), 1 landed in a terminal
+  `failed` state, 1 still hung past the embed-client's own timeout on retry
+  (see next bullet and `MISTAKES.md`) — worth a follow-up check on that one
+  photo specifically if it matters for a real pilot event. Any future
+  manually-seeded/bulk-imported event needs this same backfill run once.
+- **`embedClient.ts`'s `fetch()` had no timeout**, so a stalled Cloud Run
+  response could hang a queue consumer invocation indefinitely instead of
+  failing into the existing retry/DLQ path. Fixed with a 25s
+  `AbortController` timeout (2026-07-05). One photo still hung past that
+  timeout on retry during the live backfill above — if this recurs, the
+  stall likely isn't only in the embed round-trip; the R2 `.get()` call and
+  the Supabase `match_faces`/insert calls have no timeouts of their own
+  either.
+- ~~Guest tokens never expire~~ **Resolved in code (2026-07-06), not yet
+  deployed:** `guests.token_expires_at` (migration 0004, 90 days from
+  creation) is now checked in `resolveGuest()` — needs the migration applied
+  (fresh Supabase PAT) before `apps/api` can be redeployed with this change
+  (see §3). Tokens still travel in the URL path (loggable at edges/proxies)
+  — that half of the original flag is a separate, larger fix, not attempted
+  here.
+- ~~No photographer password-reset flow.~~ **Resolved (2026-07-05):**
+  `/forgot-password` + `/reset-password` ship a real self-service flow (§6).
 - **AI Optimization admin screen and Photo Editor persistence are UI-only** —
   local React state, no real backend behind either.
 - **Phase 2 features** (Stripe billing, print orders, statistics, messaging,

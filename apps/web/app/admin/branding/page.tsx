@@ -30,7 +30,17 @@ type FrameKey = (typeof FRAME_STYLES)[number]["key"];
 
 const FRAME_KEYS = FRAME_STYLES.map((f) => f.key) as readonly string[];
 
-const BACKGROUND_THUMBS = ["globe", "ring", "gradient", "waves"] as const;
+// Lets the photographer preview their frame/logo/watermark against a few
+// different photo moods (a bright outdoor shot, a dark reception shot, etc.)
+// since a frame that looks great on one photo can look wrong on another.
+// Real gradient/icon swap in the live preview below, not just a selected
+// state with no visible effect.
+const BACKGROUND_THUMBS = [
+  { key: "globe", icon: "public", gradient: "from-indigo-950 via-indigo-900 to-black" },
+  { key: "ring", icon: "album", gradient: "from-cyan-950 via-cyan-900 to-black" },
+  { key: "gradient", icon: "gradient", gradient: "from-fuchsia-950 via-fuchsia-900 to-black" },
+  { key: "waves", icon: "waves", gradient: "from-teal-950 via-teal-900 to-black" },
+] as const;
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -61,9 +71,11 @@ function BrandingSettingsPageInner() {
   const [loading, setLoading] = useState(!!eventId);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [showEnlarged, setShowEnlarged] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -214,8 +226,8 @@ function BrandingSettingsPageInner() {
 
   return (
     <AdminShell active="הגדרות">
-      <div className="flex flex-row-reverse items-start justify-between gap-4">
-        <div className="text-end">
+      <div className="flex items-start justify-between gap-4">
+        <div className="text-start">
           <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
             <span className="material-symbols-outlined text-sm">workspace_premium</span>
             מהדורת פלטינום
@@ -228,7 +240,11 @@ function BrandingSettingsPageInner() {
             אוטומטי על כל הגלריות והאירועים שתיצור במערכת Oura.
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        {/* Desktop only (matches oura_final_production_branding_settings_desktop_2):
+            Save/Cancel sit beside the title. On mobile the actual design
+            (branding_settings_mobile_2) moves these to a full-width stacked
+            pair at the very end of the page instead - see below. */}
+        <div className="hidden shrink-0 flex-col items-end gap-2 lg:flex">
           <div className="flex flex-row-reverse gap-3">
             <button
               type="button"
@@ -268,10 +284,17 @@ function BrandingSettingsPageInner() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
+      {/* Design (branding_settings_desktop_2) puts the live preview on the
+          left and the settings cards on the right. A plain DOM-order grid
+          under dir="rtl" auto-places the first child into the rightmost
+          track, which put the preview (written first for readability) on
+          the wrong side - measured live at left:787/right:1340 (right half)
+          before this fix. Both panels are pinned with `order` to match the
+          design instead of relying on source order. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_1fr]">
         {/* Live preview */}
-        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-          <div className="mb-4 flex flex-row-reverse items-center justify-between">
+        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5 lg:order-2">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-1.5 text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">visibility</span>
               תצוגה מקדימה חיה
@@ -298,13 +321,20 @@ function BrandingSettingsPageInner() {
             <div
               className={`relative overflow-hidden rounded-sm bg-black shadow-2xl ${frameFrameClass} ${device === "mobile" ? "aspect-[9/16] w-40" : "aspect-square w-64"}`}
             >
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface-container-high to-black">
-                <span className="material-symbols-outlined text-5xl text-on-surface-variant/20">
-                  image
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${BACKGROUND_THUMBS[activeBg].gradient}`}
+              >
+                <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">
+                  {BACKGROUND_THUMBS[activeBg].icon}
                 </span>
               </div>
               <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                <StudioLogo size={16} />
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                  <img src={logoUrl} alt="לוגו הסטודיו" className="h-4 w-4 object-contain" />
+                ) : (
+                  <StudioLogo size={16} />
+                )}
                 Photo Santos © 2024
               </div>
               {autoWatermark && (
@@ -312,7 +342,12 @@ function BrandingSettingsPageInner() {
                   className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
                   style={{ backgroundColor: accentColor }}
                 >
-                  <StudioLogo size={14} />
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                    <img src={logoUrl} alt="לוגו הסטודיו" className="h-3.5 w-3.5 object-contain" />
+                  ) : (
+                    <StudioLogo size={14} />
+                  )}
                   Photo Santos
                 </div>
               )}
@@ -322,27 +357,87 @@ function BrandingSettingsPageInner() {
           <div className="mt-4 flex justify-center gap-2">
             {BACKGROUND_THUMBS.map((thumb, i) => (
               <button
-                key={thumb}
+                key={thumb.key}
+                type="button"
                 onClick={() => setActiveBg(i)}
-                className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-surface-container-high text-xs font-bold text-on-surface-variant transition-all ${
+                aria-label={`תצוגה מקדימה על רקע ${thumb.key}`}
+                aria-pressed={activeBg === i}
+                className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-gradient-to-br text-on-surface-variant transition-all ${thumb.gradient} ${
                   activeBg === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
-                {i + 1}
+                <span className="material-symbols-outlined text-lg">{thumb.icon}</span>
               </button>
             ))}
           </div>
 
-          <button className="mx-auto mt-4 flex items-center gap-1.5 rounded-full border border-outline-variant px-4 py-2 text-xs font-medium text-on-surface-variant transition-colors hover:text-primary">
+          <button
+            type="button"
+            onClick={() => setShowEnlarged(true)}
+            className="mx-auto mt-4 flex items-center gap-1.5 rounded-full border border-outline-variant px-4 py-2 text-xs font-medium text-on-surface-variant transition-colors hover:text-primary"
+          >
             הגדל תצוגה
             <span className="material-symbols-outlined text-sm">zoom_in</span>
           </button>
         </div>
 
+        {showEnlarged && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-6 backdrop-blur-md"
+            onClick={() => setShowEnlarged(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setShowEnlarged(false)}
+              aria-label="סגור"
+              className="absolute end-6 top-6 rounded-full bg-surface-container-high p-2 text-on-surface transition-colors hover:text-primary"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <div
+              className={`relative overflow-hidden rounded-sm bg-black shadow-2xl ${frameFrameClass} ${
+                device === "mobile" ? "aspect-[9/16] w-72" : "aspect-square w-[28rem] max-w-[85vw]"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${BACKGROUND_THUMBS[activeBg].gradient}`}
+              >
+                <span className="material-symbols-outlined text-7xl text-on-surface-variant/30">
+                  {BACKGROUND_THUMBS[activeBg].icon}
+                </span>
+              </div>
+              <div className="absolute start-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                  <img src={logoUrl} alt="לוגו הסטודיו" className="h-4 w-4 object-contain" />
+                ) : (
+                  <StudioLogo size={16} />
+                )}
+                Photo Santos © 2024
+              </div>
+              {autoWatermark && (
+                <div
+                  className="absolute bottom-3 end-3 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-black"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                    <img src={logoUrl} alt="לוגו הסטודיו" className="h-3.5 w-3.5 object-contain" />
+                  ) : (
+                    <StudioLogo size={14} />
+                  )}
+                  Photo Santos
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Settings */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:order-1">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">add_photo_alternate</span>
               העלאת לוגו הסטודיו
             </h2>
@@ -359,14 +454,26 @@ function BrandingSettingsPageInner() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                void handleLogoFileSelected(e.dataTransfer.files?.[0]);
+              }}
               disabled={logoUploading}
-              className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant/50 p-8 text-center transition-colors hover:border-primary/50 disabled:opacity-60"
+              className={`flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors disabled:opacity-60 ${
+                dragOver ? "border-primary bg-primary/5" : "border-outline-variant/50 hover:border-primary/50"
+              }`}
             >
               <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
                 {logoUploading ? "progress_activity" : "add_photo_alternate"}
               </span>
               <p className="text-sm font-medium text-on-surface">
-                {logoUploading ? "מעלה לוגו..." : "לחצו להעלאת לוגו"}
+                {logoUploading ? "מעלה לוגו..." : "גררו לוגו לכאן או לחצו לבחירה"}
               </p>
               <p className="text-xs text-on-surface-variant">
                 PNG, SVG (רקע שקוף מומלץ)
@@ -378,8 +485,8 @@ function BrandingSettingsPageInner() {
               </p>
             )}
             {logoUrl && (
-              <div className="mt-3 flex flex-row-reverse items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
-                <div className="flex flex-row-reverse items-center gap-3">
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-container-high px-4 py-3">
+                <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-black/40 p-1">
                     {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed */}
                     <img src={logoUrl} alt="לוגו הסטודיו" className="h-full w-full object-contain" />
@@ -391,7 +498,7 @@ function BrandingSettingsPageInner() {
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">grid_view</span>
               סגנון מסגרת פרימיום
             </h2>
@@ -414,12 +521,12 @@ function BrandingSettingsPageInner() {
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-end text-sm font-bold text-on-surface">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">palette</span>
               צבעי המותג
             </h2>
-            <div className="flex flex-row-reverse items-center justify-between">
-              <div className="text-end">
+            <div className="flex items-center justify-between">
+              <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">צבע דגש ראשי</p>
                 <p className="text-xs text-on-surface-variant">
                   צבע הלחצנים והאלמנטים בגלריה
@@ -439,8 +546,8 @@ function BrandingSettingsPageInner() {
               </div>
             </div>
             <hr className="my-4 border-outline-variant/20" />
-            <div className="flex flex-row-reverse items-center justify-between">
-              <div className="text-end">
+            <div className="flex items-center justify-between">
+              <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">
                   סימן מים אוטומטי
                 </p>
@@ -466,6 +573,39 @@ function BrandingSettingsPageInner() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile only (matches branding_settings_mobile_2): full-width stacked
+          Save/Cancel at the end of the page, not beside the title. */}
+      <div className="flex flex-col gap-3 lg:hidden">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={loading || saveState === "saving"}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
+        >
+          {saveState === "saving" && (
+            <span className="material-symbols-outlined animate-spin text-lg">
+              sync
+            </span>
+          )}
+          {saveState === "saving"
+            ? "שומר..."
+            : saveState === "saved"
+              ? "נשמר!"
+              : "שמירת שינויים"}
+        </button>
+        <Link
+          href="/admin"
+          className="w-full rounded-xl border border-outline-variant px-6 py-3 text-center font-bold text-on-surface transition-all hover:bg-surface-container-highest"
+        >
+          ביטול
+        </Link>
+        {saveState === "error" && (
+          <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+            שמירת המיתוג נכשלה. נסו שוב.
+          </p>
+        )}
       </div>
     </AdminShell>
   );

@@ -220,6 +220,36 @@ Confirm the exact import name and setup against the current MUI RTL guide (https
 7. Charts -- x-axis may need to reverse for Hebrew readers
 8. Shadows and gradients -- physical offsets/angles do not auto-flip (see Step 3)
 
+### Step 8: Verify with Measurements, Never by Eyeballing a Screenshot
+
+Every RTL bug documented in the Gotchas below (row-reverse double-flip, missing `justify-content`, `text-end` vs `text-start`, icon/label ordering) was first "fixed" incorrectly at least once by reasoning about the CSS in the abstract, or by eyeballing a screenshot — both are unreliable. Screenshots mislead in two specific ways: (1) short/single-line content can't expose an alignment bug (there's nothing to misalign), and (2) a human glance at a cropped or unfamiliar layout is a poor judge of "is this hugging the right edge or just centered." The only reliable check is to measure the actual rendered DOM.
+
+**The procedure, in order, every time a layout must match a specific direction/order:**
+
+1. **Open the actual design reference first** (`design/*/screen.png` for this project). Do not derive the expected order/side from RTL first-principles reasoning or from what a previous fix concluded — look at the pixels. If a row's ordering has been "corrected" more than once, that itself is the signal to stop reasoning and go look at the image.
+2. **Measure the live/dev-built DOM**, not a screenshot, using `getBoundingClientRect()` (for element/row order and edge-hugging) or `getClientRects()` on a `Range` around a text node (for multi-line text alignment). A Playwright `page.evaluate()` snippet for element order/positioning:
+
+```js
+const data = await page.evaluate(() => {
+  const row = document.querySelector('[data-testid="the-row"]');
+  const rowBox = row.getBoundingClientRect();
+  return {
+    row: { left: rowBox.left, right: rowBox.right },
+    children: Array.from(row.children).map((c) => {
+      const b = c.getBoundingClientRect();
+      return { text: c.textContent.trim(), left: b.left, right: b.right };
+    }),
+  };
+});
+```
+
+Compare each child's `left`/`right` against the row's edges and against each other — "hugs the right edge" means the rightmost child's `right` is within a few px (the padding) of the row's `right`, not just "looks like it's over there" in a picture.
+
+3. **Only then** take a screenshot, and only as a human-readable illustration to send the user alongside the original design image — never as the sole evidence a fix is correct.
+4. If the result of step 2 contradicts what a screenshot seems to show, trust the measurement. Screenshots can be cropped oddly, scaled, or just misjudged at a glance; a bounding-box number is not.
+
+This is not optional for menu/nav/icon-order work specifically — it is exactly the category of bug that has been gotten wrong multiple times in this project by skipping straight to a screenshot or to CSS reasoning.
+
 ## Examples
 
 ### Example 1: Convert LTR Component to RTL
@@ -285,7 +315,9 @@ User says: "My sidebar is on the wrong side in Hebrew"
 - CSS `text-align: left` is wrong for Hebrew. Use `text-align: start` which respects the document direction. Agents frequently hardcode `left` alignment in CSS.
 - `margin-left` and `padding-right` do not flip in RTL mode. Use CSS logical properties: `margin-inline-start` and `padding-inline-end` instead. Agents trained on LTR CSS will generate physical properties.
 - Flexbox `row` direction auto-reverses in RTL, but `row-reverse` also reverses, causing a double-flip back to LTR order. Agents may add `row-reverse` thinking it creates RTL, but it actually creates LTR within an RTL context.
+- A `row-reverse` container with no explicit `justify-content` silently mis-positions its content: `row-reverse` swaps which physical side counts as the flex main-start, so the default `justify-content: flex-start` packs the whole group against the **left** edge under RTL, not the right - even when the icon/label order *within* the group is correct (see the gotcha above). This is a different bug from the ordering one and both can be present at once. Fix: add `justify-end` (or `justify-content` matching the layout you actually want) whenever a container mixes `flex-row-reverse` with a width wider than its content - a row that spans a full-width nav item or list row is exactly the case that exposes this, a tightly-sized inline group won't. Verify with the row's actual rendered bounding box against the container edge, not just child order.
 - Phone numbers, credit card numbers, and code snippets must remain LTR even inside RTL containers. Wrap them in `<bdo dir="ltr">` or use `direction: ltr` on the containing element. Agents often let these inherit RTL.
+- `text-align: end` (or Tailwind's `text-end`) is **not** "the normal right-aligned look" for Hebrew - `end` is the far side from where the text begins, which for RTL is **left**. Using `text-end` on a genuinely wrapping multi-line paragraph produces flush-left/ragged-right text, the mirror image of correct Hebrew body copy. For ordinary Hebrew paragraphs/labels that should read flush-right (the RTL equivalent of a normal flush-left English paragraph), use `text-start`, not `text-end`. This mistake is invisible on short single-line text (nothing to misalign) and only shows up on wrapping text, so a quick visual check of headings/labels won't catch it - verify with a real multi-line block, or measure per-line rects (`getClientRects()` on a `Range` around the text node) to confirm which edge is flush.
 
 ## Reference Links
 

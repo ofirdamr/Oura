@@ -7,13 +7,16 @@ import { OuraLogo } from "@/components/brand/OuraLogo";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 
+// Labels/icons/order verified against the actual design
+// (design/screens/oura_final_production_event_list_desktop_1 and _2 - both
+// consistent): 5 main nav items, "הגדרות מערכת" sits at the bottom near
+// logout, not in this list.
 const NAV_ITEMS = [
   { label: "לוח בקרה", icon: "dashboard", href: "/admin" },
-  { label: "אירועים", icon: "photo_camera", href: "#" },
-  { label: "ארכיון", icon: "inventory_2", href: "#" },
-  { label: "ניהול לקוחות", icon: "groups", href: "#" },
-  { label: "סטטיסטיקה", icon: "analytics", href: "#" },
-  { label: "הגדרות", icon: "settings", href: "/admin/branding" },
+  { label: "אירועים פעילים", icon: "calendar_month", href: "/admin/events" },
+  { label: "ארכיון אירועים", icon: "inventory_2", href: null },
+  { label: "לקוחות VIP", icon: "workspace_premium", href: null },
+  { label: "ניתוח נתונים", icon: "analytics", href: null },
 ];
 
 export function AdminShell({
@@ -25,6 +28,7 @@ export function AdminShell({
 }) {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Fetch the logged-in photographer's identity client-side so every existing
   // <AdminShell active="..."> call site stays unchanged (no server prop wiring
@@ -64,7 +68,7 @@ export function AdminShell({
             </a>
             <a
               className="text-on-surface-variant/80 transition-colors hover:text-primary"
-              href="#"
+              href="/admin/events"
             >
               אירועים
             </a>
@@ -76,37 +80,43 @@ export function AdminShell({
             </a>
           </nav>
         </div>
-        <div className="flex flex-row-reverse items-center gap-6">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 border-e border-outline-variant pe-4">
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container-highest">
+              <span className="material-symbols-outlined text-primary">
+                person
+              </span>
+            </div>
+            <div className="hidden flex-col items-end md:flex">
+              <span className="text-sm font-bold leading-none" dir="ltr">
+                {email ?? "..."}
+              </span>
+              <span className="text-[10px] font-medium text-on-surface-variant/60">
+                צלם מורשה
+              </span>
+            </div>
+          </div>
+          <span className="material-symbols-outlined cursor-pointer text-on-surface-variant transition-colors hover:text-primary">
+            notifications
+          </span>
           <Link
             href="/admin/events"
             className="rounded-full bg-primary px-6 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/10 transition-all hover:brightness-110 active:scale-95"
           >
             העלאת תמונות
           </Link>
-          <div className="flex flex-row-reverse items-center gap-4">
-            <span className="material-symbols-outlined cursor-pointer text-on-surface-variant transition-colors hover:text-primary">
-              notifications
-            </span>
-            <div className="flex items-center gap-3 border-e border-outline-variant pe-4">
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container-highest">
-                <span className="material-symbols-outlined text-primary">
-                  person
-                </span>
-              </div>
-              <div className="hidden flex-col items-end md:flex">
-                <span className="text-sm font-bold leading-none" dir="ltr">
-                  {email ?? "..."}
-                </span>
-                <span className="text-[10px] font-medium text-on-surface-variant/60">
-                  צלם מורשה
-                </span>
-              </div>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="פתיחת תפריט"
+            className="material-symbols-outlined text-on-surface transition-colors hover:text-primary lg:hidden"
+          >
+            menu
+          </button>
         </div>
       </header>
 
-      <aside className="fixed top-0 z-40 hidden h-screen w-64 flex-col border-s border-outline-variant bg-surface-container pb-6 pt-20 md:end-0 md:flex">
+      <aside className="fixed top-0 z-40 hidden h-screen w-64 flex-col border-e border-outline-variant bg-surface-container pb-6 pt-20 md:start-0 md:flex">
         <div className="mb-8 flex flex-col gap-2 px-4">
           <div className="flex flex-col items-center rounded-2xl border border-outline-variant/10 bg-surface-container-high p-6 text-center">
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary/30 bg-black p-2">
@@ -121,28 +131,43 @@ export function AdminShell({
           </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={
-                item.label === active
-                  ? "flex flex-row-reverse items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
-                  : "flex flex-row-reverse items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
-              }
-            >
-              <span className="material-symbols-outlined">{item.icon}</span>
-              <span
+          {NAV_ITEMS.map((item) =>
+            item.href ? (
+              <a
+                key={item.label}
+                href={item.href}
                 className={
                   item.label === active
-                    ? "text-sm font-bold"
-                    : "text-sm font-medium"
+                    ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
                 }
               >
-                {item.label}
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <span
+                  className={
+                    item.label === active
+                      ? "text-sm font-bold"
+                      : "text-sm font-medium"
+                  }
+                >
+                  {item.label}
+                </span>
+              </a>
+            ) : (
+              <span
+                key={item.label}
+                aria-disabled="true"
+                title="בקרוב"
+                className="flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+              >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <span className="text-sm font-medium">{item.label}</span>
+                <span className="rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
+                  בקרוב
+                </span>
               </span>
-            </a>
-          ))}
+            ),
+          )}
         </nav>
         <div className="mt-auto flex flex-col gap-3 px-4">
           <a
@@ -153,10 +178,21 @@ export function AdminShell({
             <span className="text-sm font-bold">אירוע חדש</span>
           </a>
           <hr className="mb-2 border-outline-variant opacity-30" />
+          <a
+            href="/admin/branding"
+            className={
+              active === "הגדרות"
+                ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+            }
+          >
+            <span className="material-symbols-outlined">settings</span>
+            <span className={active === "הגדרות" ? "text-sm font-bold" : "text-sm font-medium"}>הגדרות מערכת</span>
+          </a>
           <button
             type="button"
             onClick={handleLogout}
-            className="flex flex-row-reverse items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+            className="flex items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
           >
             <span className="material-symbols-outlined">logout</span>
             <span className="text-sm font-bold">התנתקות</span>
@@ -164,11 +200,102 @@ export function AdminShell({
         </div>
       </aside>
 
-      <main className="custom-scrollbar h-screen overflow-y-auto bg-surface pt-16 md:pe-64">
+      <main className="custom-scrollbar h-screen overflow-y-auto bg-surface pt-16 md:ps-64">
         <div className="mx-auto max-w-[1400px] space-y-8 p-6 md:p-20">
           {children}
         </div>
       </main>
+
+      {/* Mobile nav drawer - below `lg` the top nav and sidebar are both
+          hidden, so this menu button is the only way to reach other admin
+          sections on a phone. */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="absolute start-0 top-0 flex h-full w-72 max-w-[80vw] flex-col border-e border-outline-variant bg-surface-container pb-6 pt-6">
+            <div className="mb-6 flex items-center justify-between px-4">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="סגירת תפריט"
+                className="material-symbols-outlined text-on-surface-variant transition-colors hover:text-primary"
+              >
+                close
+              </button>
+              <span className="text-sm font-bold text-on-surface">Photo Santos</span>
+            </div>
+            <nav className="flex flex-1 flex-col gap-1 px-3">
+              {NAV_ITEMS.map((item) =>
+                item.href ? (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={
+                      item.label === active
+                        ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                        : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                    }
+                  >
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </a>
+                ) : (
+                  <span
+                    key={item.label}
+                    aria-disabled="true"
+                    title="בקרוב"
+                    className="flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant/40"
+                  >
+                    <span className="material-symbols-outlined">{item.icon}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="rounded-full bg-surface-container-highest px-2 py-0.5 text-[10px] font-bold">
+                      בקרוב
+                    </span>
+                  </span>
+                ),
+              )}
+            </nav>
+            <div className="mt-auto flex flex-col gap-3 px-4">
+              <a
+                href="/admin/create-event"
+                onClick={() => setMenuOpen(false)}
+                className="mb-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110"
+              >
+                <span className="material-symbols-outlined font-bold">add</span>
+                <span className="text-sm font-bold">אירוע חדש</span>
+              </a>
+              <hr className="mb-2 border-outline-variant opacity-30" />
+              <a
+                href="/admin/branding"
+                onClick={() => setMenuOpen(false)}
+                className={
+                  active === "הגדרות"
+                    ? "flex items-center gap-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-primary transition-all"
+                    : "flex items-center gap-4 rounded-xl px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container-highest"
+                }
+              >
+                <span className="material-symbols-outlined">settings</span>
+                <span className={active === "הגדרות" ? "text-sm font-bold" : "text-sm font-medium"}>הגדרות מערכת</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  void handleLogout();
+                }}
+                className="flex items-center gap-4 px-4 py-2 text-error transition-colors hover:opacity-80"
+              >
+                <span className="material-symbols-outlined">logout</span>
+                <span className="text-sm font-bold">התנתקות</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

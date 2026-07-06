@@ -22,9 +22,10 @@ typechecked.
 **One seeded demo event exists:** code `WED-2024`, 17 real wedding photos
 (founder's own album), reachable via `https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024`
 or by scanning its QR. Founder's photographer account (`ofirdamr@gmail.com`)
-has a real password (shared once in chat, not stored in any file) — no
-password-reset flow exists yet if it's forgotten, would need a new one set
-via the Supabase Admin API.
+has a real password (shared once in chat, not stored in any file). A real
+self-service password-reset flow now exists (`/forgot-password` →
+`/reset-password`, via Supabase Auth) if it's ever forgotten again — no
+founder/Admin-API intervention needed.
 
 ## What's real vs. not — see `docs/ARCHITECTURE.md` §6 for the full per-screen table
 
@@ -51,13 +52,59 @@ export), which routes to `/gift-reveal` on completion, landing on
 `/gallery`. Verified live end-to-end against throwaway test guests on the
 real `WED-2024` event.
 
-Two honest residual caveats, not blockers: (1) the cosine-similarity match
+One honest residual caveat, not a blocker: the cosine-similarity match
 thresholds are initial domain-convention guesses, not yet tuned against real
 pilot-event match rates — they're config vars specifically so that's cheap
-to fix later without a redeploy; (2) legal basis is an informal draft
-opinion (from a lawyer-friend, formal signed version still to follow) — the
-founder explicitly decided to proceed on that basis, accepting the risk
-ahead of formal sign-off. See `PRD.md` §8 and `docs/ARCHITECTURE.md` §8.
+to fix later without a redeploy. Legal basis is now resolved: the founder
+confirmed the formal signed legal opinion has been received (previously an
+informal draft only). See `PRD.md` §8 and `docs/ARCHITECTURE.md` §8.
+
+**2026-07-05 fix: pre-Stage-2 photos weren't actually being matched.** A real
+guest selfie test against the live `WED-2024` demo event found no match
+despite the guest appearing in nearly every photo. Root cause: the event's 17
+photos were seeded before Stage 2's enqueue-on-upload existed, so they were
+stuck at `embed_status:'pending'` forever with zero `face_embeddings` rows —
+nothing existed for a selfie to match against. Fixed with a new operator
+route, `POST /admin/backfill-embeddings` (bearer-gated, re-enqueues any
+photo not yet `done`), run live against `WED-2024`: 15/17 photos now fully
+embedded (262 `face_embeddings` rows, 96 person clusters), 1 failed, 1 still
+hangs on retry. Also fixed a related bug hit while running the backfill:
+`embedClient.ts`'s `fetch()` to the Cloud Run embedding service had no
+timeout, so a single stalled response could hang a queue message
+indefinitely — added a 25s timeout so stalls now fail into the existing
+retry/DLQ path instead. See `MISTAKES.md` and `docs/ARCHITECTURE.md` §4/§8
+for detail; the one still-hanging photo is a narrow follow-up, not a
+blocker — retest the selfie flow on `WED-2024` now, it should match.
+
+**2026-07-05 (cont.): full visual RTL/design-fidelity audit across every
+screen, plus a real logo-upload bug fix.** Founder pushed back hard on
+visual QA rigor mid-session (several genuine RTL bugs had shipped and been
+"fixed" backwards more than once by reasoning about CSS instead of
+measuring the real DOM). Response: rebuilt `admin/events` for full design
+fidelity (real search/status-filter/CSV-export/list-grid-toggle, not just
+the bare table it had before); fixed ~15 confirmed `flex-row-reverse`
+ordering bugs across `AdminShell`, `admin/create-event`, `admin/events/
+[event_id]`, `admin/qr-management`, `admin/page.tsx` (dashboard), `admin/
+branding`, `admin/ai-optimization`, `gift-reveal`, `gallery`, `gallery-
+entry`, `join`, and `festive-gallery` — icons/labels/action rows that were
+rendering backwards vs. their actual Stitch design references (mostly
+`flex-row-reverse` inverting content, a couple of `text-start`/`text-end`
+and `start-*`/`end-*` inversions, one caused by `material-symbols-outlined`
+forcing `direction:ltr` on itself). Codified the fix into a permanent,
+mandatory verification method in `hebrew-rtl-best-practices/SKILL.md` §Step
+8: check the actual design screenshot first, then measure the live DOM with
+`getBoundingClientRect()`/`getClientRects()` — never trust CSS reasoning or
+an eyeballed screenshot alone, since every RTL bug this session was first
+"fixed" wrong at least once that way.
+Separately, found and fixed a real functional bug: re-uploading a studio
+logo on `/admin/branding` silently appeared to do nothing. Root cause: the
+logo was stored under a **fixed** per-event R2 key, but the shared
+`GET /media/*` route caches every key for a year as `immutable` (correct for
+content-addressed photo keys, wrong for a reusable logo URL) — a re-upload
+changed the R2 bytes but not the URL, so the browser/CDN kept serving the
+year-old cached image. Fixed by making the logo key content-addressed per
+upload (matching how photos already work) and best-effort deleting the
+previous logo object afterward. See `MISTAKES.md` for both write-ups.
 
 ## How we got here (compressed — see `PROGRESS.md` for full detail)
 
@@ -99,17 +146,28 @@ one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 
 ## Next milestone: not yet decided
 
+**2026-07-06: guest token expiry (code complete, blocked on deploy).** Added
+`guests.token_expires_at` (migration `0004_guest_token_expiry.sql`, 90 days
+from creation, backfilled for existing rows) and enforced it in
+`resolveGuest()` (`apps/api/src/index.ts`) — a leaked/logged guest token now
+stops working after 90 days instead of granting indefinite access. `tsc
+--noEmit` clean. **Not yet applied to the live DB and `apps/api` NOT
+redeployed** — this session had no Supabase Management API personal access
+token available, and deploying the Worker code first would 500 every guest
+route (`/gallery`, `/consent`, `/guests/:token/selfie`) since the column
+wouldn't exist yet. Needs, in order: (1) a fresh founder-issued Supabase PAT
+to apply `0004_guest_token_expiry.sql` via the Management API, (2) redeploy
+`apps/api`. See `docs/ARCHITECTURE.md` §3/§4/§8 for full detail. The other
+half of the original flag — tokens traveling in the URL path, loggable at
+proxies/CDNs — is unaddressed, deliberately out of scope for this pass (a
+larger structural change, see ARCHITECTURE.md §4).
+
 Rough edges worth a Plan/PM consult on sequencing, none blocking:
-- Guest tokens never expire and travel in the URL path (flagged by an
-  earlier security review).
-- No photographer password-reset flow.
 - `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens
   worth either wiring or removing.
 - Match thresholds (`CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD`) are
   untuned guesses — worth revisiting once a real pilot event generates
   actual match-rate data.
-- The formal signed legal opinion is still pending (informal draft only so
-  far) — worth checking status before any real pilot with paying guests.
 - **Supabase free-tier 500MB DB cap — not a concern yet, no action needed.**
   Checked live: current usage is a few KB (1 event, 4 guests, 17 photo
   metadata rows, 0 face-embedding rows — photo binaries live in R2, never

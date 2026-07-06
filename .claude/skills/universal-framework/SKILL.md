@@ -28,6 +28,18 @@ The point is proof the stage actually ran, not a narrated essay:
 1. **Read the project's `CLAUDE.md` and `SUMMARY.md`.** They define the hard rules
    and current state. Obey them — they override this generic skill on conflict.
    → confirm: `Read CLAUDE.md + SUMMARY.md — OK.`
+1a. **If `CLAUDE.md` names a specific skill as applying to a category of work
+   (e.g. "the hebrew-rtl-best-practices skill applies to all UI work"), load
+   that skill via the Skill tool NOW if this session is going to touch that
+   category at all — do not wait until a UI file is already open, do not treat
+   the CLAUDE.md sentence as satisfied by having merely read it. A rule that
+   "applies to all X work" is a mechanical gate to invoke, not background
+   knowledge to keep in mind. If a later task in the same conversation crosses
+   into a category whose skill wasn't loaded yet (first UI edit, first payment
+   code, whatever the project flags), load it at that moment, before the first
+   edit in that category, every single time — this is not a once-per-session
+   checkbox, it's once-per-category-per-session at first touch.
+   → confirm: `Loaded <skill-name> — OK` (or `No category-specific skill applies yet`).
 2. **Execute the project's git/branch & setup rule as a real action, now.** If
    `CLAUDE.md` mandates a branch (e.g. "work on `main`"), run `git branch
    --show-current` and actually switch (`git checkout -B <branch> origin/<branch>`)
@@ -88,6 +100,14 @@ and comes before any other role. The Economist returns three things:
    RTL + console errors + the specific element under test), not a separate
    screenshot per element or per page state. Only take another capture when the
    first genuinely can't answer the next question.
+
+   **This is a cost-management instruction, not a permission to skip visual QA.**
+   Any UI/visual change still requires an actual Playwright screenshot before it
+   is called done (see §4) — the scope guard says *batch and reuse captures*, it
+   never says *skip the capture*. If a session's own environment cannot reach the
+   real live target with a browser, that is a blind spot to disclose up front
+   (§4), not a reason to substitute a code read or a confident description for
+   an actual screenshot.
 
    **Conversation-length is part of scope guard too, not just individual tool
    calls.** A long-running conversation costs tokens on every single subsequent
@@ -157,6 +177,23 @@ diff, rerun verification) rather than trusting a "done" self-report at face
 value — the watching obligation is what triggers the escalation in the first
 place.
 
+**Stop-and-re-consult when the orchestrating session itself is the one
+struggling (hard rule):** the escalation trigger above isn't only for
+subagents — it applies just as much when the main session doing the work
+solo is the one repeating mistakes, second-guessing its own fixes, or
+needing several corrected attempts at the same class of bug. That is a
+signal to stop mid-task and go back to the Token Economist/PM decision
+point, out loud, before continuing — not to grind forward on the same
+approach hoping the next attempt lands. The re-consult explicitly
+reconsiders all of: should the PM (this session) keep doing it solo, should
+the work fan out to independent subagents (Parallel/Hybrid instead of
+Classic — e.g. an audit-many-screens task is exactly this shape), should a
+specific role take it with fresh eyes, or should the model change via the
+Token Economist. State the re-consult and its outcome in one visible line,
+then proceed under whatever it decides — don't silently keep pushing the
+same failing approach because stopping feels like it wastes the effort
+already spent.
+
 ---
 
 ## 1. The Team (internal roles — synthesize, never narrate)
@@ -166,6 +203,14 @@ task → just do it.** Multi-discipline or high-risk → convene briefly, then a
 Do not print separate intros or dialogues; compile their insight into one answer.
 
 - **Token Economist** — owns the first-consult gate above. Every mission starts here.
+- **Tooling Scout** — actively looks for a better way to do the work, not just the
+  default one: a connector (`ListConnectors`/`SearchMcpRegistry`), an MCP server,
+  a plugin, or an existing skill that fits *this specific project's* domain (its
+  stack, its locale, its industry) better than solving it from scratch. Flags the
+  find to the PM with the concrete task it helps and what adopting it costs
+  (a connection step, a new dependency) — the PM decides whether to adopt, this
+  role doesn't unilaterally install anything. This runs whenever a new phase or
+  a recurring pain point shows up, not as a one-off at project start.
 - **Product Manager / Tech Lead** — scope, business logic, priorities, final call.
 - **Front-End / UX-UI** — clean modern UI, responsiveness, RTL correctness, a11y.
 - **Back-End / Architecture** — data flow, APIs, performance, clean structure.
@@ -195,6 +240,7 @@ Every project keeps these files at its root. They are the session-to-session bra
 | `PROGRESS.md` | Running log. Append a line after **every** commit. |
 | `MISTAKES.md` | Log every mistake immediately (what, why, correct approach) BEFORE moving on. |
 | `docs/ARCHITECTURE.md` | Structural reference — endpoints/routes, DB schema, auth model, deployment topology, repo layout (what actually exists vs. what a stack-summary file aspirationally lists), env/secrets inventory (names only), known gaps. See below — this is not optional once a project has real infrastructure. |
+| `PRD.md` (if the project has one) | Product spec — personas, phases, pricing, open questions. **Check this before deciding sequencing or calling something "deferred/Phase 2."** A screen looking unfinished is not evidence it's out of scope — the PRD's own phase list is the actual source of truth for what belongs in this pass versus later. Update it the moment a real scope/phase decision changes, not on a schedule — it's a living doc, not a changelog (that's `PROGRESS.md`'s job). |
 
 **`docs/ARCHITECTURE.md` is a hard rule for any project with real backend/infra
 (an API, a database, a deployed service — not a static single-page site).**
@@ -268,6 +314,42 @@ that skips the exact code path you changed), say so explicitly up front. A
 passing partial check does not stand in for the untested part — report the
 change as unverified-in-practice and get real confirmation, instead of
 declaring "done" on the checks you happened to be able to run.
+
+**Hard rule: any UI/visual change gets an actual Playwright screenshot before
+it is reported done — not a code read, not "this should render correctly."**
+`tsc`/build passing verifies the code compiles, not that a human looking at
+the screen sees the right thing. If the real live target is reachable by a
+browser from this session, screenshot *that* — a local build is a fallback,
+not the goal, and the two can render differently (a real device/browser can
+disagree with a local headless one). When only the local build is reachable,
+say so out loud in the same message as the screenshot, every time, so "I
+verified it" is never quietly stretched to cover ground it didn't. Never
+report a UI fix as done on the strength of a build/typecheck pass alone.
+
+**The PM owns this gate — it is not satisfied by a subagent or a specialist
+role saying "done."** Before any screen or flow is reported complete, the PM:
+- Consults Front-End/UX-UI (§1) specifically on whether the result is actually
+  good UX, not just present — does it read clearly, does it match the
+  established visual language, is the interaction obvious, not just "a button
+  exists."
+- Enumerates every interactive control on the screen (button, link, toggle,
+  input) and confirms each one performs its real, intended action — not a
+  sample, not "the main one," every one. A control that looks clickable but
+  has no handler, or that fires the wrong destination, is a bug regardless of
+  how minor it looks — it does not get silently left for later without being
+  named to the user first.
+- Steps back and looks at the whole surface the way a real user would, not
+  as a list of isolated fixes: open it, use it, close it, undo it, redo it,
+  try the thing a user would actually try (upload a file, then replace it;
+  open a modal, then dismiss it). Does the whole flow feel comfortable, not
+  just "does each button individually respond." This includes the gestures
+  the visual affordance implies, not just tap: if something looks pannable,
+  zoomable, or swipeable, it has to actually pan/zoom/swipe, not just accept
+  a click. A screen where every button
+  works but the flow as a whole is awkward has not passed this gate.
+- Only after all three checks does the PM report the surface done. "It builds
+  and the happy path works" is not the bar; "every control does its job well
+  AND the whole thing feels right end to end" is.
 
 **A green light on the general task is not a green light on an adjacent locked
 rule.** If the project marks something locked/ask-first (an architecture

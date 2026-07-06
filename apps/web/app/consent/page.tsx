@@ -89,7 +89,7 @@ export default function ConsentPage() {
     // record. /gallery will keep showing consent_required:true for this
     // guest, which is exactly the desired state.
     setPending("decline");
-    router.push("/festive-gallery");
+    router.push("/gallery");
   }
 
   return (
@@ -146,15 +146,14 @@ export default function ConsentPage() {
         ))}
       </div>
 
-      <a
-        href="#"
-        className="relative z-10 mb-6 flex items-center gap-1.5 text-sm text-on-surface-variant underline underline-offset-4 transition-colors hover:text-primary"
-      >
+      {/* No privacy-policy page exists yet (needs real legal copy, not
+          placeholder text) - showing it disabled rather than a dead link. */}
+      <span className="relative z-10 mb-6 flex items-center gap-1.5 text-sm text-on-surface-variant/40">
         <span className="material-symbols-outlined text-base">
           privacy_tip
         </span>
-        קראו את מדיניות הפרטיות המלאה שלנו
-      </a>
+        מדיניות הפרטיות המלאה (בקרוב)
+      </span>
 
       <div className="relative z-10 mt-auto w-full space-y-3">
         {error && (
