@@ -144,11 +144,8 @@ implementation work in parallel git worktrees, the orchestrating session
 integrates + verifies live + deploys. This is a standing rule, not a
 one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 
-## Two known Supabase Auth config bugs — real, unfixed, need founder action
+## One known Supabase Auth config gap — needs a founder business decision
 
-Found while founder tested the real password-reset flow live (not yet fixed,
-since neither is a code change — both are Supabase project dashboard
-settings this assistant has no Management API token for):
 - **Reset email sends from Supabase's own shared sender, not "Oura."**
   Needs custom SMTP wired into Supabase (Authentication → SMTP Settings),
   which needs a real transactional-email provider account + a domain the
@@ -162,43 +159,51 @@ settings this assistant has no Management API token for):
   verification, more friction for no real benefit here). **Still waiting on
   the founder to actually register a domain and pick a name** before this
   can move forward.
-- **Password-reset email link redirects to `localhost:3000`, not the live
-  site.** The app code is correct (`redirectTo: window.location.origin +
-  "/reset-password"`) — Supabase validates that URL against an allow-list
-  (Auth → URL Configuration → Site URL + Redirect URLs) and silently falls
-  back to the configured Site URL if the production URL isn't on that list.
-  Site URL is still set to `localhost:3000` from early local dev. **Fix (not
-  yet confirmed done):** in the Supabase dashboard
-  (https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/auth/url-configuration),
-  set Site URL to `https://oura-web.oura-events.workers.dev` and add
-  `https://oura-web.oura-events.workers.dev/reset-password` to Redirect
-  URLs. This is a founder-only dashboard action — no Supabase Management API
-  token exists in this environment to do it directly.
+
+**2026-07-06: password-reset redirect fixed.** The previously-documented
+"Site URL is stuck on `localhost:3000`" gap turned out to be stale — the
+live Supabase Auth config's `site_url` was already correctly set to
+`https://oura-web.oura-events.workers.dev/` (fixed by someone/some session
+without updating this doc). The real live bug was in `uri_allow_list`: a
+typo (`.../reset-passwordto`) meant the app's actual `redirectTo` never
+matched the allow-list, so Supabase silently fell back to `site_url` (the
+homepage) instead of landing on `/reset-password`. Fixed via
+`PATCH /v1/projects/:ref/config/auth` using a founder-issued Supabase PAT;
+verified the corrected value persisted on a fresh `GET`. Sender branding
+(above) is still open and separate.
 
 ## Next milestone: not yet decided
 
-**2026-07-06: guest token expiry (code complete, blocked on deploy).** Added
+**2026-07-06: guest token expiry — shipped and verified live.** Added
 `guests.token_expires_at` (migration `0004_guest_token_expiry.sql`, 90 days
 from creation, backfilled for existing rows) and enforced it in
 `resolveGuest()` (`apps/api/src/index.ts`) — a leaked/logged guest token now
-stops working after 90 days instead of granting indefinite access. `tsc
---noEmit` clean. **Not yet applied to the live DB and `apps/api` NOT
-redeployed** — this session had no Supabase Management API personal access
-token available, and deploying the Worker code first would 500 every guest
-route (`/gallery`, `/consent`, `/guests/:token/selfie`) since the column
-wouldn't exist yet. Needs, in order: (1) a fresh founder-issued Supabase PAT
-to apply `0004_guest_token_expiry.sql` via the Management API, (2) redeploy
-`apps/api`. See `docs/ARCHITECTURE.md` §3/§4/§8 for full detail. The other
-half of the original flag — tokens traveling in the URL path, loggable at
-proxies/CDNs — is unaddressed, deliberately out of scope for this pass (a
-larger structural change, see ARCHITECTURE.md §4).
+stops working after 90 days instead of granting indefinite access. Applied
+the migration live via a founder-issued Supabase PAT (verified `NOT NULL` +
+correct default + all 8 existing `guests` rows backfilled), redeployed
+`apps/api`, and verified end-to-end against a throwaway `WED-2024` test
+guest: fresh token → `200`, tampered token → `401 invalid_token`, a
+deliberately backdated `token_expires_at` → `401 token_expired`. Test guest
+row deleted afterward. The other half of the original flag — tokens
+traveling in the URL path, loggable at proxies/CDNs — remains unaddressed,
+deliberately out of scope for this pass (a larger structural change, see
+`docs/ARCHITECTURE.md` §4). **Founder: the PAT used for this can now be
+revoked** (supabase.com/dashboard/account/tokens), same as prior sessions.
 
 Rough edges worth a Plan/PM consult on sequencing, none blocking:
-- `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens
-  worth either wiring or removing.
+- `/join`/`/festive-gallery`/`/minimal-gallery` are orphaned static screens —
+  zero live inbound/outbound links today, but `PRD.md` §4 lists Festive/
+  Minimal/Personal Gallery as three separate MVP features, so the intended
+  scope (remove vs. build out as a real selectable per-event gallery theme)
+  needs a founder call before more code gets written here, not another
+  guess — see the PM consult in this session's history for the two very
+  different implementation paths and their tradeoffs.
 - Match thresholds (`CLUSTER_MATCH_THRESHOLD`/`GUEST_MATCH_THRESHOLD`) are
   untuned guesses — worth revisiting once a real pilot event generates
-  actual match-rate data.
+  actual match-rate data. Deliberately not manufacturing tuning data early
+  (e.g. logging raw selfie match scores) since that would itself be new
+  biometric-adjacent retained data requiring the same legal sign-off Stage 2
+  already went through — parked until a real pilot happens, not actioned.
 - **Supabase free-tier 500MB DB cap — not a concern yet, no action needed.**
   Checked live: current usage is a few KB (1 event, 4 guests, 17 photo
   metadata rows, 0 face-embedding rows — photo binaries live in R2, never
