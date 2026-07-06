@@ -144,6 +144,37 @@ implementation work in parallel git worktrees, the orchestrating session
 integrates + verifies live + deploys. This is a standing rule, not a
 one-off preference — see `.claude/skills/universal-framework/SKILL.md`.
 
+## Two known Supabase Auth config bugs — real, unfixed, need founder action
+
+Found while founder tested the real password-reset flow live (not yet fixed,
+since neither is a code change — both are Supabase project dashboard
+settings this assistant has no Management API token for):
+- **Reset email sends from Supabase's own shared sender, not "Oura."**
+  Needs custom SMTP wired into Supabase (Authentication → SMTP Settings),
+  which needs a real transactional-email provider account + a domain the
+  founder controls (SPF/DKIM verification — no way around owning a domain).
+  Recommended path, not yet actioned: register a small domain via Cloudflare
+  Registrar (already using Cloudflare for everything else, at-cost pricing;
+  avoid `oura.com`/`oura.io`, taken by the sleep-tracker brand), pair with
+  Resend's free tier (3,000 emails/month, easy Supabase SMTP integration).
+  Founder confirmed `.com` over `.co.il` is fine even for an Israel-first
+  launch (`.co.il` needs a local registrar + Israeli ID/business-number
+  verification, more friction for no real benefit here). **Still waiting on
+  the founder to actually register a domain and pick a name** before this
+  can move forward.
+- **Password-reset email link redirects to `localhost:3000`, not the live
+  site.** The app code is correct (`redirectTo: window.location.origin +
+  "/reset-password"`) — Supabase validates that URL against an allow-list
+  (Auth → URL Configuration → Site URL + Redirect URLs) and silently falls
+  back to the configured Site URL if the production URL isn't on that list.
+  Site URL is still set to `localhost:3000` from early local dev. **Fix (not
+  yet confirmed done):** in the Supabase dashboard
+  (https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/auth/url-configuration),
+  set Site URL to `https://oura-web.oura-events.workers.dev` and add
+  `https://oura-web.oura-events.workers.dev/reset-password` to Redirect
+  URLs. This is a founder-only dashboard action — no Supabase Management API
+  token exists in this environment to do it directly.
+
 ## Next milestone: not yet decided
 
 **2026-07-06: guest token expiry (code complete, blocked on deploy).** Added
