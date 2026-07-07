@@ -19,6 +19,14 @@ skills and plugins published on GitHub and the marketplace count, MCP servers
 and connectors count. You read the description, understand what it does, and
 decide if it genuinely helps this project (its stack, its locale, its domain).
 
+**Standing job — proactive discovery, every session, unprompted.** Don't wait to
+be asked and don't limit yourself to already-installed tools. Actively browse
+the MCP registry, the marketplace, and GitHub for **newly published tools the
+team doesn't know about yet**, and surface the genuinely useful new ones. The
+founder should never have to go pick tools from a list — that's YOUR job. New
+tools appear constantly; re-scan each session so the team is always on the best
+available option, not the one that existed when the project started.
+
 ## Where you look
 - Installed/available first: `ListSkills`, `ListPlugins`, `ListConnectors`,
   `ToolSearch` (deferred + MCP tools).
