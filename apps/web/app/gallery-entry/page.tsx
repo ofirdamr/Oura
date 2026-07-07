@@ -6,11 +6,20 @@
 // itself trigger face-matching, which still requires the separate
 // biometric-consent gate (not yet built) before any embedding runs.
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import jsQR from "jsqr";
 import { issueGuestToken, resolveEventCode } from "@/lib/api";
 import { saveGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
+
+// Event codes are uppercase alphanumeric + hyphen (e.g. WED-2024). Normalize
+// user input to that shape: uppercase, and drop anything else - critically the
+// apostrophe/space iOS autocorrect injects (turning "wed-2024" into "We'd-2024"),
+// which would otherwise never match a real code.
+function normalizeCode(raw: string): string {
+  return raw.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -46,6 +55,90 @@ function GalleryEntryPageInner() {
   const [entering, setEntering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // In-browser QR scanner (camera): decodes the printed event QR, which encodes
+  // the same `?code=...` deeplink, so a scan skips manual typing.
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
+
+  function stopScan() {
+    cancelAnimationFrame(rafRef.current);
+    if (streamRef.current) {
+      for (const track of streamRef.current.getTracks()) track.stop();
+      streamRef.current = null;
+    }
+    setScanning(false);
+  }
+
+  // A scanned QR may hold the full deeplink URL (…/gallery-entry?code=WED-2024)
+  // or a bare code; pull the code out of either and normalize it.
+  function extractCode(text: string): string {
+    try {
+      const fromUrl = new URL(text).searchParams.get("code");
+      if (fromUrl) return normalizeCode(fromUrl);
+    } catch {
+      // not a URL - fall through to treating the whole payload as a code
+    }
+    return normalizeCode(text);
+  }
+
+  async function startScan() {
+    setScanError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setScanError("המצלמה אינה נתמכת בדפדפן הזה. הזינו קוד ידנית.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setScanning(true);
+      const video = videoRef.current;
+      if (!video) return;
+      video.srcObject = stream;
+      await video.play();
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+      const tick = () => {
+        if (!streamRef.current || !ctx) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const found = jsQR(frame.data, frame.width, frame.height, {
+            inversionAttempts: "dontInvert",
+          });
+          if (found?.data) {
+            const code = extractCode(found.data);
+            if (code) {
+              stopScan();
+              setEventCode(code);
+              void handleManualEntry(code);
+              return;
+            }
+          }
+        }
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    } catch {
+      stopScan();
+      setScanError(
+        "לא הצלחנו לגשת למצלמה. אשרו את ההרשאה או הזינו קוד ידנית.",
+      );
+    }
+  }
+
+  // Stop the camera if the guest navigates away mid-scan.
+  useEffect(() => stopScan, []);
+
   // QR deeplinks encode the event code as ?code=WED-2024 so a scan skips
   // manual typing entirely - prefill and auto-submit once on arrival.
   useEffect(() => {
@@ -60,7 +153,7 @@ function GalleryEntryPageInner() {
   async function handleManualEntry(codeOverride?: string) {
     setError(null);
 
-    const trimmedCode = (codeOverride ?? eventCode).trim();
+    const trimmedCode = normalizeCode(codeOverride ?? eventCode);
     if (!trimmedCode) {
       setError("אנא הזינו קוד אירוע");
       return;
@@ -145,14 +238,25 @@ function GalleryEntryPageInner() {
         <div className="rounded-2xl border border-white/5 bg-surface-container/60 p-6 text-center shadow-2xl backdrop-blur-md">
           <div className="flex flex-col items-center gap-4">
             <div className="relative h-48 w-48 overflow-hidden rounded-xl border border-primary/20 bg-primary/5">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span
-                  className="material-symbols-outlined text-outline-variant/60"
-                  style={{ fontSize: "64px" }}
-                >
-                  qr_code_2
-                </span>
-              </div>
+              {/* Live camera preview (only visible while scanning). */}
+              <video
+                ref={videoRef}
+                playsInline
+                muted
+                className={`absolute inset-0 h-full w-full object-cover ${
+                  scanning ? "opacity-100" : "opacity-0"
+                }`}
+              />
+              {!scanning && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span
+                    className="material-symbols-outlined text-outline-variant/60"
+                    style={{ fontSize: "64px" }}
+                  >
+                    qr_code_2
+                  </span>
+                </div>
+              )}
               <div className="absolute end-4 top-4 h-6 w-6 rounded-tr-sm border-t-2 border-e-2 border-primary/60" />
               <div className="absolute start-4 top-4 h-6 w-6 rounded-tl-sm border-t-2 border-s-2 border-primary/60" />
               <div className="absolute bottom-4 end-4 h-6 w-6 rounded-br-sm border-b-2 border-e-2 border-primary/60" />
@@ -160,16 +264,22 @@ function GalleryEntryPageInner() {
             </div>
             <button
               type="button"
-              disabled
-              title="סריקה בתוך הדפדפן עדיין לא זמינה - סרקו עם מצלמת הטלפון הרגילה או הזינו קוד למטה"
-              className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-primary/40 py-4 font-bold text-on-primary/60 shadow-lg shadow-primary/10"
+              onClick={() => (scanning ? stopScan() : startScan())}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               {/* Design (gallery_entry_mobile) puts the camera icon at the
                   left of this label, not the right - text before icon in
                   DOM order matches that under a plain RTL row. */}
-              הפעל מצלמה לסריקה (בקרוב)
-              <span className="material-symbols-outlined">photo_camera</span>
+              {scanning ? "עצור סריקה" : "הפעל מצלמה לסריקה"}
+              <span className="material-symbols-outlined">
+                {scanning ? "stop_circle" : "photo_camera"}
+              </span>
             </button>
+            {scanError && (
+              <p className="w-full rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+                {scanError}
+              </p>
+            )}
           </div>
         </div>
 
@@ -193,8 +303,16 @@ function GalleryEntryPageInner() {
               <input
                 id="event-code"
                 type="text"
+                inputMode="text"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                autoComplete="off"
+                spellCheck={false}
                 value={eventCode}
-                onChange={(e) => setEventCode(e.target.value)}
+                // Uppercase as typed + strip anything that isn't a code char.
+                // iOS autocorrect otherwise turns "wed-2024" into "We'd-2024"
+                // (added apostrophe + capital), which never matches the code.
+                onChange={(e) => setEventCode(normalizeCode(e.target.value))}
                 placeholder="לדוגמה: WED-2024"
                 className="h-14 w-full rounded-xl border border-outline-variant/30 bg-black/40 px-4 text-center font-bold tracking-widest text-on-surface outline-none transition-all placeholder:font-normal placeholder:tracking-normal placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/50"
               />

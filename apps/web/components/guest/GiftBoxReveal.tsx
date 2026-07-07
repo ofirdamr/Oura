@@ -20,6 +20,8 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import gsap from "gsap";
 
 // Colors match the original Stitch source (design/screens/
@@ -108,20 +110,49 @@ export function GiftBoxReveal({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
+    // Neutral tone mapping keeps the rust ribbon close to its real #9f402d hex;
+    // ACES noticeably warms/orange-shifts saturated reds at these light levels.
+    renderer.toneMapping = THREE.NeutralToneMapping;
+    renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
+
+    // --- Environment map ---
+    // Stitch's material is a near-mirror metal (metalness 0.8 / roughness 0.1).
+    // A metal reflects its ENVIRONMENT; with nothing to reflect it renders flat
+    // black - which is exactly why the literal port (and Stitch's own screen.png)
+    // showed a dead, near-invisible box with only the ribbons catching light.
+    // Generating a soft studio environment (RoomEnvironment -> PMREM) gives the
+    // dark metal real reflections so it reads as a glossy, premium gift box.
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = envTexture;
 
     // --- Lights (decay:0 keeps the mockup's straightforward, predictable
     // intensity model rather than physical inverse-square falloff) ---
-    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.22);
     scene.add(ambient);
 
-    const topLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    const topLight = new THREE.DirectionalLight(0xffffff, 0.8);
     topLight.position.set(2, 8, 4);
     scene.add(topLight);
 
-    const rimLight = new THREE.PointLight(PRIMARY, 2.4, 0, 0);
-    rimLight.position.set(5, 4, 5);
+    // Neutral warm-white key light so the box faces and the rust ribbon read in
+    // their TRUE colours. Stitch's source used a rust-coloured point light here,
+    // but shining rust light on the rust ribbon (then tone-mapping it) pushed the
+    // ribbon to a bright orange - the exact "wrong colour" the founder flagged.
+    const keyLight = new THREE.PointLight(0xfff1e6, 1.0, 0, 0);
+    keyLight.position.set(4, 5, 5);
+    scene.add(keyLight);
+
+    // A faint rust accent light kept low, purely for mood on the box's metal -
+    // not strong enough to tint the ribbon.
+    const rimLight = new THREE.PointLight(PRIMARY, 0.5, 0, 0);
+    rimLight.position.set(-4, 3, 4);
     scene.add(rimLight);
+
+    const fillLight = new THREE.PointLight(0xbcd4ff, 0.45, 0, 0);
+    fillLight.position.set(-5, 2, 3);
+    scene.add(fillLight);
 
     // Glow from inside the box - dark until the lid opens.
     const innerGlow = new THREE.PointLight(PRIMARY, 0, 6, 0);
@@ -129,37 +160,140 @@ export function GiftBoxReveal({
     scene.add(innerGlow);
 
     // --- Box ---
+    // A premium wrapped gift box built from soft, rounded-edge primitives (not
+    // Stitch's bare hard-edged BoxGeometry): a rounded body, an overhanging
+    // rounded lid, satin rust ribbons wrapping the sides, and a real ribbon bow
+    // (knot + two loops + two tails) on top. The lid, its top ribbon cross and
+    // the bow all live in `lidGroup` so they lift away together on open.
     const group = new THREE.Group();
     scene.add(group);
 
-    // One shared material for body + lid, matching the original source's
-    // single `boxMaterial` exactly (color/roughness/metalness), including
-    // reusing the same instance rather than two separately-tuned ones.
+    // Geometry registry so teardown can dispose everything without naming each.
+    const geometries: THREE.BufferGeometry[] = [];
+    const track = <G extends THREE.BufferGeometry>(g: G): G => {
+      geometries.push(g);
+      return g;
+    };
+
+    // Deep warm-charcoal box with a clear glossy finish (reads as a premium dark
+    // box catching studio reflections rather than a flat black blob).
     const boxMat = new THREE.MeshStandardMaterial({
-      color: BOX_DARK,
-      roughness: 0.1,
-      metalness: 0.8,
+      color: 0x232025,
+      roughness: 0.22,
+      metalness: 0.5,
+      envMapIntensity: 2.3,
     });
-    const bodyGeo = new THREE.BoxGeometry(2, 1.5, 2);
-    const body = new THREE.Mesh(bodyGeo, boxMat);
-    group.add(body);
-
-    const lidGeo = new THREE.BoxGeometry(2.1, 0.4, 2.1);
-    const lid = new THREE.Mesh(lidGeo, boxMat);
-    lid.position.y = 0.9;
-    group.add(lid);
-
-    // Crossed ribbons - plain matte MeshStandardMaterial with only a color,
-    // matching the original source exactly (no metalness/emissive override
-    // there, so this takes the material's own defaults).
+    // Satin rust ribbon (#9f402d): soft sheen, true colour under neutral tone
+    // mapping (a rust-tinted light + emissive previously blew it out to orange).
     const ribbonMat = new THREE.MeshStandardMaterial({
       color: PRIMARY,
+      roughness: 0.5,
+      metalness: 0.22,
+      envMapIntensity: 0.45,
     });
-    const ribbonGeo = new THREE.BoxGeometry(0.26, 1.62, 2.2);
-    const ribbon1 = new THREE.Mesh(ribbonGeo, ribbonMat);
-    const ribbon2 = new THREE.Mesh(ribbonGeo, ribbonMat);
-    ribbon2.rotation.y = Math.PI / 2;
-    group.add(ribbon1, ribbon2);
+
+    // Box body as an OPEN-TOP container (four walls + a floor, no top face) so
+    // that once the lid lifts the box reads as genuinely open - you see down
+    // into the cavity as the gift rises out, instead of a still-capped top.
+    const BODY_W = 2;
+    const BODY_H = 1.4;
+    const BODY_D = 2;
+    const WALL = 0.14;
+    const body = new THREE.Group();
+    body.position.y = -0.15;
+    group.add(body);
+
+    const floor = new THREE.Mesh(
+      track(new RoundedBoxGeometry(BODY_W, WALL, BODY_D, 4, 0.05)),
+      boxMat,
+    );
+    floor.position.y = -BODY_H / 2 + WALL / 2;
+    body.add(floor);
+
+    const wallFBGeo = track(new RoundedBoxGeometry(BODY_W, BODY_H, WALL, 4, 0.05));
+    const wallLRGeo = track(new RoundedBoxGeometry(WALL, BODY_H, BODY_D, 4, 0.05));
+    const frontWall = new THREE.Mesh(wallFBGeo, boxMat);
+    frontWall.position.z = BODY_D / 2 - WALL / 2;
+    const backWall = new THREE.Mesh(wallFBGeo, boxMat);
+    backWall.position.z = -(BODY_D / 2 - WALL / 2);
+    const leftWall = new THREE.Mesh(wallLRGeo, boxMat);
+    leftWall.position.x = -(BODY_W / 2 - WALL / 2);
+    const rightWall = new THREE.Mesh(wallLRGeo, boxMat);
+    rightWall.position.x = BODY_W / 2 - WALL / 2;
+    body.add(frontWall, backWall, leftWall, rightWall);
+
+    // Warm inner liner on the cavity floor so the open box glows from within
+    // (paired with innerGlow) rather than showing a flat black hole.
+    const linerMat = new THREE.MeshStandardMaterial({
+      color: 0x3a140b,
+      roughness: 0.7,
+      metalness: 0.0,
+      emissive: PRIMARY,
+      emissiveIntensity: 0.25,
+    });
+    const liner = new THREE.Mesh(
+      track(new THREE.BoxGeometry(BODY_W - WALL * 2, 0.04, BODY_D - WALL * 2)),
+      linerMat,
+    );
+    liner.position.y = -BODY_H / 2 + WALL;
+    body.add(liner);
+
+    // Ribbons wrapping the body's four sides (stay with the body on open).
+    const bodyRibbonGeoZ = track(new RoundedBoxGeometry(0.26, 1.44, 2.06, 3, 0.03));
+    const bodyRibbonGeoX = track(new RoundedBoxGeometry(2.06, 1.44, 0.26, 3, 0.03));
+    const bodyRibbon1 = new THREE.Mesh(bodyRibbonGeoZ, ribbonMat);
+    const bodyRibbon2 = new THREE.Mesh(bodyRibbonGeoX, ribbonMat);
+    bodyRibbon1.position.y = -0.15;
+    bodyRibbon2.position.y = -0.15;
+    group.add(bodyRibbon1, bodyRibbon2);
+
+    // --- Lid group (lid + top ribbon cross + bow) - lifts away as one unit ---
+    const lid = new THREE.Group();
+    lid.position.y = 0.62;
+    group.add(lid);
+
+    const lidBox = new THREE.Mesh(
+      track(new RoundedBoxGeometry(2.16, 0.42, 2.16, 5, 0.08)),
+      boxMat,
+    );
+    lid.add(lidBox);
+
+    // Ribbon cross over the top of the lid.
+    const lidRibbonGeoZ = track(new RoundedBoxGeometry(0.26, 0.46, 2.2, 3, 0.03));
+    const lidRibbonGeoX = track(new RoundedBoxGeometry(2.2, 0.46, 0.26, 3, 0.03));
+    lid.add(new THREE.Mesh(lidRibbonGeoZ, ribbonMat));
+    lid.add(new THREE.Mesh(lidRibbonGeoX, ribbonMat));
+
+    // Bow: a center knot, two upright loops, two trailing tails.
+    const bow = new THREE.Group();
+    bow.position.y = 0.24;
+    lid.add(bow);
+
+    const knot = new THREE.Mesh(
+      track(new RoundedBoxGeometry(0.34, 0.3, 0.34, 4, 0.1)),
+      ribbonMat,
+    );
+    knot.position.y = 0.16;
+    bow.add(knot);
+
+    const loopGeo = track(new THREE.TorusGeometry(0.28, 0.07, 16, 40));
+    for (const dir of [-1, 1]) {
+      const loop = new THREE.Mesh(loopGeo, ribbonMat);
+      // Stand the ring upright and tilt it outward to form a bow wing.
+      loop.rotation.x = Math.PI / 2;
+      loop.rotation.y = dir * 0.5;
+      loop.position.set(dir * 0.3, 0.16, 0);
+      loop.scale.set(1, 0.8, 1);
+      bow.add(loop);
+    }
+
+    const tailGeo = track(new RoundedBoxGeometry(0.16, 0.5, 0.05, 3, 0.02));
+    for (const dir of [-1, 1]) {
+      const tail = new THREE.Mesh(tailGeo, ribbonMat);
+      tail.position.set(dir * 0.14, -0.1, 0.12);
+      tail.rotation.z = dir * 0.35;
+      bow.add(tail);
+    }
 
     // --- Inner "gift" placeholder card (hidden inside the box until opened) ---
     const cardTex = makePlaceholderTexture();
@@ -170,9 +304,9 @@ export function GiftBoxReveal({
       emissive: PRIMARY,
       emissiveIntensity: 0.15,
     });
-    const cardGeo = new THREE.BoxGeometry(1.05, 1.3, 0.05);
+    const cardGeo = track(new THREE.BoxGeometry(1.05, 1.3, 0.05));
     const card = new THREE.Mesh(cardGeo, cardMat);
-    card.position.y = -0.2; // tucked inside the box
+    card.position.y = -0.3; // tucked inside the box
     card.scale.setScalar(0.6);
     card.visible = false;
     group.add(card);
@@ -197,10 +331,23 @@ export function GiftBoxReveal({
       card.visible = true;
 
       const tl = gsap.timeline();
-      tl.to(lid.position, { y: 3.1, duration: 1.1, ease: "power4.out" }, 0);
+      // Lift the lid up AND off to the side, tilted, so it clearly reads as a
+      // removed lid hovering in frame - not flying straight up out of view
+      // (which left the still-wrapped body looking closed).
+      tl.to(
+        lid.position,
+        { y: 1.85, x: 0.7, z: 0.35, duration: 1.1, ease: "power3.out" },
+        0,
+      );
       tl.to(
         lid.rotation,
-        { x: -Math.PI / 4, z: Math.PI / 12, duration: 1.1, ease: "power3.out" },
+        {
+          x: -Math.PI / 5,
+          y: Math.PI / 7,
+          z: Math.PI / 4,
+          duration: 1.1,
+          ease: "power3.out",
+        },
         0,
       );
       tl.to(
@@ -211,7 +358,7 @@ export function GiftBoxReveal({
       tl.to(innerGlow, { intensity: 3.2, duration: 0.9, ease: "power2.out" }, 0.15);
       tl.to(
         card.position,
-        { y: 1.75, duration: 1.2, ease: "back.out(1.4)" },
+        { y: 1.2, duration: 1.2, ease: "back.out(1.4)" },
         0.25,
       );
       tl.to(
@@ -312,14 +459,14 @@ export function GiftBoxReveal({
       el.removeEventListener("pointerup", onPointerUp);
       el.removeEventListener("pointercancel", onPointerUp);
 
-      bodyGeo.dispose();
-      lidGeo.dispose();
-      ribbonGeo.dispose();
-      cardGeo.dispose();
+      for (const g of geometries) g.dispose();
       boxMat.dispose();
       ribbonMat.dispose();
+      linerMat.dispose();
       cardMat.dispose();
       cardTex.dispose();
+      envTexture.dispose();
+      pmrem.dispose();
 
       renderer.dispose();
       renderer.forceContextLoss();
