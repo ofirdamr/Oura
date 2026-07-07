@@ -12,6 +12,14 @@ import { issueGuestToken, resolveEventCode } from "@/lib/api";
 import { saveGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 
+// Event codes are uppercase alphanumeric + hyphen (e.g. WED-2024). Normalize
+// user input to that shape: uppercase, and drop anything else - critically the
+// apostrophe/space iOS autocorrect injects (turning "wed-2024" into "We'd-2024"),
+// which would otherwise never match a real code.
+function normalizeCode(raw: string): string {
+  return raw.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
+
 const HOW_IT_WORKS_STEPS = [
   {
     icon: "qr_code_scanner",
@@ -60,7 +68,7 @@ function GalleryEntryPageInner() {
   async function handleManualEntry(codeOverride?: string) {
     setError(null);
 
-    const trimmedCode = (codeOverride ?? eventCode).trim();
+    const trimmedCode = normalizeCode(codeOverride ?? eventCode);
     if (!trimmedCode) {
       setError("אנא הזינו קוד אירוע");
       return;
@@ -193,8 +201,16 @@ function GalleryEntryPageInner() {
               <input
                 id="event-code"
                 type="text"
+                inputMode="text"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                autoComplete="off"
+                spellCheck={false}
                 value={eventCode}
-                onChange={(e) => setEventCode(e.target.value)}
+                // Uppercase as typed + strip anything that isn't a code char.
+                // iOS autocorrect otherwise turns "wed-2024" into "We'd-2024"
+                // (added apostrophe + capital), which never matches the code.
+                onChange={(e) => setEventCode(normalizeCode(e.target.value))}
                 placeholder="לדוגמה: WED-2024"
                 className="h-14 w-full rounded-xl border border-outline-variant/30 bg-black/40 px-4 text-center font-bold tracking-widest text-on-surface outline-none transition-all placeholder:font-normal placeholder:tracking-normal placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/50"
               />

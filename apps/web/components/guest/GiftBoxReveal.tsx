@@ -192,13 +192,51 @@ export function GiftBoxReveal({
       envMapIntensity: 0.45,
     });
 
-    // Box body (rounded edges).
-    const body = new THREE.Mesh(
-      track(new RoundedBoxGeometry(2, 1.4, 2, 5, 0.09)),
-      boxMat,
-    );
+    // Box body as an OPEN-TOP container (four walls + a floor, no top face) so
+    // that once the lid lifts the box reads as genuinely open - you see down
+    // into the cavity as the gift rises out, instead of a still-capped top.
+    const BODY_W = 2;
+    const BODY_H = 1.4;
+    const BODY_D = 2;
+    const WALL = 0.14;
+    const body = new THREE.Group();
     body.position.y = -0.15;
     group.add(body);
+
+    const floor = new THREE.Mesh(
+      track(new RoundedBoxGeometry(BODY_W, WALL, BODY_D, 4, 0.05)),
+      boxMat,
+    );
+    floor.position.y = -BODY_H / 2 + WALL / 2;
+    body.add(floor);
+
+    const wallFBGeo = track(new RoundedBoxGeometry(BODY_W, BODY_H, WALL, 4, 0.05));
+    const wallLRGeo = track(new RoundedBoxGeometry(WALL, BODY_H, BODY_D, 4, 0.05));
+    const frontWall = new THREE.Mesh(wallFBGeo, boxMat);
+    frontWall.position.z = BODY_D / 2 - WALL / 2;
+    const backWall = new THREE.Mesh(wallFBGeo, boxMat);
+    backWall.position.z = -(BODY_D / 2 - WALL / 2);
+    const leftWall = new THREE.Mesh(wallLRGeo, boxMat);
+    leftWall.position.x = -(BODY_W / 2 - WALL / 2);
+    const rightWall = new THREE.Mesh(wallLRGeo, boxMat);
+    rightWall.position.x = BODY_W / 2 - WALL / 2;
+    body.add(frontWall, backWall, leftWall, rightWall);
+
+    // Warm inner liner on the cavity floor so the open box glows from within
+    // (paired with innerGlow) rather than showing a flat black hole.
+    const linerMat = new THREE.MeshStandardMaterial({
+      color: 0x3a140b,
+      roughness: 0.7,
+      metalness: 0.0,
+      emissive: PRIMARY,
+      emissiveIntensity: 0.25,
+    });
+    const liner = new THREE.Mesh(
+      track(new THREE.BoxGeometry(BODY_W - WALL * 2, 0.04, BODY_D - WALL * 2)),
+      linerMat,
+    );
+    liner.position.y = -BODY_H / 2 + WALL;
+    body.add(liner);
 
     // Ribbons wrapping the body's four sides (stay with the body on open).
     const bodyRibbonGeoZ = track(new RoundedBoxGeometry(0.26, 1.44, 2.06, 3, 0.03));
@@ -293,10 +331,23 @@ export function GiftBoxReveal({
       card.visible = true;
 
       const tl = gsap.timeline();
-      tl.to(lid.position, { y: 3.1, duration: 1.1, ease: "power4.out" }, 0);
+      // Lift the lid up AND off to the side, tilted, so it clearly reads as a
+      // removed lid hovering in frame - not flying straight up out of view
+      // (which left the still-wrapped body looking closed).
+      tl.to(
+        lid.position,
+        { y: 1.85, x: 0.7, z: 0.35, duration: 1.1, ease: "power3.out" },
+        0,
+      );
       tl.to(
         lid.rotation,
-        { x: -Math.PI / 4, z: Math.PI / 12, duration: 1.1, ease: "power3.out" },
+        {
+          x: -Math.PI / 5,
+          y: Math.PI / 7,
+          z: Math.PI / 4,
+          duration: 1.1,
+          ease: "power3.out",
+        },
         0,
       );
       tl.to(
@@ -307,7 +358,7 @@ export function GiftBoxReveal({
       tl.to(innerGlow, { intensity: 3.2, duration: 0.9, ease: "power2.out" }, 0.15);
       tl.to(
         card.position,
-        { y: 1.75, duration: 1.2, ease: "back.out(1.4)" },
+        { y: 1.2, duration: 1.2, ease: "back.out(1.4)" },
         0.25,
       );
       tl.to(
@@ -411,6 +462,7 @@ export function GiftBoxReveal({
       for (const g of geometries) g.dispose();
       boxMat.dispose();
       ribbonMat.dispose();
+      linerMat.dispose();
       cardMat.dispose();
       cardTex.dispose();
       envTexture.dispose();
