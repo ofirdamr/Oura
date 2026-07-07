@@ -241,14 +241,21 @@ export function GiftBoxReveal({
     liner.position.y = -BODY_H / 2 + WALL;
     body.add(liner);
 
-    // Ribbons wrapping the body's four sides (stay with the body on open).
-    const bodyRibbonGeoZ = track(new RoundedBoxGeometry(0.26, 1.44, 2.06, 3, 0.03));
-    const bodyRibbonGeoX = track(new RoundedBoxGeometry(2.06, 1.44, 0.26, 3, 0.03));
-    const bodyRibbon1 = new THREE.Mesh(bodyRibbonGeoZ, ribbonMat);
-    const bodyRibbon2 = new THREE.Mesh(bodyRibbonGeoX, ribbonMat);
-    bodyRibbon1.position.y = -0.15;
-    bodyRibbon2.position.y = -0.15;
-    group.add(bodyRibbon1, bodyRibbon2);
+    // Ribbon strips hugging ONLY the outer face of each of the four walls, so no
+    // ribbon ever crosses the open interior. (The previous solid bands spanned
+    // the full width/depth and passed through the cavity, showing ribbon "inside"
+    // the box once the lid was off.) Each strip sits flat on its wall's outside.
+    const ribbonStripFB = track(new RoundedBoxGeometry(0.26, 1.44, 0.1, 3, 0.03));
+    const ribbonStripLR = track(new RoundedBoxGeometry(0.1, 1.44, 0.26, 3, 0.03));
+    const frontRibbon = new THREE.Mesh(ribbonStripFB, ribbonMat);
+    frontRibbon.position.set(0, -0.15, BODY_D / 2);
+    const backRibbon = new THREE.Mesh(ribbonStripFB, ribbonMat);
+    backRibbon.position.set(0, -0.15, -BODY_D / 2);
+    const leftRibbon = new THREE.Mesh(ribbonStripLR, ribbonMat);
+    leftRibbon.position.set(-BODY_W / 2, -0.15, 0);
+    const rightRibbon = new THREE.Mesh(ribbonStripLR, ribbonMat);
+    rightRibbon.position.set(BODY_W / 2, -0.15, 0);
+    group.add(frontRibbon, backRibbon, leftRibbon, rightRibbon);
 
     // --- Lid group (lid + top ribbon cross + bow) - lifts away as one unit ---
     // The lid parts get their OWN cloned materials (transparent-enabled) so the
