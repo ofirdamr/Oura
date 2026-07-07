@@ -343,43 +343,51 @@ export function GiftBoxReveal({
       autoSpin = false;
       card.visible = true;
 
-      // Real unwrapping: the lid (case) and ALL ribbon come off and disappear,
-      // leaving the box genuinely OPEN with nothing on top - just the four walls
-      // and a lit interior, with the photo standing up out of it. onComplete
-      // hard-hides the lid + both body ribbons so nothing can linger on top; the
-      // body itself stays as the open box.
+      // Real unwrapping, staged like opening an actual gift:
+      //  1. the ribbon + bow are removed (fade away) - both the lid's ribbon
+      //     cross/bow (lidRibbonMat) and the body ribbons (ribbonMat);
+      //  2. the LID itself stays fully visible and lifts up and off to the side,
+      //     tilted, like a lid you've taken off and set down (NOT faded/hidden);
+      //  3. the open box body stays put with its lit interior;
+      //  4. the photo stands up and rises out of the open box.
+      // onComplete only hides the (already-faded) body ribbons; the lid and box
+      // both stay visible.
       const tl = gsap.timeline({
         onComplete: () => {
-          lid.visible = false;
           bodyRibbon1.visible = false;
           bodyRibbon2.visible = false;
         },
       });
-      // Fade out everything that "wraps" the box - the lid + its ribbon/bow
-      // (lidMat/lidRibbonMat) AND the body ribbons (ribbonMat) - while lifting
-      // the lid up and off. The box body (boxMat) and lit liner (linerMat) are
-      // deliberately NOT faded, so a clean open box remains.
-      tl.to(lid.position, { y: 3.6, duration: 0.7, ease: "power2.in" }, 0);
+      // Ribbon removed first (bow + lid cross + body ribbons fade out).
       tl.to(
-        [lidMat, lidRibbonMat, ribbonMat],
-        { opacity: 0, duration: 0.55, ease: "power1.in" },
-        0.2,
+        [lidRibbonMat, ribbonMat],
+        { opacity: 0, duration: 0.5, ease: "power1.in" },
+        0.1,
       );
-      tl.to(group.scale, { x: 1.08, y: 1.08, z: 1.08, duration: 0.35, yoyo: true, repeat: 1 }, 0);
-      // Keep the interior lit so the open box glows warmly rather than showing a
-      // black hole.
-      tl.to(innerGlow, { intensity: 2.6, duration: 0.7, ease: "power2.out" }, 0.15);
-      // The photo stands up and rises out of the open box, forward and larger,
-      // as the hero - clearly emerging from the box, not tucked inside it.
+      // Lid lifts up and off to the side, tilted, and STAYS visible.
+      tl.to(
+        lid.position,
+        { y: 2.15, x: 1.05, z: 0.35, duration: 1.0, ease: "power3.out" },
+        0.15,
+      );
+      tl.to(
+        lid.rotation,
+        { x: -Math.PI / 5, y: Math.PI / 8, z: Math.PI / 5, duration: 1.0, ease: "power3.out" },
+        0.15,
+      );
+      tl.to(group.scale, { x: 1.06, y: 1.06, z: 1.06, duration: 0.35, yoyo: true, repeat: 1 }, 0);
+      // Keep the interior lit so the open box glows warmly.
+      tl.to(innerGlow, { intensity: 2.6, duration: 0.7, ease: "power2.out" }, 0.2);
+      // The photo stands up and rises out of the open box as the hero.
       tl.to(
         card.position,
-        { y: 1.1, z: 0.55, duration: 1.1, ease: "back.out(1.3)" },
-        0.25,
+        { y: 1.0, z: 0.5, duration: 1.1, ease: "back.out(1.3)" },
+        0.4,
       );
       tl.to(
         card.scale,
-        { x: 1.25, y: 1.25, z: 1.25, duration: 1.0, ease: "power2.out" },
-        0.25,
+        { x: 1.2, y: 1.2, z: 1.2, duration: 1.0, ease: "power2.out" },
+        0.4,
       );
 
       if (typeof navigator !== "undefined") {
