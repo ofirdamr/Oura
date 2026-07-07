@@ -231,11 +231,12 @@ buttons), change nothing else. What actually happened, honestly:
 Standing founder decision this session (AskUserQuestion): **match each screen
 to its own Stitch source, not one global accent** — the guest/reveal Stitch
 screens define `primary` as rust `#9f402d`, the admin ones use the coral
-`#ff8a75` the app-global token still holds. Only `/gift-reveal` has been
-recolored to rust so far (scoped `--color-primary` override); **the other
-guest screens that Stitch specs as rust — `/gallery-entry`, `/join`,
-`/festive-gallery` — are still rendering the global coral and need the same
-per-screen rust treatment** (open follow-up).
+`#ff8a75` the app-global token still holds. `/gift-reveal`, `/gallery-entry`,
+`/join`, and `/festive-gallery` are all now recolored to rust (each via a
+scoped `--color-primary`/`--color-on-primary` override on its page root, so
+every `bg/text/border-primary` utility recolors at once). PR #5 (gift-reveal)
+is merged; the other three shipped on branch
+`claude/oura-guest-flow-refine-8m2c7q`.
 
 Shipped and verified live this session (branch `claude/read-summary-md-lenfhx`,
 draft PR #5; each deploy's live BUILD_ID matched local):
@@ -255,9 +256,29 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   enters like a manual code. Added `jsqr` dep. Verified via fake-camera
   Chromium fed a QR video → filled `WED-2024`.
 
+**2026-07-07 (cont.) — guest-flow polish shipped live (PR #6, branch
+`claude/oura-guest-flow-refine-8m2c7q`):**
+- Per-screen rust `#9f402d` applied to `/gallery-entry`, `/join`,
+  `/festive-gallery` (scoped `--color-primary` override, matching each Stitch
+  source) — the rust follow-up owed from PR #5 is now done.
+- `/gift-reveal` "memories" grid **wired to the real event photos** (was
+  hardcoded empty placeholder tiles that made photos look missing); fetches
+  the general gallery the same way `/gallery` does.
+- `/gift-reveal` 3D box **reworked over ~8 rounds with the founder** to a real
+  unwrap he approved: on open the lid (with its ribbon cross + bow) lifts off
+  the top and stays visible to the side, the open box body stays with ribbon
+  on its outer walls only (no ribbon crossing the interior), and the photo
+  rises out. Final deployed version `46293cde`. Verified each round with a
+  software-WebGL Playwright capture of the LOCAL build (the sandbox proxy
+  resets a headless browser's connection to the live Worker — the documented
+  blind spot — so live-browser QA isn't possible here; deployed chunk md5 is
+  matched against the locally-verified build instead).
+
 **Known, real, NOT yet fixed** (confirmed in code, not touched):
-- Per-screen rust color still owed on `/gallery-entry`, `/join`,
-  `/festive-gallery` (see standing decision above).
+- **QR scanner opens the FRONT camera, not the rear** (founder hit this live).
+  Code correctly requests `facingMode:"environment"`; the likely cause is an
+  in-app browser (WKWebView) that ignores it. Hardening option: enumerate
+  video devices and force the rear one. Confirm his browser first.
 - Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
   photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
   print sub-options + fullscreen-display button.
@@ -266,9 +287,15 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   line + per-photo match-confidence badges; dashboard's 3rd stat card + AI
   panel + tip card; events-list's 4th stat card ("צפיות השבוע").
 - `/join`, `/festive-gallery`, `/minimal-gallery` orphaned-screens decision
-  (remove vs. build as real selectable themes) is still open. **Note: founder
-  is firmly against removing designed features — default to wiring, not
-  deleting** (see `MISTAKES.md` 2026-07-07).
+  still open. **Note: founder is firmly against removing designed features.**
+  Founder floated (2026-07-07) using them as a *demo/showcase*, then parked it.
+- **Demo-readiness / first-run empty state (founder priority, strategic):**
+  a brand-new photographer account has no events/photos, so the app looks
+  empty/unattractive when shown to prospects. Founder's real ask is to
+  **finish the MVP to a demoable state.** Best existing demo is the real
+  seeded `WED-2024` event (17 photos, working face-match) — not the orphan
+  pages (which have no data). Options to fix first-run empty look: seed a
+  sample event on signup, or polish empty states. Not started.
 
 **Process failures this session (founder called them out — see `MISTAKES.md`
 2026-07-07):** ran the whole session without the mandatory Token Economist

@@ -182,6 +182,7 @@ export function GiftBoxReveal({
       roughness: 0.22,
       metalness: 0.5,
       envMapIntensity: 2.3,
+      transparent: true,
     });
     // Satin rust ribbon (#9f402d): soft sheen, true colour under neutral tone
     // mapping (a rust-tinted light + emissive previously blew it out to orange).
@@ -190,6 +191,7 @@ export function GiftBoxReveal({
       roughness: 0.5,
       metalness: 0.22,
       envMapIntensity: 0.45,
+      transparent: true,
     });
 
     // Box body as an OPEN-TOP container (four walls + a floor, no top face) so
@@ -230,6 +232,7 @@ export function GiftBoxReveal({
       metalness: 0.0,
       emissive: PRIMARY,
       emissiveIntensity: 0.25,
+      transparent: true,
     });
     const liner = new THREE.Mesh(
       track(new THREE.BoxGeometry(BODY_W - WALL * 2, 0.04, BODY_D - WALL * 2)),
@@ -238,31 +241,48 @@ export function GiftBoxReveal({
     liner.position.y = -BODY_H / 2 + WALL;
     body.add(liner);
 
-    // Ribbons wrapping the body's four sides (stay with the body on open).
-    const bodyRibbonGeoZ = track(new RoundedBoxGeometry(0.26, 1.44, 2.06, 3, 0.03));
-    const bodyRibbonGeoX = track(new RoundedBoxGeometry(2.06, 1.44, 0.26, 3, 0.03));
-    const bodyRibbon1 = new THREE.Mesh(bodyRibbonGeoZ, ribbonMat);
-    const bodyRibbon2 = new THREE.Mesh(bodyRibbonGeoX, ribbonMat);
-    bodyRibbon1.position.y = -0.15;
-    bodyRibbon2.position.y = -0.15;
-    group.add(bodyRibbon1, bodyRibbon2);
+    // Ribbon strips hugging ONLY the outer face of each of the four walls, so no
+    // ribbon ever crosses the open interior. (The previous solid bands spanned
+    // the full width/depth and passed through the cavity, showing ribbon "inside"
+    // the box once the lid was off.) Each strip sits flat on its wall's outside.
+    const ribbonStripFB = track(new RoundedBoxGeometry(0.26, 1.44, 0.1, 3, 0.03));
+    const ribbonStripLR = track(new RoundedBoxGeometry(0.1, 1.44, 0.26, 3, 0.03));
+    const frontRibbon = new THREE.Mesh(ribbonStripFB, ribbonMat);
+    frontRibbon.position.set(0, -0.15, BODY_D / 2);
+    const backRibbon = new THREE.Mesh(ribbonStripFB, ribbonMat);
+    backRibbon.position.set(0, -0.15, -BODY_D / 2);
+    const leftRibbon = new THREE.Mesh(ribbonStripLR, ribbonMat);
+    leftRibbon.position.set(-BODY_W / 2, -0.15, 0);
+    const rightRibbon = new THREE.Mesh(ribbonStripLR, ribbonMat);
+    rightRibbon.position.set(BODY_W / 2, -0.15, 0);
+    group.add(frontRibbon, backRibbon, leftRibbon, rightRibbon);
 
     // --- Lid group (lid + top ribbon cross + bow) - lifts away as one unit ---
+    // The lid parts get their OWN cloned materials (transparent-enabled) so the
+    // whole lid can fade out on open without affecting the body's shared
+    // materials. On open the lid lifts straight up, out of frame, and fades to
+    // nothing - so it reads as cleanly removed instead of hovering in a broken
+    // pose over the box.
+    const lidMat = boxMat.clone();
+    lidMat.transparent = true;
+    const lidRibbonMat = ribbonMat.clone();
+    lidRibbonMat.transparent = true;
+
     const lid = new THREE.Group();
     lid.position.y = 0.62;
     group.add(lid);
 
     const lidBox = new THREE.Mesh(
       track(new RoundedBoxGeometry(2.16, 0.42, 2.16, 5, 0.08)),
-      boxMat,
+      lidMat,
     );
     lid.add(lidBox);
 
     // Ribbon cross over the top of the lid.
     const lidRibbonGeoZ = track(new RoundedBoxGeometry(0.26, 0.46, 2.2, 3, 0.03));
     const lidRibbonGeoX = track(new RoundedBoxGeometry(2.2, 0.46, 0.26, 3, 0.03));
-    lid.add(new THREE.Mesh(lidRibbonGeoZ, ribbonMat));
-    lid.add(new THREE.Mesh(lidRibbonGeoX, ribbonMat));
+    lid.add(new THREE.Mesh(lidRibbonGeoZ, lidRibbonMat));
+    lid.add(new THREE.Mesh(lidRibbonGeoX, lidRibbonMat));
 
     // Bow: a center knot, two upright loops, two trailing tails.
     const bow = new THREE.Group();
@@ -271,14 +291,14 @@ export function GiftBoxReveal({
 
     const knot = new THREE.Mesh(
       track(new RoundedBoxGeometry(0.34, 0.3, 0.34, 4, 0.1)),
-      ribbonMat,
+      lidRibbonMat,
     );
     knot.position.y = 0.16;
     bow.add(knot);
 
     const loopGeo = track(new THREE.TorusGeometry(0.28, 0.07, 16, 40));
     for (const dir of [-1, 1]) {
-      const loop = new THREE.Mesh(loopGeo, ribbonMat);
+      const loop = new THREE.Mesh(loopGeo, lidRibbonMat);
       // Stand the ring upright and tilt it outward to form a bow wing.
       loop.rotation.x = Math.PI / 2;
       loop.rotation.y = dir * 0.5;
@@ -289,7 +309,7 @@ export function GiftBoxReveal({
 
     const tailGeo = track(new RoundedBoxGeometry(0.16, 0.5, 0.05, 3, 0.02));
     for (const dir of [-1, 1]) {
-      const tail = new THREE.Mesh(tailGeo, ribbonMat);
+      const tail = new THREE.Mesh(tailGeo, lidRibbonMat);
       tail.position.set(dir * 0.14, -0.1, 0.12);
       tail.rotation.z = dir * 0.35;
       bow.add(tail);
@@ -330,41 +350,36 @@ export function GiftBoxReveal({
       autoSpin = false;
       card.visible = true;
 
+      // Real unwrapping - NOTHING is deleted or faded. The lid (with its ribbon
+      // cross AND bow still on it) lifts straight off the TOP of the box and is
+      // set up and to the side, staying fully visible, exactly like taking a lid
+      // off a real gift box. The box body and the ribbon wrapping its sides both
+      // stay put; only the top (the lid) is removed. The photo then rises up out
+      // of the now-open box.
       const tl = gsap.timeline();
-      // Lift the lid up AND off to the side, tilted, so it clearly reads as a
-      // removed lid hovering in frame - not flying straight up out of view
-      // (which left the still-wrapped body looking closed).
       tl.to(
         lid.position,
-        { y: 1.85, x: 0.7, z: 0.35, duration: 1.1, ease: "power3.out" },
+        { y: 2.15, x: 1.05, z: 0.4, duration: 1.0, ease: "power3.out" },
         0,
       );
       tl.to(
         lid.rotation,
-        {
-          x: -Math.PI / 5,
-          y: Math.PI / 7,
-          z: Math.PI / 4,
-          duration: 1.1,
-          ease: "power3.out",
-        },
+        { x: -Math.PI / 5, y: Math.PI / 8, z: Math.PI / 5, duration: 1.0, ease: "power3.out" },
         0,
       );
-      tl.to(
-        group.scale,
-        { x: 1.12, y: 1.12, z: 1.12, duration: 0.4, yoyo: true, repeat: 1 },
-        0,
-      );
-      tl.to(innerGlow, { intensity: 3.2, duration: 0.9, ease: "power2.out" }, 0.15);
+      tl.to(group.scale, { x: 1.06, y: 1.06, z: 1.06, duration: 0.35, yoyo: true, repeat: 1 }, 0);
+      // Keep the interior lit so the open box glows warmly.
+      tl.to(innerGlow, { intensity: 2.6, duration: 0.7, ease: "power2.out" }, 0.2);
+      // The photo stands up and rises out of the open box as the hero.
       tl.to(
         card.position,
-        { y: 1.2, duration: 1.2, ease: "back.out(1.4)" },
-        0.25,
+        { y: 1.0, z: 0.5, duration: 1.1, ease: "back.out(1.3)" },
+        0.35,
       );
       tl.to(
         card.scale,
-        { x: 1, y: 1, z: 1, duration: 1.0, ease: "power2.out" },
-        0.25,
+        { x: 1.2, y: 1.2, z: 1.2, duration: 1.0, ease: "power2.out" },
+        0.35,
       );
 
       if (typeof navigator !== "undefined") {
@@ -452,6 +467,11 @@ export function GiftBoxReveal({
         innerGlow,
         card.position,
         card.scale,
+        lidMat,
+        lidRibbonMat,
+        boxMat,
+        ribbonMat,
+        linerMat,
       ]);
       resizeObserver.disconnect();
       el.removeEventListener("pointerdown", onPointerDown);
@@ -462,6 +482,8 @@ export function GiftBoxReveal({
       for (const g of geometries) g.dispose();
       boxMat.dispose();
       ribbonMat.dispose();
+      lidMat.dispose();
+      lidRibbonMat.dispose();
       linerMat.dispose();
       cardMat.dispose();
       cardTex.dispose();
