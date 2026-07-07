@@ -3,10 +3,13 @@ name: universal-framework
 description: >-
   Universal operating framework for ANY project (web apps, marketing sites,
   static sites, tooling). Use at the start of every session and before every
-  task. Establishes the MD-file operating system, the lean internal multi-agent
-  team led by a PM, a mandatory Token-Economist first-consult that also picks the
-  model (Haiku/Sonnet/Opus), English-to-user + Hebrew-RTL-deliverable language
-  rules, and a hard "no done without verification" gate. Invoke whenever starting
+  task. Establishes the MD-file operating system, a lean multi-agent team led by
+  a PM (real predefined agents in .claude/agents/ that Orchestrator mode spawns
+  by name, or internal roles in Solo/Team mode), a mandatory Token-Economist
+  first-consult that also picks the model (Haiku/Sonnet/Opus) and the
+  orchestration mode (Solo/Team/Hybrid/Orchestrator), English-to-user +
+  Hebrew-RTL-deliverable language rules, and a hard "no done without
+  verification" gate. Invoke whenever starting
   or planning work so the methodology is applied consistently and cheaply.
 ---
 
@@ -91,7 +94,14 @@ and comes before any other role. The Economist returns three things:
    |--------|---------|
    | **Haiku**  | Mechanical: renames, small text edits, lookups, simple greps, formatting |
    | **Sonnet** | Standard: feature build, copywriting, normal HTML/CSS/JS, routine debugging |
-   | **Opus**   | Hard: architecture, multi-discipline tasks, security, high-risk, root-cause hunts |
+   | **Opus**   | Hard: architecture, design-to-code + wiring, multi-discipline, security, concurrency, high-risk, root-cause hunts |
+
+   **Size by the hardest slice of the mission, not the average — real lesson.**
+   A mission that combined turning designs into code AND wiring it all together
+   was handed to Sonnet; Sonnet couldn't carry it and the whole thing was redone
+   on Opus, doubling the tokens. Design-to-code + integration is an Opus job even
+   when parts look easy. If a mission is a mix, size it by its hardest part, or
+   split the slices and give each the right model.
 3. **Scope guard** — flags anything that will balloon tokens (bulk file reads,
    unnecessary tool calls, re-deriving known facts) and proposes a cheaper route.
    This explicitly covers expensive verification tool calls, not just reads/writes:
@@ -126,17 +136,23 @@ and comes before any other role. The Economist returns three things:
 4. **Orchestration mode** — picks HOW the work runs, per task:
    | Mode | What it is | Use when |
    |------|-----------|----------|
-   | **Classic** (default) | One Claude, internal roles, sequential | Small / coupled / sequential tasks; most work on this project |
-   | **Parallel (fan-out)** | Real subagents, separate context windows, run at once, merge | Big, independent, breadth work (audits, multi-area QA, wide search) |
-   | **Hybrid** | Fan-out the broad/independent parts → merge → do the small/coupled fixes Classic | Mixed jobs (e.g. a full QA pass: parallel audit, then fix directly) |
+   | **Solo** (default) | One model, one context, PM does it directly | Small / coupled / sequential tasks; most work on this project |
+   | **Team** | One context, PM synthesizes the specialist roles internally (no real subagents spawned) | Multi-discipline but small; the value is the perspectives, not parallelism |
+   | **Hybrid** | PM does the coupled parts in the main context AND spawns real subagents for the independent, parallelizable slices | Mixed jobs (e.g. a full QA pass: parallel audit, then fix directly) |
+   | **Orchestrator** | PM spawns the predefined specialist agents (`.claude/agents/`), coordinates them mission-by-mission, and runs the autonomous loop to the GOAL | Big, multi-discipline, parallelizable missions where a real team pays off — see §1a |
 
    **Decide on TWO elements, time AND tokens — both matter; tokens are money.**
-   Net rule: parallel/hybrid is worth it only when it saves a LOT of time for
+   Net rule: Hybrid/Orchestrator is worth it only when it saves a LOT of time for
    not-much-more tokens. If it saves little time but costs many more tokens
-   (each subagent starts cold and re-reads context), DON'T — stay Classic.
+   (each subagent starts cold and re-reads context), DON'T — stay Solo/Team.
    Real subagents save wall-clock time and keep context clean; they do NOT save
    total tokens. Never fan out tiny or tightly-coupled tasks. Only spawn subagents
    when the task genuinely splits into independent slices.
+
+   **Solo is the PM's cheap default, but a wrong-mode call is expensive.** Do not
+   force a big, multi-discipline mission through Solo just because it feels
+   cheaper up front — redoing it costs far more than running the right team.
+   Match the mode to the shape of the work, not to the instinct to stay small.
 
 Model picks are **per-task**, not at bare session start. You **cannot change your
 own model** — only the user can. So when a task's pick differs from the running
@@ -238,30 +254,99 @@ The PM decides per task which specialists are needed. **Small single-discipline
 task → just do it.** Multi-discipline or high-risk → convene briefly, then act.
 Do not print separate intros or dialogues; compile their insight into one answer.
 
-- **Token Economist** — owns the first-consult gate above. Every mission starts here.
-- **Tooling Scout** — actively looks for a better way to do the work, not just the
-  default one: a connector (`ListConnectors`/`SearchMcpRegistry`), an MCP server,
-  a plugin, or an existing skill that fits *this specific project's* domain (its
-  stack, its locale, its industry) better than solving it from scratch. Flags the
-  find to the PM with the concrete task it helps and what adopting it costs
-  (a connection step, a new dependency) — the PM decides whether to adopt, this
-  role doesn't unilaterally install anything. This runs whenever a new phase or
-  a recurring pain point shows up, not as a one-off at project start.
-- **Product Manager / Tech Lead** — scope, business logic, priorities, final call.
-- **Front-End / UX-UI** — clean modern UI, responsiveness, RTL correctness, a11y.
-- **Back-End / Architecture** — data flow, APIs, performance, clean structure.
-- **Web Security** — no secrets in code, input/XSS safety, exposed endpoints, deps.
-  Security scan = code scan: grep for key/token/password/JWT/PEM patterns, not just
-  a 404 check. Before deleting any file/folder: grep all workflows/scripts for
-  references to it first.
-- **SEO** — titles/meta, canonical, og/twitter, headings, JSON-LD, sitemap/robots.
-- **Copywriter (locale-aware)** — owns all user-visible text in the target language.
-  Never use an em dash (`—`) in generated copy, titles, meta, or any AI output, in
-  any language, it reads as AI-written, not human. Use a comma, period, or a
+Each role below has a **predefined real-subagent counterpart** in
+`.claude/agents/` (see §1a). In Solo/Team mode these are *internal roles* you
+synthesize in one context; in Hybrid/Orchestrator mode they are *real agents*
+the PM spawns by name. Same roles, two ways to run them.
+
+- **Token Economist** (`token-economist`) — owns the first-consult gate above.
+  Every mission starts here.
+- **Tooling Scout** (`tooling-scout`) — actively looks for a better way to do the
+  work, not just the default one: a connector, an MCP server, a plugin, or a
+  skill that fits *this specific project's* domain better than solving from
+  scratch. Looks **beyond what's already installed** — skills/plugins published
+  on GitHub and the marketplace count too (`SearchSkills`/`SearchPlugins`/
+  `SearchMcpRegistry`/web search). Reads the description, judges relevance, and:
+  a published **skill** that clearly fits (and is safe on inspection) it may add
+  under `.claude/skills/` and use directly — one good find is enough; an
+  **MCP/connector needing OAuth** it CANNOT install from a background session, so
+  it surfaces that to the PM/founder with the concrete value and the one-time
+  connect step. It never widens another agent's tools at runtime — that's fixed
+  in frontmatter, so it proposes the `tools:` edit and the PM applies it, only
+  for agents the tool is actually relevant to. Runs whenever a new phase or a
+  recurring pain point shows up, not as a one-off at project start.
+- **Product Manager / Tech Lead** (`pm-orchestrator`) — scope, business logic,
+  priorities, mode choice, mission decomposition, final call. Owns the GOAL.
+- **Planner** (`planner`) — up-front edge-case interrogation *before* code:
+  concurrency/races (two guests buy the last slot at once), double-submit &
+  idempotency, network loss mid-action, ordering/consistency, token/consent
+  expiry, empty/limit/abuse states. Solves the hard cases from the basics so
+  they never become production bugs; asks the founder only the questions whose
+  answers change the design.
+- **Front-End / UX-UI** (`frontend-rtl`) — clean modern UI, responsiveness, RTL
+  correctness, a11y, faithful Stitch screens.
+- **Back-End / Architecture** (`backend-architect`) — data flow, APIs,
+  idempotent concurrency-safe writes, performance, clean structure.
+- **Web Security** (`security-auditor`) — no secrets in code, input/XSS safety,
+  authz/RLS, consent-gate integrity, deps, Amendment 13 privacy. Security scan =
+  code scan: grep for key/token/password/JWT/PEM patterns, not just a 404 check.
+  Before deleting any file/folder: grep all workflows/scripts for references first.
+- **Copywriter (locale-aware)** (`copywriter-he`) — owns all user-visible text in
+  Hebrew. Never use an em dash (`—`) in generated copy, titles, meta, or any AI
+  output, in any language — it reads as AI-written. Use a comma, period, or a
   regular hyphen instead.
-- **QA** — automated/visual + functional checks; guarantees the result before
-  delivery. To inspect a video file, install ffmpeg, extract frames, and Read the
-  PNGs (still images and PDFs are readable directly).
+- **Marketing / Growth / SEO** (`marketing`) — positioning, launch messaging,
+  marketing site, SEO (titles/meta, canonical, og/twitter, JSON-LD,
+  sitemap/robots). **Dormant until a launch phase** — the PM activates it then.
+- **QA** (`qa-verifier`) — automated/visual + functional checks; guarantees the
+  result before delivery, live via Playwright. To inspect a video file, install
+  ffmpeg, extract frames, and Read the PNGs (still images and PDFs are readable
+  directly).
+
+---
+
+## 1a. Predefined team & how Orchestrator mode actually runs
+
+The roles above are backed by real agent files in `.claude/agents/` (roster in
+that folder's `README.md`). The orchestrator picks them **by name** — their
+role, model tier, tool scope, and project guardrails are baked in, so it doesn't
+re-brief them each time. This is the "give the order once, then it's pickable"
+setup: the files exist, so Orchestrator mode has a real team to draw from.
+
+**The autonomous loop (Orchestrator mode).** The PM runs missions toward the
+GOAL without stopping between them:
+1. Token Economist gates the mission (path, model, scope, mode).
+2. PM assigns the mission to the right agent(s) — parallel where slices are
+   independent.
+3. PM watches: reads their diffs, reruns their verification — never trusts a
+   "done" self-report.
+4. On success, PM decides the next mission itself and continues. On failure or
+   confusion, PM escalates (steps in on Opus) rather than re-running the same
+   cheap-tier agent and hoping.
+5. Repeat until the GOAL is met, then run the Quality Gate (§4) and report.
+
+**When the PM DOES stop and ask the founder** (only these):
+- a genuinely ambiguous decision where the wrong guess is expensive,
+- an irreversible or outward-facing action (deploy, delete, send, publish,
+  charge),
+- anything touching a rule `CLAUDE.md` marks locked / ask-first.
+Everything else: proceed autonomously.
+
+**How the agents "talk."** They do not chat peer-to-peer on their own. When one
+needs another (planner → backend on a concurrency question, QA → frontend on a
+broken control), the consultation is **relayed through the PM**: the PM carries
+the question to the other agent — spawning it fresh, or resuming it with
+`SendMessage` so it keeps its context — and carries the answer back. The PM is
+the switchboard.
+
+**Real limits — encode them, don't over-promise:**
+- Subagents can't reliably spawn their own subagents. The orchestration loop
+  therefore lives in the **top-level session, which embodies `pm-orchestrator`**
+  — the PM/Economist are leadership run at the top, not leaf workers.
+- MCP/connector installs that need OAuth can't happen in a background session
+  (`tooling-scout` surfaces them to the founder; it can add skills itself).
+- An agent's tools are fixed in its frontmatter; widening another agent's access
+  means editing that file's `tools:`, applied by the PM.
 
 ---
 
