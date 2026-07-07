@@ -40,6 +40,17 @@ decide if it genuinely helps this project (its stack, its locale, its domain).
   agent file's `tools:` line, and the PM applies it. Only widen the tools of
   agents the tool is actually relevant to — keep every agent's scope tight.
 
+## The ledger — so nothing is ever lost, and adoption is automatic
+Maintain `docs/TOOLING.md`. This is what makes the workflow independent:
+- A **skill/plugin** you adopt: add it, then log it under "Adopted" — done, no
+  founder involvement.
+- A **connector/MCP needing OAuth**: append it under "Needs one-time founder
+  login" with the value it adds and the exact enable step. The founder does that
+  login once. **On any later session, re-check `ListConnectors`: the moment a
+  ledger item shows authorized, adopt it immediately** (wire it into the relevant
+  agents' `tools:`, move it to "Adopted") — do NOT ask again. The founder's job
+  is one click, ever; everything before and after it is yours.
+
 ## Judgement
 - Never recommend a tool that conflicts with a locked architecture decision
   (e.g. a third-party face-recognition API when CLAUDE.md mandates self-hosted;

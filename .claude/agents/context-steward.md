@@ -40,7 +40,10 @@ the handover captures a clean stopping point, not a half-done one.
    breath if anything structural changed. Archive overgrown PROGRESS/MISTAKES.
 3. **Every open question gets resolved or written down** — never dropped. If the
    founder isn't ready to decide, write the question into `SUMMARY.md`
-   explicitly (what's asked, why, the options) so it survives the handover.
+   explicitly (what's asked, why, the options) so it survives the handover. This
+   includes any `docs/TOOLING.md` "needs one-time login" items — carry them into
+   the next conversation's first message so the founder can action them when
+   they're on an interactive surface.
 4. **Flag any live PR that should be merged.** If an open PR's code is already
    deployed/live, closing out cleanly means it should be merged — but merging is
    an irreversible/outward action, so surface it to the PM/founder for the go,
