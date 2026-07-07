@@ -22,8 +22,11 @@
 // with ssr:false, since WebGL/canvas APIs don't exist server-side.
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { getGallery, type GuestPhoto } from "@/lib/api";
+import { loadGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 
@@ -41,19 +44,48 @@ const GiftBoxReveal = dynamic(
   },
 );
 
-// Placeholder tiles for the memories grid - no real event media yet, so these
-// use the same icon-in-a-box treatment as every other gallery screen.
-const MEMORY_TILES = [
-  { className: "sm:col-span-2 sm:row-span-2 aspect-square sm:aspect-auto" },
-  { className: "aspect-square" },
-  { className: "aspect-square" },
-  { className: "aspect-[4/5]" },
-  { className: "aspect-[4/5]" },
+// Layout template for the memories grid: the first tile is a large 2x2 hero,
+// the rest fall into a varied masonry rhythm. Applied cyclically to however
+// many real event photos come back, so the grid keeps the Stitch composition
+// regardless of photo count.
+const TILE_LAYOUT = [
+  "sm:col-span-2 sm:row-span-2 aspect-square sm:aspect-auto",
+  "aspect-square",
+  "aspect-square",
+  "aspect-[4/5]",
+  "aspect-[4/5]",
 ];
+const tileClass = (i: number) => TILE_LAYOUT[i % TILE_LAYOUT.length];
+
+// Fallback skeleton tiles shown only when there's no guest session / photos
+// haven't loaded (e.g. the reveal reached by direct URL outside the flow), so
+// the section still reads like the design instead of collapsing.
+const PLACEHOLDER_TILES = TILE_LAYOUT;
 
 export default function GiftRevealPage() {
   const router = useRouter();
   const [opened, setOpened] = useState(false);
+
+  // Real event photos for the "memories" gallery below the reveal. Same source
+  // the personal gallery uses (GET /gallery/:token -> general event photos);
+  // this section previously rendered hardcoded empty placeholder tiles, which
+  // made the reveal look like the guest's photos were missing. Best-effort: if
+  // there's no session or the fetch fails, fall back to placeholder tiles
+  // rather than blocking the celebratory reveal.
+  const [memories, setMemories] = useState<GuestPhoto[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const session = loadGuestSession();
+    if (!session) return;
+    getGallery(session.token).then((result) => {
+      if (cancelled || !result.ok) return;
+      setMemories(result.data.photos);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     // This screen's Stitch source (oura_final_production_gift_box_reveal_desktop)
@@ -166,27 +198,47 @@ export default function GiftRevealPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {MEMORY_TILES.map((tile, i) => (
-              <div
-                key={i}
-                className={`group relative overflow-hidden rounded-2xl border border-white/5 bg-surface-container ${tile.className}`}
-              >
-                <div className="flex h-full min-h-32 w-full items-center justify-center">
-                  <span className="material-symbols-outlined text-4xl text-on-surface-variant/25">
-                    image
-                  </span>
-                </div>
-                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <button
-                    type="button"
-                    aria-label="הורדה"
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
+            {memories.length > 0
+              ? memories.map((photo, i) => (
+                  <div
+                    key={photo.id}
+                    className={`group relative overflow-hidden rounded-2xl border border-white/5 bg-surface-container ${tileClass(
+                      i,
+                    )}`}
                   >
-                    <span className="material-symbols-outlined">download</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <Image
+                      src={photo.url}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 240px, (min-width: 640px) 33vw, 50vw"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <a
+                        href={photo.url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="הורדת התמונה"
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-110"
+                      >
+                        <span className="material-symbols-outlined">download</span>
+                      </a>
+                    </div>
+                  </div>
+                ))
+              : PLACEHOLDER_TILES.map((className, i) => (
+                  <div
+                    key={i}
+                    className={`relative overflow-hidden rounded-2xl border border-white/5 bg-surface-container ${className}`}
+                  >
+                    <div className="flex h-full min-h-32 w-full items-center justify-center">
+                      <span className="material-symbols-outlined text-4xl text-on-surface-variant/25">
+                        image
+                      </span>
+                    </div>
+                  </div>
+                ))}
           </div>
         </section>
       </main>
