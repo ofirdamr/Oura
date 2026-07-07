@@ -231,11 +231,12 @@ buttons), change nothing else. What actually happened, honestly:
 Standing founder decision this session (AskUserQuestion): **match each screen
 to its own Stitch source, not one global accent** — the guest/reveal Stitch
 screens define `primary` as rust `#9f402d`, the admin ones use the coral
-`#ff8a75` the app-global token still holds. Only `/gift-reveal` has been
-recolored to rust so far (scoped `--color-primary` override); **the other
-guest screens that Stitch specs as rust — `/gallery-entry`, `/join`,
-`/festive-gallery` — are still rendering the global coral and need the same
-per-screen rust treatment** (open follow-up).
+`#ff8a75` the app-global token still holds. `/gift-reveal`, `/gallery-entry`,
+`/join`, and `/festive-gallery` are all now recolored to rust (each via a
+scoped `--color-primary`/`--color-on-primary` override on its page root, so
+every `bg/text/border-primary` utility recolors at once). PR #5 (gift-reveal)
+is merged; the other three shipped on branch
+`claude/oura-guest-flow-refine-8m2c7q`.
 
 Shipped and verified live this session (branch `claude/read-summary-md-lenfhx`,
 draft PR #5; each deploy's live BUILD_ID matched local):
@@ -256,8 +257,6 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Chromium fed a QR video → filled `WED-2024`.
 
 **Known, real, NOT yet fixed** (confirmed in code, not touched):
-- Per-screen rust color still owed on `/gallery-entry`, `/join`,
-  `/festive-gallery` (see standing decision above).
 - Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
   photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
   print sub-options + fullscreen-display button.

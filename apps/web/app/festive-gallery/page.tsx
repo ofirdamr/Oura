@@ -43,7 +43,20 @@ export default function FestiveGalleryPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden pb-24">
+    // This screen's Stitch source (festive_gallery_mobile_1) defines primary as
+    // the rust #9f402d with white on-primary, not the app-global coral #ff8a75.
+    // Per the founder's "match each screen to its own Stitch source" decision,
+    // scope the rust primary here so every bg/text/border-primary utility
+    // recolors at once (Tailwind v4 @theme inline resolves these to the var).
+    <div
+      className="min-h-screen overflow-x-hidden pb-24"
+      style={
+        {
+          "--color-primary": "#9f402d",
+          "--color-on-primary": "#ffffff",
+        } as React.CSSProperties
+      }
+    >
       <header className="relative h-[420px] w-full overflow-hidden bg-surface-container-high">
         <div className="absolute start-4 top-4 z-20 h-14 w-14 rounded-xl bg-surface-container-highest p-2 shadow-lg">
           <OuraLogo variant="lockup" size={40} />

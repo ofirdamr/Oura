@@ -193,8 +193,21 @@ function GalleryEntryPageInner() {
   }
 
   return (
-    <main className="relative mx-auto flex min-h-screen max-w-sm flex-col items-center overflow-x-hidden p-6 md:p-10">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,138,117,0.15)_0%,_transparent_50%)]" />
+    // This screen's Stitch source (gallery_entry_mobile) defines primary as the
+    // rust #9f402d with white on-primary, not the app-global coral #ff8a75. Per
+    // the founder's "match each screen to its own Stitch source" decision, scope
+    // the rust primary here so every bg/text/border-primary utility recolors at
+    // once (Tailwind v4 @theme inline resolves these to the var).
+    <main
+      className="relative mx-auto flex min-h-screen max-w-sm flex-col items-center overflow-x-hidden p-6 md:p-10"
+      style={
+        {
+          "--color-primary": "#9f402d",
+          "--color-on-primary": "#ffffff",
+        } as React.CSSProperties
+      }
+    >
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(159,64,45,0.15)_0%,_transparent_50%)]" />
 
       <header className="relative z-10 mb-8 mt-8">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
