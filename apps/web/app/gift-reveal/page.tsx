@@ -56,8 +56,22 @@ export default function GiftRevealPage() {
   const [opened, setOpened] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_-10%,_rgba(255,138,117,0.18)_0%,_transparent_55%)]" />
+    // This screen's Stitch source (oura_final_production_gift_box_reveal_desktop)
+    // defines primary as the rust #9f402d with white on-primary, NOT the app's
+    // global coral #ff8a75 — the guest reveal/entry screens use rust in Stitch.
+    // Per the founder's "match each screen to its own Stitch source" decision,
+    // scope the rust primary to this page so every bg/text/border-primary utility
+    // recolors at once (Tailwind v4 @theme inline resolves these to the var).
+    <div
+      className="relative min-h-screen overflow-x-hidden"
+      style={
+        {
+          "--color-primary": "#9f402d",
+          "--color-on-primary": "#ffffff",
+        } as React.CSSProperties
+      }
+    >
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_-10%,_rgba(159,64,45,0.22)_0%,_transparent_55%)]" />
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-xl">
@@ -114,7 +128,7 @@ export default function GiftRevealPage() {
               <button
                 type="button"
                 onClick={() => router.push("/gallery")}
-                className="mx-auto flex items-center gap-2 rounded-full bg-primary px-10 py-4 text-lg font-bold text-on-primary shadow-[0_8px_30px_rgba(255,138,117,0.35)] transition-all hover:scale-[1.03] active:scale-95"
+                className="mx-auto flex items-center gap-2 rounded-full bg-primary px-10 py-4 text-lg font-bold text-on-primary shadow-[0_8px_30px_rgba(159,64,45,0.4)] transition-all hover:scale-[1.03] active:scale-95"
               >
                 <span
                   className="material-symbols-outlined"
@@ -130,7 +144,11 @@ export default function GiftRevealPage() {
 
         {/* Memories gallery */}
         <section className="mb-12">
-          <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row-reverse sm:items-end">
+          {/* Match screen.png (heading at RTL start/right, button at left). The
+              Stitch code.html says flex-row-reverse here, but its own rendered
+              screen.png shows the plain flex-row result — export code/image
+              disagree, and the guardrail is to match the image. */}
+          <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div className="text-start sm:text-start">
               <h2 className="mb-1 text-2xl font-bold text-on-surface md:text-3xl">
                 זיכרונות מהאירוע
@@ -139,7 +157,7 @@ export default function GiftRevealPage() {
                 הגלריה המלאה שלך מ-Oura Production
               </p>
             </div>
-            <button className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 font-bold text-on-primary shadow-[0_4px_20px_rgba(255,138,117,0.35)] transition-all hover:scale-105 active:scale-95">
+            <button className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 font-bold text-on-primary shadow-[0_4px_20px_rgba(159,64,45,0.4)] transition-all hover:scale-105 active:scale-95">
               <span className="material-symbols-outlined">
                 download_for_offline
               </span>
