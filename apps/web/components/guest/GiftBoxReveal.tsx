@@ -182,6 +182,7 @@ export function GiftBoxReveal({
       roughness: 0.22,
       metalness: 0.5,
       envMapIntensity: 2.3,
+      transparent: true,
     });
     // Satin rust ribbon (#9f402d): soft sheen, true colour under neutral tone
     // mapping (a rust-tinted light + emissive previously blew it out to orange).
@@ -190,6 +191,7 @@ export function GiftBoxReveal({
       roughness: 0.5,
       metalness: 0.22,
       envMapIntensity: 0.45,
+      transparent: true,
     });
 
     // Box body as an OPEN-TOP container (four walls + a floor, no top face) so
@@ -230,6 +232,7 @@ export function GiftBoxReveal({
       metalness: 0.0,
       emissive: PRIMARY,
       emissiveIntensity: 0.25,
+      transparent: true,
     });
     const liner = new THREE.Mesh(
       track(new THREE.BoxGeometry(BODY_W - WALL * 2, 0.04, BODY_D - WALL * 2)),
@@ -340,46 +343,42 @@ export function GiftBoxReveal({
       autoSpin = false;
       card.visible = true;
 
-      // Hard-hide the lid once it has lifted/faded, so no device-specific
-      // render quirk (mobile framing, transparent-material fallbacks) can leave
-      // any part of it visible over the open box.
+      // Real unwrapping: the lid (case) and ALL ribbon come off and disappear,
+      // leaving the box genuinely OPEN with nothing on top - just the four walls
+      // and a lit interior, with the photo standing up out of it. onComplete
+      // hard-hides the lid + both body ribbons so nothing can linger on top; the
+      // body itself stays as the open box.
       const tl = gsap.timeline({
         onComplete: () => {
           lid.visible = false;
+          bodyRibbon1.visible = false;
+          bodyRibbon2.visible = false;
         },
       });
-      // Lift the whole lid (with its bow + ribbons) straight up and out of the
-      // top of the frame, with only a gentle tilt, then fade it to nothing - so
-      // it reads as cleanly lifted away, never a broken lid hovering over the
-      // box. Fading the lid's own (cloned) materials leaves the body untouched.
+      // Fade out everything that "wraps" the box - the lid + its ribbon/bow
+      // (lidMat/lidRibbonMat) AND the body ribbons (ribbonMat) - while lifting
+      // the lid up and off. The box body (boxMat) and lit liner (linerMat) are
+      // deliberately NOT faded, so a clean open box remains.
+      tl.to(lid.position, { y: 3.6, duration: 0.7, ease: "power2.in" }, 0);
       tl.to(
-        lid.position,
-        { y: 5.2, x: 0.15, z: 0.1, duration: 1.0, ease: "power2.in" },
-        0,
+        [lidMat, lidRibbonMat, ribbonMat],
+        { opacity: 0, duration: 0.55, ease: "power1.in" },
+        0.2,
       );
-      tl.to(
-        lid.rotation,
-        { x: -Math.PI / 8, z: Math.PI / 16, duration: 1.0, ease: "power2.in" },
-        0,
-      );
-      tl.to([lidMat, lidRibbonMat], { opacity: 0, duration: 0.55, ease: "power1.in" }, 0.3);
-      tl.to(
-        group.scale,
-        { x: 1.12, y: 1.12, z: 1.12, duration: 0.4, yoyo: true, repeat: 1 },
-        0,
-      );
-      tl.to(innerGlow, { intensity: 3.2, duration: 0.9, ease: "power2.out" }, 0.15);
-      // The gift card rises well clear of the box rim, scales up past full size,
-      // and comes forward toward the camera so it's unmistakably the hero - not
-      // still tucked down inside the cavity.
+      tl.to(group.scale, { x: 1.08, y: 1.08, z: 1.08, duration: 0.35, yoyo: true, repeat: 1 }, 0);
+      // Keep the interior lit so the open box glows warmly rather than showing a
+      // black hole.
+      tl.to(innerGlow, { intensity: 2.6, duration: 0.7, ease: "power2.out" }, 0.15);
+      // The photo stands up and rises out of the open box, forward and larger,
+      // as the hero - clearly emerging from the box, not tucked inside it.
       tl.to(
         card.position,
-        { y: 1.55, z: 0.6, duration: 1.2, ease: "back.out(1.4)" },
+        { y: 1.1, z: 0.55, duration: 1.1, ease: "back.out(1.3)" },
         0.25,
       );
       tl.to(
         card.scale,
-        { x: 1.15, y: 1.15, z: 1.15, duration: 1.0, ease: "power2.out" },
+        { x: 1.25, y: 1.25, z: 1.25, duration: 1.0, ease: "power2.out" },
         0.25,
       );
 
@@ -470,6 +469,9 @@ export function GiftBoxReveal({
         card.scale,
         lidMat,
         lidRibbonMat,
+        boxMat,
+        ribbonMat,
+        linerMat,
       ]);
       resizeObserver.disconnect();
       el.removeEventListener("pointerdown", onPointerDown);
