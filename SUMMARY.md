@@ -279,9 +279,20 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Code correctly requests `facingMode:"environment"`; the likely cause is an
   in-app browser (WKWebView) that ignores it. Hardening option: enumerate
   video devices and force the rear one. Confirm his browser first.
-- Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
-  photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
-  print sub-options + fullscreen-display button.
+- **`/gallery`'s "download all my photos" / "share my gallery" — WIRED & live
+  (2026-07-07, branch `claude/oura-mvp-demo`, awaiting founder merge + device
+  confirm).** Download = client-side ZIP of the guest's matched photos (fetches
+  the cross-origin `/media` blobs — CORS already open on the API — via `jszip`,
+  saves `oura-gallery.zip`). Share = Web Share of the matched photos as files
+  (WhatsApp etc.), falling back to a link share then clipboard. Both disabled
+  while busy and when zero personal photos. Deployed (version `e70df9f1`), chunk
+  `3np_6olwhom49.js` md5-verified identical live. Runtime download/share sheet
+  still owed a real-device confirm (can't render a matched guest session from
+  the sandbox). **Open product call to confirm:** "share" sends the photos
+  themselves; if you'd rather it share a *link to the event* so friends find
+  their own galleries, that needs the event code added to `GET /gallery`.
+- Still dead: `/admin/qr-management`'s two print sub-options + fullscreen-display
+  button (not touched this pass).
 - Content genuinely missing vs. the design (needs real backend/feature
   work, not a CSS fix): personal-gallery's name-based headline + event-name
   line + per-photo match-confidence badges; dashboard's 3rd stat card + AI

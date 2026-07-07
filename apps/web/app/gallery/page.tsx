@@ -15,12 +15,29 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import JSZip from "jszip";
 import { BottomNav } from "@/components/guest/BottomNav";
 import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
 import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
+
+// Fetch each photo's bytes from the API Worker's /media route (CORS is open on
+// the API, so a cross-origin blob fetch is allowed) and name them sequentially.
+async function fetchPhotoFiles(
+  photos: GuestPhoto[],
+): Promise<{ name: string; blob: Blob }[]> {
+  const out: { name: string; blob: Blob }[] = [];
+  for (let i = 0; i < photos.length; i++) {
+    const res = await fetch(photos[i].url);
+    if (!res.ok) throw new Error(`media_fetch_${res.status}`);
+    const blob = await res.blob();
+    const ext = blob.type.split("/")[1]?.split("+")[0] || "jpg";
+    out.push({ name: `oura-${String(i + 1).padStart(2, "0")}.${ext}`, blob });
+  }
+  return out;
+}
 
 function PhotoTile({
   photo,
@@ -68,6 +85,8 @@ export default function GalleryPage() {
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
+  const [action, setAction] = useState<"idle" | "downloading" | "sharing">("idle");
+  const [actionNote, setActionNote] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,6 +166,69 @@ export default function GalleryPage() {
     : data.personal_gallery.photos;
   const generalPhotos: GuestPhoto[] = data.photos;
 
+  async function handleDownloadAll() {
+    if (action !== "idle" || personalPhotos.length === 0) return;
+    setAction("downloading");
+    setActionNote(null);
+    try {
+      const files = await fetchPhotoFiles(personalPhotos);
+      const zip = new JSZip();
+      for (const f of files) zip.file(f.name, f.blob);
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "oura-gallery.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setActionNote("ההורדה נכשלה. בדקו את החיבור ונסו שוב.");
+    } finally {
+      setAction("idle");
+    }
+  }
+
+  async function handleShare() {
+    if (action !== "idle" || personalPhotos.length === 0) return;
+    setAction("sharing");
+    setActionNote(null);
+    try {
+      // Best action for a guest: send the actual matched photos through the
+      // native share sheet (WhatsApp, etc.). Fall back to sharing/copying a
+      // link when the browser can't share files.
+      const nav = navigator as Navigator & {
+        canShare?: (data?: ShareData) => boolean;
+      };
+      const files = (await fetchPhotoFiles(personalPhotos)).map(
+        (f) => new File([f.blob], f.name, { type: f.blob.type }),
+      );
+      if (nav.canShare && nav.canShare({ files })) {
+        await navigator.share({ files, title: "הגלריה שלי מהאירוע" });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: "הגלריה שלי מהאירוע",
+          text: "צפו בתמונות שלי מהאירוע ב-Oura",
+          url: window.location.origin,
+        });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(window.location.origin);
+        setActionNote("הקישור הועתק");
+      } else {
+        setActionNote("שיתוף אינו נתמך בדפדפן הזה.");
+      }
+    } catch (err) {
+      // A cancelled share sheet throws AbortError - that's a user choice, not
+      // a failure worth surfacing.
+      if ((err as Error)?.name !== "AbortError") {
+        setActionNote("השיתוף נכשל. נסו שוב.");
+      }
+    } finally {
+      setAction("idle");
+    }
+  }
+
   return (
     <div className="min-h-screen pb-24">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-background/95 backdrop-blur-md">
@@ -212,14 +294,35 @@ export default function GalleryPage() {
         </section>
 
         <div className="flex flex-col gap-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98]">
-            <span className="material-symbols-outlined">download</span>
-            הורדת כל התמונות שלי
+          <button
+            type="button"
+            onClick={handleDownloadAll}
+            disabled={action !== "idle" || personalPhotos.length === 0}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+          >
+            <span
+              className={`material-symbols-outlined ${action === "downloading" ? "animate-spin" : ""}`}
+            >
+              {action === "downloading" ? "progress_activity" : "download"}
+            </span>
+            {action === "downloading" ? "מכינים את ההורדה..." : "הורדת כל התמונות שלי"}
           </button>
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5">
-            <span className="material-symbols-outlined">share</span>
-            שיתוף הגלריה האישית
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={action !== "idle" || personalPhotos.length === 0}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span
+              className={`material-symbols-outlined ${action === "sharing" ? "animate-spin" : ""}`}
+            >
+              {action === "sharing" ? "progress_activity" : "share"}
+            </span>
+            {action === "sharing" ? "פותחים שיתוף..." : "שיתוף הגלריה האישית"}
           </button>
+          {actionNote && (
+            <p className="text-center text-xs text-on-surface-variant">{actionNote}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
