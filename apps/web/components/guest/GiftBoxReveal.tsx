@@ -340,7 +340,14 @@ export function GiftBoxReveal({
       autoSpin = false;
       card.visible = true;
 
-      const tl = gsap.timeline();
+      // Hard-hide the lid once it has lifted/faded, so no device-specific
+      // render quirk (mobile framing, transparent-material fallbacks) can leave
+      // any part of it visible over the open box.
+      const tl = gsap.timeline({
+        onComplete: () => {
+          lid.visible = false;
+        },
+      });
       // Lift the whole lid (with its bow + ribbons) straight up and out of the
       // top of the frame, with only a gentle tilt, then fade it to nothing - so
       // it reads as cleanly lifted away, never a broken lid hovering over the
