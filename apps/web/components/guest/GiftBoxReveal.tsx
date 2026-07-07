@@ -343,37 +343,22 @@ export function GiftBoxReveal({
       autoSpin = false;
       card.visible = true;
 
-      // Real unwrapping, staged like opening an actual gift:
-      //  1. the ribbon + bow are removed (fade away) - both the lid's ribbon
-      //     cross/bow (lidRibbonMat) and the body ribbons (ribbonMat);
-      //  2. the LID itself stays fully visible and lifts up and off to the side,
-      //     tilted, like a lid you've taken off and set down (NOT faded/hidden);
-      //  3. the open box body stays put with its lit interior;
-      //  4. the photo stands up and rises out of the open box.
-      // onComplete only hides the (already-faded) body ribbons; the lid and box
-      // both stay visible.
-      const tl = gsap.timeline({
-        onComplete: () => {
-          bodyRibbon1.visible = false;
-          bodyRibbon2.visible = false;
-        },
-      });
-      // Ribbon removed first (bow + lid cross + body ribbons fade out).
-      tl.to(
-        [lidRibbonMat, ribbonMat],
-        { opacity: 0, duration: 0.5, ease: "power1.in" },
-        0.1,
-      );
-      // Lid lifts up and off to the side, tilted, and STAYS visible.
+      // Real unwrapping - NOTHING is deleted or faded. The lid (with its ribbon
+      // cross AND bow still on it) lifts straight off the TOP of the box and is
+      // set up and to the side, staying fully visible, exactly like taking a lid
+      // off a real gift box. The box body and the ribbon wrapping its sides both
+      // stay put; only the top (the lid) is removed. The photo then rises up out
+      // of the now-open box.
+      const tl = gsap.timeline();
       tl.to(
         lid.position,
-        { y: 2.15, x: 1.05, z: 0.35, duration: 1.0, ease: "power3.out" },
-        0.15,
+        { y: 2.15, x: 1.05, z: 0.4, duration: 1.0, ease: "power3.out" },
+        0,
       );
       tl.to(
         lid.rotation,
         { x: -Math.PI / 5, y: Math.PI / 8, z: Math.PI / 5, duration: 1.0, ease: "power3.out" },
-        0.15,
+        0,
       );
       tl.to(group.scale, { x: 1.06, y: 1.06, z: 1.06, duration: 0.35, yoyo: true, repeat: 1 }, 0);
       // Keep the interior lit so the open box glows warmly.
@@ -382,12 +367,12 @@ export function GiftBoxReveal({
       tl.to(
         card.position,
         { y: 1.0, z: 0.5, duration: 1.1, ease: "back.out(1.3)" },
-        0.4,
+        0.35,
       );
       tl.to(
         card.scale,
         { x: 1.2, y: 1.2, z: 1.2, duration: 1.0, ease: "power2.out" },
-        0.4,
+        0.35,
       );
 
       if (typeof navigator !== "undefined") {
