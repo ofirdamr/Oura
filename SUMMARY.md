@@ -269,10 +269,16 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   the top and stays visible to the side, the open box body stays with ribbon
   on its outer walls only (no ribbon crossing the interior), and the photo
   rises out. Final deployed version `46293cde`. Verified each round with a
-  software-WebGL Playwright capture of the LOCAL build (the sandbox proxy
-  resets a headless browser's connection to the live Worker — the documented
-  blind spot — so live-browser QA isn't possible here; deployed chunk md5 is
-  matched against the locally-verified build instead).
+  software-WebGL Playwright capture of the LOCAL build, then md5-matching the
+  deployed JS chunk against that local build to prove the live bytes are
+  identical. **Why local, not live:** Playwright's Chromium can't tunnel
+  external HTTPS through this sandbox's agent proxy (even `example.com` resets;
+  `curl`/Node work fine; localhost works fine). This is NOT HSTS and NOT
+  specific to our domain — see `MISTAKES.md` 2026-07-07 for the full corrected
+  diagnosis. Proper fix for a future session: import the proxy CA
+  (`/root/.ccr/agent-proxy-ca.crt`) into Chromium's NSS store via `certutil`
+  (not installed here). Until then, local-render + chunk-md5 + founder's
+  real-device look is the verification chain.
 
 **Known, real, NOT yet fixed** (confirmed in code, not touched):
 - **QR scanner opens the FRONT camera, not the rear** (founder hit this live).
