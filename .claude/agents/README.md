@@ -10,7 +10,8 @@ its job each time. The full doctrine lives in the `universal-framework` skill
 | Agent | Role | Model |
 |-------|------|-------|
 | `pm-orchestrator` | Owns the GOAL, splits it into missions, picks the mode, assigns work, watches, escalates, drives to done autonomously | Opus |
-| `token-economist` | Mandatory first-consult: leanest path, model choice, scope guard, mode recommendation | Sonnet |
+| `token-economist` | Mandatory first-consult: leanest path, per-mission model choice, scope guard, mode recommendation | Sonnet |
+| `context-steward` | Watches conversation cost; when long/wasteful, parks the thread, updates the MD files, records open questions, flags a live PR to merge, writes the next conversation's first message | Sonnet |
 
 ## Specialists (the PM spawns these for missions)
 | Agent | Role | Model |

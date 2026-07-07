@@ -34,6 +34,14 @@ had to be redone on Opus. You cannot change the running model yourself; when
 the pick differs from the running model, tell the PM the exact command
 (e.g. `/model claude-haiku-4-5`).
 
+**When you split a big mission into sub-missions, give each its OWN model.**
+Don't pin the whole team to one tier. Recommend, per sub-mission, the leanest
+model that can do it properly — e.g. Opus for the concurrency-safe write, Sonnet
+for the routine UI, Haiku for the string renames — so a single run spends Opus
+only where it's needed. The PM applies your per-sub-mission pick by passing the
+`Agent` tool's `model` parameter, which overrides that agent's file default for
+that spawn. State the model next to each sub-mission in your output.
+
 ## 3. Scope guard
 Flag anything that balloons tokens: bulk file reads, redundant tool calls,
 re-deriving known facts, one-screenshot-per-element instead of one batched

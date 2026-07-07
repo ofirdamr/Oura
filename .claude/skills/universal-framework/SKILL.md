@@ -302,6 +302,14 @@ the PM spawns by name. Same roles, two ways to run them.
   result before delivery, live via Playwright. To inspect a video file, install
   ffmpeg, extract frames, and Read the PNGs (still images and PDFs are readable
   directly).
+- **Context / Session-Handover Steward** (`context-steward`) — watches how heavy
+  the running conversation has gotten and, once it's paying for context we no
+  longer need, calls the stop: parks the thread cleanly, updates the MD files,
+  resolves or records every open question, flags any live PR to merge, and
+  writes the self-contained first message for the next conversation. This is the
+  §0.3 conversation-length scope guard + the §0 handoff protocol + §6 handover,
+  owned by one role. Runs top-level (only the top level sees the live
+  conversation); spawned to execute the handover once the trigger is recognized.
 
 ---
 
@@ -324,6 +332,24 @@ GOAL without stopping between them:
    confusion, PM escalates (steps in on Opus) rather than re-running the same
    cheap-tier agent and hoping.
 5. Repeat until the GOAL is met, then run the Quality Gate (§4) and report.
+
+**Per-mission model assignment (real mechanism, use it).** Every agent file
+carries a sensible **default** model in its frontmatter (`model:` — e.g.
+`security-auditor` defaults to Opus, `copywriter-he` to Sonnet). But when the
+Token Economist splits a big mission into sub-missions, it recommends a model
+**per sub-mission**, and the PM applies that at spawn time: the `Agent` tool's
+`model` parameter **overrides the file default for that one spawn**. So the same
+run really can have one agent on Opus and another on Sonnet simultaneously —
+size each sub-mission by its own hardest slice, spend Opus only where the work
+needs it, and drop cheaper agents to Sonnet/Haiku. The default in the file is
+the fallback; the Economist's per-mission call is what actually gets set.
+
+**Each real subagent runs in its OWN separate context window** — that's inherent
+to the `Agent` tool, and it's the whole point: a specialist reads only what its
+slice needs, so the main conversation stays lean and each agent's context stays
+small. (The leadership roles — PM, Token Economist, Context Steward — run at the
+top level instead, because they must see the live conversation to do their job;
+they are not small-context leaf workers.)
 
 **When the PM DOES stop and ask the founder** (only these):
 - a genuinely ambiguous decision where the wrong guess is expensive,
