@@ -279,18 +279,30 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Code correctly requests `facingMode:"environment"`; the likely cause is an
   in-app browser (WKWebView) that ignores it. Hardening option: enumerate
   video devices and force the rear one. Confirm his browser first.
-- **`/gallery`'s "download all my photos" / "share my gallery" — WIRED & live
-  (2026-07-07, branch `claude/oura-mvp-demo`, awaiting founder merge + device
-  confirm).** Download = client-side ZIP of the guest's matched photos (fetches
-  the cross-origin `/media` blobs — CORS already open on the API — via `jszip`,
-  saves `oura-gallery.zip`). Share = Web Share of the matched photos as files
-  (WhatsApp etc.), falling back to a link share then clipboard. Both disabled
-  while busy and when zero personal photos. Deployed (version `e70df9f1`), chunk
-  `3np_6olwhom49.js` md5-verified identical live. Runtime download/share sheet
-  still owed a real-device confirm (can't render a matched guest session from
-  the sandbox). **Open product call to confirm:** "share" sends the photos
-  themselves; if you'd rather it share a *link to the event* so friends find
-  their own galleries, that needs the event code added to `GET /gallery`.
+- **`/gallery`'s download / share buttons — WIRED, FIXED, live & runtime-verified
+  (2026-07-08, branch `claude/oura-mvp-demo`, PR #9, awaiting founder merge).**
+  Download = client-side ZIP (`jszip`, now a dynamic import inside the handler,
+  not at page load); Share = Web Share of the photos as files → fallback link →
+  clipboard. **Fix:** first cut disabled both buttons whenever the personal
+  gallery was empty, so they looked dead (the founder's session had no match);
+  they now fall back to the full event gallery when there are no personal
+  matches (labels adjust to "…תמונות האירוע"). Deployed (version `3313d10e`),
+  chunk `1aekrps7ltdrq.js` md5-identical live, all /gallery chunks 200; runtime-
+  verified with Playwright (dev + mocked API): page hydrates, buttons enabled,
+  zip fires. **Open product call:** "share" sends the photos themselves; a
+  *link-to-event* share would need the event code added to `GET /gallery`.
+- **Face-matching pipeline is HEALTHY (re-proved 2026-07-08).** A founder report
+  ("not working, I'm in the photos but found none of mine") was NOT a pipeline
+  regression: a live end-to-end test (throwaway guest → consent → submit an
+  event photo as selfie) returned `matched:true` in 2.9s and populated the
+  personal gallery. His empty gallery = his guest session has no successful
+  match linked (likely his 2026-07-05 links were wiped when the photos were
+  re-embedded by the backfill). Fix for him: redo the selfie, or issue a
+  Supabase PAT to inspect/repair the `face_embeddings.guest_id` links. NOTE: the
+  diagnostic selfie linked 1 cluster to a throwaway guest — clean up via PAT.
+- The `/gallery` category pills (חופה/ריקודים/…) never filtered anything —
+  cosmetic only, no category data on photos. Needs a decision (remove vs. add
+  photo tagging), not a silent change.
 - Still dead: `/admin/qr-management`'s two print sub-options + fullscreen-display
   button (not touched this pass).
 - Content genuinely missing vs. the design (needs real backend/feature
