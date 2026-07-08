@@ -15,7 +15,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import JSZip from "jszip";
 import { BottomNav } from "@/components/guest/BottomNav";
 import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
 import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
@@ -165,13 +164,19 @@ export default function GalleryPage() {
     ? []
     : data.personal_gallery.photos;
   const generalPhotos: GuestPhoto[] = data.photos;
+  // Personal photos when the guest has matches; otherwise fall back to the full
+  // event gallery so download/share are never dead buttons (empty personal
+  // gallery = no successful selfie match yet, not "nothing to download").
+  const hasPersonal = personalPhotos.length > 0;
+  const downloadable = hasPersonal ? personalPhotos : generalPhotos;
 
   async function handleDownloadAll() {
-    if (action !== "idle" || personalPhotos.length === 0) return;
+    if (action !== "idle" || downloadable.length === 0) return;
     setAction("downloading");
     setActionNote(null);
     try {
-      const files = await fetchPhotoFiles(personalPhotos);
+      const { default: JSZip } = await import("jszip");
+      const files = await fetchPhotoFiles(downloadable);
       const zip = new JSZip();
       for (const f of files) zip.file(f.name, f.blob);
       const blob = await zip.generateAsync({ type: "blob" });
@@ -191,17 +196,17 @@ export default function GalleryPage() {
   }
 
   async function handleShare() {
-    if (action !== "idle" || personalPhotos.length === 0) return;
+    if (action !== "idle" || downloadable.length === 0) return;
     setAction("sharing");
     setActionNote(null);
     try {
-      // Best action for a guest: send the actual matched photos through the
-      // native share sheet (WhatsApp, etc.). Fall back to sharing/copying a
-      // link when the browser can't share files.
+      // Best action for a guest: send the actual photos through the native
+      // share sheet (WhatsApp, etc.). Fall back to sharing/copying a link when
+      // the browser can't share files.
       const nav = navigator as Navigator & {
         canShare?: (data?: ShareData) => boolean;
       };
-      const files = (await fetchPhotoFiles(personalPhotos)).map(
+      const files = (await fetchPhotoFiles(downloadable)).map(
         (f) => new File([f.blob], f.name, { type: f.blob.type }),
       );
       if (nav.canShare && nav.canShare({ files })) {
@@ -297,7 +302,7 @@ export default function GalleryPage() {
           <button
             type="button"
             onClick={handleDownloadAll}
-            disabled={action !== "idle" || personalPhotos.length === 0}
+            disabled={action !== "idle" || downloadable.length === 0}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
           >
             <span
@@ -305,12 +310,16 @@ export default function GalleryPage() {
             >
               {action === "downloading" ? "progress_activity" : "download"}
             </span>
-            {action === "downloading" ? "מכינים את ההורדה..." : "הורדת כל התמונות שלי"}
+            {action === "downloading"
+              ? "מכינים את ההורדה..."
+              : hasPersonal
+                ? "הורדת כל התמונות שלי"
+                : "הורדת כל תמונות האירוע"}
           </button>
           <button
             type="button"
             onClick={handleShare}
-            disabled={action !== "idle" || personalPhotos.length === 0}
+            disabled={action !== "idle" || downloadable.length === 0}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span
@@ -318,7 +327,11 @@ export default function GalleryPage() {
             >
               {action === "sharing" ? "progress_activity" : "share"}
             </span>
-            {action === "sharing" ? "פותחים שיתוף..." : "שיתוף הגלריה האישית"}
+            {action === "sharing"
+              ? "פותחים שיתוף..."
+              : hasPersonal
+                ? "שיתוף הגלריה האישית"
+                : "שיתוף תמונות האירוע"}
           </button>
           {actionNote && (
             <p className="text-center text-xs text-on-surface-variant">{actionNote}</p>
