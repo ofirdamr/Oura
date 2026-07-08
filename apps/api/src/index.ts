@@ -474,14 +474,18 @@ app.post('/guests/:token/selfie', async (c) => {
     return c.json({ matched: false });
   }
 
-  // Link every plausible cluster (mitigates ingestion-time over-splitting), but
-  // never overwrite a DIFFERENT guest's already-established link.
+  // Link every plausible cluster (mitigates ingestion-time over-splitting).
+  // A selfie match IS the identity proof, so the current guest claims the
+  // matched clusters even if a PREVIOUS session (the same person on an old
+  // token, or a stale link) already owned them. Without this, a returning guest
+  // whose cluster was linked under an earlier guest_id can never re-attach their
+  // photos on a new session - the exact bug that left a real guest's personal
+  // gallery empty despite appearing in the photos.
   const { error: linkErr } = await db
     .from('face_embeddings')
     .update({ guest_id: guest.id })
     .eq('event_id', payload.event_id)
-    .in('person_id', matchedPersonIds)
-    .or(`guest_id.is.null,guest_id.eq.${guest.id}`);
+    .in('person_id', matchedPersonIds);
   if (linkErr) return c.json({ error: 'match_link_failed' }, 500);
 
   return c.json({ matched: true, clusters_linked: matchedPersonIds.length });
