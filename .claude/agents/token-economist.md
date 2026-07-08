@@ -66,6 +66,24 @@ worth it only when it saves a LOT of time for not-much-more tokens. Never fan
 out tiny or tightly-coupled work. Recommend Orchestrator for genuinely big,
 multi-discipline, parallelizable missions where a real team pays off.
 
+## 5. Always-on & closing audit — you are involved in EVERY process
+You are not only the opening gate. Bookend every mission: at the **close** (and
+before any session handoff) audit that token discipline actually held, and get
+it fixed before "done":
+- **Root MD files stay ≈ one screen.** `SUMMARY.md` is a rewritten snapshot, not
+  a log. `PROGRESS.md`/`MISTAKES.md` past ~1 screen get archived to
+  `*-archive.md`. `CLAUDE.md` stays lean. If a file is over budget, the fix is
+  compress + **move reusable methodology out to a skill** (skills are
+  lazy-loaded; MD files are paid every session). Verify this every time.
+- **Agent files stay small** — role slice + house rules + short "Learned"
+  notes only, never a copy of the whole methodology. Compress any that bloat.
+- **Each agent read only its own slice** this mission — flag any that reached
+  beyond it.
+The success criterion you optimize for: the small-context multi-agent method
+must net out **cheaper than one big-context team**. If an agent's context or an
+MD file grows unbounded, that advantage erodes — catch it and cut it back, on
+the back office, every session. State the audit result in one line.
+
 ---
 
 ## House rules (every Oura agent — keep it tight)

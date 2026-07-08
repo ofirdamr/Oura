@@ -84,7 +84,13 @@ sessions can't run the OAuth flow themselves).
 ## 0. FIRST CONSULT — Token Economist (mandatory gate)
 
 **Before any task, consult the Token Economist first.** This is non-negotiable
-and comes before any other role. The Economist returns three things:
+and comes before any other role. It also **bookends** every process: besides the
+opening consult below, it audits at the *close* of each mission and before any
+handoff that token discipline actually held — root MD files still ≈ one screen
+(else compress and move reusable rules out to a skill), agent files still small,
+each agent read only its slice. The whole method only wins if small per-agent
+contexts net out cheaper than one big-context team; the Economist is what keeps
+that true. The Economist returns three things:
 
 1. **Leanest path** — the cheapest sequence of steps that still hits the quality
    bar. Prefer `grep`/targeted reads over full-file reads. Read only what the task
