@@ -106,6 +106,24 @@ year-old cached image. Fixed by making the logo key content-addressed per
 upload (matching how photos already work) and best-effort deleting the
 previous logo object afterward. See `MISTAKES.md` for both write-ups.
 
+## 2026-07-08: gallery full-screen viewer + branded per-photo download/share (live)
+
+Tapping any `/gallery` thumbnail now opens a full-screen social-app `PhotoViewer`
+(`components/guest/PhotoViewer.tsx`): pinch/wheel/double-tap zoom + pan,
+left/right swipe + arrow/chevron nav, per-photo download + share, videos native.
+Downloads/shares (and the two now-wired "download all"/"share" buttons)
+composite a sample photographer frame + Photo Santos logo + event title onto a
+guest-friendly JPEG via `lib/watermark.ts` (canvas, taint-safe, never a raw ZIP;
+share = Web Share API with a file, fallback to save). `GET /gallery/:token`
+returns guest-safe `event.name`/`event.branding` for this; `/admin/branding` has
+a new "share title" field (`branding.event_title`). Added a dedicated `seo`
+agent. All live-verified via Playwright against the deployed URL (node-fetch
+proxy for the sandbox browser blind spot) — deep link:
+`https://oura-web.oura-events.workers.dev/gallery` (needs a consented guest
+session; the seeded `WED-2024` event works). oura-api Version 74b55b19, oura-web
+Version 148b3662. **Open polish:** the composited title uses the event *name*
+until a photographer sets a custom `event_title` in `/admin/branding`.
+
 ## How we got here (compressed — see `PROGRESS.md` for full detail)
 
 1. Ported all 14 MVP screens from the 42-screen Stitch export (+1 designed
@@ -279,9 +297,9 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Code correctly requests `facingMode:"environment"`; the likely cause is an
   in-app browser (WKWebView) that ignores it. Hardening option: enumerate
   video devices and force the rear one. Confirm his browser first.
-- Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
-  photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
-  print sub-options + fullscreen-display button.
+- `/admin/qr-management`'s two print sub-options + fullscreen-display button
+  are still dead (no `onClick`). (`/gallery`'s "download all"/"share" buttons
+  were dead too — now wired, see the 2026-07-08 gallery-viewer entry below.)
 - Content genuinely missing vs. the design (needs real backend/feature
   work, not a CSS fix): personal-gallery's name-based headline + event-name
   line + per-photo match-confidence badges; dashboard's 3rd stat card + AI
