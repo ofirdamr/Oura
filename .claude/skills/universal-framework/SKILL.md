@@ -454,6 +454,18 @@ in its real target environment (live URL, running app, passing tests/visual QA).
 "I changed the code" ≠ done. "I verified it works and the reported symptom is
 gone" = done. Check for regressions before claiming success.
 
+**Every "done" report ships with the clickable live link — mechanical, a
+required field, not optional.** The moment you tell the user something is
+done/deployed/fixed/verified, that same message must include the exact live URL
+to *see it*, deep-linked to the specific screen or flow you changed (e.g.
+`.../gallery`, not just the site root, not "it's live"). This is a real,
+repeatedly-dropped failure: the user has to keep asking "where's the link?"
+because it was verified against a live URL but the link was never surfaced.
+Treat the link as inseparable from the word "done" — no link, not done. If the
+change genuinely has no user-visible URL (a backend-only endpoint, a script),
+say that explicitly and give the exact command or endpoint to exercise instead,
+so there is still a concrete way for the user to check it.
+
 **Know your verification tooling's blind spots before you ship, not after.** If
 your environment cannot actually observe the real behavior of THIS specific
 change (no codec to play a video, no network path to the live target, a check
