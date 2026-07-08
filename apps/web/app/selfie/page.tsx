@@ -167,6 +167,18 @@ export default function SelfiePage() {
       return;
     }
 
+    // 200 but no cluster passed the match threshold: the guest was NOT found in
+    // the event photos. Silently sending them to an empty personal gallery is
+    // exactly what read as "face recognition is broken" - tell them and let
+    // them retake a clearer selfie instead.
+    if (!result.data.matched) {
+      setErrorMessage(
+        "לא הצלחנו למצוא אתכם בתמונות האירוע. נסו סלפי ברור יותר - מול המצלמה, בתאורה טובה ובלי משקפי שמש.",
+      );
+      setPhase("review");
+      return;
+    }
+
     router.push("/gift-reveal");
   }
 

@@ -338,27 +338,37 @@ export default function GalleryPage() {
           )}
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-          <div className="rounded-xl bg-primary p-2.5">
-            <span
-              className="material-symbols-outlined text-on-primary"
-              style={{ fontVariationSettings: "'FILL' 1" }}
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+          <div className="flex items-center gap-4">
+            <div className="rounded-xl bg-primary p-2.5">
+              <span
+                className="material-symbols-outlined text-on-primary"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                auto_awesome
+              </span>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-primary">
+                {hasPersonal ? "זיהוי פנים הושלם בהצלחה" : "עדיין לא מצאנו אותך בתמונות"}
+              </h3>
+              <p className="mt-0.5 text-xs text-on-surface-variant">
+                {hasPersonal
+                  ? "כל התמונות סוננו עבורך באופן אוטומטי"
+                  : "צלמו סלפי מהיר וברור כדי שנמצא את התמונות שאתם מופיעים בהן"}
+              </p>
+            </div>
+          </div>
+          {!hasPersonal && (
+            <button
+              type="button"
+              onClick={() => router.push("/selfie")}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-bold text-on-primary shadow-md transition-all active:scale-[0.98]"
             >
-              auto_awesome
-            </span>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-primary">
-              {personalPhotos.length > 0
-                ? "זיהוי פנים הושלם בהצלחה"
-                : "עדיין מחפשים אותך בתמונות"}
-            </h3>
-            <p className="mt-0.5 text-xs text-on-surface-variant">
-              {personalPhotos.length > 0
-                ? "כל התמונות סוננו עבורך באופן אוטומטי"
-                : "נעדכן אותך ברגע שנמצא תמונות שאתה/את מופיע/ה בהן"}
-            </p>
-          </div>
+              <span className="material-symbols-outlined">photo_camera</span>
+              מצאו את התמונות שלי
+            </button>
+          )}
         </div>
 
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1">
