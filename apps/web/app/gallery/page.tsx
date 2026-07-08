@@ -12,13 +12,22 @@
 // server-side guardrail (face_embeddings is never queried pre-consent) with a
 // client-side one, per the task brief.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { BottomNav } from "@/components/guest/BottomNav";
-import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
+import { API_BASE_URL, getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
 import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
+import { PhotoViewer } from "@/components/guest/PhotoViewer";
+import {
+  compositeBrandedPhoto,
+  downloadFileName,
+  type CompositeBranding,
+  type FrameStyle,
+} from "@/lib/watermark";
+
+const STUDIO_NAME = "Photo Santos";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
 
@@ -26,21 +35,26 @@ function PhotoTile({
   photo,
   aspect,
   matched,
+  onOpen,
 }: {
   photo: GuestPhoto;
   aspect: string;
   matched?: boolean;
+  onOpen: () => void;
 }) {
   return (
-    <div
-      className={`${aspect} relative overflow-hidden rounded-2xl border border-white/5 bg-surface-container shadow-md`}
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label="פתיחת התמונה במסך מלא"
+      className={`${aspect} group relative block w-full overflow-hidden rounded-2xl border border-white/5 bg-surface-container shadow-md transition-transform active:scale-[0.98]`}
     >
       <Image
         src={photo.url}
         alt=""
         fill
         sizes="(min-width: 512px) 240px, 50vw"
-        className="object-cover"
+        className="object-cover transition-transform duration-300 group-hover:scale-105"
       />
       {matched && (
         <div className="absolute end-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
@@ -52,7 +66,7 @@ function PhotoTile({
           </span>
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -68,6 +82,65 @@ export default function GalleryPage() {
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
+  // Which photo list + index the full-screen viewer is showing (null = closed).
+  const [viewer, setViewer] = useState<{ list: GuestPhoto[]; index: number } | null>(null);
+  const [bulk, setBulk] = useState<{ mode: "download" | "share"; done: number; total: number } | null>(null);
+
+  const branding: CompositeBranding = useMemo(() => {
+    const b = data?.event?.branding;
+    return {
+      studioName: STUDIO_NAME,
+      eventTitle: data?.event?.branding.event_title || data?.event?.name || null,
+      logoUrl: b?.logo_key ? `${API_BASE_URL}/media/${b.logo_key}` : null,
+      frameStyle: (b?.frame as FrameStyle) ?? "crystal",
+      primaryColor: b?.primary_color ?? "#FF8A75",
+    };
+  }, [data]);
+
+  async function downloadAll(list: GuestPhoto[]) {
+    if (bulk || list.length === 0) return;
+    setBulk({ mode: "download", done: 0, total: list.length });
+    for (let i = 0; i < list.length; i++) {
+      try {
+        const blob = await compositeBrandedPhoto(list[i].url, branding);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = downloadFileName(list[i].id, branding.studioName);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch {
+        // Skip a photo that fails to composite rather than aborting the batch.
+      }
+      setBulk({ mode: "download", done: i + 1, total: list.length });
+      // Small gap so the browser doesn't drop rapid-fire download triggers.
+      await new Promise((r) => setTimeout(r, 350));
+    }
+    setBulk(null);
+  }
+
+  async function shareGallery() {
+    if (bulk) return;
+    const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
+    const shareData: ShareData = {
+      title: branding.eventTitle ?? "הגלריה שלי",
+      text: branding.eventTitle ? `הגלריה שלי מ${branding.eventTitle}` : "הגלריה שלי",
+      url: window.location.href,
+    };
+    try {
+      if (nav.share) {
+        await nav.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setBulk({ mode: "share", done: 1, total: 1 });
+        setTimeout(() => setBulk(null), 2000);
+      }
+    } catch {
+      /* user cancelled the share sheet */
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -212,13 +285,28 @@ export default function GalleryPage() {
         </section>
 
         <div className="flex flex-col gap-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98]">
-            <span className="material-symbols-outlined">download</span>
-            הורדת כל התמונות שלי
+          <button
+            type="button"
+            onClick={() => downloadAll(personalPhotos.length > 0 ? personalPhotos : generalPhotos)}
+            disabled={bulk !== null || (personalPhotos.length === 0 && generalPhotos.length === 0)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
+          >
+            <span className={`material-symbols-outlined ${bulk?.mode === "download" ? "animate-spin" : ""}`}>
+              {bulk?.mode === "download" ? "progress_activity" : "download"}
+            </span>
+            {bulk?.mode === "download" ? (
+              <span style={{ unicodeBidi: "isolate" }}>{`מוריד ${bulk.done}/${bulk.total}...`}</span>
+            ) : (
+              "הורדת כל התמונות שלי"
+            )}
           </button>
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5">
+          <button
+            type="button"
+            onClick={shareGallery}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5"
+          >
             <span className="material-symbols-outlined">share</span>
-            שיתוף הגלריה האישית
+            {bulk?.mode === "share" ? "הקישור הועתק!" : "שיתוף הגלריה האישית"}
           </button>
         </div>
 
@@ -269,7 +357,13 @@ export default function GalleryPage() {
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {personalPhotos.map((photo, i) => (
-                <PhotoTile key={photo.id} photo={photo} aspect={tileAspect(i)} matched />
+                <PhotoTile
+                  key={photo.id}
+                  photo={photo}
+                  aspect={tileAspect(i)}
+                  matched
+                  onOpen={() => setViewer({ list: personalPhotos, index: i })}
+                />
               ))}
             </div>
           </section>
@@ -279,7 +373,12 @@ export default function GalleryPage() {
           {generalPhotos.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {generalPhotos.map((photo, i) => (
-                <PhotoTile key={photo.id} photo={photo} aspect={tileAspect(i)} />
+                <PhotoTile
+                  key={photo.id}
+                  photo={photo}
+                  aspect={tileAspect(i)}
+                  onOpen={() => setViewer({ list: generalPhotos, index: i })}
+                />
               ))}
             </div>
           ) : (
@@ -291,6 +390,15 @@ export default function GalleryPage() {
       </main>
 
       <BottomNav active="gallery" />
+
+      {viewer && (
+        <PhotoViewer
+          photos={viewer.list}
+          startIndex={viewer.index}
+          branding={branding}
+          onClose={() => setViewer(null)}
+        />
+      )}
     </div>
   );
 }

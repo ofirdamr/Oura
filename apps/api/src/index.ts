@@ -211,7 +211,8 @@ async function resolveGuest(
 //   biometric_consents row exists for the guest. Pre-consent, we return
 //   consent_required:true and NO face data — the one guardrail we never bypass.
 //   Response 200:
-//     { event_id, guest_id, photos: [{ id, storage_key, url, status }],
+//     { event_id, guest_id, event: { name, branding },
+//       photos: [{ id, storage_key, url, status }],
 //       personal_gallery: { consent_required: true }
 //                       |  { consent_required: false, photos: [...] } }
 // ---------------------------------------------------------------------------
@@ -231,6 +232,27 @@ app.get('/gallery/:token', async (c) => {
 
   // Touch last_seen_at (best-effort; ignore failure).
   await db.from('guests').update({ last_seen_at: new Date().toISOString() }).eq('id', guest.id);
+
+  // Event name + guest-safe branding — used client-side to composite the
+  // photographer frame/logo/title onto downloaded/shared photos. Only the
+  // display-safe branding keys are surfaced (no secrets live in this jsonb).
+  const { data: eventRow } = await db
+    .from('events')
+    .select('name, branding')
+    .eq('id', payload.event_id)
+    .maybeSingle();
+  const rawBranding = (eventRow?.branding ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === 'string' && v ? v : null);
+  const event = {
+    name: str(eventRow?.name),
+    branding: {
+      event_title: str(rawBranding.event_title),
+      logo_key: str(rawBranding.logo_key),
+      frame: str(rawBranding.frame) ?? 'crystal',
+      primary_color: str(rawBranding.primary_color) ?? '#FF8A75',
+      auto_watermark: rawBranding.auto_watermark !== false,
+    },
+  };
 
   // General event gallery — no consent needed. Exclude culled photos.
   const { data: photoRows, error: photosErr } = await db
@@ -306,6 +328,7 @@ app.get('/gallery/:token', async (c) => {
   return c.json({
     event_id: payload.event_id,
     guest_id: guest.id,
+    event,
     photos,
     personal_gallery,
   });
