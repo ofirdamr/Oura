@@ -358,6 +358,26 @@ they are not small-context leaf workers.)
 - anything touching a rule `CLAUDE.md` marks locked / ask-first.
 Everything else: proceed autonomously.
 
+**How each agent stays small-context (the method).** An agent file is NOT a copy
+of this whole skill. It carries only: (a) its role's distilled rules, (b) the
+shared **house rules** every agent obeys (English to founder; Hebrew/RTL
+deliverables; short 2-3 sentence output; "done" ships the live link; verify
+before done; `CLAUDE.md` wins), and (c) pointers to the specific skills it should
+**lazy-load on demand** (`hebrew-rtl-best-practices`, `israeli-privacy-shield`,
+etc.) rather than inlining that knowledge. This is why generic web knowledge is
+NOT dumped into agent files — inlining bloats context; referencing a skill keeps
+it lean. The Token Economist polices this (agent files stay small; agents read
+only their slice).
+
+**The learning loop (agents get better, permanently).** When an agent gets
+stuck/confused or fails the same thing ~2-3 times, the PM (1) STOPS, (2)
+escalates the model for the hard part (temporary), and (3) writes a distilled
+1-2 line lesson into that agent's **"Learned on the job"** section in its file
+(permanent) — so next run it already knows. Reusable patterns/gotchas a mission
+reveals go there too. Notes stay short and get compressed if they grow: the
+agent gets smarter without its context getting heavier. Project-wide lessons go
+in `MISTAKES.md` instead of a single agent's file.
+
 **How the agents "talk."** They do not chat peer-to-peer on their own. When one
 needs another (planner → backend on a concurrency question, QA → frontend on a
 broken control), the consultation is **relayed through the PM**: the PM carries

@@ -49,6 +49,15 @@ capture, and long conversations (the whole transcript rides along every turn —
 recommend a fresh session once the MD files are current). Batching verification
 is a cost instruction, never permission to skip visual QA.
 
+**Guard the agents' context too, not just conversation length.** Each agent
+file must stay a small, distilled slice — its role's rules + the shared house
+rules + short "Learned on the job" notes — NOT a copy of the whole methodology
+(that's this skill, the PM's library, loaded only where needed). Flag it when:
+an agent reads far beyond its slice, an agent file bloats, or a "Learned on the
+job" section grows past a few lines (tell the PM to compress it). Small context
+per agent is a token-saving method you actively police, on the back office,
+every session — a lean agent is a cheap agent.
+
 ## 4. Orchestration mode
 Recommend Solo / Team / Hybrid / Orchestrator. Decide on BOTH time and tokens.
 Real subagents save wall-clock time and keep context clean; they do NOT save
@@ -56,3 +65,16 @@ total tokens (each starts cold and re-reads context). Parallel/Orchestrator is
 worth it only when it saves a LOT of time for not-much-more tokens. Never fan
 out tiny or tightly-coupled work. Recommend Orchestrator for genuinely big,
 multi-discipline, parallelizable missions where a real team pays off.
+
+---
+
+## House rules (every Oura agent — keep it tight)
+- English to the founder; all user-facing product text in native Hebrew, RTL (logical properties, never physical). Load `hebrew-rtl-best-practices` before any UI edit.
+- **Short output.** The founder reads 2-3 sentences, no more. Lead with the result + the live link; cut the rest.
+- **"Done" always includes the clickable live link**, deep-linked to the exact screen/flow — no link = not done. (Backend-only change? give the exact command/endpoint to exercise instead.)
+- Verify in the real target before "done" — never on a build/typecheck alone.
+- `CLAUDE.md` guardrails override anything here on conflict.
+- Read only what your slice needs; keep your own context small.
+
+## Learned on the job (the PM appends distilled 1-2 line lessons here — keep short, compress if it grows)
+- (none yet)

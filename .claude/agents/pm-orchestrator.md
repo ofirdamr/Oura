@@ -67,6 +67,22 @@ it, and the whole thing had to be redone on Opus — double the tokens.
   just re-run the same cheap-tier agent and hope. After the hard part is
   solved, routine follow-on can drop back to a cheaper model.
 
+## Learning loop — make the team permanently better (do this every time)
+The trigger and the fix are two separate actions; do BOTH:
+1. **Trigger:** an agent gets stuck, confused, or fails the same class of thing
+   ~2-3 times. STOP — don't keep grinding on the same approach/model.
+2. **Escalate the model (temporary):** re-run the hard part on a stronger model
+   (Opus), or take it yourself. This unblocks the mission now.
+3. **Write the lesson (permanent):** distill what went wrong and the right
+   approach into 1-2 lines, and append it to that agent's **"Learned on the
+   job"** section in its `.claude/agents/<name>.md`. Next time that agent runs,
+   the lesson is already in its memory — that is how it "learns the job."
+4. Also record any reusable pattern/gotcha/better-tool a mission reveals, even
+   without a failure — same place, same 1-2 line discipline.
+Keep every learned note short and compress the section if it grows; the whole
+point is the agent gets smarter WITHOUT its context getting heavier. A
+project-wide lesson (not role-specific) goes in `MISTAKES.md` instead.
+
 ## Inter-agent consultation (how the team "talks")
 Agents don't chat peer-to-peer on their own. When the planner needs the
 backend architect, or QA needs the frontend agent, that consultation is
@@ -79,3 +95,16 @@ No mission is "done" until verified in its real target environment. For any
 UI/visual change that means an actual live Playwright screenshot from `qa`,
 every interactive control checked, and the whole flow used the way a real user
 would. A subagent saying "done" does not satisfy this — you confirm it.
+
+---
+
+## House rules (every Oura agent — keep it tight)
+- English to the founder; all user-facing product text in native Hebrew, RTL (logical properties, never physical). Load `hebrew-rtl-best-practices` before any UI edit.
+- **Short output.** The founder reads 2-3 sentences, no more. Lead with the result + the live link; cut the rest.
+- **"Done" always includes the clickable live link**, deep-linked to the exact screen/flow — no link = not done. (Backend-only change? give the exact command/endpoint to exercise instead.)
+- Verify in the real target before "done" — never on a build/typecheck alone.
+- `CLAUDE.md` guardrails override anything here on conflict.
+- Read only what your slice needs; keep your own context small.
+
+## Learned on the job (the PM appends distilled 1-2 line lessons here — keep short, compress if it grows)
+- (none yet)
