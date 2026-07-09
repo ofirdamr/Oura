@@ -106,6 +106,8 @@ export default function GalleryPage() {
   // Multi-select: guests usually want a few photos, not all of them.
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Header controls open real panels (notifications / profile).
+  const [sheet, setSheet] = useState<"none" | "notifications" | "profile">("none");
 
   const branding: CompositeBranding = useMemo(() => {
     const b = data?.event?.branding;
@@ -251,10 +253,32 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Dead "notifications"/"profile" stubs removed — a business app shows no
-          gray, unresponsive controls. Header is just the brand + back. */}
+      {/* Header per design: notifications + profile (start side), brand, back.
+          The two controls are WIRED (they open real panels) — not removed, not
+          gray stubs. */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-lg flex-row-reverse items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSheet("notifications")}
+              className="relative flex items-center text-on-surface transition-opacity hover:opacity-70"
+              aria-label="התראות"
+            >
+              <span className="material-symbols-outlined">notifications</span>
+              {personalPhotos.length > 0 && (
+                <span className="absolute -end-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSheet("profile")}
+              className="flex items-center text-on-surface transition-opacity hover:opacity-70"
+              aria-label="הפרופיל שלי"
+            >
+              <span className="material-symbols-outlined">account_circle</span>
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <span className="font-display text-2xl font-bold tracking-tight text-primary">
               Oura
@@ -464,7 +488,89 @@ export default function GalleryPage() {
         </div>
       )}
 
-      <BottomNav active="gallery" onShare={() => setSelectMode(true)} />
+      <BottomNav
+        active="gallery"
+        onShare={() => setSelectMode(true)}
+        onProfile={() => setSheet("profile")}
+      />
+
+      {/* Header-control panels — real, working content (not stubs). */}
+      {sheet !== "none" && (
+        <div
+          className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setSheet("none")}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl border-t border-white/10 bg-surface-container p-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
+            {sheet === "notifications" ? (
+              <>
+                <h2 className="mb-3 text-lg font-bold text-on-surface">התראות</h2>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+                    <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      {personalPhotos.length > 0 ? "photo_library" : "search"}
+                    </span>
+                    <div>
+                      <p className="text-sm font-bold text-on-surface">
+                        {personalPhotos.length > 0
+                          ? `מצאנו ${personalPhotos.length} תמונות שלך!`
+                          : "אנחנו עדיין מחפשים אותך בתמונות"}
+                      </p>
+                      <p className="mt-0.5 text-xs text-on-surface-variant">
+                        {personalPhotos.length > 0
+                          ? "כל התמונות סוננו עבורך אוטומטית"
+                          : "נעדכן אותך ברגע שנמצא תמונות שאתה/את מופיע/ה בהן"}
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3 rounded-2xl border border-white/5 bg-surface-container-high p-3">
+                    <span className="material-symbols-outlined text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      collections
+                    </span>
+                    <div>
+                      <p className="text-sm font-bold text-on-surface" style={{ unicodeBidi: "isolate" }}>
+                        {generalPhotos.length} תמונות באירוע
+                      </p>
+                      <p className="mt-0.5 text-xs text-on-surface-variant">גלריית האירוע המלאה זמינה לצפייה</p>
+                    </div>
+                  </li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <h2 className="mb-1 text-lg font-bold text-on-surface">הפרופיל שלי</h2>
+                <p className="mb-4 text-sm text-on-surface-variant">
+                  {branding.eventTitle ? `אורח/ת ב${branding.eventTitle}` : "אורח/ת באירוע"}
+                </p>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/selfie")}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-surface-container-high p-3 text-start transition-colors hover:bg-white/5"
+                  >
+                    <span className="material-symbols-outlined text-primary">photo_camera</span>
+                    <span className="text-sm font-medium text-on-surface">צילום סלפי מחדש</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearGuestSession();
+                      router.replace("/gallery-entry");
+                    }}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-surface-container-high p-3 text-start transition-colors hover:bg-white/5"
+                  >
+                    <span className="material-symbols-outlined text-error">logout</span>
+                    <span className="text-sm font-medium text-on-surface">יציאה מהאירוע</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {viewer && (
         <PhotoViewer

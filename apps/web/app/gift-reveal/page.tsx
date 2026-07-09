@@ -253,16 +253,16 @@ export default function GiftRevealPage() {
             </span>
           </div>
           <nav className="flex gap-8 text-on-surface-variant">
-            <a className="transition-colors hover:text-primary" href="#">
+            <a className="transition-colors hover:text-primary" href="/gallery">
               בית
             </a>
-            <a className="transition-colors hover:text-primary" href="#">
+            <a className="transition-colors hover:text-primary" href="/gallery">
               גלריה
             </a>
-            <a className="transition-colors hover:text-primary" href="#">
+            <a className="transition-colors hover:text-primary" href="mailto:ofirdamr@gmail.com">
               תמיכה
             </a>
-            <a className="transition-colors hover:text-primary" href="#">
+            <a className="transition-colors hover:text-primary" href="mailto:ofirdamr@gmail.com">
               פרטיות
             </a>
           </nav>
