@@ -106,6 +106,24 @@ year-old cached image. Fixed by making the logo key content-addressed per
 upload (matching how photos already work) and best-effort deleting the
 previous logo object afterward. See `MISTAKES.md` for both write-ups.
 
+## 2026-07-08 (round 3): multi-select, marketing caption, solid nav (live)
+
+Guest gallery now has **multi-select** ("בחירה" → pick a few photos → Save/Share
+only those, floating action bar), a **marketing share caption** pre-filled into
+the share sheet (`branding.share_caption`, editable in `/admin/branding`;
+default `חוגגים ב{event}! 📸 הצילומים באדיבות {studio}`), a **solid opaque
+bottom nav** (was glass, bled on scroll), and the dead notifications/profile
+header stubs removed. Live: oura-api `af497a1c`, oura-web `cba581ca`.
+**Two big features requested, NOT yet built — need founder sequencing (both
+noted in PROGRESS 2026-07-08 round 3):** (1) **Prints & gifts commerce** —
+Stitch designs exist (`premium_prints`/`checkout`/`order_confirmation`); entry
+from gallery (per-photo + multi-select "order prints") → surface/gift picker →
+checkout (real Stripe = Phase 2). (2) **Guest comments** → event-manager wall +
+on-event-screen display — NO existing Stitch screens (guest input, comments
+wall, screen display), so per the "never freehand new visuals" guardrail the
+founder must run these through Stitch first; backend (comments table+endpoints)
+is buildable once designed.
+
 ## 2026-07-08 (cont.): gallery viewer rebuilt for premium native UX
 
 After founder feedback ("built to spec, not what a guest wants"), the viewer was

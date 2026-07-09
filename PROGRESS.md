@@ -248,3 +248,12 @@
   - Removed the accent hairline from card + canvas for clean WYSIWYG parity.
 - Encoded a mandatory **1-minute UX self-proof** ("think as the real user, not the spec") into `frontend-rtl.md`, `qa-verifier.md`, `universal-framework` §4, and `MISTAKES.md`.
 - Verified live locally with Playwright (mobile viewport, real WED-2024 photos via node-fetch proxy): swipe advances 3→4, swipe-down dismisses, branded card + matching 184KB composited download. No API change this round.
+
+### 2026-07-08 (cont.) — Gallery round 3: multi-select, marketing caption, solid nav, dead-button cleanup (live)
+- Founder feedback pass. Shipped + verified live (oura-api af497a1c, oura-web cba581ca):
+  - **Multi-select**: a "בחירה" toggle enters selection mode (coral ring + check per tile); a floating action bar shows "{n} נבחרו" with Save/Share of only the picked photos. Guests rarely want all — now they pick a few. Per-photo viewer actions still cover the single case.
+  - **Marketing share caption**: share sheet is pre-filled with a promo caption (`חוגגים ב{event}! 📸 הצילומים באדיבות {studio}`) so a guest's share promotes the photographer; guest can edit. Photographer can set custom wording via new `/admin/branding` "טקסט שיתוף" field → `branding.share_caption` (API returns it in gallery event.branding; default built from title+studio).
+  - **Bottom nav**: now solid opaque `bg-surface-container` + hard top border + safe-area padding (was a glass panel that bled page bg through on scroll).
+  - **Removed** the dead gray notifications/profile header stubs.
+- Note on Facebook: the caption is passed via the Web Share `text`; WhatsApp/Telegram/Messenger honor it, Facebook's feed composer may strip text on image shares (platform limitation, not ours).
+- **Not built (need decisions / new Stitch screens):** (1) Prints & gifts commerce — designs exist (`premium_prints`, `checkout`, `order_confirmation`); real Stripe checkout is Phase 2 per CLAUDE.md. (2) Guest comments → event-manager wall + on-screen display — needs new Stitch screens (guest comment input, comments wall, event-screen display) since none exist; backend (comments table + endpoints) is buildable once the UI is designed. Both surfaced to founder for sequencing.
