@@ -247,6 +247,7 @@ app.get('/gallery/:token', async (c) => {
     name: str(eventRow?.name),
     branding: {
       event_title: str(rawBranding.event_title),
+      share_caption: str(rawBranding.share_caption),
       logo_key: str(rawBranding.logo_key),
       frame: str(rawBranding.frame) ?? 'crystal',
       primary_color: str(rawBranding.primary_color) ?? '#FF8A75',

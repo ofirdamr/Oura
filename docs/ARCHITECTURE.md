@@ -140,10 +140,12 @@ Key tables (see the migration files for full column lists/constraints):
   ('draft'|'live'|'archived'), gallery_theme ('festive'|'minimal'), branding
   jsonb, code text (unique when set), created_at, updated_at`. `branding`
   jsonb currently holds `{ frame, primary_color, auto_watermark, logo_key,
-  studio_name, event_title }` — no fixed schema, additive by convention.
-  `event_title` (set on `/admin/branding`) is the title composited onto
-  guest-downloaded/shared photos; the guest gallery falls back to `events.name`
-  when it's absent.
+  studio_name, event_title, share_caption }` — no fixed schema, additive by
+  convention. `event_title` (set on `/admin/branding`) is the title composited
+  onto guest-downloaded/shared photos; the guest gallery falls back to
+  `events.name` when it's absent. `share_caption` is the marketing text
+  pre-filled into the guest share sheet (falls back to a default built from the
+  title + studio name).
 - **`guests`** — one row per event-scoped guest session. `token_hash` only
   (SHA-256 of the opaque token) — the raw token is never stored.
   `token_expires_at` (migration 0004): defaults to `created_at + 90 days`,
@@ -180,7 +182,7 @@ auth — they're the guest path, gated only by the opaque token.
 |---|---|
 | `GET /health` | Liveness + binding/secret presence check (never leaks values) |
 | `POST /events/:event_id/guests` | Issues a fresh opaque guest token for an event. Generates `guest_id` server-side, stores only `SHA-256(token)`. |
-| `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent. `face_embeddings` is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. Also returns `event: { name, branding: { event_title, logo_key, frame, primary_color, auto_watermark } }` (guest-safe display keys only) so the client can composite the photographer frame/logo/title onto downloaded/shared photos. |
+| `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent. `face_embeddings` is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. Also returns `event: { name, branding: { event_title, share_caption, logo_key, frame, primary_color, auto_watermark } }` (guest-safe display keys only) so the client can composite the photographer frame/logo/title onto downloaded/shared photos and pre-fill a marketing share caption. |
 | `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). Body **requires** `{ guardian_confirmed: true }` (400s otherwise, migration 0003) — `retention_expires_at` is now set by a DB trigger, not left NULL. |
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |

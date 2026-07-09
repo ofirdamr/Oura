@@ -35,11 +35,13 @@ export function PhotoViewer({
   photos,
   startIndex,
   branding,
+  shareCaption,
   onClose,
 }: {
   photos: GuestPhoto[];
   startIndex: number;
   branding: CompositeBranding;
+  shareCaption?: string;
   onClose: () => void;
 }) {
   const [index, setIndex] = useState(startIndex);
@@ -234,7 +236,8 @@ export function PhotoViewer({
     setBusy("share");
     try {
       const blob = await compositeBrandedPhoto(photo.url, branding);
-      const caption = branding.eventTitle ? `${branding.eventTitle} · ${branding.studioName}` : branding.studioName;
+      const caption =
+        shareCaption ?? (branding.eventTitle ? `${branding.eventTitle} · ${branding.studioName}` : branding.studioName);
       const res = await sharePhotos([{ blob, filename: downloadFileName(photo.id, branding.studioName) }], caption);
       if (res === "downloaded") flash("השיתוף לא נתמך במכשיר, התמונה נשמרה");
     } catch {

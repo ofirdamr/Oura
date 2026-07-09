@@ -26,6 +26,7 @@ export type PersonalGallery =
 
 export type EventBranding = {
   event_title: string | null;
+  share_caption: string | null;
   logo_key: string | null;
   frame: string;
   primary_color: string;

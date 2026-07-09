@@ -67,6 +67,8 @@ function BrandingSettingsPageInner() {
   const [autoWatermark, setAutoWatermark] = useState(true);
   // Title composited onto shared/downloaded guest photos (e.g. "החתונה של…").
   const [eventTitle, setEventTitle] = useState("");
+  // Marketing caption pre-filled when a guest shares — promotes the studio.
+  const [shareCaption, setShareCaption] = useState("");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [activeBg, setActiveBg] = useState(3);
 
@@ -124,6 +126,9 @@ function BrandingSettingsPageInner() {
       }
       if (typeof branding.event_title === "string") {
         setEventTitle(branding.event_title);
+      }
+      if (typeof branding.share_caption === "string") {
+        setShareCaption(branding.share_caption);
       }
       if (typeof branding.logo_key === "string" && branding.logo_key) {
         setLogoUrl(`${API_BASE_URL}/media/${branding.logo_key}`);
@@ -191,6 +196,7 @@ function BrandingSettingsPageInner() {
       primary_color: accentColor,
       auto_watermark: autoWatermark,
       event_title: eventTitle.trim(),
+      share_caption: shareCaption.trim(),
     };
 
     const { error } = await supabase
@@ -522,6 +528,23 @@ function BrandingSettingsPageInner() {
             />
             <p className="mt-2 text-start text-xs text-on-surface-variant">
               הכותרת מוטבעת יחד עם המסגרת והלוגו על כל תמונה שאורח מוריד או משתף.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
+              <span className="material-symbols-outlined text-base">campaign</span>
+              טקסט שיתוף (שיווק)
+            </h2>
+            <textarea
+              value={shareCaption}
+              onChange={(e) => setShareCaption(e.target.value)}
+              rows={2}
+              placeholder="לדוגמה: חוגגים בחתונה של דניאל ומיכל! 📸 הצילומים באדיבות Photo Santos"
+              className="w-full resize-none rounded-xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-start text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none"
+            />
+            <p className="mt-2 text-start text-xs text-on-surface-variant">
+              נטען מראש כשאורח משתף תמונה, כדי שכל שיתוף יהיה גם פרסום לסטודיו. האורח יכול לערוך לפני השליחה. אם ריק, נשתמש בברירת מחדל.
             </p>
           </div>
 

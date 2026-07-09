@@ -36,27 +36,38 @@ const STUDIO_NAME = "Photo Santos";
 function PhotoTile({
   photo,
   matched,
+  selectMode,
+  selected,
   onOpen,
+  onToggleSelect,
 }: {
   photo: GuestPhoto;
   matched?: boolean;
+  selectMode: boolean;
+  selected: boolean;
   onOpen: () => void;
+  onToggleSelect: () => void;
 }) {
   return (
     <button
       type="button"
-      onClick={onOpen}
-      aria-label="פתיחת התמונה במסך מלא"
-      className="group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97]"
+      onClick={selectMode ? onToggleSelect : onOpen}
+      aria-label={selectMode ? "בחירת תמונה" : "פתיחת התמונה במסך מלא"}
+      aria-pressed={selectMode ? selected : undefined}
+      className={`group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97] ${
+        selectMode && selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+      }`}
     >
       <Image
         src={photo.url}
         alt=""
         fill
         sizes="(min-width: 512px) 170px, 33vw"
-        className="object-cover transition-transform duration-300 group-hover:scale-105"
+        className={`object-cover transition-transform duration-300 group-hover:scale-105 ${
+          selectMode && selected ? "scale-95" : ""
+        }`}
       />
-      {matched && (
+      {matched && !selectMode && (
         <div className="absolute end-1.5 top-1.5 flex items-center justify-center rounded-full bg-black/60 p-1 backdrop-blur-md">
           <span
             className="material-symbols-outlined text-primary"
@@ -64,6 +75,19 @@ function PhotoTile({
           >
             verified
           </span>
+        </div>
+      )}
+      {selectMode && (
+        <div
+          className={`absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
+            selected ? "border-primary bg-primary text-on-primary" : "border-white/80 bg-black/30"
+          }`}
+        >
+          {selected && (
+            <span className="material-symbols-outlined" style={{ fontSize: "16px", fontVariationSettings: "'FILL' 1" }}>
+              check
+            </span>
+          )}
         </div>
       )}
     </button>
@@ -79,6 +103,9 @@ export default function GalleryPage() {
   // Which photo list + index the full-screen viewer is showing (null = closed).
   const [viewer, setViewer] = useState<{ list: GuestPhoto[]; index: number } | null>(null);
   const [bulk, setBulk] = useState<{ mode: "download" | "share"; done: number; total: number } | null>(null);
+  // Multi-select: guests usually want a few photos, not all of them.
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const branding: CompositeBranding = useMemo(() => {
     const b = data?.event?.branding;
@@ -90,6 +117,33 @@ export default function GalleryPage() {
       primaryColor: b?.primary_color ?? "#FF8A75",
     };
   }, [data]);
+
+  // Marketing-first share caption: pre-fills the share sheet so a guest's share
+  // doubles as promotion for the photographer + event. The guest can still edit
+  // it in the sheet (their call), but the good default is offered first. A
+  // photographer can override the wording in /admin/branding (share_caption).
+  const shareCaption = useMemo(() => {
+    const custom = data?.event?.branding.share_caption?.trim();
+    if (custom) return custom;
+    const title = data?.event?.branding.event_title || data?.event?.name;
+    return title
+      ? `חוגגים ב${title}! 📸 הצילומים באדיבות ${STUDIO_NAME}`
+      : `📸 הצילומים באדיבות ${STUDIO_NAME}`;
+  }, [data]);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function exitSelect() {
+    setSelectMode(false);
+    setSelected(new Set());
+  }
 
   // Composite a whole set into branded JPEGs, then hand them to the phone in ONE
   // action: save-all lands in Photos (share sheet → "Save N Images"), share-all
@@ -109,10 +163,7 @@ export default function GalleryPage() {
       setBulk({ mode, done: i + 1, total: list.length });
     }
     if (mode === "download") await savePhotos(items);
-    else {
-      const caption = branding.eventTitle ? `${branding.eventTitle} · ${branding.studioName}` : branding.studioName;
-      await sharePhotos(items, caption);
-    }
+    else await sharePhotos(items, shareCaption);
     setBulk(null);
   }
 
@@ -200,31 +251,10 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen pb-24">
+      {/* Dead "notifications"/"profile" stubs removed — a business app shows no
+          gray, unresponsive controls. Header is just the brand + back. */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-lg flex-row-reverse items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              disabled
-              title="בקרוב"
-              className="material-symbols-outlined cursor-not-allowed text-on-surface/30"
-              aria-label="התראות (בקרוב)"
-            >
-              notifications
-            </button>
-            <button
-              type="button"
-              disabled
-              title="בקרוב"
-              className="material-symbols-outlined cursor-not-allowed text-on-surface/30"
-              aria-label="פרופיל (בקרוב)"
-            >
-              account_circle
-            </button>
-          </div>
-          {/* Transparent logo sits directly on the app background — no tinted
-              box behind it (that box, not the PNG, was the visible "not
-              transparent" square). */}
           <div className="flex items-center gap-2">
             <span className="font-display text-2xl font-bold tracking-tight text-primary">
               Oura
@@ -325,36 +355,53 @@ export default function GalleryPage() {
           </div>
         </div>
 
-        {/* Real, working filter — "all" vs "my photos" (face-matched), both
-            backed by live data. Only shown when there's actually a personal set
-            to switch to; no fake, dead category chips. */}
-        {personalPhotos.length > 0 && (
+        {/* Filters + a Select entry. Real "all" vs "my photos" filter (live
+            data, shown only when there's a personal set). "בחר" enters
+            multi-select so a guest can grab just the few photos they want. */}
+        <div className="flex items-center justify-between gap-2">
           <div className="flex gap-2">
-            {([
-              { key: "all" as const, label: "כל התמונות", count: generalPhotos.length },
-              { key: "mine" as const, label: "התמונות שלי", count: personalPhotos.length },
-            ]).map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key)}
-                className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm transition-all ${
-                  filter === f.key
-                    ? "bg-primary font-bold text-on-primary shadow-md"
-                    : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
-                }`}
-              >
-                {f.label}
-                <span
-                  dir="ltr"
-                  className={`rounded-full px-1.5 text-xs ${filter === f.key ? "bg-black/15" : "bg-white/5"}`}
+            {personalPhotos.length > 0 &&
+              ([
+                { key: "all" as const, label: "כל התמונות", count: generalPhotos.length },
+                { key: "mine" as const, label: "התמונות שלי", count: personalPhotos.length },
+              ]).map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilter(f.key)}
+                  className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm transition-all ${
+                    filter === f.key
+                      ? "bg-primary font-bold text-on-primary shadow-md"
+                      : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
+                  }`}
                 >
-                  {f.count}
-                </span>
-              </button>
-            ))}
+                  {f.label}
+                  <span
+                    dir="ltr"
+                    className={`rounded-full px-1.5 text-xs ${filter === f.key ? "bg-black/15" : "bg-white/5"}`}
+                  >
+                    {f.count}
+                  </span>
+                </button>
+              ))}
           </div>
-        )}
+          {shownPhotos.length > 0 && (
+            <button
+              type="button"
+              onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
+                selectMode
+                  ? "bg-primary text-on-primary"
+                  : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                {selectMode ? "close" : "check_circle"}
+              </span>
+              {selectMode ? "ביטול" : "בחירה"}
+            </button>
+          )}
+        </div>
 
         <section className="space-y-3 pb-8">
           {shownPhotos.length > 0 ? (
@@ -364,7 +411,10 @@ export default function GalleryPage() {
                   key={photo.id}
                   photo={photo}
                   matched={matchedIds.has(photo.id)}
+                  selectMode={selectMode}
+                  selected={selected.has(photo.id)}
                   onOpen={() => setViewer({ list: shownPhotos, index: i })}
+                  onToggleSelect={() => toggleSelect(photo.id)}
                 />
               ))}
             </div>
@@ -378,13 +428,50 @@ export default function GalleryPage() {
         </section>
       </main>
 
-      <BottomNav active="gallery" />
+      {/* Selection action bar — floats above the bottom nav while selecting, so
+          the guest acts on just the photos they picked. */}
+      {selectMode && (
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-40 mx-auto max-w-lg px-4">
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-surface-container-high p-2 shadow-2xl">
+            <span className="ps-2 text-sm font-bold text-on-surface" style={{ unicodeBidi: "isolate" }}>
+              {selected.size} נבחרו
+            </span>
+            <div className="ms-auto flex items-center gap-2">
+              <button
+                type="button"
+                disabled={selected.size === 0 || bulk !== null}
+                onClick={() => bulkAction("share", shownPhotos.filter((p) => selected.has(p.id)))}
+                className="flex items-center gap-1.5 rounded-xl border border-outline-variant/40 px-4 py-2.5 text-sm font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-40"
+              >
+                <span className={`material-symbols-outlined text-base ${bulk?.mode === "share" ? "animate-spin" : ""}`}>
+                  {bulk?.mode === "share" ? "progress_activity" : "ios_share"}
+                </span>
+                שיתוף
+              </button>
+              <button
+                type="button"
+                disabled={selected.size === 0 || bulk !== null}
+                onClick={() => bulkAction("download", shownPhotos.filter((p) => selected.has(p.id)))}
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary transition-all active:scale-95 disabled:opacity-40"
+              >
+                <span className={`material-symbols-outlined text-base ${bulk?.mode === "download" ? "animate-spin" : ""}`}>
+                  {bulk?.mode === "download" ? "progress_activity" : "download"}
+                </span>
+                שמירה
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <BottomNav active="gallery" onShare={() => setSelectMode(true)} />
 
       {viewer && (
         <PhotoViewer
           photos={viewer.list}
           startIndex={viewer.index}
           branding={branding}
+          shareCaption={shareCaption}
           onClose={() => setViewer(null)}
         />
       )}
