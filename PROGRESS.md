@@ -263,3 +263,10 @@
 - BottomNav: every item now a real action (home/gallery → scroll top, share → select mode, profile → profile panel); no dead `href="#"`. gift-reveal footer wired (בית/גלריה → /gallery, תמיכה/פרטיות → mailto).
 - Hooks check (founder asked): BOTH work. SessionStart (`session-start-enforce.sh`) fired (injected the MANDATORY OURA RULES at session start). Stop hook (`enforce-visual-qa.py`) runs each turn-end and only BLOCKS when an apps/web UI file was edited with no screenshot/Playwright evidence in the transcript; every UI change this session included a real Playwright screenshot, so it correctly passed instead of blocking. Self-tested the script (parses, exits 0). Not broken.
 - Still-dead links, NOT in the live guest flow (orphaned/parked demo pages per founder): `minimal-gallery` (6 internal `href="#"`), `festive-gallery`/`join` content links. Left for a decision on those pages' fate (founder parked them earlier). Their shared BottomNav is now wired.
+
+### 2026-07-09 — Mission decided: A (prints & gifts commerce); Stripe authorized; decision-only handoff
+- PM/Token-Economist consult on the founder's A/B/C choice → **A** (only option with finished Stitch designs + real revenue; B needs new Stitch screens first, C is low-value orphan wiring). Model Opus, orchestration Hybrid.
+- Branch `claude/oura-gallery-next-mission-ox6bgj` based on the tip of PR #10's `claude/oura-gallery-fullscreen-0246bo` (unmerged, all gallery UX live) so prints work stacks on it.
+- **Founder authorized the Stripe MCP connector** (`mcp__Stripe__*` tools now in-session). Declined the `get_stripe_account_info` probe → connector mode (test/live) still UNVERIFIED; build session must confirm TEST mode before charge code.
+- Read the `premium_prints` Stitch export: pricing is design-specified (20×30 ₪45 / 13×18 ₪25 / 10×15 ₪15; Matte/Glossy/Silk; frames +₪75/+₪89) → no founder pricing input needed for v1, wire as configurable vars.
+- No build this session (0.8MB transcript = heavy-context boundary). Updated SUMMARY.md (milestone = A, full build plan), docs/TOOLING.md (Stripe → Adopted), this log. Handing off to a fresh session to build.

@@ -365,7 +365,46 @@ for a Plan/PM decision on how to proceed next, not another round of
 solo fixes — see whatever the PM agent decided, check `PROGRESS.md` for
 its full reasoning if this doc doesn't have it yet.
 
-## Next milestone: not yet decided
+## Next milestone: DECIDED 2026-07-09 — Mission A, prints & gifts commerce (build not started)
+
+PM/Token-Economist call this session: of the three options the founder floated
+(A prints & gifts commerce, B guest comments wall, C wire the orphan
+pages), **A is the mission** — it's the only one with finished Stitch designs
+AND real revenue; B needs the founder to run new Stitch screens first, C is
+low-value orphan wiring. **The founder authorized the Stripe MCP connector**
+(the `mcp__Stripe__*` tools are now present in-session). Nothing is built yet —
+this is a clean decision-only handoff at a heavy-context boundary.
+
+Build plan for the next session (leanest path, model **Opus**, orchestration
+**Hybrid**):
+- Re-implement the three EXISTING Stitch exports as real routes — normal code
+  work, not new design (guardrail-safe): `design/screens/oura_final_production_premium_prints_*`
+  (per-photo size/paper/frame configurator with running total),
+  `..._checkout_*`, `..._order_confirmation_*`. All Hebrew/RTL — load
+  `hebrew-rtl-best-practices` before the first UI edit.
+- **Pricing is already specified by the Stitch design** (no founder input
+  needed for v1): sizes 20×30 ₪45 / 13×18 ₪25 / 10×15 ₪15; paper Matte/Glossy/Silk;
+  frames שחור מט +₪75 / אלון טבעי +₪89. Wire these as **configurable** price
+  vars so real ILS pricing (PRD §8-2) can change without a redeploy.
+- Backend: new `orders` + `order_items` tables (guest-scoped, RLS), a
+  Stripe **Checkout (test mode)** create-session endpoint, and a webhook to
+  mark orders paid. **Fulfillment automation is deferred** — POD partner
+  (Printful/Printify) is still an open PRD §8-3 decision; v1 records paid
+  orders for manual fulfillment. No Stripe Connect (CLAUDE.md: only once
+  print commissions are live).
+- **Before any charge code: confirm the connector is in TEST mode**
+  (`mcp__Stripe__get_stripe_account_info` — the founder DECLINED this probe
+  this session, so it's unverified; re-ask or use explicit `sk_test_` keys).
+  Payments are money/outward-facing — keep everything test-mode until the
+  founder explicitly greenlights live.
+- Entry point: add a "prints" CTA from `/gallery` (and/or the per-photo
+  viewer) into the new flow.
+
+Branch/PR note: this session's branch `claude/oura-gallery-next-mission-ox6bgj`
+is based on the **tip of PR #10's branch** `claude/oura-gallery-fullscreen-0246bo`
+(all gallery UX, live, NOT yet merged to main) so the prints work stacks on it.
+If PR #10 merges to main first, rebase onto main; otherwise the prints PR is
+stacked on #10 and should merge after it.
 
 **2026-07-06: guest token expiry — shipped and verified live.** Added
 `guests.token_expires_at` (migration `0004_guest_token_expiry.sql`, 90 days
@@ -408,5 +447,8 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
   — just re-check actual usage (`select count(*)` per table, or Supabase's
   own dashboard) if this project scales to many dozens of real events.
 
-**Open questions still blocking Phase 2 (not this milestone):** see `PRD.md`
-§8 — final ILS pricing, print fulfillment partner choice.
+**Open questions from `PRD.md` §8, now relevant to Mission A but NOT blocking
+the v1 build:** final ILS pricing (§8-2 — v1 uses the Stitch-specified prices
+as configurable defaults) and print fulfillment partner (§8-3 — v1 defers
+automation, records paid orders for manual fulfillment). Neither blocks
+shipping the checkout flow in test mode.
