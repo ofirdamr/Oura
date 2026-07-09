@@ -357,29 +357,34 @@ export function GiftBoxReveal({
       // stay put; only the top (the lid) is removed. The photo then rises up out
       // of the now-open box.
       const tl = gsap.timeline();
+      // Lid lifts UP and clearly BEHIND the box (negative z), so its slab can
+      // never hang over or intersect the photo that rises in front. Kept to the
+      // side and gently tilted so it still reads as "the lid, set aside".
       tl.to(
         lid.position,
-        { y: 2.15, x: 1.05, z: 0.4, duration: 1.0, ease: "power3.out" },
+        { y: 2.5, x: 1.25, z: -1.1, duration: 1.0, ease: "power3.out" },
         0,
       );
       tl.to(
         lid.rotation,
-        { x: -Math.PI / 5, y: Math.PI / 8, z: Math.PI / 5, duration: 1.0, ease: "power3.out" },
+        { x: -Math.PI / 10, y: Math.PI / 7, z: Math.PI / 7, duration: 1.0, ease: "power3.out" },
         0,
       );
       tl.to(group.scale, { x: 1.06, y: 1.06, z: 1.06, duration: 0.35, yoyo: true, repeat: 1 }, 0);
       // Keep the interior lit so the open box glows warmly.
       tl.to(innerGlow, { intensity: 2.6, duration: 0.7, ease: "power2.out" }, 0.2);
-      // The photo stands up and rises out of the open box as the hero.
+      // The photo stands up and rises out of the open box as the hero. It stays
+      // within the box footprint in depth (z inside the walls) and clearly in
+      // FRONT of the lid, so nothing ever pokes through it.
       tl.to(
         card.position,
-        { y: 1.0, z: 0.5, duration: 1.1, ease: "back.out(1.3)" },
-        0.35,
+        { y: 1.05, z: 0.35, duration: 1.1, ease: "back.out(1.3)" },
+        0.4,
       );
       tl.to(
         card.scale,
-        { x: 1.2, y: 1.2, z: 1.2, duration: 1.0, ease: "power2.out" },
-        0.35,
+        { x: 1.25, y: 1.25, z: 1.25, duration: 1.0, ease: "power2.out" },
+        0.4,
       );
 
       if (typeof navigator !== "undefined") {
