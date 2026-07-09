@@ -2,6 +2,18 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ⏭️ NEXT SESSION — founder's standing directive (read before doing anything)
+Verbatim intent from the founder at the 2026-07-08 handoff:
+- **Do NOT jump to the prints/gifts pages just because they came up in chat.** Yes, they're real (part of the 42-screen Stitch design + the PRD), but they are NOT next just because they were mentioned.
+- **Follow the PRD order / the plan we already made.** Do things by their order.
+- **The priority is a finished, working MVP — we still don't have one.** Too long was spent stuck on the single gallery page. Get to a real end-to-end demoable MVP first.
+- **YOU (the PM/assistant) decide the next mission — from the plan, not from what was last said, and not by asking the founder to choose.** He wants a decision grounded in the PRD/roadmap.
+- Remember the full **42-screen Stitch design set** already delivered — sequence against it + `PRD.md` phases.
+- **Every "done" ships with the clickable live link.** Non-negotiable, has been dropped repeatedly.
+- **Replies to the founder: 1–3 sentences, no long walls of text.**
+So: open `PRD.md` + the 42-screen design index, figure out what the working MVP still concretely lacks, pick the next mission in PRD order yourself, state the Token Economist line, and go — don't build prints just because this session mentioned them.
+
+
 ## Current state: working MVP, live, including Stage 2 face-matching
 
 A photographer can, with **zero founder DB/curl intervention**: sign up → log
