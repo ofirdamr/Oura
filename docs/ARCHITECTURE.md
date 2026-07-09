@@ -212,9 +212,23 @@ in this pass).
   results, not just the single nearest, to compensate for ingestion-time
   over-splitting.
 - **Retention enforcement**: a daily Cloudflare Cron Trigger (`0 3 * * *`,
-  `apps/api/src/scheduledCleanup.ts`) deletes `face_embeddings` rows whose
-  guest's `retention_expires_at` has passed. Scoped to embeddings only —
-  `guests`/`biometric_consents` rows are kept indefinitely as audit metadata.
+  `apps/api/src/scheduledCleanup.ts`) **un-links** (sets `guest_id = null`) the
+  `face_embeddings` rows of guests whose `retention_expires_at` has passed. It
+  MUST NEVER `.delete()` a `face_embeddings` row — those rows are the shared,
+  photo-derived search index, not the guest's biometric data (the selfie is
+  zero-retention and never stored). Deleting them (the pre-2026-07-09 bug) tore
+  the match index out from under the whole event the moment any one guest's
+  30 days elapsed, silently breaking face-matching until a manual re-embed —
+  see `MISTAKES.md` 2026-07-09. Retention forgets the guest↔cluster *link*;
+  the index survives for the life of the photos. The ONLY legitimate deletes of
+  `face_embeddings` are the `on delete cascade` from deleting a photo/event.
+  **Future hardening (not yet done):** the guest↔cluster link should live in its
+  own table (e.g. `guest_matches(guest_id, event_id, person_id)`) so a shared
+  index row is never stamped with guest identity at all; retention would then
+  delete link rows, and the `face_embeddings` `guest_id` column could be
+  dropped. If legal ever requires purging the photo-derived templates
+  themselves, scope that to the event/photo lifecycle (all of an event's
+  embeddings at once), never to one guest's consent clock.
 - **Embedding service**: `packages/processing-pipeline` (self-hosted
   InsightFace/ArcFace, never a per-call managed API per CLAUDE.md), deployed
   to **Cloud Run** (project `ouraforphotographers`, region `us-central1`,
