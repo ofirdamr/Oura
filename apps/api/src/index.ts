@@ -509,6 +509,11 @@ app.get('/media/*', async (c) => {
     'Content-Type': object.httpMetadata?.contentType ?? 'application/octet-stream',
     // Content-addressed keys are unique per upload — safe to cache forever.
     'Cache-Control': 'public, max-age=31536000, immutable',
+    // Media is already public (guests view it in the gallery). CORS is opened so
+    // the same image can be used as a WebGL texture on the gift-reveal 3D card
+    // (cross-origin: the web app and this API are different Worker subdomains,
+    // and a WebGL texture from another origin requires an ACAO header).
+    'Access-Control-Allow-Origin': '*',
   };
   if (object.httpEtag) headers['etag'] = object.httpEtag;
 

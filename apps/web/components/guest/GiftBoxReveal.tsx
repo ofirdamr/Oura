@@ -77,17 +77,70 @@ function makePlaceholderTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+// Draws a REAL guest photo onto the same framed card, cover-cropped to the
+// card's portrait aspect so any source aspect ratio fits without distortion.
+// This is what turns the reveal's rising card into an actual teaser of the
+// guest's own matched photo, instead of the generic placeholder glyph.
+function makePhotoTexture(img: HTMLImageElement): THREE.CanvasTexture {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = Math.round(size * 1.25);
+  const ctx = canvas.getContext("2d")!;
+  const w = canvas.width;
+  const h = canvas.height;
+
+  ctx.fillStyle = "#1e1e1e";
+  ctx.fillRect(0, 0, w, h);
+
+  // Cover-fit: scale so the image fills the card, center-cropping the overflow.
+  const imgRatio = img.width / img.height;
+  const cardRatio = w / h;
+  let dw: number, dh: number, dx: number, dy: number;
+  if (imgRatio > cardRatio) {
+    dh = h;
+    dw = h * imgRatio;
+    dx = (w - dw) / 2;
+    dy = 0;
+  } else {
+    dw = w;
+    dh = w / imgRatio;
+    dx = 0;
+    dy = (h - dh) / 2;
+  }
+  ctx.drawImage(img, dx, dy, dw, dh);
+
+  // Rust frame to match the card's premium framed look.
+  ctx.strokeStyle = "rgba(159,64,45,0.95)";
+  ctx.lineWidth = 16;
+  ctx.strokeRect(8, 8, w - 16, h - 16);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
 export function GiftBoxReveal({
   onOpenChange,
+  photoUrl,
   className = "",
 }: {
   onOpenChange?: (opened: boolean) => void;
+  // A real photo (the guest's first matched photo, else a general event photo)
+  // to show on the rising card. Falls back to the placeholder glyph if absent
+  // or if it fails to load. Requires the media origin to send CORS (it does).
+  photoUrl?: string;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Latest callback without re-running the scene effect.
   const onOpenChangeRef = useRef(onOpenChange);
   onOpenChangeRef.current = onOpenChange;
+  // Shared with the photo-loading effect so it can swap the card texture in
+  // without rebuilding the whole scene.
+  const cardMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  const photoTexRef = useRef<THREE.CanvasTexture | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -324,6 +377,14 @@ export function GiftBoxReveal({
       emissive: PRIMARY,
       emissiveIntensity: 0.15,
     });
+    cardMatRef.current = cardMat;
+    // If a real photo already arrived before the scene finished building, apply
+    // it now (the photo effect below no-ops until the material exists).
+    if (photoTexRef.current) {
+      cardMat.map = photoTexRef.current;
+      cardMat.emissiveIntensity = 0.05;
+      cardMat.needsUpdate = true;
+    }
     const cardGeo = track(new THREE.BoxGeometry(1.05, 1.3, 0.05));
     const card = new THREE.Mesh(cardGeo, cardMat);
     card.position.y = -0.3; // tucked inside the box
@@ -492,6 +553,8 @@ export function GiftBoxReveal({
       linerMat.dispose();
       cardMat.dispose();
       cardTex.dispose();
+      photoTexRef.current?.dispose();
+      cardMatRef.current = null;
       envTexture.dispose();
       pmrem.dispose();
 
@@ -502,6 +565,38 @@ export function GiftBoxReveal({
       }
     };
   }, []);
+
+  // Load the real photo (when it arrives from the parent's gallery fetch) and
+  // swap it onto the already-built card material, without rebuilding the scene.
+  useEffect(() => {
+    if (!photoUrl) return;
+    let cancelled = false;
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      const tex = makePhotoTexture(img);
+      const prevPhoto = photoTexRef.current;
+      photoTexRef.current = tex;
+      const mat = cardMatRef.current;
+      if (mat) {
+        mat.map = tex;
+        // A real photo doesn't need the placeholder's warm glow.
+        mat.emissiveIntensity = 0.05;
+        mat.needsUpdate = true;
+      }
+      // Dispose only a previous PHOTO texture (never the placeholder, which the
+      // scene teardown owns).
+      prevPhoto?.dispose();
+    };
+    img.onerror = () => {
+      // Keep the placeholder card on failure — the reveal must never break.
+    };
+    img.src = photoUrl;
+    return () => {
+      cancelled = true;
+    };
+  }, [photoUrl]);
 
   return (
     <div

@@ -73,6 +73,10 @@ export default function GiftRevealPage() {
   // there's no session or the fetch fails, fall back to placeholder tiles
   // rather than blocking the celebratory reveal.
   const [memories, setMemories] = useState<GuestPhoto[]>([]);
+  // The photo shown rising out of the box: prefer the guest's OWN first matched
+  // photo (a real teaser of what's inside their personal gallery), falling back
+  // to the first general event photo, then to the placeholder card if neither.
+  const [heroPhotoUrl, setHeroPhotoUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +85,9 @@ export default function GiftRevealPage() {
     getGallery(session.token).then((result) => {
       if (cancelled || !result.ok) return;
       setMemories(result.data.photos);
+      const pg = result.data.personal_gallery;
+      const matched = pg.consent_required === false ? pg.photos : [];
+      setHeroPhotoUrl(matched[0]?.url ?? result.data.photos[0]?.url);
     });
     return () => {
       cancelled = true;
@@ -133,7 +140,7 @@ export default function GiftRevealPage() {
 
           <div className="relative mx-auto max-w-4xl">
             <div className="relative h-[360px] cursor-grab overflow-hidden rounded-luxury border border-white/5 bg-surface-container/60 shadow-2xl active:cursor-grabbing sm:h-[440px] md:h-[500px]">
-              <GiftBoxReveal onOpenChange={setOpened} />
+              <GiftBoxReveal onOpenChange={setOpened} photoUrl={heroPhotoUrl} />
 
               {/* Instruction / status pill */}
               <div
