@@ -535,6 +535,19 @@ role saying "done."** Before any screen or flow is reported complete, the PM:
 - Only after all three checks does the PM report the surface done. "It builds
   and the happy path works" is not the bar; "every control does its job well
   AND the whole thing feels right end to end" is.
+- **Run the 1-minute UX self-proof, as the real user, not the spec-reader.**
+  Building to the literal request and stopping there is a real, logged failure
+  (a media-app viewer that "worked" but hard-cut between photos, floated
+  branding on the screen instead of the image, letterboxed on mobile, used a
+  collage grid, dumped downloads to Files, and shared a raw URL — because
+  nobody role-played as the guest). Before "done", spend a minute AS the user
+  and ask: do the gestures the UI implies actually exist (swipe WITH motion,
+  pinch-zoom, swipe-to-dismiss)? Is anything detached that should be attached
+  (WYSIWYG)? Full-bleed and phone-optimized? Premium, not placeholder? Native
+  save/share (Photos, not Files; no raw URL)? **Would I actually want this?**
+  Verify against a screenshot you look at critically — not the asset or the
+  code (a transparent PNG can still show a box from a wrapper div). Full
+  checklist in `.claude/agents/frontend-rtl.md`.
 
 **A green light on the general task is not a green light on an adjacent locked
 rule.** If the project marks something locked/ask-first (an architecture

@@ -106,6 +106,21 @@ year-old cached image. Fixed by making the logo key content-addressed per
 upload (matching how photos already work) and best-effort deleting the
 previous logo object afterward. See `MISTAKES.md` for both write-ups.
 
+## 2026-07-08 (cont.): gallery viewer rebuilt for premium native UX
+
+After founder feedback ("built to spec, not what a guest wants"), the viewer was
+rebuilt: `PhotoViewer` is a horizontal swipe carousel (slide motion, rubber-band)
+with swipe-up/down-to-dismiss + pinch/double-tap zoom; each photo is a branded
+"magnet" (`BrandedFrame`) with frame+logo+title baked ONTO the image (WYSIWYG
+with the download), full-bleed. Save/share (`lib/photoActions.ts`) target the
+phone's Photos via the share sheet, share carries a caption with no raw URL. Grid
+is now a uniform 3-col square grid; filters are real (`all`/`mine`); the Oura
+logo box wrapper was removed (that box, not the transparent PNG, was the visible
+square). Gotcha fixed: `dir="rtl"` reverses a horizontal flex carousel — the
+track is forced `dir="ltr"`. A mandatory **1-minute UX self-proof** ("think as
+the real user") is now codified in `frontend-rtl.md`, `qa-verifier.md`, and
+`universal-framework` §4. Live: `https://oura-web.oura-events.workers.dev/gallery`.
+
 ## 2026-07-08: gallery full-screen viewer + branded per-photo download/share (live)
 
 Tapping any `/gallery` thumbnail now opens a full-screen social-app `PhotoViewer`

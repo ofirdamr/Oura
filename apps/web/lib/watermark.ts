@@ -82,10 +82,6 @@ export async function compositeBrandedPhoto(
   const pad = Math.round(Math.min(w, h) * 0.05);
   const baseFont = Math.max(14, Math.round(w * 0.032));
 
-  // Accent hairline above the branding, in the studio's primary color.
-  ctx.fillStyle = branding.primaryColor;
-  ctx.fillRect(border + pad, border + h - Math.round(barH * 0.62), Math.round(w * 0.14), Math.max(2, Math.round(w * 0.005)));
-
   // Event title — Hebrew, RTL, flush to the right (start side).
   if (branding.eventTitle) {
     ctx.direction = "rtl";

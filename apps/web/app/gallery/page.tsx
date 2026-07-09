@@ -26,19 +26,19 @@ import {
   type CompositeBranding,
   type FrameStyle,
 } from "@/lib/watermark";
+import { savePhotos, sharePhotos } from "@/lib/photoActions";
 
 const STUDIO_NAME = "Photo Santos";
 
-const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
-
+// Uniform square tiles — a clean, premium, scannable grid (like Apple Photos /
+// Instagram), NOT a random-height collage. The old deterministic aspect variety
+// looked like a broken masonry layout and served no purpose.
 function PhotoTile({
   photo,
-  aspect,
   matched,
   onOpen,
 }: {
   photo: GuestPhoto;
-  aspect: string;
   matched?: boolean;
   onOpen: () => void;
 }) {
@@ -47,17 +47,17 @@ function PhotoTile({
       type="button"
       onClick={onOpen}
       aria-label="פתיחת התמונה במסך מלא"
-      className={`${aspect} group relative block w-full overflow-hidden rounded-2xl border border-white/5 bg-surface-container shadow-md transition-transform active:scale-[0.98]`}
+      className="group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97]"
     >
       <Image
         src={photo.url}
         alt=""
         fill
-        sizes="(min-width: 512px) 240px, 50vw"
+        sizes="(min-width: 512px) 170px, 33vw"
         className="object-cover transition-transform duration-300 group-hover:scale-105"
       />
       {matched && (
-        <div className="absolute end-2 top-2 flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/70 px-2 py-1 backdrop-blur-md">
+        <div className="absolute end-1.5 top-1.5 flex items-center justify-center rounded-full bg-black/60 p-1 backdrop-blur-md">
           <span
             className="material-symbols-outlined text-primary"
             style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
@@ -70,15 +70,9 @@ function PhotoTile({
   );
 }
 
-// Cheap deterministic aspect variety so the grid doesn't look like a flat
-// list of identical squares - purely cosmetic, no data behind it.
-function tileAspect(i: number): string {
-  return i % 3 === 0 ? "aspect-[3/4]" : "aspect-square";
-}
-
 export default function GalleryPage() {
   const router = useRouter();
-  const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
+  const [filter, setFilter] = useState<"all" | "mine">("all");
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
@@ -97,49 +91,29 @@ export default function GalleryPage() {
     };
   }, [data]);
 
-  async function downloadAll(list: GuestPhoto[]) {
+  // Composite a whole set into branded JPEGs, then hand them to the phone in ONE
+  // action: save-all lands in Photos (share sheet → "Save N Images"), share-all
+  // opens the sheet with a friendly caption. Never a folder of Files, never a
+  // raw URL.
+  async function bulkAction(mode: "download" | "share", list: GuestPhoto[]) {
     if (bulk || list.length === 0) return;
-    setBulk({ mode: "download", done: 0, total: list.length });
+    setBulk({ mode, done: 0, total: list.length });
+    const items: { blob: Blob; filename: string }[] = [];
     for (let i = 0; i < list.length; i++) {
       try {
         const blob = await compositeBrandedPhoto(list[i].url, branding);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = downloadFileName(list[i].id, branding.studioName);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        items.push({ blob, filename: downloadFileName(list[i].id, branding.studioName) });
       } catch {
         // Skip a photo that fails to composite rather than aborting the batch.
       }
-      setBulk({ mode: "download", done: i + 1, total: list.length });
-      // Small gap so the browser doesn't drop rapid-fire download triggers.
-      await new Promise((r) => setTimeout(r, 350));
+      setBulk({ mode, done: i + 1, total: list.length });
+    }
+    if (mode === "download") await savePhotos(items);
+    else {
+      const caption = branding.eventTitle ? `${branding.eventTitle} · ${branding.studioName}` : branding.studioName;
+      await sharePhotos(items, caption);
     }
     setBulk(null);
-  }
-
-  async function shareGallery() {
-    if (bulk) return;
-    const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
-    const shareData: ShareData = {
-      title: branding.eventTitle ?? "הגלריה שלי",
-      text: branding.eventTitle ? `הגלריה שלי מ${branding.eventTitle}` : "הגלריה שלי",
-      url: window.location.href,
-    };
-    try {
-      if (nav.share) {
-        await nav.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        setBulk({ mode: "share", done: 1, total: 1 });
-        setTimeout(() => setBulk(null), 2000);
-      }
-    } catch {
-      /* user cancelled the share sheet */
-    }
   }
 
   useEffect(() => {
@@ -219,6 +193,10 @@ export default function GalleryPage() {
     ? []
     : data.personal_gallery.photos;
   const generalPhotos: GuestPhoto[] = data.photos;
+  const matchedIds = new Set(personalPhotos.map((p) => p.id));
+  // Guard against a stale "mine" filter when there are no matches.
+  const activeFilter = filter === "mine" && personalPhotos.length > 0 ? "mine" : "all";
+  const shownPhotos = activeFilter === "mine" ? personalPhotos : generalPhotos;
 
   return (
     <div className="min-h-screen pb-24">
@@ -244,13 +222,14 @@ export default function GalleryPage() {
               account_circle
             </button>
           </div>
+          {/* Transparent logo sits directly on the app background — no tinted
+              box behind it (that box, not the PNG, was the visible "not
+              transparent" square). */}
           <div className="flex items-center gap-2">
             <span className="font-display text-2xl font-bold tracking-tight text-primary">
               Oura
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-container-high">
-              <OuraLogo variant="lockup" size={28} />
-            </div>
+            <OuraLogo variant="icon" size={30} />
           </div>
           <button
             type="button"
@@ -284,31 +263,44 @@ export default function GalleryPage() {
           </p>
         </section>
 
-        <div className="flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => downloadAll(personalPhotos.length > 0 ? personalPhotos : generalPhotos)}
-            disabled={bulk !== null || (personalPhotos.length === 0 && generalPhotos.length === 0)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
-          >
-            <span className={`material-symbols-outlined ${bulk?.mode === "download" ? "animate-spin" : ""}`}>
-              {bulk?.mode === "download" ? "progress_activity" : "download"}
-            </span>
-            {bulk?.mode === "download" ? (
-              <span style={{ unicodeBidi: "isolate" }}>{`מוריד ${bulk.done}/${bulk.total}...`}</span>
-            ) : (
-              "הורדת כל התמונות שלי"
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={shareGallery}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5"
-          >
-            <span className="material-symbols-outlined">share</span>
-            {bulk?.mode === "share" ? "הקישור הועתק!" : "שיתוף הגלריה האישית"}
-          </button>
-        </div>
+        {(() => {
+          const targetSet = personalPhotos.length > 0 ? personalPhotos : generalPhotos;
+          const noPhotos = targetSet.length === 0;
+          return (
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => bulkAction("download", targetSet)}
+                disabled={bulk !== null || noPhotos}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
+              >
+                <span className={`material-symbols-outlined ${bulk?.mode === "download" ? "animate-spin" : ""}`}>
+                  {bulk?.mode === "download" ? "progress_activity" : "download"}
+                </span>
+                {bulk?.mode === "download" ? (
+                  <span style={{ unicodeBidi: "isolate" }}>{`מכין ${bulk.done}/${bulk.total}...`}</span>
+                ) : (
+                  "שמירת התמונות שלי"
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => bulkAction("share", targetSet)}
+                disabled={bulk !== null || noPhotos}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-60"
+              >
+                <span className={`material-symbols-outlined ${bulk?.mode === "share" ? "animate-spin" : ""}`}>
+                  {bulk?.mode === "share" ? "progress_activity" : "ios_share"}
+                </span>
+                {bulk?.mode === "share" ? (
+                  <span style={{ unicodeBidi: "isolate" }}>{`מכין ${bulk.done}/${bulk.total}...`}</span>
+                ) : (
+                  "שיתוף התמונות שלי"
+                )}
+              </button>
+            </div>
+          );
+        })()}
 
         <div className="flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <div className="rounded-xl bg-primary p-2.5">
@@ -333,57 +325,54 @@ export default function GalleryPage() {
           </div>
         </div>
 
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              onClick={() => setActiveFilter(filter)}
-              className={`shrink-0 whitespace-nowrap rounded-full px-6 py-2.5 text-sm transition-all ${
-                activeFilter === filter
-                  ? "bg-primary font-bold text-on-primary shadow-md"
-                  : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
-
+        {/* Real, working filter — "all" vs "my photos" (face-matched), both
+            backed by live data. Only shown when there's actually a personal set
+            to switch to; no fake, dead category chips. */}
         {personalPhotos.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-sm font-bold text-on-surface-variant">
-              התמונות האישיות שלך
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {personalPhotos.map((photo, i) => (
-                <PhotoTile
-                  key={photo.id}
-                  photo={photo}
-                  aspect={tileAspect(i)}
-                  matched
-                  onOpen={() => setViewer({ list: personalPhotos, index: i })}
-                />
-              ))}
-            </div>
-          </section>
+          <div className="flex gap-2">
+            {([
+              { key: "all" as const, label: "כל התמונות", count: generalPhotos.length },
+              { key: "mine" as const, label: "התמונות שלי", count: personalPhotos.length },
+            ]).map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key)}
+                className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm transition-all ${
+                  filter === f.key
+                    ? "bg-primary font-bold text-on-primary shadow-md"
+                    : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
+                }`}
+              >
+                {f.label}
+                <span
+                  dir="ltr"
+                  className={`rounded-full px-1.5 text-xs ${filter === f.key ? "bg-black/15" : "bg-white/5"}`}
+                >
+                  {f.count}
+                </span>
+              </button>
+            ))}
+          </div>
         )}
 
         <section className="space-y-3 pb-8">
-          {generalPhotos.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {generalPhotos.map((photo, i) => (
+          {shownPhotos.length > 0 ? (
+            <div className="grid grid-cols-3 gap-1.5">
+              {shownPhotos.map((photo, i) => (
                 <PhotoTile
                   key={photo.id}
                   photo={photo}
-                  aspect={tileAspect(i)}
-                  onOpen={() => setViewer({ list: generalPhotos, index: i })}
+                  matched={matchedIds.has(photo.id)}
+                  onOpen={() => setViewer({ list: shownPhotos, index: i })}
                 />
               ))}
             </div>
           ) : (
             <p className="rounded-xl border border-white/5 bg-surface-container/60 p-4 text-center text-sm text-on-surface-variant">
-              טרם הועלו תמונות לאירוע הזה.
+              {filter === "mine"
+                ? "עדיין לא מצאנו תמונות שאתה/את מופיע/ה בהן."
+                : "טרם הועלו תמונות לאירוע הזה."}
             </p>
           )}
         </section>

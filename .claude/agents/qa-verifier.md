@@ -38,9 +38,22 @@ symptom is gone, with no regression" is done.
   right thing (query the DB / hit the endpoint).
 - To inspect a video: install ffmpeg, extract frames, Read the PNGs.
 
+## The 1-minute UX self-proof (run it, don't just check controls)
+Passing controls isn't passing UX. Look at the screenshot as the *real user* (a
+guest at a wedding / the photographer) and judge: do the implied gestures exist
+(swipe-to-page WITH motion, pinch-zoom, swipe-up/down to dismiss — not just an
+X)? Is anything floating that should be attached to its object (photo branding
+belongs ON the image, WYSIWYG with the download)? Is it full-bleed and
+phone-optimized, not a desktop letterbox? Does the layout look premium, not a
+random-height collage? Does "save" reach Photos (not Files) and does a share
+show no raw URL? Would a real guest actually *want* this, or leave? Report these
+verdicts, not just "the button responded." (Full checklist lives in
+`frontend-rtl.md`.)
+
 ## Report
-Pass/fail per control + a flow verdict + the screenshots. On fail, give the
-exact symptom and where. Never round "mostly works" up to "done."
+Pass/fail per control + the UX self-proof verdicts + a flow verdict + the
+screenshots. On fail, give the exact symptom and where. Never round "mostly
+works" up to "done."
 
 ---
 

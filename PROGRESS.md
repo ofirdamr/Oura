@@ -237,3 +237,14 @@
 - Added a dedicated `seo` agent (`.claude/agents/seo.md`, Sonnet) — technical/on-page SEO, privacy-first (token/admin/consent routes noindex). Wired into the roster README.
 - Deployed both: `oura-api` (Version 74b55b19) and `oura-web` (Version 148b3662-7ed6-48c3-9cba-2074515a8c6e). Verified LIVE with Playwright against the real deployed URL (browser reaches the live Workers via a node-fetch proxy — the documented sandbox blind spot): 17 tiles, viewer opens, swipe→"5/17", wheel-zoom scale, and a live branded download (198KB) showing the crystal frame + logo + Hebrew event title "אירוע הדגמה - פוטו סנטוס". Admin field verified live via a mock-Supabase login build screenshot.
 - Note: Cloudflare deploy from this sandbox needs `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_API_TOKEN` whitespace-trimmed, and web must build with `NEXT_PUBLIC_SUPABASE_URL/ANON_KEY` mapped from the session's `SUPABASE_URL/ANON_KEY` (real project `voxxhvywzaizyputjqkm`).
+
+### 2026-07-08 (cont.) — Gallery viewer UX rebuild after founder feedback (branch `claude/oura-gallery-fullscreen-0246bo`)
+- Founder rejected the first viewer as "built to spec, not what a guest wants." Rebuilt for a premium, native feel:
+  - `PhotoViewer` is now a horizontal **swipe carousel** (photos slide with motion, rubber-band at ends), with **swipe-up/down to dismiss** (Instagram-style; backdrop fades, X kept as hint), pinch/double-tap zoom + pan. Fixed a real bug: `dir="rtl"` reversed the flex track and pushed the current slide off-screen (killing gestures) — forced `dir="ltr"` on the track.
+  - Each photo renders as a branded **magnet** (`BrandedFrame`): frame + logo + event title baked onto the IMAGE bottom (not the screen), full-bleed, WYSIWYG with the saved JPEG.
+  - Save/share now target the phone: `lib/photoActions.ts` routes save → share sheet ("Save N Images" to Photos, not a Files dump) and share → sheet with a friendly caption and **no raw URL**.
+  - Gallery grid is a **uniform** 3-col square grid (removed the random-height collage). Filters are now real/working (`all` vs `mine`), shown only when there are matches; removed the dead category chips.
+  - Oura logo: removed the `bg-surface-container-high` wrapper box (the box, not the transparent PNG, was the visible square).
+  - Removed the accent hairline from card + canvas for clean WYSIWYG parity.
+- Encoded a mandatory **1-minute UX self-proof** ("think as the real user, not the spec") into `frontend-rtl.md`, `qa-verifier.md`, `universal-framework` §4, and `MISTAKES.md`.
+- Verified live locally with Playwright (mobile viewport, real WED-2024 photos via node-fetch proxy): swipe advances 3→4, swipe-down dismisses, branded card + matching 184KB composited download. No API change this round.
