@@ -32,10 +32,16 @@ def main():
     )
     menu = ", ".join(skills) if skills else "(none found locally)"
     print(
-        "[tooling-scout] Before building from scratch, consult the Tooling Scout (universal-framework §1): is there "
-        "an existing skill, an installed MCP/connector, or a skill/plugin published on the network (GitHub/marketplace) "
-        f"that fits THIS mission better? Local skills: {menu}. Adopt a safe skill directly; surface any OAuth-needing "
-        "connector to the founder with the one-time connect step. One good find is enough — don't over-search."
+        "[tooling-scout] MISSION DETECTED — run the Tooling Scout (universal-framework §1) BEFORE building from "
+        "scratch, and actually SEARCH THE NETWORK, not just what's installed:\n"
+        "  1. Installed/local first: SearchSkills, ListSkills, ListPlugins, ListConnectors, list_enabled_zapier_actions.\n"
+        "  2. NOT-yet-installed (this is the point — search everything, adopt/surface the best fit): SearchPlugins and "
+        "SearchMcpRegistry for published plugins/MCP servers; SuggestConnectors/SuggestPluginInstall; discover_zapier_actions "
+        "for the 9,000+ Zapier apps; and WebSearch across GitHub + the Anthropic/Claude marketplace + connector directory "
+        "for a skill/plugin/connector that fits THIS mission.\n"
+        "  3. Adopt a safe published skill directly (skills are just files); for anything needing OAuth/install, surface it "
+        "to the founder with the concrete value + the one-time connect step.\n"
+        f"Local skills already present: {menu}. Judge relevance by description; one strong find is enough — don't over-search."
     )
     sys.exit(0)
 
