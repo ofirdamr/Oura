@@ -52,9 +52,7 @@ export function AdminShell({
       <header className="fixed z-50 flex h-16 w-full flex-row-reverse items-center justify-between border-b border-outline-variant bg-surface-container/90 px-6 backdrop-blur-md md:px-20">
         <div className="flex flex-row-reverse items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-surface-container-highest">
-              <OuraLogo size={32} />
-            </div>
+            <OuraLogo size={36} />
             <span className="font-display text-xl font-bold tracking-tight text-primary md:text-2xl">
               Oura
             </span>

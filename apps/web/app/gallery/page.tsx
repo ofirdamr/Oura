@@ -175,9 +175,7 @@ export default function GalleryPage() {
             <span className="font-display text-2xl font-bold tracking-tight text-primary">
               Oura
             </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-container-high">
-              <OuraLogo variant="lockup" size={28} />
-            </div>
+            <OuraLogo size={32} />
           </div>
           <button
             type="button"
