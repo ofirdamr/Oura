@@ -12,6 +12,7 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - Payments: Stripe Billing (subscriptions) + Stripe Checkout (pay-per-event); Stripe Connect only once print commissions are live.
 
 ## Guardrails (do not violate)
+- Before reporting any change to `/packages/processing-pipeline` or `/apps/web` as done, run the `media-ui-verify` skill (lint/typecheck, RTL, font, R2-vs-Supabase boundary, consent-gate ordering, design fidelity, live screenshot — see `.claude/skills/media-ui-verify/`).
 - Media binaries never touch Supabase storage — R2 only.
 - Guests never require login/signup — signed opaque event-scoped token only.
 - No CDN `<script>` tags in production builds (Tailwind/fonts/Three.js/GSAP must be bundled npm deps) — the Stitch export used CDN tags, that was fine for a mockup only.
