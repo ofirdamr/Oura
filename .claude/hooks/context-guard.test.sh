@@ -31,7 +31,7 @@ check() { # <name> <haystack> <needle-or-empty> <should_contain:1|0>
   fi
 }
 
-echo "== defaults: WARN=20% (40k), BLOCK=35% (70k) of 200k =="
+echo "== defaults: WARN=15% (30k), BLOCK=30% (60k) of 200k =="
 
 # 1) Small context (10k = 5%) -> silent pass
 make_transcript "$TMP/small.jsonl" 10000

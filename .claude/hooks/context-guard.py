@@ -36,8 +36,8 @@ def _env_int(name, default):
 
 
 LIMIT = _env_int("OURA_CONTEXT_LIMIT", 200000)
-WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.20)
-BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.35)
+WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.15)
+BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.30)
 
 
 def context_tokens(transcript_path):
