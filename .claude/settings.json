@@ -20,6 +20,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/context-budget-guard.py\"",
+            "statusMessage": "Checking conversation context budget"
+          }
+        ]
+      }
     ]
   }
 }
