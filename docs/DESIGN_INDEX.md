@@ -36,7 +36,7 @@ Mobile folders are the responsive variant of the same screen and share the route
 | 5 | Statistics & Analytics | `statistics_desktop_1/2/3`, `statistics_mobile_1/2` | — | ⚪ | 2 |
 | 6 | Messaging Center | `messaging_center_desktop/mobile` | — | ⚪ | 2 |
 | 7 | Create New Event | `create_event_desktop` | `/admin/create-event` | 🔵 | 1 |
-| 8 | Barcode/QR Management | `barcode_management_desktop/mobile` | `/admin/qr-management` | ✅ desktop · 🔴 mobile mismatch | 1 |
+| 8 | Barcode/QR Management | `barcode_management_desktop/mobile` | `/admin/qr-management` | ✅ desktop · 🟠 mobile (shared nav fixed, page content still desktop-collapsed) | 1 |
 | 9 | Notification Center | `notification_center_desktop/mobile` | — | ⚪ | 2 |
 | 10 | Reports Management | `reports_management_desktop/mobile` | — | ⚪ | 2 |
 | 11 | Event Book Designer | `event_book_designer_desktop` | — | ⚪ | 2/3 |
@@ -134,6 +134,14 @@ buttons, a `הדפסת קוד` / `הורדה כתמונה` button pair, and a bo
 one column, so on a phone it reproduces none of that — the more likely reason it
 "looks totally different" than desktop drift.
 
+**Update:** `AdminShell`'s mobile nav is now fixed (bottom tab bar replacing the
+hamburger-only drawer, live as of the `AdminShell.tsx` fix below) — every admin
+screen now gets a correctly-highlighted primary nav on mobile. QR-management's
+own page content (event-title header, phone-mockup QR, share icons) still
+collapses the desktop grid rather than matching `barcode_management_mobile`'s
+distinct layout — that page-content gap is still open, tracked separately from
+the shared-nav fix.
+
 If it also looks wrong **on desktop / the live site**, the likely cause is the
 **documented deploy gap** (the Worker froze on an old build once before — see
 `SUMMARY.md` 2026-07-06 and `MISTAKES.md`), i.e. the good code above was never
@@ -152,3 +160,27 @@ current milestone is finishing the Phase-1 MVP. Building the payment flow now wo
 jump ahead of the PRD; it should be driven by the Phase-2 kickoff, not by a passing
 mention. Open Phase-2 questions that gate it: final ILS pricing, print-fulfillment
 partner, and whether Stripe Connect is needed (`PRD.md` §8).
+
+## 5. AdminShell mobile nav — fixed (2026-07-10)
+
+`AdminShell` (shared by every `/admin/*` screen) had no mobile bottom-tab nav —
+only a hamburger drawer. Checked 9 mobile Stitch admin screens
+(`dashboard_mobile_1/2/3`, `barcode_management_mobile`, `ai_optimization_mobile`,
+`statistics_mobile_2`, `messaging_center_mobile`, `event_list_mobile_2/3`);
+5 of them show a persistent bottom tab bar as their primary nav. But the export
+disagreed with itself: tab labels differed screen to screen (dashboard:
+`פרופיל·שיתוף·בית·גלריה`; QR: `הגדרות·גלריה·ברקוד·בית`; AI-optimization:
+`הגדרות·גלריה·AI·ראשי`), and on 2 of 5 screens the highlighted "active" tab
+didn't match the actual current page (dashboard highlighted גלריה, not itself;
+AI-optimization highlighted ראשי, not AI) — an inconsistency in the source, not
+a deliberate per-screen design (same category as the known folder-name/content
+mismatches).
+
+**Resolution (founder-directed: derive the logic since Stitch's own export
+doesn't have one):** built the bar from the codebase's own existing
+active-section grouping, already used by every `<AdminShell active=...>` call
+site — בית (dashboard) · אירועים (events/create-event/qr-management/
+event-detail) · central **+** (create-event, matching Stitch's own recurring
+floating-action-button pattern) · הגדרות (branding/ai-optimization). Every
+screen's tab now highlights correctly by construction, since it's driven by
+the same `active` prop the page already passes. Live in `AdminShell.tsx`.
