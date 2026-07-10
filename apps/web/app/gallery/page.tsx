@@ -14,6 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { BottomNav } from "@/components/guest/BottomNav";
 import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
@@ -52,6 +53,17 @@ function PhotoTile({
           </span>
         </div>
       )}
+      {/* Order-a-print entry point (Mission A commerce). */}
+      <Link
+        href={`/prints?photo=${photo.id}`}
+        aria-label="הזמנת הדפסה"
+        className="absolute bottom-2 end-2 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/70 px-3 py-1.5 text-xs font-medium text-on-surface backdrop-blur-md transition-colors hover:bg-primary hover:text-on-primary"
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
+          shopping_bag
+        </span>
+        הדפסה
+      </Link>
     </div>
   );
 }

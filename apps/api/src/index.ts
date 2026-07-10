@@ -10,6 +10,8 @@ import {
 import { embed } from './pipeline/embedClient';
 import { handleQueue, type PhotoEmbedMessage } from './queueConsumer';
 import { handleScheduled } from './scheduledCleanup';
+import { PRICING, computeItem, type PricedItem } from './pricing';
+import { createCheckoutSession, isTestKey, verifyStripeWebhook } from './stripe';
 
 // Bindings & secrets available on the Worker env.
 // Secrets are injected via `wrangler secret put` — never hardcoded (CLAUDE.md).
@@ -30,6 +32,15 @@ export type Env = {
   // Bearer secret gating /admin/backfill-embeddings — an operator action, not
   // a photographer-dashboard feature, so it isn't behind requireEventOwner.
   ADMIN_BACKFILL_TOKEN: string;
+  // Mission A — prints & gifts commerce (Stripe test-mode Checkout).
+  // STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET are wrangler secrets (never here).
+  // The account is the founder's real business, so checkout REFUSES a non-test
+  // key unless STRIPE_ALLOW_LIVE === 'true' (see /guests/:token/checkout).
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_ALLOW_LIVE?: string;
+  // Base URL of the guest-facing Next.js app, for Stripe success/cancel returns.
+  WEB_BASE_URL: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -773,6 +784,284 @@ app.get('/events/by-code/:code', async (c) => {
   if (!event) return c.json({ error: 'event_not_found' }, 404);
 
   return c.json({ event_id: event.id });
+});
+
+// ===========================================================================
+// Mission A — prints & gifts commerce.
+// Guest-facing, gated by the same opaque event-scoped token as the rest of the
+// guest path. Flow: /prints (premium-prints screen) builds a cart -> POST
+// /guests/:token/checkout creates a pending order + Stripe-hosted Checkout
+// Session -> Stripe redirects to /order-confirmation -> POST /stripe/webhook
+// flips the order to 'paid'. Pricing is authoritative server-side (src/pricing.ts);
+// client-sent amounts are display-only and never trusted.
+// ===========================================================================
+
+// GET /prints/pricing
+//   Public print catalog/pricing (src/pricing.ts) — the SINGLE source the
+//   /prints screen renders from, so the displayed prices and the checkout
+//   computation can never drift. No token needed (pricing isn't guest-specific).
+app.get('/prints/pricing', (c) => c.json(PRICING));
+
+// Generate a short human order number (e.g. OR-84213) with collision retry.
+// order_number has a UNIQUE constraint; on the rare 5-digit collision we retry.
+async function insertOrderWithNumber(
+  db: SupabaseClient,
+  row: Record<string, unknown>,
+): Promise<{ id: string; order_number: string } | null> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const order_number = `OR-${Math.floor(10000 + Math.random() * 90000)}`;
+    const { data, error } = await db
+      .from('orders')
+      .insert({ ...row, order_number })
+      .select('id, order_number')
+      .maybeSingle();
+    if (!error && data) return { id: data.id, order_number: data.order_number };
+    // 23505 = unique_violation (order_number clash) — retry with a new number.
+    if (error && (error as { code?: string }).code !== '23505') return null;
+  }
+  return null;
+}
+
+// POST /guests/:token/checkout
+//   Body: { items: [{ photo_id, size, paper, frame, quantity }], contact_email? }
+//   Validates every line against the pricing config (rejecting the WHOLE
+//   checkout on any bad selection), confirms each photo belongs to this event,
+//   computes authoritative totals, creates a pending order + order_items, opens
+//   a Stripe Checkout Session, and returns its URL for the browser to redirect to.
+//   Response 200: { order_id, order_number, checkout_url }
+app.post('/guests/:token/checkout', async (c) => {
+  const token = c.req.param('token');
+  if (!token) return c.json({ error: 'missing_token' }, 400);
+
+  // Refuse to touch a live key on the founder's real business account unless
+  // explicitly overridden — makes an accidental live charge structurally impossible.
+  if (!isTestKey(c.env.STRIPE_SECRET_KEY) && c.env.STRIPE_ALLOW_LIVE !== 'true') {
+    return c.json({ error: 'stripe_live_key_blocked' }, 400);
+  }
+
+  const db = supa(c.env);
+  const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
+  if (!resolved.ok) return c.json({ error: resolved.error }, resolved.status);
+  const { payload, guest } = resolved;
+
+  const body = (await c.req.json().catch(() => ({}))) as {
+    items?: unknown;
+    contact_email?: unknown;
+  };
+  const rawItems = Array.isArray(body.items) ? body.items : [];
+  if (rawItems.length === 0 || rawItems.length > 50) {
+    return c.json({ error: 'invalid_cart' }, 400);
+  }
+
+  // Price every line authoritatively; collect the photo ids to validate.
+  const priced: { item: PricedItem; photo_id: string }[] = [];
+  for (const raw of rawItems) {
+    const item = computeItem(raw);
+    const photo_id = (raw as { photo_id?: unknown })?.photo_id;
+    if (!item || typeof photo_id !== 'string') return c.json({ error: 'invalid_item' }, 400);
+    priced.push({ item, photo_id });
+  }
+
+  // Every referenced photo must belong to THIS event (no cross-event ordering).
+  const photoIds = Array.from(new Set(priced.map((p) => p.photo_id)));
+  const { data: photoRows, error: photoErr } = await db
+    .from('photos')
+    .select('id')
+    .eq('event_id', payload.event_id)
+    .in('id', photoIds);
+  if (photoErr) return c.json({ error: 'photo_lookup_failed' }, 500);
+  const validPhotoIds = new Set((photoRows ?? []).map((p) => p.id));
+  if (photoIds.some((id) => !validPhotoIds.has(id))) {
+    return c.json({ error: 'photo_not_in_event' }, 400);
+  }
+
+  const subtotal_agorot = priced.reduce((sum, p) => sum + p.item.line_agorot, 0);
+  const shipping_agorot = PRICING.shipping_agorot;
+  const total_agorot = subtotal_agorot + shipping_agorot;
+
+  const contact_email =
+    typeof body.contact_email === 'string' && body.contact_email.includes('@')
+      ? body.contact_email.trim().slice(0, 320)
+      : null;
+
+  // Create the pending order (+ its number) before opening Stripe.
+  const order = await insertOrderWithNumber(db, {
+    event_id: payload.event_id,
+    guest_id: guest.id,
+    status: 'pending',
+    currency: PRICING.currency,
+    subtotal_agorot,
+    shipping_agorot,
+    total_agorot,
+    contact_email,
+  });
+  if (!order) return c.json({ error: 'order_create_failed' }, 500);
+
+  const itemRows = priced.map((p) => ({
+    order_id: order.id,
+    photo_id: p.photo_id,
+    product_type: 'print',
+    size: p.item.size,
+    paper: p.item.paper,
+    frame: p.item.frame === 'none' ? null : p.item.frame,
+    quantity: p.item.quantity,
+    unit_agorot: p.item.unit_agorot,
+    line_agorot: p.item.line_agorot,
+    title: p.item.title,
+  }));
+  const { error: itemsErr } = await db.from('order_items').insert(itemRows);
+  if (itemsErr) return c.json({ error: 'order_items_failed' }, 500);
+
+  const base = (c.env.WEB_BASE_URL || new URL(c.req.url).origin).replace(/\/$/, '');
+  const session = await createCheckoutSession({
+    secretKey: c.env.STRIPE_SECRET_KEY,
+    currency: PRICING.currency,
+    lineItems: priced.map((p) => ({
+      name: p.item.title,
+      unit_agorot: p.item.unit_agorot,
+      quantity: p.item.quantity,
+    })),
+    successUrl: `${base}/order-confirmation?order=${order.id}`,
+    cancelUrl: `${base}/gallery?checkout=cancelled`,
+    clientReferenceId: order.id,
+    metadata: { order_id: order.id, event_id: payload.event_id, guest_id: guest.id },
+    idempotencyKey: order.id,
+    customerEmail: contact_email ?? undefined,
+  });
+  if (!session.ok) {
+    // Mark the stranded order failed so it doesn't linger as a phantom 'pending'.
+    await db.from('orders').update({ status: 'failed' }).eq('id', order.id);
+    return c.json({ error: session.error }, 502);
+  }
+
+  await db
+    .from('orders')
+    .update({ stripe_session_id: session.session.id })
+    .eq('id', order.id);
+
+  return c.json({
+    order_id: order.id,
+    order_number: order.order_number,
+    checkout_url: session.session.url,
+  });
+});
+
+// GET /guests/:token/orders/:order_id
+//   Returns one order (+ its items) for the confirmation screen. Scoped by BOTH
+//   the guest's id AND the order id, so a guest can only read their own order.
+//   Response 200: { order: {...}, items: [...] }
+app.get('/guests/:token/orders/:order_id', async (c) => {
+  const token = c.req.param('token');
+  const order_id = c.req.param('order_id');
+  if (!token) return c.json({ error: 'missing_token' }, 400);
+  if (!order_id) return c.json({ error: 'missing_order_id' }, 400);
+
+  const db = supa(c.env);
+  const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
+  if (!resolved.ok) return c.json({ error: resolved.error }, resolved.status);
+  const { guest } = resolved;
+
+  const { data: order, error: orderErr } = await db
+    .from('orders')
+    .select(
+      'id, order_number, status, currency, subtotal_agorot, shipping_agorot, total_agorot, contact_email, created_at',
+    )
+    .eq('id', order_id)
+    .eq('guest_id', guest.id)
+    .maybeSingle();
+  if (orderErr) return c.json({ error: 'order_lookup_failed' }, 500);
+  if (!order) return c.json({ error: 'order_not_found' }, 404);
+
+  const { data: items, error: itemsErr } = await db
+    .from('order_items')
+    .select('id, photo_id, size, paper, frame, quantity, unit_agorot, line_agorot, title, photos(storage_key)')
+    .eq('order_id', order_id)
+    .order('created_at', { ascending: true });
+  if (itemsErr) return c.json({ error: 'order_items_lookup_failed' }, 500);
+
+  const itemsOut = (items ?? []).map((row) => {
+    const it = row as Record<string, unknown> & {
+      photos?: { storage_key: string } | { storage_key: string }[] | null;
+    };
+    const ph = Array.isArray(it.photos) ? it.photos[0] : it.photos;
+    return {
+      id: it.id,
+      photo_id: it.photo_id,
+      size: it.size,
+      paper: it.paper,
+      frame: it.frame,
+      quantity: it.quantity,
+      unit_agorot: it.unit_agorot,
+      line_agorot: it.line_agorot,
+      title: it.title,
+      url: ph?.storage_key ? photoUrlStub(c, ph.storage_key) : null,
+    };
+  });
+
+  return c.json({ order, items: itemsOut });
+});
+
+// POST /stripe/webhook
+//   Stripe-signed (NOT guest-token) endpoint. Verifies the signature against
+//   STRIPE_WEBHOOK_SECRET over the RAW body, then reconciles the order:
+//   checkout.session.completed -> 'paid' (idempotent, amount-checked);
+//   checkout.session.expired  -> 'failed' (only while still 'pending').
+//   Always 200s a validly-signed event (even a duplicate) so Stripe stops retrying;
+//   400s an invalid signature.
+app.post('/stripe/webhook', async (c) => {
+  const rawBody = await c.req.text();
+  const event = await verifyStripeWebhook(
+    rawBody,
+    c.req.header('stripe-signature'),
+    c.env.STRIPE_WEBHOOK_SECRET,
+  );
+  if (!event) return c.json({ error: 'invalid_signature' }, 400);
+
+  const type = event.type as string;
+  const session = (event.data as { object?: Record<string, unknown> } | undefined)?.object ?? {};
+  const orderId =
+    (session.client_reference_id as string | undefined) ??
+    ((session.metadata as Record<string, string> | undefined)?.order_id);
+
+  if (!orderId) return c.json({ received: true });
+
+  const db = supa(c.env);
+
+  if (type === 'checkout.session.completed' || type === 'checkout.session.async_payment_succeeded') {
+    // Only settle if payment actually succeeded.
+    if (session.payment_status && session.payment_status !== 'paid') {
+      return c.json({ received: true });
+    }
+    const paymentIntent =
+      typeof session.payment_intent === 'string' ? session.payment_intent : null;
+    const email =
+      (session.customer_details as { email?: string } | undefined)?.email ??
+      (session.customer_email as string | undefined) ??
+      null;
+    // Idempotent: only flip a not-yet-paid order. A duplicate delivery no-ops.
+    await db
+      .from('orders')
+      .update({
+        status: 'paid',
+        stripe_payment_intent: paymentIntent,
+        ...(email ? { contact_email: email } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+      .neq('status', 'paid');
+    return c.json({ received: true });
+  }
+
+  if (type === 'checkout.session.expired') {
+    await db
+      .from('orders')
+      .update({ status: 'failed', updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .eq('status', 'pending');
+    return c.json({ received: true });
+  }
+
+  return c.json({ received: true });
 });
 
 app.get('/', (c) => c.text('oura-api'));

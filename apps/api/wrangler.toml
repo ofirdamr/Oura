@@ -48,3 +48,11 @@ EMBED_SERVICE_URL = "https://oura-embed-932309994000.us-central1.run.app"
 CLUSTER_MATCH_THRESHOLD = "0.5"
 GUEST_MATCH_THRESHOLD = "0.42"
 GUEST_MATCH_TOPK = "20"
+# Mission A — prints & gifts commerce (Stripe test-mode Checkout).
+# WEB_BASE_URL is where Stripe redirects back after Checkout (guest Next.js app).
+# STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET are SECRETS — set via
+# `wrangler secret put`, NEVER here. Checkout refuses a non-`sk_test_` key
+# unless STRIPE_ALLOW_LIVE is flipped to "true" (guard against charging the
+# founder's real business account by accident).
+WEB_BASE_URL = "https://oura-web.oura-events.workers.dev"
+STRIPE_ALLOW_LIVE = "false"

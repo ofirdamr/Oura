@@ -124,6 +124,20 @@ egress). Never edit an already-applied migration file; add a new one.
   rows), `biometric_consents.guardian_confirmed`, `photos.embed_status`, and
   the shared `match_faces(event_id, query_embedding, limit)` pgvector ANN-
   search RPC. Applied.
+- `supabase/migrations/0005_orders.sql` — **Mission A (prints & gifts
+  commerce).** Adds `orders` + `order_items`. Money in **agorot** (integer ILS
+  minor units, never floats). Same RLS posture as the guest-path tables: RLS
+  ENABLED + FORCED with **zero policies** — all access is via the Worker's
+  service-role client, gated by the guest's opaque token (a leaked anon key can
+  never read a stranger's order). `orders`: `event_id`, `guest_id`,
+  `order_number` (unique, `OR-#####`), `status`
+  (`pending|paid|failed|cancelled|fulfilled`), `currency`,
+  `subtotal/shipping/total_agorot`, `stripe_session_id` (unique — webhook
+  idempotency anchor), `stripe_payment_intent`, `contact_email`. `order_items`:
+  `order_id`, `photo_id` (→photos, ON DELETE SET NULL so history survives a
+  photo delete), `size/paper/frame`, `quantity`, `unit/line_agorot`, denormalized
+  Hebrew `title`. **NOT yet applied to the live DB** (needs a founder Supabase
+  PAT, same one-time pattern as 0003/0004) — see the runbook in SUMMARY.md.
 - `supabase/migrations/0004_guest_token_expiry.sql` — adds
   `guests.token_expires_at` (defaults to `created_at + 90 days` for new rows;
   backfilled to the same on existing rows), enforced in
@@ -182,6 +196,10 @@ auth — they're the guest path, gated only by the opaque token.
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
+| `GET /prints/pricing` | **Mission A.** Public print catalog/pricing (`src/pricing.ts`) — the SINGLE source the `/prints` screen renders from AND the checkout route prices against, so displayed and charged amounts can never drift. No token (pricing isn't guest-specific). |
+| `POST /guests/:token/checkout` | **Mission A.** Body `{ items:[{photo_id,size,paper,frame,quantity}], contact_email? }`. Validates every line against the pricing config (rejects the whole cart on any bad selection), confirms each photo belongs to the token's event, computes **authoritative** totals server-side (client amounts are display-only), creates a `pending` order + items, opens a **Stripe-hosted Checkout Session** (idempotency-key = order id), returns `{order_id, order_number, checkout_url}`. **Test-mode safety guard:** refuses any `STRIPE_SECRET_KEY` not prefixed `sk_test_` unless `STRIPE_ALLOW_LIVE==='true'` — the Stripe account is the founder's real business, so an accidental live charge is structurally blocked. |
+| `GET /guests/:token/orders/:order_id` | **Mission A.** One order + its items for the confirmation screen, scoped by BOTH guest id AND order id (a guest reads only their own order). |
+| `POST /stripe/webhook` | **Mission A.** Stripe-signed (NOT guest-token). Verifies the `Stripe-Signature` HMAC over the RAW body via Web Crypto (`src/stripe.ts`, no SDK), with a 300s replay tolerance. `checkout.session.completed` → order `paid` (idempotent `.neq('status','paid')`, records payment_intent + email); `checkout.session.expired` → `failed` (only while still `pending`). Always 200s a validly-signed event so Stripe stops retrying; 400s a bad signature. |
 | `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string }`. Re-enqueues every photo not yet `embed_status:'done'` into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. Needed once live: all 17 `WED-2024` photos were still `embed_status:'pending'` with zero `face_embeddings` rows, which is why an early real-guest selfie test against that event found no match despite the guest appearing in nearly every photo. |
 
 **Opaque guest token format:** `base64url(JSON{event_id,guest_id,iat}).base64url(HMAC-SHA256)`,
@@ -271,6 +289,8 @@ two and enumerate event ids.
 | `/festive-gallery`, `/minimal-gallery` | Static UI only — alternate gallery theme variants, never wired |
 | `/gift-reveal` | **Real** Three.js/GSAP scene, wired into the guest flow — `/selfie`'s confirm-submit routes here (matched or not), landing on `/gallery` |
 | `/photo-editor` | Local React state only (adjustments preview live via CSS filters) — nothing persists back to a real photo |
+| `/prints` | **Real (Mission A)** — premium-prints screen ported from `design/screens/oura_final_production_premium_prints_mobile`. Reached from `/gallery` per-photo via `?photo=<id>`. Fetches `GET /prints/pricing`, builds a localStorage cart (`lib/cart.ts`), header cart icon opens Stripe Checkout. Scoped `--color-primary:#ffb4a6` per its own Stitch source. |
+| `/order-confirmation` | **Real (Mission A)** — ported from `design/screens/oura_final_production_order_confirmation_desktop`. Stripe's `success_url` (`?order=<id>`). Loads the real order, clears the cart, short-polls while the paid-webhook settles. Scoped `--color-primary:#e2725b`. **Note:** the `checkout` design folders (`oura_final_production_checkout_*`) are BOTH the notifications-center screen (export mislabel) — there is no checkout screen.png; Stripe's hosted Checkout page is that step, so nothing was freehanded. |
 
 **Photographer-facing (behind `/admin/*` auth middleware) — wired-vs-static status:**
 
@@ -357,6 +377,16 @@ anywhere real — will need to be re-set/confirmed once it is).
 `ADMIN_BACKFILL_TOKEN` (gates `POST /admin/backfill-embeddings`, see §4 —
 write-only like every other Wrangler secret; re-set via `wrangler secret put`
 if it needs to be used again and the value has been lost).
+**Mission A (prints commerce):** `STRIPE_SECRET_KEY` (MUST be a `sk_test_...`
+test key — the account is the founder's real Makeupbyyo.com business; checkout
+refuses non-test keys unless `STRIPE_ALLOW_LIVE` is flipped) and
+`STRIPE_WEBHOOK_SECRET` (`whsec_...`, the signing secret of the Stripe
+webhook endpoint registered for `POST /stripe/webhook`). **Neither is set live
+yet** — see the SUMMARY.md runbook.
+
+**`apps/api` (non-secret vars, `wrangler.toml`):** `WEB_BASE_URL`
+(`https://oura-web.oura-events.workers.dev` — Stripe success/cancel return base)
+and `STRIPE_ALLOW_LIVE` (`"false"` — leave false; the live-charge guard).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
 
@@ -444,8 +474,15 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   `SUMMARY.md`, not resolved here.
 - **AI Optimization admin screen and Photo Editor persistence are UI-only** —
   local React state, no real backend behind either.
-- **Phase 2 features** (Stripe billing, print orders, statistics, messaging,
-  Studio Profile) are not started — see `PRD.md` §4.
+- **Print orders (Mission A) are BUILT + locally verified, not yet live.**
+  Schema (0005), pricing config, `/prints` + `/order-confirmation` routes,
+  test-mode Stripe Checkout + signed webhook are all code-complete and verified
+  against a local prod build with Playwright (RTL measured, pricing correct,
+  Stripe-hosted page is the checkout step so no screen was freehanded). Going
+  live needs three founder-gated steps (apply migration 0005, set the two
+  Stripe test secrets, register the webhook endpoint) — the runbook is in
+  `SUMMARY.md`. Other Phase 2 features (statistics, messaging, Studio Profile,
+  Stripe *billing/subscriptions*) are not started — see `PRD.md` §4.
 
 ## 9. Deployment process (manual — there is no CI/CD)
 

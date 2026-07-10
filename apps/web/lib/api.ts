@@ -161,6 +161,90 @@ export async function postSelfie(
   return { ok: true, data: body as SelfieResponse };
 }
 
+// --- Mission A — prints & gifts commerce ------------------------------------
+
+export type PrintSize = "10x15" | "13x18" | "20x30";
+export type PrintPaper = "matte" | "glossy" | "silk";
+export type PrintFrame = "none" | "oak" | "black" | "gold";
+
+export type PricingConfig = {
+  currency: "ils";
+  shipping_agorot: number;
+  sizes: { id: PrintSize; label: string; agorot: number }[];
+  papers: { id: PrintPaper; label: string; sublabel: string; agorot: number }[];
+  frames: { id: PrintFrame; label: string; agorot: number }[];
+};
+
+// GET /prints/pricing -> the authoritative print catalog/pricing the /prints
+// screen renders from (same object the checkout route prices against server-side).
+export function getPrintPricing(): Promise<ApiResult<PricingConfig>> {
+  return request<PricingConfig>(`/prints/pricing`);
+}
+
+export type CheckoutItem = {
+  photo_id: string;
+  size: PrintSize;
+  paper: PrintPaper;
+  frame: PrintFrame;
+  quantity: number;
+};
+
+export type CheckoutResponse = {
+  order_id: string;
+  order_number: string;
+  checkout_url: string;
+};
+
+// POST /guests/:token/checkout -> creates a pending order + a Stripe-hosted
+// Checkout Session, returning its URL for the browser to redirect to. Totals are
+// recomputed server-side from the pricing config; these items are the selection,
+// not trusted prices.
+export function createCheckout(
+  token: string,
+  items: CheckoutItem[],
+  contactEmail?: string,
+): Promise<ApiResult<CheckoutResponse>> {
+  return request<CheckoutResponse>(`/guests/${encodeURIComponent(token)}/checkout`, {
+    method: "POST",
+    body: JSON.stringify(contactEmail ? { items, contact_email: contactEmail } : { items }),
+  });
+}
+
+export type OrderItem = {
+  id: string;
+  photo_id: string | null;
+  size: PrintSize;
+  paper: PrintPaper;
+  frame: PrintFrame | null;
+  quantity: number;
+  unit_agorot: number;
+  line_agorot: number;
+  title: string;
+  url: string | null;
+};
+
+export type Order = {
+  id: string;
+  order_number: string;
+  status: "pending" | "paid" | "failed" | "cancelled" | "fulfilled";
+  currency: string;
+  subtotal_agorot: number;
+  shipping_agorot: number;
+  total_agorot: number;
+  contact_email: string | null;
+  created_at: string;
+};
+
+export type OrderResponse = { order: Order; items: OrderItem[] };
+
+// GET /guests/:token/orders/:order_id -> one order + its line items, for the
+// confirmation screen. Scoped to the guest server-side.
+export function getOrder(token: string, orderId: string): Promise<ApiResult<OrderResponse>> {
+  return request<OrderResponse>(
+    `/guests/${encodeURIComponent(token)}/orders/${encodeURIComponent(orderId)}`,
+  );
+}
+
 export type UploadPhotoResponse = { id: string; event_id: string; storage_key: string };
 
 // POST /events/:event_id/photos -> photographer-authenticated photo ingest.

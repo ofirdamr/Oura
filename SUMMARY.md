@@ -314,6 +314,56 @@ for a Plan/PM decision on how to proceed next, not another round of
 solo fixes — see whatever the PM agent decided, check `PROGRESS.md` for
 its full reasoning if this doc doesn't have it yet.
 
+## 2026-07-10: Mission A (prints & gifts commerce) — BUILT + locally verified, NOT yet live
+
+Implemented the print-purchase flow end to end in code, on branch
+`claude/oura-mission-a-commerce-gxo6cp`. Guests order prints of their gallery
+photos through Stripe-hosted test-mode Checkout.
+
+What shipped in code (all typecheck-clean, web prod-build clean, Playwright-verified
+against a local build — RTL measured, not eyeballed):
+- **Two real routes from the Stitch export:** `/prints` (premium-prints screen)
+  and `/order-confirmation`. The `checkout` export folders are BOTH the
+  notifications-center screen (another export mislabel — flagged, not ported);
+  Stripe's own hosted Checkout page IS the checkout step, so **nothing was
+  freehanded** (CLAUDE.md "never design new visuals" respected).
+- **Schema:** `supabase/migrations/0005_orders.sql` — `orders` + `order_items`,
+  money in agorot, RLS forced + zero policies (Worker-mediated, same as the
+  guest path).
+- **Configurable pricing from the design** (`apps/api/src/pricing.ts`): sizes
+  ₪15/₪25/₪45, frames +₪75/+₪89/+₪120, paper free, free shipping — served via
+  `GET /prints/pricing` so the screen and the authoritative checkout computation
+  share one source. Verified: 20x30 + oak = ₪134, 10x15 + oak = ₪104 (design's
+  own example).
+- **Worker routes:** `POST /guests/:token/checkout` (validates + prices
+  server-side, creates pending order, opens Stripe session, idempotency-keyed),
+  `GET /guests/:token/orders/:id`, `POST /stripe/webhook` (Web-Crypto signature
+  verify, no SDK; idempotent paid/failed reconciliation).
+- **Test-mode safety guard:** checkout refuses any non-`sk_test_` key unless
+  `STRIPE_ALLOW_LIVE==='true'` — the Stripe account is the founder's real
+  **Makeupbyyo.com** business, so an accidental live charge is structurally
+  impossible. (`get_stripe_account_info` confirmed the account; `GetProducts`
+  was empty, consistent with test mode; a clean `livemode` read was blocked by
+  MCP permission-prompt flakiness, hence the belt-and-suspenders guard.)
+- **Entry point:** each `/gallery` photo tile now has a "הדפסה" button →
+  `/prints?photo=<id>`.
+
+### Go-live runbook (founder-gated — 3 steps, then deploy)
+Not done from this session because each needs a founder credential/console:
+1. **Apply migration 0005** to the live DB (Supabase Management API + a
+   founder-issued `sbp_...` PAT, same one-time-use pattern as 0003/0004).
+2. **Set two Worker secrets** (test keys from the Stripe dashboard, test mode):
+   `cd apps/api && npx wrangler secret put STRIPE_SECRET_KEY` (the `sk_test_...`)
+   and `npx wrangler secret put STRIPE_WEBHOOK_SECRET` (the `whsec_...` from step 3).
+3. **Register the webhook** in the Stripe dashboard (test mode) → endpoint
+   `https://oura-api.oura-events.workers.dev/stripe/webhook`, events
+   `checkout.session.completed` + `checkout.session.expired`; copy its signing
+   secret into step 2.
+Then deploy both Workers (`apps/api`: `npx wrangler deploy`; `apps/web`:
+`npx opennextjs-cloudflare build && npx wrangler deploy`). Once live the flow is
+reachable at `https://oura-web.oura-events.workers.dev/prints?photo=<id>` from any
+gallery photo's "הדפסה" button.
+
 ## Next milestone: not yet decided
 
 **2026-07-06: guest token expiry — shipped and verified live.** Added
