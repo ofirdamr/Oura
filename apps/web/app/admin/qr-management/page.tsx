@@ -218,24 +218,40 @@ function QrManagementPageInner() {
         </div>
 
         <section className="glass-panel relative mb-8 flex flex-col items-center overflow-hidden rounded-[2.5rem] border border-outline-variant/15 p-8 shadow-2xl">
-          <div className="relative mb-8 flex h-64 w-64 items-center justify-center rounded-3xl bg-white p-5 shadow-xl">
-            {qrDataUrl ? (
-              <Image
-                src={qrDataUrl}
-                alt={`קוד QR לגלריה של ${eventName ?? "האירוע"}`}
-                width={512}
-                height={512}
-                unoptimized
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <span
-                className="material-symbols-outlined text-black/70"
-                style={{ fontSize: "96px" }}
-              >
-                qr_code_2
-              </span>
-            )}
+          {/* Mockup-photo treatment matching screen.png: white photo-frame
+              border, dark background with a warm coral glow, phone silhouette
+              with the real QR shown on its "screen" - reproduces Stitch's
+              decorative composition without hotlinking its own placeholder
+              photo (which shows a fake, non-scannable QR pattern). */}
+          <div className="relative mb-8 h-64 w-64 rounded-[1.75rem] bg-white p-2 shadow-xl">
+            <div
+              className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[1.25rem]"
+              style={{
+                background:
+                  "radial-gradient(circle at 18% 82%, rgba(226,114,74,0.55), transparent 55%), #0d0f11",
+              }}
+            >
+              <div className="relative flex h-[88%] w-[62%] flex-col items-center rounded-[1.4rem] border-[3px] border-black bg-white p-3 shadow-2xl">
+                <div className="mb-2 h-1 w-6 shrink-0 rounded-full bg-black/80" />
+                {qrDataUrl ? (
+                  <Image
+                    src={qrDataUrl}
+                    alt={`קוד QR לגלריה של ${eventName ?? "האירוע"}`}
+                    width={512}
+                    height={512}
+                    unoptimized
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <span
+                    className="material-symbols-outlined text-black/70"
+                    style={{ fontSize: "72px" }}
+                  >
+                    qr_code_2
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
           <div className="grid w-full grid-cols-2 gap-3">
             <a
