@@ -279,9 +279,15 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Code correctly requests `facingMode:"environment"`; the likely cause is an
   in-app browser (WKWebView) that ignores it. Hardening option: enumerate
   video devices and force the rear one. Confirm his browser first.
-- Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
-  photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
-  print sub-options + fullscreen-display button.
+- `/admin/qr-management`'s two print sub-options + fullscreen-display button
+  are still dead (no `onClick`). **Fixed 2026-07-10:** `/gallery`'s "download
+  all my photos" and "share my gallery" buttons are now real — download zips
+  the guest's matched photos (client-side jszip, via the CORS-open `/media/*`
+  route), share uses the Web Share API to send the photo files natively with a
+  zip-download fallback where file-sharing is unsupported. No guest token ever
+  goes in a shareable URL (that stays the documented open concern). Verified
+  locally with Playwright (real zip inspected: 3 matched photos, correct
+  Hebrew feedback on both paths).
 - Content genuinely missing vs. the design (needs real backend/feature
   work, not a CSS fix): personal-gallery's name-based headline + event-name
   line + per-photo match-confidence badges; dashboard's 3rd stat card + AI

@@ -19,6 +19,7 @@ import { BottomNav } from "@/components/guest/BottomNav";
 import { getGallery, type GalleryResponse, type GuestPhoto } from "@/lib/api";
 import { clearGuestSession, loadGuestSession } from "@/lib/guestSession";
 import { OuraLogo } from "@/components/brand/OuraLogo";
+import { downloadPhotosAsZip, sharePhotos } from "@/lib/photoActions";
 
 const FILTERS = ["כל התמונות", "חופה", "ריקודים", "קבלת פנים"];
 
@@ -68,6 +69,8 @@ export default function GalleryPage() {
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
+  const [busy, setBusy] = useState<null | "download" | "share">(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,6 +150,51 @@ export default function GalleryPage() {
     : data.personal_gallery.photos;
   const generalPhotos: GuestPhoto[] = data.photos;
 
+  // "My photos" = the matched personal set when it exists, otherwise the full
+  // event gallery, so the button is never a no-op even before a match lands.
+  const myPhotos: GuestPhoto[] =
+    personalPhotos.length > 0 ? personalPhotos : generalPhotos;
+
+  function flash(message: string) {
+    setFeedback(message);
+    window.setTimeout(() => setFeedback(null), 3500);
+  }
+
+  async function handleDownload() {
+    if (busy) return;
+    if (myPhotos.length === 0) {
+      flash("אין עדיין תמונות להורדה.");
+      return;
+    }
+    setBusy("download");
+    try {
+      const { ok, count } = await downloadPhotosAsZip(myPhotos);
+      flash(ok ? `${count} תמונות ירדו למכשיר.` : "ההורדה נכשלה, נסו שוב.");
+    } catch {
+      flash("ההורדה נכשלה, נסו שוב.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleShare() {
+    if (busy) return;
+    if (myPhotos.length === 0) {
+      flash("אין עדיין תמונות לשיתוף.");
+      return;
+    }
+    setBusy("share");
+    try {
+      const { outcome } = await sharePhotos(myPhotos);
+      if (outcome === "downloaded") flash("השיתוף לא נתמך במכשיר, התמונות ירדו במקום.");
+      else if (outcome === "unavailable") flash("השיתוף נכשל, נסו שוב.");
+    } catch {
+      flash("השיתוף נכשל, נסו שוב.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div className="min-h-screen pb-24">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-background/95 backdrop-blur-md">
@@ -212,14 +260,40 @@ export default function GalleryPage() {
         </section>
 
         <div className="flex flex-col gap-3">
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98]">
-            <span className="material-symbols-outlined">download</span>
-            הורדת כל התמונות שלי
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={busy !== null}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
+          >
+            <span
+              className={`material-symbols-outlined ${busy === "download" ? "animate-spin" : ""}`}
+            >
+              {busy === "download" ? "progress_activity" : "download"}
+            </span>
+            {busy === "download" ? "מכינים הורדה..." : "הורדת כל התמונות שלי"}
           </button>
-          <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5">
-            <span className="material-symbols-outlined">share</span>
-            שיתוף הגלריה האישית
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={busy !== null}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-60"
+          >
+            <span
+              className={`material-symbols-outlined ${busy === "share" ? "animate-spin" : ""}`}
+            >
+              {busy === "share" ? "progress_activity" : "share"}
+            </span>
+            {busy === "share" ? "מכינים שיתוף..." : "שיתוף הגלריה האישית"}
           </button>
+          {feedback && (
+            <p
+              role="status"
+              className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-center text-sm text-on-surface-variant"
+            >
+              {feedback}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
