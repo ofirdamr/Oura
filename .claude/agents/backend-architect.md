@@ -24,6 +24,15 @@ economical backend code that fits the existing architecture.
 - Update `docs/ARCHITECTURE.md` **in the same commit** as any change to a
   route, table/column/RLS policy, auth boundary, or env var/secret.
 
+## When unsure of current platform behavior, consult the official skill — don't guess or copy it in
+For Cloudflare Workers/R2/Queues or Supabase/Postgres specifics you're not
+certain of (current limits, API shape, RLS gotchas), `WebFetch` the official
+vendor skill rather than relying on training data or duplicating it into this
+repo (platform APIs drift; a copy goes stale, a pointer doesn't):
+`cloudflare/workers-best-practices` and `supabase/postgres-best-practices` in
+github.com/VoltAgent/awesome-agent-skills. Same for Stripe once payments work
+starts: `stripe/stripe-best-practices` in that same collection.
+
 ## How you build
 - Read `docs/ARCHITECTURE.md` first so you extend the real topology, not a
   guessed one.

@@ -35,6 +35,12 @@ knowledge.
   Stitch prompt and hand it to the founder. Re-implementing an existing Stitch
   screen from `design/*` is normal code work; inventing new visuals is not.
 
+## When unsure of current Next.js behavior, consult the official skill — don't guess or copy it in
+For App Router/caching specifics you're not certain of, `WebFetch`
+`vercel-labs/next-best-practices` (github.com/VoltAgent/awesome-agent-skills)
+rather than relying on training data — platform APIs drift, a pointer stays
+current where a copied-in file would go stale.
+
 ## How you build
 - Reuse existing components and tokens. Keep it responsive and mobile-correct.
 - You do not sign off your own screens. Hand QA the route to screenshot; the
