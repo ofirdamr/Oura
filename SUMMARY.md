@@ -342,9 +342,20 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Code correctly requests `facingMode:"environment"`; the likely cause is an
   in-app browser (WKWebView) that ignores it. Hardening option: enumerate
   video devices and force the rear one. Confirm his browser first.
-- `/admin/qr-management`'s two print sub-options + fullscreen-display button
-  are still dead (no `onClick`). (`/gallery`'s "download all"/"share" buttons
-  were dead too — now wired, see the 2026-07-08 gallery-viewer entry below.)
+- `/admin/qr-management`'s two print sub-options (A4 / branding stickers) and
+  the social share-target buttons (WhatsApp/email/Instagram/Telegram) remain
+  stubbed — real print layouts and share-target integrations, deliberately
+  out of scope so far. Its fullscreen-display button is fixed on PR #18
+  (code-reviewed, not yet live-verified — see 2026-07-10 entry below).
+
+**2026-07-10: PR #10 (the real branded gallery download/share, live since
+2026-07-08) merged to `main` after sitting as an unmerged draft for two
+days.** Root cause and fix — see `PROGRESS.md`'s 2026-07-10 "pileup" entry.
+Short version: it was never lost, just never merged, and two later sessions
+duplicated the work from scratch without checking for it first. Merge is no
+longer an ask-first gate going forward (see `CLAUDE.md`/`universal-framework`
+process fix); `/gallery`'s buttons and filters are the #10 version, not
+this session's now-discarded rebuild.
 - Content genuinely missing vs. the design (needs real backend/feature
   work, not a CSS fix): personal-gallery's name-based headline + event-name
   line + per-photo match-confidence badges; dashboard's 3rd stat card + AI

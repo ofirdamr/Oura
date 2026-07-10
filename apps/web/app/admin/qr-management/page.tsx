@@ -6,13 +6,14 @@
 // options, and a direct gallery link. The QR code is now a real, scannable
 // image generated client-side (via the bundled `qrcode` npm package - never
 // a CDN script, per CLAUDE.md) from the same gallery link used for the
-// copy-link action below. Print/share-target buttons remain stubbed - out of
-// scope for this pass; copy-to-clipboard and the PNG download ARE real,
-// since both are pure client-side and free.
+// copy-link action below. Fullscreen display, copy-to-clipboard, and the PNG
+// download are all real. Print (A4/stickers) and social share-target buttons
+// remain stubbed - real print layouts and share-target integrations are out
+// of scope for this pass.
 
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -70,6 +71,16 @@ function QrManagementPageInner() {
   const [loading, setLoading] = useState(!!eventId);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onChange() {
+      setIsFullscreen(document.fullscreenElement === fullscreenRef.current);
+    }
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
 
   useEffect(() => {
     if (!eventId) {
@@ -255,7 +266,12 @@ function QrManagementPageInner() {
                   </div>
                 )}
               </div>
-              <button className="flex w-full flex-row-reverse items-center justify-between rounded-xl border border-outline-variant px-5 py-3.5 font-medium text-on-surface transition-all hover:bg-surface-container-highest">
+              <button
+                type="button"
+                onClick={() => fullscreenRef.current?.requestFullscreen().catch(() => {})}
+                disabled={!qrDataUrl}
+                className="flex w-full flex-row-reverse items-center justify-between rounded-xl border border-outline-variant px-5 py-3.5 font-medium text-on-surface transition-all hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 <span className="flex flex-row-reverse items-center gap-2">
                   <span className="material-symbols-outlined">fullscreen</span>
                   הצגה על מסך מלא באירוע
@@ -324,6 +340,35 @@ function QrManagementPageInner() {
         >
           עריכת פרטי הגלריה
         </Link>
+      </div>
+
+      <div
+        ref={fullscreenRef}
+        className={`fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 bg-[#0d1b1e] ${
+          isFullscreen ? "" : "pointer-events-none opacity-0"
+        }`}
+      >
+        {qrDataUrl && (
+          <Image
+            src={qrDataUrl}
+            alt={`קוד QR לגלריה של ${eventName ?? "האירוע"}`}
+            width={512}
+            height={512}
+            unoptimized
+            className="h-[70vmin] w-[70vmin] max-w-full rounded-2xl bg-[#f6efe6] object-contain p-6"
+          />
+        )}
+        <p className="text-xl font-bold text-[#f6efe6]">
+          {eventName ?? "Oura"}
+        </p>
+        <button
+          type="button"
+          onClick={() => document.exitFullscreen().catch(() => {})}
+          className="absolute top-6 end-6 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-[#f6efe6] transition-colors hover:bg-white/20"
+          aria-label="יציאה ממסך מלא"
+        >
+          <span className="material-symbols-outlined">close</span>
+        </button>
       </div>
     </AdminShell>
   );
