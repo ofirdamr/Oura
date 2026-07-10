@@ -200,15 +200,56 @@ export function AdminShell({
         </div>
       </aside>
 
-      <main className="custom-scrollbar h-screen overflow-y-auto bg-surface pt-16 md:ps-64">
+      <main className="custom-scrollbar h-screen overflow-y-auto bg-surface pb-20 pt-16 md:ps-64 lg:pb-0">
         <div className="mx-auto max-w-[1400px] space-y-8 p-6 md:p-20">
           {children}
         </div>
       </main>
 
+      {/* Mobile bottom tab bar - primary nav below `lg`, matching the
+          recurring home/gallery/settings + central create-action pattern
+          seen across the Stitch mobile screens (dashboard_mobile,
+          barcode_management_mobile, ai_optimization_mobile). Driven by the
+          same `active` values already passed by every admin page, so each
+          screen's own tab highlights correctly - unlike the Stitch export
+          itself, where the active tab didn't always match the current
+          screen. */}
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center border-t border-outline-variant bg-surface-container/95 backdrop-blur-md lg:hidden">
+        <Link
+          href="/admin"
+          className={`flex flex-1 flex-col items-center gap-0.5 ${active === "לוח בקרה" ? "text-primary" : "text-on-surface-variant"}`}
+        >
+          <span className="material-symbols-outlined text-2xl">home</span>
+          <span className="text-[11px] font-medium">בית</span>
+        </Link>
+        <Link
+          href="/admin/events"
+          className={`flex flex-1 flex-col items-center gap-0.5 ${active === "אירועים פעילים" ? "text-primary" : "text-on-surface-variant"}`}
+        >
+          <span className="material-symbols-outlined text-2xl">grid_view</span>
+          <span className="text-[11px] font-medium">אירועים</span>
+        </Link>
+        <Link
+          href="/admin/create-event"
+          aria-label="אירוע חדש"
+          className="flex flex-1 flex-col items-center"
+        >
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg shadow-primary/30">
+            <span className="material-symbols-outlined text-2xl">add</span>
+          </span>
+        </Link>
+        <Link
+          href="/admin/branding"
+          className={`flex flex-1 flex-col items-center gap-0.5 ${active === "הגדרות" ? "text-primary" : "text-on-surface-variant"}`}
+        >
+          <span className="material-symbols-outlined text-2xl">settings</span>
+          <span className="text-[11px] font-medium">הגדרות</span>
+        </Link>
+      </nav>
+
       {/* Mobile nav drawer - below `lg` the top nav and sidebar are both
-          hidden, so this menu button is the only way to reach other admin
-          sections on a phone. */}
+          hidden; this menu button reaches everything the bottom bar doesn't
+          (disabled/not-yet-built sections, logout). */}
       {menuOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden">
           <div
