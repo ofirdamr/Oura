@@ -46,5 +46,9 @@ EMBED_SERVICE_URL = "https://oura-embed-932309994000.us-central1.run.app"
 # pilot-event match rates, without a code redeploy. See src/pipeline/cluster.ts
 # and the /guests/:token/selfie route for the asymmetric-threshold rationale.
 CLUSTER_MATCH_THRESHOLD = "0.5"
-GUEST_MATCH_THRESHOLD = "0.42"
+# 0.42 was too strict for a phone selfie vs. event photos (real guests failed to
+# match despite being in many photos). 0.35 is a balanced cosine-similarity bar
+# for selfie→photo matching; lower further only with care (privacy: too low can
+# cross-match different guests). Instantly revertible via redeploy.
+GUEST_MATCH_THRESHOLD = "0.35"
 GUEST_MATCH_TOPK = "20"
