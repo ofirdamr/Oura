@@ -434,14 +434,15 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 **Open questions still blocking Phase 2 (not this milestone):** see `PRD.md`
 §8 — final ILS pricing, print fulfillment partner choice.
 
-## 2026-07-10/11: merged/deployed #10, #15, #18, #19, #11 — 4 PRs still open, unmerged, need next-session attention
+## 2026-07-11: PR #12 closed (superseded); #16/#4/#7 confirmed real conflicts, still open
 
-**Merged + live this session:** #10 (branded gallery viewer, was the "lost work"), #15 (context-guard hook — hard-blocks a conversation at 35% context, should have fired on THIS session), #18 (media-ui-verify skill + QR fullscreen), #19 (pileup docs + deploy-env guard), #11 (face-matching retention-cron fix — **deployed live** to `oura-api`, but its "re-run `POST /admin/backfill-embeddings` against `WED-2024`" step is NOT done — this session has no `ADMIN_BACKFILL_TOKEN`; next session with it should run this once to restore any embeddings the old buggy cron already deleted).
+**Merged + live 2026-07-10/11:** #10 (branded gallery viewer, was the "lost work"), #15 (context-guard hook), #18 (media-ui-verify skill + QR fullscreen), #19 (pileup docs + deploy-env guard), #11 (face-matching retention-cron fix — **deployed live** to `oura-api`, but its "re-run `POST /admin/backfill-embeddings` against `WED-2024`" step is still NOT done — needs `ADMIN_BACKFILL_TOKEN`).
 
-**Still open, unmerged — real conflicts with today's heavy MD/skill edits, deliberately not force-resolved under context pressure:**
-- **#16** — cuts `SUMMARY.md`/`PROGRESS.md`/`MISTAKES.md`/`universal-framework` size for token baseline. Directly relevant to founder's repeated "too heavy" complaints. Will conflict hard with everything rewritten today — needs a dedicated session to re-derive against current file state, not a blind merge.
-- **#4** — trims `universal-framework/SKILL.md` (moves rare-case protocols to a reference file). Same file I edited today (merge/deploy default-on) — will conflict.
-- **#7** — `MISTAKES.md`/`SUMMARY.md` corrections from 2026-07-07 (live-verification diagnosis, merge-authority, stop-when-stuck lessons). Base is old; likely conflicts with everything since.
-- **#12** — records the "Mission A: prints & gifts commerce" next-milestone decision (docs only), stacked on #10 (now merged, needs retargeting to `main`). `mergeable_state` was clean before #10 merged; needs a fresh check + likely a small SUMMARY.md conflict resolution.
+**#12 closed today, not merged.** It recorded "Mission A = prints & gifts commerce" as the next-milestone decision, but that's directly contradicted by the founder's own later standing directive at the top of this file ("do NOT jump to prints/gifts just because they came up in chat"). Docs-only, no code lost — full reasoning is on the PR's closing comment.
 
-**New standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception (not even "founder said stop"). Also: at the start of a mission, after the Token Economist consult, state the concrete plan (what's about to be built/changed) before executing, so the founder can redirect before tokens are spent, not after.
+**Still open, unmerged — confirmed via an actual local `git merge` test (not just assumed) to have real conflicts:**
+- **#16** — cuts `SUMMARY.md`/`PROGRESS.md`/`MISTAKES.md`/`universal-framework/SKILL.md` size for token baseline. Confirmed conflicts in all 5 touched files (`SUMMARY.md`, `PROGRESS.md`, `MISTAKES.md`, `CLAUDE.md`, `.claude/skills/universal-framework/SKILL.md`) — the goal (trim the baseline) is still valid, but the diff itself is stale; needs a dedicated session to re-derive the trim against current content, not a blind merge.
+- **#4** — trims `universal-framework/SKILL.md` (moves rare-case protocols to `references/escalation-and-handoff.md`). Confirmed conflict is scoped to exactly one file: `.claude/skills/universal-framework/SKILL.md`. Smallest of the three — good candidate for a focused resolve next session.
+- **#7** — `MISTAKES.md` corrections from 2026-07-07 (live-verification diagnosis, merge-authority, stop-when-stuck lessons). Confirmed conflict is scoped to exactly one file: `MISTAKES.md` (`SUMMARY.md` auto-merges clean). Also a contained, quick resolve.
+
+**Standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception. Also: at the start of a mission, after the Token Economist consult, state the concrete plan before executing.
