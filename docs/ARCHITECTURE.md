@@ -133,6 +133,17 @@ egress). Never edit an already-applied migration file; add a new one.
   and all 8 live `guests` rows backfilled; `apps/api` redeployed with the
   enforcement live, verified against a throwaway `WED-2024` test guest (a
   backdated `token_expires_at` correctly produced `401 token_expired`).
+- `supabase/migrations/0005_face_embeddings_delete_guard.sql` — DB-level guard
+  making the retention-cron index-wipe bug (MISTAKES.md 2026-07-09) structurally
+  impossible. Adds a `before delete` trigger on `face_embeddings` that REJECTS any
+  delete while the row's parent photo still exists, unless a transaction-local
+  opt-in flag (`oura.allow_face_delete`) is set. Two legitimate paths stay open:
+  photo deletion (the `on delete cascade` from `photos` — parent already gone, so
+  allowed) and force re-embed (routes its clear through the SECURITY DEFINER
+  `admin_clear_faces_for_photos(uuid[])` RPC, which sets the flag). A guest-scoped
+  cleanup (photos intact, no flag) — the original bug — now raises instead of
+  wiping the shared index. **Status: written; applies via the Management API; the
+  worker already tolerates its absence (falls back to a direct delete pre-apply).**
 
 Key tables (see the migration files for full column lists/constraints):
 
@@ -187,7 +198,10 @@ auth — they're the guest path, gated only by the opaque token.
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. Sends `Access-Control-Allow-Origin: *` (media is already public; CORS is needed so a photo can be used as a WebGL texture on the gift-reveal 3D card — the web app and API are different Worker origins). |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
-| `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string }`. Re-enqueues every photo not yet `embed_status:'done'` into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. Needed once live: all 17 `WED-2024` photos were still `embed_status:'pending'` with zero `face_embeddings` rows, which is why an early real-guest selfie test against that event found no match despite the guest appearing in nearly every photo. |
+| `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string, force?: boolean }`. Re-enqueues every photo not yet `embed_status:'done'` (or ALL of them when `force:true`) into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. On `force`, clears each photo's existing faces first — via the `admin_clear_faces_for_photos()` RPC (migration 0005), falling back to a direct delete only when that RPC isn't present yet. |
+| `GET /admin/embed-status?event_id=` | Operator-only (`ADMIN_BACKFILL_TOKEN`). Read-only diagnostic: photo count, `embed_status` breakdown, `face_embeddings` row count, distinct person clusters. This is how you tell whether the shared index is intact vs. wiped without direct DB access. |
+| `GET /admin/match-test?event_id=[&photo_id=]` | Operator-only (`ADMIN_BACKFILL_TOKEN`). Re-embeds one of the event's OWN photos and runs it through `match_faces`, returning nearest distances/similarities. Proves the embed service + stored vectors + matching all work (a photo should find its own stored face at distance ~0) without needing a guest selfie. |
+| `POST /admin/selfie-test?event_id=` | Operator-only (`ADMIN_BACKFILL_TOKEN`). Multipart `file` field. Runs an UPLOADED selfie through the exact `embed → match_faces` path the guest `/selfie` route uses and returns the real per-face nearest distances/similarities + `would_match` at the current threshold — **zero-retention, writes nothing and links nothing** (pure diagnostic). This is what let the WED-2024 investigation read a real selfie's true match distances and decide "not a threshold problem" vs. "face not detected / not in index." |
 
 **Opaque guest token format:** `base64url(JSON{event_id,guest_id,iat}).base64url(HMAC-SHA256)`,
 signed/verified via Web Crypto in `apps/api/src/token.ts` (`signGuestToken`/
