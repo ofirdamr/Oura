@@ -123,55 +123,68 @@ export async function compositeBrandedPhoto(
   ctx.restore();
   img.close();
 
-  // Bottom branding bar: a gradient scrim so the logo + titles stay legible on
-  // any photo, drawn inside the frame over the image.
-  const barH = Math.round(h * 0.22);
-  const barTop = border + h - barH;
-  const grad = ctx.createLinearGradient(0, barTop, 0, border + h);
-  grad.addColorStop(0, "rgba(0,0,0,0)");
-  grad.addColorStop(1, "rgba(0,0,0,0.72)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(border, barTop, w, barH);
+  // White-label branding is coupled to the frame: frame-off ("none") means a
+  // fully clean photo — zero baked branding (no scrim, no studio credit, no
+  // event title). Frame-on bakes the photographer's brand onto the image, per
+  // the production Photo Editor design (studio name on each photo, never a
+  // "powered by Oura" line).
+  if (branding.frameStyle !== "none") {
+    // Bottom branding bar: a gradient scrim so the logo + titles stay legible
+    // on any photo, drawn inside the frame over the image.
+    const barH = Math.round(h * 0.22);
+    const barTop = border + h - barH;
+    const grad = ctx.createLinearGradient(0, barTop, 0, border + h);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.72)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(border, barTop, w, barH);
 
-  const pad = Math.round(Math.min(w, h) * 0.05);
-  const baseFont = Math.max(14, Math.round(w * 0.032));
+    const pad = Math.round(Math.min(w, h) * 0.05);
+    const baseFont = Math.max(14, Math.round(w * 0.032));
 
-  // Event title — Hebrew, RTL, flush to the right (start side).
-  if (branding.eventTitle) {
-    ctx.direction = "rtl";
-    ctx.textAlign = "right";
+    // Event title — Hebrew, RTL, flush to the right (start side).
+    if (branding.eventTitle) {
+      ctx.direction = "rtl";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      ctx.letterSpacing = "0px";
+      ctx.font = `700 ${Math.round(baseFont * 1.25)}px Rubik, system-ui, sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(0,0,0,0.55)";
+      ctx.shadowBlur = Math.round(baseFont * 0.4);
+      ctx.fillText(branding.eventTitle, border + w - pad, border + h - Math.round(barH * 0.34), w - pad * 2);
+      ctx.shadowBlur = 0;
+    }
+
+    // Studio credit (logo + "Photo Santos") — bottom-left (end side), LTR.
+    // Prominent per the design: the studio name is the hero of the branding.
+    const creditFont = Math.round(baseFont * 1.2);
+    const creditY = border + h - pad;
+    let logoRight = border + pad;
+    if (branding.logoUrl) {
+      try {
+        const logo = await loadBitmap(branding.logoUrl);
+        const logoH = Math.round(creditFont * 1.6);
+        const logoW = Math.round((logo.width / logo.height) * logoH) || logoH;
+        ctx.drawImage(logo, border + pad, creditY - logoH, logoW, logoH);
+        logo.close();
+        logoRight = border + pad + logoW + Math.round(creditFont * 0.45);
+      } catch {
+        // Logo optional — a failed load just falls back to the text credit.
+      }
+    }
+    ctx.direction = "ltr";
+    ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.font = `700 ${Math.round(baseFont * 1.25)}px Rubik, system-ui, sans-serif`;
+    ctx.letterSpacing = `${Math.max(1, Math.round(creditFont * 0.12))}px`;
+    ctx.font = `700 ${creditFont}px "Hanken Grotesk", Rubik, system-ui, sans-serif`;
     ctx.fillStyle = "#ffffff";
     ctx.shadowColor = "rgba(0,0,0,0.55)";
-    ctx.shadowBlur = Math.round(baseFont * 0.4);
-    ctx.fillText(branding.eventTitle, border + w - pad, border + h - Math.round(barH * 0.34), w - pad * 2);
+    ctx.shadowBlur = Math.round(creditFont * 0.4);
+    ctx.fillText(branding.studioName.toUpperCase(), logoRight, creditY - Math.round(creditFont * 0.15));
     ctx.shadowBlur = 0;
+    ctx.letterSpacing = "0px";
   }
-
-  // Studio credit (logo + "Photo Santos") — bottom-left (end side), LTR.
-  const creditY = border + h - pad;
-  let logoRight = border + pad;
-  if (branding.logoUrl) {
-    try {
-      const logo = await loadBitmap(branding.logoUrl);
-      const logoH = Math.round(baseFont * 1.4);
-      const logoW = Math.round((logo.width / logo.height) * logoH) || logoH;
-      ctx.drawImage(logo, border + pad, creditY - logoH, logoW, logoH);
-      logo.close();
-      logoRight = border + pad + logoW + Math.round(baseFont * 0.4);
-    } catch {
-      // Logo optional — a failed load just falls back to the text credit.
-    }
-  }
-  ctx.direction = "ltr";
-  ctx.textAlign = "left";
-  ctx.font = `600 ${baseFont}px "Hanken Grotesk", Rubik, system-ui, sans-serif`;
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.shadowColor = "rgba(0,0,0,0.55)";
-  ctx.shadowBlur = Math.round(baseFont * 0.4);
-  ctx.fillText(branding.studioName, logoRight, creditY - Math.round(baseFont * 0.15));
-  ctx.shadowBlur = 0;
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
