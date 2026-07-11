@@ -1,5 +1,13 @@
 # Progress Log
 
+### 2026-07-11 (Photo Editor white-label branding — PR #28)
+- Landed the 4 pending Photo Editor branding fixes on PR #28's branch (`claude/wed-2024-face-match-t4wre2`), per founder approval to keep them in #28 (not a parallel branch). Design authority: `design/screens/oura_final_production_photo_editor_desktop/screen.png` (white-label — prominent studio name baked on each photo, no "powered by Oura").
+- (1) Stripped the `מופעל על ידי Oura` line from the editor preview (`app/photo-editor/page.tsx`). `BrandedFrame.tsx` was already clean of it — the mission's note that it was "baked" there was stale; verified and left correct.
+- (2) `compositeBrandedPhoto` (`lib/watermark.ts`): frame-off (`frameStyle: "none"`) now produces a fully clean photo — the whole branding block (scrim + studio credit + event title) is gated behind frame-on. The frame toggle is the branding switch.
+- (3) Enlarged + emboldened the PHOTO SANTOS studio name/logo to the design's prominence across the export (`watermark.ts`: creditFont ×1.2, weight 700, letter-spacing, logo ×1.6), the gallery viewer (`BrandedFrame.tsx`), and the editor preview (logo 28→44, text-base→text-2xl).
+- (4) Verified by rendering REAL JPEGs through the actual deployed compositing code in headless Chromium (`scratchpad/render.mjs`) and looking at both frame-on (prominent PHOTO SANTOS, no Oura line) and frame-off (fully clean) outputs against the design.
+- Recorded the white-label branding principle in `CLAUDE.md`. media-ui-verify: 7/7. Deployed live `oura-web` version `5db18c9a` (BUILD_ID `iLk1m0KYrhrShGLRW3eSG`, matched live). `apps/api` untouched — no API redeploy. Commit `a794258`.
+
 ### 2026-07-03
 - Gathered requirements (founder brain-dump), competitor brochure (LOCA) + live pricing page, and full Stitch design export (42/42 screens confirmed present across 5 zips).
 - Read brand spec + 6 representative screens to ground architecture decisions in real design (gift-box = real Three.js/GSAP scene, Platinum tier already named in design, personal gallery tags photos by event moment, notification center includes a misidentification-report moderation queue).
