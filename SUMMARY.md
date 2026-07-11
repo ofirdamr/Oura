@@ -480,6 +480,56 @@ wired end-to-end, entirely client-side (no backend/schema/legal surface):
 - Draft PR opened for this branch (`claude/wed-2024-face-match-t4wre2`,
   restarted from `main` since the face-match PR #27 was already merged).
 
+## ⏭️ FOUNDER FEEDBACK on the Photo Editor — 4 fixes PENDING (next session, PR #28 branch)
+
+Founder reviewed the live editor (2026-07-11 session 2) and gave 4 corrections.
+These are NOT done — do them next session on branch
+`claude/wed-2024-face-match-t4wre2` (PR #28), then **verify by saving a REAL
+exported photo and looking at the actual JPEG** (not just the preview — the
+prior logo-size "fix" failed because it wasn't checked on the real export).
+
+**PRODUCT PRINCIPLE the founder stated (record in CLAUDE.md too):** Oura is a
+**white-label platform** sold to photographers; the **photographer's brand is
+primary** and the guest should feel it's the photographer's, not Oura's. Oura
+must NOT bake its own marketing onto the photographer's delivered photos or
+otherwise undermine his business. (Photo Santos = the MVP example photographer;
+real photographers each bring their own brand.)
+
+1. **Remove Oura marketing baked "inside the photo."** The editor preview
+   overlay (`apps/web/app/photo-editor/page.tsx`, the `showFrame` block) prints
+   `מופעל על ידי Oura — הצלם הרשמי של האירוע`. Remove that Oura line from the
+   baked-on-image branding — keep only the photographer's brand (Photo Santos
+   logo + name + event title). Also check `components/guest/BrandedFrame.tsx`
+   (the gallery viewer's WYSIWYG frame) for the same Oura line and strip it
+   there too. NOTE: the export path `lib/watermark.ts compositeBrandedPhoto`
+   already does NOT bake the Oura line (it bakes event title + logo + studio
+   name only) — so this is mainly a preview/BrandedFrame WYSIWYG mismatch to
+   align. (Oura may still market itself elsewhere — share captions, the gallery
+   chrome — just never printed onto the delivered photo.)
+2. **Frame toggle OFF must produce a fully clean photo.** Currently
+   `frameStyle:"none"` only drops the border but `compositeBrandedPhoto` still
+   draws the whole branding bar (gradient + event title + logo + studio name).
+   Guard that entire bar with `if (branding.frameStyle !== "none")` so "without
+   frame" = no border, no logo, no watermark, no text — just the photo. (Founder
+   noted guests will usually pick no-frame; lead-gen tradeoff is his call, this
+   is what he asked for.)
+3. **Photographer logo is TOO SMALL — still.** In `compositeBrandedPhoto`,
+   `logoH = baseFont * 1.4` is too small; enlarge it substantially (and the
+   preview `StudioLogo size={28}` in the editor). This was claimed-fixed before
+   and wasn't — so this time tune it against a REAL saved export and show him
+   the actual JPEG, iterating on size until it reads as prominent.
+4. **Design comparison (he asked FIRST):** he wants side-by-side Stitch
+   `screen.png` vs the live screen, proving each is wired exactly, nothing
+   freehanded. HONEST FINDING for the editor specifically:
+   `design/screens/oura_final_production_photo_editor_mobile/screen.png` is a
+   full EVENT GALLERY, not an editor — the editor controls live only in that
+   folder's `code.html` hidden lightbox panel. So the current `/photo-editor`
+   has **no true Stitch editor screen** to match; it was built from the
+   code.html panel + sanctioned freehand branding. Surface this: if he wants a
+   real editor screen, he runs one through Stitch (per the never-freehand-new-
+   visuals guardrail). A broader per-screen live-vs-`screen.png` audit is a good
+   dedicated `qa-verifier` mission (token-heavy — its own fresh session).
+
 ## 2026-07-11: PR #12 closed (superseded); #16/#4/#7 confirmed real conflicts, still open
 
 **Merged + live 2026-07-10/11:** #10 (branded gallery viewer, was the "lost work"), #15 (context-guard hook), #18 (media-ui-verify skill + QR fullscreen), #19 (pileup docs + deploy-env guard), #11 (face-matching retention-cron fix — **deployed live** to `oura-api`, but its "re-run `POST /admin/backfill-embeddings` against `WED-2024`" step is still NOT done — needs `ADMIN_BACKFILL_TOKEN`).
