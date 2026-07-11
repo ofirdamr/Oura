@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Test for context-guard.py — proves it fires per message and blocks early.
-# Builds fake transcripts with real `usage` token counts, runs the hook against
-# each, and asserts pass / warn / block. Run: bash context-guard.test.sh
+# Test for context-guard.py — proves it fires per message and warns (advisory
+# only; the hard block was cancelled). Builds fake transcripts with real `usage`
+# token counts, runs the hook against each, and asserts pass / warn / escalated
+# warn but NEVER a block. Run: bash context-guard.test.sh
 set -u
 HOOK="$(dirname "$0")/context-guard.py"
 TMP="$(mktemp -d)"
@@ -31,7 +32,7 @@ check() { # <name> <haystack> <needle-or-empty> <should_contain:1|0>
   fi
 }
 
-echo "== defaults: WARN=15% (30k), BLOCK=30% (60k) of 200k =="
+echo "== defaults: WARN=15% (30k), ESCALATE=30% (60k) of 200k — advisory only, never blocks =="
 
 # 1) Small context (10k = 5%) -> silent pass
 make_transcript "$TMP/small.jsonl" 10000
@@ -44,26 +45,30 @@ OUT="$(run_hook "$TMP/warn.jsonl")"
 check "25% -> warns"          "$OUT" "additionalContext" 1
 check "25% -> does NOT block" "$OUT" '"decision"' 0
 
-# 3) Block band (150k = 75%) -> hard block
+# 3) Escalate band (150k = 75%) -> stronger warn, NEVER a hard block
 make_transcript "$TMP/block.jsonl" 150000
 OUT="$(run_hook "$TMP/block.jsonl")"
-check "75% -> blocks"            "$OUT" '"decision": "block"' 1
-check "75% -> tells to open new" "$OUT" "NEW conversation" 1
+check "75% -> warns"             "$OUT" "additionalContext" 1
+check "75% -> does NOT block"    "$OUT" '"decision"' 0
+check "75% -> tells to hand off" "$OUT" "NEW conversation" 1
 
-# 4) The founder's real complaint: 69% must have blocked
+# 4) The founder's real complaint: 69% warns but must NOT block anymore
 make_transcript "$TMP/sixtynine.jsonl" 138000
 OUT="$(run_hook "$TMP/sixtynine.jsonl")"
-check "69% -> would have BLOCKED" "$OUT" '"decision": "block"' 1
+check "69% -> warns"          "$OUT" "additionalContext" 1
+check "69% -> does NOT block" "$OUT" '"decision"' 0
 
 # 5) cache_read tokens counted too (the bulk of real context)
 printf '{"type":"assistant","message":{"role":"assistant","usage":{"input_tokens":2000,"cache_read_input_tokens":120000,"cache_creation_input_tokens":5000}}}\n' > "$TMP/cache.jsonl"
 OUT="$(run_hook "$TMP/cache.jsonl")"
-check "cache-read counted -> blocks at ~63%" "$OUT" '"decision": "block"' 1
+check "cache-read counted -> warns at ~63%" "$OUT" "additionalContext" 1
+check "cache-read counted -> does NOT block" "$OUT" '"decision"' 0
 
-# 6) Custom env thresholds honoured (block at 10%)
+# 6) Custom env thresholds honoured (escalate warn at 10%, still no block)
 make_transcript "$TMP/env.jsonl" 30000
 OUT="$(OURA_CONTEXT_BLOCK=0.10 run_hook "$TMP/env.jsonl")"
-check "env override BLOCK=10% -> blocks at 15%" "$OUT" '"decision": "block"' 1
+check "env override BLOCK=10% -> warns at 15%" "$OUT" "additionalContext" 1
+check "env override BLOCK=10% -> does NOT block" "$OUT" '"decision"' 0
 
 # 7) Fails open on garbage transcript path
 OUT="$(printf '{"transcript_path":"/no/such/file","prompt":"x"}' | python3 "$HOOK")"

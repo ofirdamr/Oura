@@ -6,8 +6,12 @@ Reads the real context size from the transcript's per-turn `usage` data
 model, i.e. what maps to the 200k window and the "N% usage" figure), and:
 
   - injects a soft warning once context passes WARN_PCT of the window, and
-  - BLOCKS the message once it passes BLOCK_PCT, forcing the founder to open a
-    fresh conversation before the context runs away.
+  - injects a STRONGER warning once it passes BLOCK_PCT, urging the founder to
+    hand off to a fresh conversation before the context runs away.
+
+The guard is advisory only — it never hard-blocks a message. (The old
+BLOCK_PCT hard stop was cancelled by founder request; it now surfaces an
+escalated warning at the same threshold instead.)
 
 Goal: never again let a single long conversation eat most of the usage limit.
 Stop early, hand off to a new conversation, keep each mission small.
@@ -107,17 +111,21 @@ def main():
     tok_str = f"{tokens:,}/{LIMIT:,} tokens"
 
     if pct >= BLOCK_PCT:
-        # Hard stop: block this message and force a fresh conversation.
-        reason = (
-            f"CONTEXT GUARD - STOP. This conversation is at {pct_str} of the "
-            f"context window ({tok_str}), over the {BLOCK_PCT * 100:.0f}% hard limit. "
-            "Per the founder's token-saving rule, do NOT continue here. "
-            "Finish nothing new in this thread. Instead: (1) briefly note where "
-            "things stand and what the next single small mission is, (2) tell the "
-            "founder to open a NEW conversation and paste that next mission. "
-            "Keep each conversation to one small mission so context never runs away."
+        # Escalated warning (no hard block — cancelled by founder request).
+        warn = (
+            f"CONTEXT GUARD - this conversation is at {pct_str} of the context "
+            f"window ({tok_str}), past the {BLOCK_PCT * 100:.0f}% hand-off mark. "
+            "Strongly consider stopping here: (1) briefly note where things stand "
+            "and what the next single small mission is, (2) hand off to a NEW "
+            "conversation for that next mission. Keep each conversation to one "
+            "small mission so context never runs away."
         )
-        print(json.dumps({"decision": "block", "reason": reason}))
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": warn,
+            }
+        }))
         sys.exit(0)
 
     if pct >= WARN_PCT:
