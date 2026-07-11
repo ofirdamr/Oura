@@ -855,6 +855,74 @@ app.get('/admin/embed-status', async (c) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// GET /admin/match-test?event_id=...[&photo_id=...]   (operator bearer secret)
+//   Re-embeds one of the event's OWN photos and runs it through match_faces,
+//   returning the nearest stored faces + distances. Diagnoses guest-match
+//   failure without needing a guest selfie:
+//     - a photo re-embedded should find its OWN stored face at distance ~0.
+//       If the smallest distance is large, the embed service is returning
+//       vectors inconsistent with what's stored (model drift / normalization)
+//       — that breaks matching AND explains cluster over-splitting.
+//     - if self-distance is ~0 but same-person faces sit above the guest
+//       threshold, the fix is the threshold, not the pipeline.
+// ---------------------------------------------------------------------------
+app.get('/admin/match-test', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+  const event_id = c.req.query('event_id');
+  if (!event_id) return c.json({ error: 'event_id_required' }, 400);
+  const wantPhoto = c.req.query('photo_id');
+
+  const db = supa(c.env);
+  let pQuery = db.from('photos').select('id,storage_key').eq('event_id', event_id).eq('embed_status', 'done').limit(1);
+  if (wantPhoto) pQuery = db.from('photos').select('id,storage_key').eq('id', wantPhoto).limit(1);
+  const { data: photos, error: pErr } = await pQuery;
+  if (pErr) return c.json({ error: 'photos_query_failed' }, 500);
+  const photo = photos?.[0];
+  if (!photo) return c.json({ error: 'no_done_photo' }, 404);
+
+  const object = await c.env.MEDIA.get(photo.storage_key);
+  if (!object) return c.json({ error: 'r2_object_missing', storage_key: photo.storage_key }, 404);
+
+  let faces: Awaited<ReturnType<typeof embed>>;
+  try {
+    faces = await embed(await object.arrayBuffer(), {
+      EMBED_SERVICE_URL: c.env.EMBED_SERVICE_URL,
+      EMBED_SERVICE_TOKEN: c.env.EMBED_SERVICE_TOKEN,
+    });
+  } catch (err) {
+    return c.json({ error: 'embed_failed', detail: String(err) }, 502);
+  }
+
+  const guestThreshold = Number(c.env.GUEST_MATCH_THRESHOLD ?? '0.35');
+  const results = [];
+  for (const face of faces) {
+    const { data: rows } = await db.rpc('match_faces', {
+      p_event_id: event_id,
+      p_query_embedding: face.embedding,
+      p_match_limit: 5,
+    });
+    const nn = ((rows ?? []) as { id: string; person_id: string | null; distance: number }[]).map((r) => ({
+      distance: Number(r.distance.toFixed(4)),
+      similarity: Number((1 - r.distance).toFixed(4)),
+      would_match: 1 - r.distance >= guestThreshold,
+    }));
+    results.push({ detection_score: Number(face.detection_score.toFixed(3)), nearest: nn });
+  }
+
+  return c.json({
+    photo_id: photo.id,
+    faces_detected_now: faces.length,
+    guest_threshold: guestThreshold,
+    embed_service_ok: true,
+    results,
+  });
+});
+
 app.get('/events/by-code/:code', async (c) => {
   const code = c.req.param('code');
   if (!code) return c.json({ error: 'event_not_found' }, 404);
