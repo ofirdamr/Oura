@@ -779,16 +779,38 @@ app.post('/admin/backfill-embeddings', async (c) => {
   // On a force re-embed, delete any existing face rows for these photos FIRST —
   // the queue consumer inserts (not upserts), so without this we'd duplicate
   // every already-embedded face.
+  //
+  // The delete goes through admin_clear_faces_for_photos() (migration 0005): the
+  // DB-level BEFORE DELETE guard rejects any face_embeddings delete while the
+  // photo still exists UNLESS this RPC's transaction-local opt-in flag is set —
+  // that guard is what makes the retention-cron index-wipe bug impossible to
+  // repeat. A plain `.delete()` here is the exact shape the guard blocks.
+  // Fallback to the direct delete only when the RPC is absent (i.e. migration
+  // 0005 not applied yet), so this deploy is safe to ship ahead of the migration
+  // and self-heals once it lands.
   let cleared = 0;
   if (force) {
     const photoIds = (photos ?? []).map((p) => p.id);
     if (photoIds.length) {
-      const { error: delErr, count } = await db
-        .from('face_embeddings')
-        .delete({ count: 'exact' })
-        .in('photo_id', photoIds);
-      if (delErr) return c.json({ error: 'clear_failed' }, 500);
-      cleared = count ?? 0;
+      const { data: clearedCount, error: rpcErr } = await db.rpc(
+        'admin_clear_faces_for_photos',
+        { p_photo_ids: photoIds },
+      );
+      if (rpcErr) {
+        // 42883 = function does not exist (migration 0005 not applied yet).
+        if (rpcErr.code === 'PGRST202' || /does not exist|find the function/i.test(rpcErr.message ?? '')) {
+          const { error: delErr, count } = await db
+            .from('face_embeddings')
+            .delete({ count: 'exact' })
+            .in('photo_id', photoIds);
+          if (delErr) return c.json({ error: 'clear_failed' }, 500);
+          cleared = count ?? 0;
+        } else {
+          return c.json({ error: 'clear_failed' }, 500);
+        }
+      } else {
+        cleared = typeof clearedCount === 'number' ? clearedCount : 0;
+      }
     }
   }
 
@@ -922,6 +944,89 @@ app.get('/admin/match-test', async (c) => {
     results,
   });
 });
+
+// ---------------------------------------------------------------------------
+// POST /admin/selfie-test?event_id=...   (operator bearer secret)
+//   Body: raw image bytes (multipart 'file' field). Runs an UPLOADED selfie
+//   through the exact same embed -> match_faces path the guest /selfie route
+//   uses, and returns the real per-face nearest distances/similarities against
+//   the event's stored photo index — WITHOUT persisting anything or writing any
+//   guest link (pure diagnostic, zero-retention like the guest route).
+//   This is what lets us read a real selfie's true match distances to decide
+//   between "tune the threshold" and "the selfie face isn't detected / doesn't
+//   match" — the exact gap that blocked the WED-2024 investigation.
+// ---------------------------------------------------------------------------
+app.post('/admin/selfie-test', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+  const event_id = c.req.query('event_id');
+  if (!event_id) return c.json({ error: 'event_id_required' }, 400);
+
+  const body = await c.req.parseBody();
+  const file = body['file'];
+  if (!(file instanceof File)) return c.json({ error: 'missing_file' }, 400);
+
+  let faces: Awaited<ReturnType<typeof embed>>;
+  try {
+    faces = await embed(await file.arrayBuffer(), {
+      EMBED_SERVICE_URL: c.env.EMBED_SERVICE_URL,
+      EMBED_SERVICE_TOKEN: c.env.EMBED_SERVICE_TOKEN,
+    });
+  } catch (err) {
+    return c.json({ error: 'embed_failed', detail: String(err) }, 502);
+  }
+
+  const guestThreshold = Number(c.env.GUEST_MATCH_THRESHOLD ?? '0.35');
+  if (faces.length === 0) {
+    // Mirrors the guest route's 422 no_face_detected — the selfie's face was
+    // not detected at all (e.g. a sideways/EXIF-unrotated image), so there is
+    // nothing to match and no threshold change could ever help.
+    return c.json({
+      event_id,
+      faces_detected: 0,
+      guest_threshold: guestThreshold,
+      embed_service_ok: true,
+      would_match: false,
+      note: 'no_face_detected',
+    });
+  }
+
+  // Same selection the guest route makes: the single highest-confidence face.
+  const primary = faces.reduce((best, f) => (f.detection_score > best.detection_score ? f : best));
+  const { data: rows } = await db_match(c, event_id, primary.embedding);
+  const nearest = ((rows ?? []) as { person_id: string | null; distance: number }[]).map((r) => ({
+    distance: Number(r.distance.toFixed(4)),
+    similarity: Number((1 - r.distance).toFixed(4)),
+    would_match: 1 - r.distance >= guestThreshold,
+    person_id: r.person_id,
+  }));
+  const best = nearest[0]?.similarity ?? null;
+
+  return c.json({
+    event_id,
+    faces_detected: faces.length,
+    primary_detection_score: Number(primary.detection_score.toFixed(3)),
+    guest_threshold: guestThreshold,
+    embed_service_ok: true,
+    best_similarity: best,
+    would_match: nearest.some((n) => n.would_match),
+    nearest,
+  });
+});
+
+// Small helper so selfie-test reads the same match_faces RPC the guest/selfie
+// and match-test routes use, with the shared top-k.
+async function db_match(c: Context<{ Bindings: Env }>, event_id: string, embedding: number[]) {
+  const db = supa(c.env);
+  return db.rpc('match_faces', {
+    p_event_id: event_id,
+    p_query_embedding: embedding,
+    p_match_limit: Number(c.env.GUEST_MATCH_TOPK ?? '20'),
+  });
+}
 
 app.get('/events/by-code/:code', async (c) => {
   const code = c.req.param('code');
