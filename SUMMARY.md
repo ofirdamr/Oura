@@ -61,8 +61,10 @@ Real end-to-end: the entire guest path including Stage 2 (code resolution →
 token → consent with guardian confirmation → selfie capture → real face
 embedding/matching → gift-reveal → personal gallery, real R2-served photos),
 the entire photographer onboarding path (auth → create event → brand →
-upload photos → QR), event list, dashboard, photo delete. Deliberately not
-real yet: Photo Editor persistence, AI Optimization's pipeline,
+upload photos → QR), event list, dashboard, photo delete, **and the guest
+Photo Editor** (as of 2026-07-11 — reachable from `/gallery`, loads a real
+photo, exports the adjusted+branded result client-side; see section below).
+Deliberately not real yet: AI Optimization's pipeline,
 `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or
 unused so far).
 
@@ -450,6 +452,34 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 **Open questions still blocking Phase 2 (not this milestone):** see `PRD.md`
 §8 — final ILS pricing, print fulfillment partner choice.
 
+## 2026-07-11 (session 2): guest Photo Editor made real (deployed + live)
+
+Picked per the standing directive (decide the next PRD-order MVP gap myself,
+don't ask): the `/photo-editor` screen was a dead, unreachable UI mock
+(placeholder icon, no-op save, no entry point) — the one core guest-flow MVP
+step from PRD §3 (`gallery → Photo Editor → Share`) that wasn't real. Now
+wired end-to-end, entirely client-side (no backend/schema/legal surface):
+- Entry: the gallery's `PhotoViewer` got a "tune" edit control →
+  `/photo-editor?photo=<id>`.
+- The editor re-reads the guest's gallery via the stored opaque token, loads
+  that real R2 photo, previews brightness/contrast/saturation/exposure +
+  rotation + frame toggle live.
+- Save/Share export the **adjusted + branded** JPEG (filter math factored into
+  `lib/watermark.adjustmentsFilter` so CSS preview == canvas render;
+  `compositeBrandedPhoto` now applies filter + quarter-turn rotation) to the
+  phone via the share sheet — consistent with the rest of the guest flow. No
+  server-side persistence (login-free ephemeral guest model). Back button wired.
+- media-ui-verify all 7 checks pass; Playwright screenshot captured (local
+  build, mocked API/image — the documented proxy blind spot blocks the
+  in-sandbox browser from the live API/R2). Deployed to `oura-web`
+  version `b050e877`; confirmed live by grepping the deployed chunk (new
+  labels present, old `שמירת שינויים` gone). **Live: open a photo in**
+  `https://oura-web.oura-events.workers.dev/gallery` **→ tap the tune (עריכה)
+  icon** (needs a consented `WED-2024` guest session; direct
+  `.../photo-editor?photo=<id>` also works with a session).
+- Draft PR opened for this branch (`claude/wed-2024-face-match-t4wre2`,
+  restarted from `main` since the face-match PR #27 was already merged).
+
 ## 2026-07-11: PR #12 closed (superseded); #16/#4/#7 confirmed real conflicts, still open
 
 **Merged + live 2026-07-10/11:** #10 (branded gallery viewer, was the "lost work"), #15 (context-guard hook), #18 (media-ui-verify skill + QR fullscreen), #19 (pileup docs + deploy-env guard), #11 (face-matching retention-cron fix — **deployed live** to `oura-api`, but its "re-run `POST /admin/backfill-embeddings` against `WED-2024`" step is still NOT done — needs `ADMIN_BACKFILL_TOKEN`).
@@ -460,5 +490,7 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 - **#16** — cuts `SUMMARY.md`/`PROGRESS.md`/`MISTAKES.md`/`universal-framework/SKILL.md` size for token baseline. Confirmed conflicts in all 5 touched files (`SUMMARY.md`, `PROGRESS.md`, `MISTAKES.md`, `CLAUDE.md`, `.claude/skills/universal-framework/SKILL.md`) — the goal (trim the baseline) is still valid, but the diff itself is stale; needs a dedicated session to re-derive the trim against current content, not a blind merge.
 - **#4** — trims `universal-framework/SKILL.md` (moves rare-case protocols to `references/escalation-and-handoff.md`). Confirmed conflict is scoped to exactly one file: `.claude/skills/universal-framework/SKILL.md`. Smallest of the three — good candidate for a focused resolve next session.
 - **#7** — `MISTAKES.md` corrections from 2026-07-07 (live-verification diagnosis, merge-authority, stop-when-stuck lessons). Confirmed conflict is scoped to exactly one file: `MISTAKES.md` (`SUMMARY.md` auto-merges clean). Also a contained, quick resolve.
+- **#13** — docs-only `docs/DESIGN_INDEX.md` (Stitch-screen ⇆ route index + nav map). Not a draft; no code touched. Left open (not merged) pending a founder/PM call on whether to keep it as a maintained doc vs. fold into `ARCHITECTURE.md` §6's existing per-screen table — low urgency, no conflict.
+- **New this session** — draft PR for the Photo Editor work above (branch `claude/wed-2024-face-match-t4wre2`). Deployed + live already; the draft PR is the record, mergeable once reviewed.
 
 **Standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception. Also: at the start of a mission, after the Token Economist consult, state the concrete plan before executing.
