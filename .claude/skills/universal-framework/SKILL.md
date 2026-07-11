@@ -359,10 +359,26 @@ they are not small-context leaf workers.)
 
 **When the PM DOES stop and ask the founder** (only these):
 - a genuinely ambiguous decision where the wrong guess is expensive,
-- an irreversible or outward-facing action (deploy, delete, send, publish,
-  charge),
+- a truly irreversible or destructive action with no cheap undo (delete,
+  send, publish, charge),
 - anything touching a rule `CLAUDE.md` marks locked / ask-first.
-Everything else: proceed autonomously.
+Everything else: proceed autonomously — **including merge and deploy**,
+which are project-overridden to NOT be ask-first gates (see `CLAUDE.md`):
+once a change clears the verification it's actually capable of clearing,
+merge and deploy it as part of closing out the mission. Revert/rollback is
+the safety net, not a pre-merge approval step. This was a real, costly
+failure on this project: a session built and deployed a complete feature
+(PR #10), left it as an unmerged draft "waiting for an explicit merge," and
+two later sessions — never having checked for it — rebuilt the same
+feature from scratch twice more (PRs #9, #17), and one of those inferior
+rebuilds got deployed over the original, live, on the real site.
+**Before starting a task that wires/fixes/builds a specific named feature,
+check `list_pull_requests`/`list_branches` for existing open work on it
+first.** Any question that genuinely does need the founder (the three
+bullets above, not merge/deploy) gets written into `SUMMARY.md` explicitly,
+and every later session must re-surface it before proceeding in that area —
+it must never just silently drop because a session ended before the
+founder replied.
 
 **How each agent stays small-context (the method).** An agent file is NOT a copy
 of this whole skill. It carries only: (a) its role's distilled rules, (b) the
