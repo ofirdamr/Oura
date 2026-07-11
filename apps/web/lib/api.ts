@@ -24,9 +24,24 @@ export type PersonalGallery =
       photos: GuestPhoto[];
     };
 
+export type EventBranding = {
+  event_title: string | null;
+  share_caption: string | null;
+  logo_key: string | null;
+  frame: string;
+  primary_color: string;
+  auto_watermark: boolean;
+};
+
+export type GalleryEvent = {
+  name: string | null;
+  branding: EventBranding;
+};
+
 export type GalleryResponse = {
   event_id: string;
   guest_id: string;
+  event?: GalleryEvent;
   photos: GuestPhoto[];
   personal_gallery: PersonalGallery;
 };

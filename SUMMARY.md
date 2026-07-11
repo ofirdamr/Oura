@@ -2,6 +2,18 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ⏭️ NEXT SESSION — founder's standing directive (read before doing anything)
+Verbatim intent from the founder at the 2026-07-08 handoff:
+- **Do NOT jump to the prints/gifts pages just because they came up in chat.** Yes, they're real (part of the 42-screen Stitch design + the PRD), but they are NOT next just because they were mentioned.
+- **Follow the PRD order / the plan we already made.** Do things by their order.
+- **The priority is a finished, working MVP — we still don't have one.** Too long was spent stuck on the single gallery page. Get to a real end-to-end demoable MVP first.
+- **YOU (the PM/assistant) decide the next mission — from the plan, not from what was last said, and not by asking the founder to choose.** He wants a decision grounded in the PRD/roadmap.
+- Remember the full **42-screen Stitch design set** already delivered — sequence against it + `PRD.md` phases.
+- **Every "done" ships with the clickable live link.** Non-negotiable, has been dropped repeatedly.
+- **Replies to the founder: 1–3 sentences, no long walls of text.**
+So: open `PRD.md` + the 42-screen design index, figure out what the working MVP still concretely lacks, pick the next mission in PRD order yourself, state the Token Economist line, and go — don't build prints just because this session mentioned them.
+
+
 ## Current state: working MVP, live, including Stage 2 face-matching
 
 A photographer can, with **zero founder DB/curl intervention**: sign up → log
@@ -105,6 +117,57 @@ changed the R2 bytes but not the URL, so the browser/CDN kept serving the
 year-old cached image. Fixed by making the logo key content-addressed per
 upload (matching how photos already work) and best-effort deleting the
 previous logo object afterward. See `MISTAKES.md` for both write-ups.
+
+## 2026-07-08 (round 3): multi-select, marketing caption, solid nav (live)
+
+Guest gallery now has **multi-select** ("בחירה" → pick a few photos → Save/Share
+only those, floating action bar), a **marketing share caption** pre-filled into
+the share sheet (`branding.share_caption`, editable in `/admin/branding`;
+default `חוגגים ב{event}! 📸 הצילומים באדיבות {studio}`), a **solid opaque
+bottom nav** (was glass, bled on scroll), and the dead notifications/profile
+header stubs removed. Live: oura-api `af497a1c`, oura-web `cba581ca`.
+**Two big features requested, NOT yet built — need founder sequencing (both
+noted in PROGRESS 2026-07-08 round 3):** (1) **Prints & gifts commerce** —
+Stitch designs exist (`premium_prints`/`checkout`/`order_confirmation`); entry
+from gallery (per-photo + multi-select "order prints") → surface/gift picker →
+checkout (real Stripe = Phase 2). (2) **Guest comments** → event-manager wall +
+on-event-screen display — NO existing Stitch screens (guest input, comments
+wall, screen display), so per the "never freehand new visuals" guardrail the
+founder must run these through Stitch first; backend (comments table+endpoints)
+is buildable once designed.
+
+## 2026-07-08 (cont.): gallery viewer rebuilt for premium native UX
+
+After founder feedback ("built to spec, not what a guest wants"), the viewer was
+rebuilt: `PhotoViewer` is a horizontal swipe carousel (slide motion, rubber-band)
+with swipe-up/down-to-dismiss + pinch/double-tap zoom; each photo is a branded
+"magnet" (`BrandedFrame`) with frame+logo+title baked ONTO the image (WYSIWYG
+with the download), full-bleed. Save/share (`lib/photoActions.ts`) target the
+phone's Photos via the share sheet, share carries a caption with no raw URL. Grid
+is now a uniform 3-col square grid; filters are real (`all`/`mine`); the Oura
+logo box wrapper was removed (that box, not the transparent PNG, was the visible
+square). Gotcha fixed: `dir="rtl"` reverses a horizontal flex carousel — the
+track is forced `dir="ltr"`. A mandatory **1-minute UX self-proof** ("think as
+the real user") is now codified in `frontend-rtl.md`, `qa-verifier.md`, and
+`universal-framework` §4. Live: `https://oura-web.oura-events.workers.dev/gallery`.
+
+## 2026-07-08: gallery full-screen viewer + branded per-photo download/share (live)
+
+Tapping any `/gallery` thumbnail now opens a full-screen social-app `PhotoViewer`
+(`components/guest/PhotoViewer.tsx`): pinch/wheel/double-tap zoom + pan,
+left/right swipe + arrow/chevron nav, per-photo download + share, videos native.
+Downloads/shares (and the two now-wired "download all"/"share" buttons)
+composite a sample photographer frame + Photo Santos logo + event title onto a
+guest-friendly JPEG via `lib/watermark.ts` (canvas, taint-safe, never a raw ZIP;
+share = Web Share API with a file, fallback to save). `GET /gallery/:token`
+returns guest-safe `event.name`/`event.branding` for this; `/admin/branding` has
+a new "share title" field (`branding.event_title`). Added a dedicated `seo`
+agent. All live-verified via Playwright against the deployed URL (node-fetch
+proxy for the sandbox browser blind spot) — deep link:
+`https://oura-web.oura-events.workers.dev/gallery` (needs a consented guest
+session; the seeded `WED-2024` event works). oura-api Version 74b55b19, oura-web
+Version 148b3662. **Open polish:** the composited title uses the event *name*
+until a photographer sets a custom `event_title` in `/admin/branding`.
 
 ## How we got here (compressed — see `PROGRESS.md` for full detail)
 
@@ -279,9 +342,9 @@ draft PR #5; each deploy's live BUILD_ID matched local):
   Code correctly requests `facingMode:"environment"`; the likely cause is an
   in-app browser (WKWebView) that ignores it. Hardening option: enumerate
   video devices and force the rear one. Confirm his browser first.
-- Two dead buttons with no `onClick` at all: `/gallery`'s "download all my
-  photos" / "share my gallery" buttons, and `/admin/qr-management`'s two
-  print sub-options + fullscreen-display button.
+- `/admin/qr-management`'s two print sub-options + fullscreen-display button
+  are still dead (no `onClick`). (`/gallery`'s "download all"/"share" buttons
+  were dead too — now wired, see the 2026-07-08 gallery-viewer entry below.)
 - Content genuinely missing vs. the design (needs real backend/feature
   work, not a CSS fix): personal-gallery's name-based headline + event-name
   line + per-photo match-confidence badges; dashboard's 3rd stat card + AI

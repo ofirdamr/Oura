@@ -23,7 +23,8 @@ its job each time. The full doctrine lives in the `universal-framework` skill
 | `security-auditor` | Secrets, authz, RLS, consent-gate integrity, Amendment 13 privacy | Opus |
 | `tooling-scout` | Finds better skills/MCPs/plugins/connectors on the network; adopts skills, proposes tool-scope edits | Sonnet |
 | `copywriter-he` | Native Hebrew user-facing copy; no em dashes | Sonnet |
-| `marketing` | Growth/GTM/SEO — **dormant until a launch phase** | Sonnet |
+| `marketing` | Growth/GTM/SEO campaigns — **dormant until a launch phase** | Sonnet |
+| `seo` | Technical & on-page SEO: metadata, canonical, og/twitter, JSON-LD, sitemap/robots, indexability (token/admin routes noindex) | Sonnet |
 
 ## How they "talk"
 Agents don't chat peer-to-peer on their own. Consultation is **relayed through
