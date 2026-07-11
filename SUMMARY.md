@@ -2,6 +2,18 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## 🚨 2026-07-11 — "nothing is live" incident + real root cause (read before trusting any "deployed" claim below)
+The founder reported the live site showed the OLD gift box and face-match failing, despite many prior "deployed and verified live" reports. Two root causes found and one fixed:
+1. **`CLOUDFLARE_API_TOKEN` has a leading space** (char 32) in this environment. `wrangler` fails auth with "Invalid format for Authorization header" unless the token is `.trim()`-ed. Same leading-space quirk on `SUPABASE_URL`/`*_KEY`/`CLOUDFLARE_ACCOUNT_ID`. **Prior "deploys" almost certainly never landed** — this is why merged fixes were never actually live. ALWAYS trim these env vars before `wrangler`/build.
+2. **There is NO CI/CD** (`.github/workflows/` does not exist). Merging to `main` deploys nothing. Every deploy is a manual `wrangler deploy` of BOTH `apps/web` (via `npm run deploy` = opennext build+deploy) and `apps/api`. `node_modules` is absent on a fresh clone — `npm install` in each app first.
+
+**Redeployed 2026-07-11 from current `main` (both fixes confirmed present in code):**
+- `oura-web` version `d84ad79f-d184-40b9-a88e-0371479ccb59` — includes gift-box fixes `c02ac60` (photo no longer intersects lifted lid) + `4039eba` (real photo rising out of box). Live BUILD_ID `TyxeNcnzEYIdilVLw35wC`. Founder must **hard-refresh** (old HTML was edge-cached with `s-maxage=31536000`).
+- `oura-api` version `af442cb6-677d-4c60-8580-62c5f67d941d` — `EMBED_SERVICE_URL` set (Cloud Run `oura-embed`), `GUEST_MATCH_THRESHOLD=0.42`, `GUEST_MATCH_TOPK=20`.
+
+**STILL OPEN (needs a dedicated next session):** founder's face not matching in the `WED-2024` demo despite being in most photos. Match code path is intact (`apps/api/src/index.ts` selfie route → `embed()` → `match_faces` RPC → filter `1-distance >= 0.42`). Not yet root-caused because it needs LIVE reproduction with the founder's actual selfie + DB inspection of whether `WED-2024` photos actually have `face_embeddings` with non-null `person_id` (i.e. did the compute-pool embed/cluster job ever run for that event). A Supabase REST probe from the sandbox returned `PGRST125` — verify DB access method next session. Candidate causes in priority order: (a) event photos never embedded/clustered → zero candidates; (b) embed service down at selfie time (would return 502 `embed_service_unavailable`, not `matched:false`); (c) threshold 0.42 too strict; (d) clustering over-split leaving `person_id` null.
+
+
 ## ⏭️ NEXT SESSION — founder's standing directive (read before doing anything)
 Verbatim intent from the founder at the 2026-07-08 handoff:
 - **Do NOT jump to the prints/gifts pages just because they came up in chat.** Yes, they're real (part of the 42-screen Stitch design + the PRD), but they are NOT next just because they were mentioned.
