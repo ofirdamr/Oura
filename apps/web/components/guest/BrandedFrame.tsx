@@ -58,14 +58,14 @@ export function BrandedFrame({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 px-[4%] pb-[3.5%] pt-[14%]"
         style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0))" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {branding.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo
-            <img src={branding.logoUrl} alt="" className="w-auto object-contain" style={{ height: "clamp(22px, 5vmin, 40px)" }} />
+            <img src={branding.logoUrl} alt="" className="w-auto object-contain" style={{ height: "clamp(14px, 3.4vmin, 26px)" }} />
           ) : null}
           <span
-            className="font-display font-bold uppercase leading-none tracking-[0.18em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]"
-            style={{ fontSize: "clamp(15px, 3.2vmin, 26px)" }}
+            className="font-display uppercase leading-none tracking-wide text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]"
+            style={{ fontSize: "clamp(11px, 2.2vmin, 18px)" }}
           >
             {branding.studioName}
           </span>
