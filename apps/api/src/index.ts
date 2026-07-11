@@ -765,11 +765,32 @@ app.post('/admin/backfill-embeddings', async (c) => {
   const db = supa(c.env);
   const body = await c.req.json().catch(() => ({}) as Record<string, unknown>);
   const event_id = typeof body.event_id === 'string' ? body.event_id : undefined;
+  // force=true re-embeds photos even if embed_status is already 'done' — needed
+  // when the shared photo index was wiped (e.g. by the retention cron) but the
+  // photos still read 'done'. The normal path only picks up non-'done' photos.
+  const force = body.force === true;
 
-  let query = db.from('photos').select('id,event_id,storage_key').neq('embed_status', 'done');
+  let query = db.from('photos').select('id,event_id,storage_key');
+  if (!force) query = query.neq('embed_status', 'done');
   if (event_id) query = query.eq('event_id', event_id);
   const { data: photos, error } = await query;
   if (error) return c.json({ error: 'query_failed' }, 500);
+
+  // On a force re-embed, delete any existing face rows for these photos FIRST —
+  // the queue consumer inserts (not upserts), so without this we'd duplicate
+  // every already-embedded face.
+  let cleared = 0;
+  if (force) {
+    const photoIds = (photos ?? []).map((p) => p.id);
+    if (photoIds.length) {
+      const { error: delErr, count } = await db
+        .from('face_embeddings')
+        .delete({ count: 'exact' })
+        .in('photo_id', photoIds);
+      if (delErr) return c.json({ error: 'clear_failed' }, 500);
+      cleared = count ?? 0;
+    }
+  }
 
   let enqueued = 0;
   for (const photo of photos ?? []) {
@@ -785,7 +806,53 @@ app.post('/admin/backfill-embeddings', async (c) => {
     }
   }
 
-  return c.json({ enqueued, total_candidates: photos?.length ?? 0 });
+  return c.json({ enqueued, total_candidates: photos?.length ?? 0, cleared, force });
+});
+
+// ---------------------------------------------------------------------------
+// GET /admin/embed-status?event_id=...   (same operator bearer secret)
+//   Read-only diagnostic: for an event, how many photos exist, their
+//   embed_status breakdown, how many face_embeddings rows exist, and how many
+//   distinct person clusters. This is what tells you WHY guest matching fails
+//   (zero embeddings / all 'done' with no rows = index was wiped) without
+//   needing direct DB access.
+// ---------------------------------------------------------------------------
+app.get('/admin/embed-status', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+  const event_id = c.req.query('event_id');
+  if (!event_id) return c.json({ error: 'event_id_required' }, 400);
+
+  const db = supa(c.env);
+  const { data: photos, error: pErr } = await db
+    .from('photos')
+    .select('id,embed_status')
+    .eq('event_id', event_id);
+  if (pErr) return c.json({ error: 'photos_query_failed' }, 500);
+
+  const { data: faces, error: fErr } = await db
+    .from('face_embeddings')
+    .select('person_id')
+    .eq('event_id', event_id);
+  if (fErr) return c.json({ error: 'faces_query_failed' }, 500);
+
+  const statusBreakdown: Record<string, number> = {};
+  for (const p of photos ?? []) {
+    const s = (p.embed_status as string) ?? 'null';
+    statusBreakdown[s] = (statusBreakdown[s] ?? 0) + 1;
+  }
+  const clusters = new Set((faces ?? []).map((f) => f.person_id).filter(Boolean));
+
+  return c.json({
+    event_id,
+    photos: photos?.length ?? 0,
+    embed_status: statusBreakdown,
+    face_embeddings: faces?.length ?? 0,
+    distinct_clusters: clusters.size,
+  });
 });
 
 app.get('/events/by-code/:code', async (c) => {
