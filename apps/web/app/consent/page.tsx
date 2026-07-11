@@ -97,9 +97,7 @@ export default function ConsentPage() {
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,138,117,0.15)_0%,_transparent_50%)]" />
 
       <header className="relative z-10 mb-6 mt-8">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-container-high">
-          <OuraLogo size={56} />
-        </div>
+        <OuraLogo size={72} />
       </header>
 
       <section className="relative z-10 mb-2 w-full text-center">

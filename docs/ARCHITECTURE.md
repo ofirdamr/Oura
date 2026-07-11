@@ -185,7 +185,7 @@ auth — they're the guest path, gated only by the opaque token.
 | `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent. `face_embeddings` is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. Also returns `event: { name, branding: { event_title, share_caption, logo_key, frame, primary_color, auto_watermark } }` (guest-safe display keys only) so the client can composite the photographer frame/logo/title onto downloaded/shared photos and pre-fill a marketing share caption. |
 | `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). Body **requires** `{ guardian_confirmed: true }` (400s otherwise, migration 0003) — `retention_expires_at` is now set by a DB trigger, not left NULL. |
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
-| `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. |
+| `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. Sends `Access-Control-Allow-Origin: *` (media is already public; CORS is needed so a photo can be used as a WebGL texture on the gift-reveal 3D card — the web app and API are different Worker origins). |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
 | `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string }`. Re-enqueues every photo not yet `embed_status:'done'` into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. Needed once live: all 17 `WED-2024` photos were still `embed_status:'pending'` with zero `face_embeddings` rows, which is why an early real-guest selfie test against that event found no match despite the guest appearing in nearly every photo. |
 
@@ -217,9 +217,23 @@ in this pass).
   results, not just the single nearest, to compensate for ingestion-time
   over-splitting.
 - **Retention enforcement**: a daily Cloudflare Cron Trigger (`0 3 * * *`,
-  `apps/api/src/scheduledCleanup.ts`) deletes `face_embeddings` rows whose
-  guest's `retention_expires_at` has passed. Scoped to embeddings only —
-  `guests`/`biometric_consents` rows are kept indefinitely as audit metadata.
+  `apps/api/src/scheduledCleanup.ts`) **un-links** (sets `guest_id = null`) the
+  `face_embeddings` rows of guests whose `retention_expires_at` has passed. It
+  MUST NEVER `.delete()` a `face_embeddings` row — those rows are the shared,
+  photo-derived search index, not the guest's biometric data (the selfie is
+  zero-retention and never stored). Deleting them (the pre-2026-07-09 bug) tore
+  the match index out from under the whole event the moment any one guest's
+  30 days elapsed, silently breaking face-matching until a manual re-embed —
+  see `MISTAKES.md` 2026-07-09. Retention forgets the guest↔cluster *link*;
+  the index survives for the life of the photos. The ONLY legitimate deletes of
+  `face_embeddings` are the `on delete cascade` from deleting a photo/event.
+  **Future hardening (not yet done):** the guest↔cluster link should live in its
+  own table (e.g. `guest_matches(guest_id, event_id, person_id)`) so a shared
+  index row is never stamped with guest identity at all; retention would then
+  delete link rows, and the `face_embeddings` `guest_id` column could be
+  dropped. If legal ever requires purging the photo-derived templates
+  themselves, scope that to the event/photo lifecycle (all of an event's
+  embeddings at once), never to one guest's consent clock.
 - **Embedding service**: `packages/processing-pipeline` (self-hosted
   InsightFace/ArcFace, never a per-call managed API per CLAUDE.md), deployed
   to **Cloud Run** (project `ouraforphotographers`, region `us-central1`,

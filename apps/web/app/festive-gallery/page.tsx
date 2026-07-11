@@ -58,8 +58,8 @@ export default function FestiveGalleryPage() {
       }
     >
       <header className="relative h-[420px] w-full overflow-hidden bg-surface-container-high">
-        <div className="absolute start-4 top-4 z-20 h-14 w-14 rounded-xl bg-surface-container-highest p-2 shadow-lg">
-          <OuraLogo variant="lockup" size={40} />
+        <div className="absolute start-4 top-4 z-20">
+          <OuraLogo variant="lockup" size={48} />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="material-symbols-outlined text-6xl text-on-surface-variant/20">

@@ -57,9 +57,7 @@ export default function MinimalGalleryPage() {
       <header className="sticky top-0 z-50 border-b border-outline-variant/20 bg-surface-container-low/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-lg flex-row-reverse items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-container-high">
-              <OuraLogo size={24} />
-            </div>
+            <OuraLogo size={32} />
             <span className="font-display text-lg font-bold tracking-tight text-primary">
               Oura
             </span>
@@ -194,9 +192,7 @@ export default function MinimalGalleryPage() {
       <footer className="mt-4 border-t border-outline-variant/20 bg-surface-container-high px-4 pb-8 pt-10">
         <div className="mx-auto flex max-w-lg flex-col gap-8">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-container-highest">
-              <OuraLogo size={24} />
-            </div>
+            <OuraLogo size={32} />
             <h3 className="font-display text-xl font-bold text-primary">
               Oura
             </h3>
