@@ -6,7 +6,8 @@
 - (2) `compositeBrandedPhoto` (`lib/watermark.ts`): frame-off (`frameStyle: "none"`) now produces a fully clean photo — the whole branding block (scrim + studio credit + event title) is gated behind frame-on. The frame toggle is the branding switch.
 - (3) Enlarged + emboldened the PHOTO SANTOS studio name/logo to the design's prominence across the export (`watermark.ts`: creditFont ×1.2, weight 700, letter-spacing, logo ×1.6), the gallery viewer (`BrandedFrame.tsx`), and the editor preview (logo 28→44, text-base→text-2xl).
 - (4) Verified by rendering REAL JPEGs through the actual deployed compositing code in headless Chromium (`scratchpad/render.mjs`) and looking at both frame-on (prominent PHOTO SANTOS, no Oura line) and frame-off (fully clean) outputs against the design.
-- Recorded the white-label branding principle in `CLAUDE.md`. media-ui-verify: 7/7. Deployed live `oura-web` version `5db18c9a` (BUILD_ID `iLk1m0KYrhrShGLRW3eSG`, matched live). `apps/api` untouched — no API redeploy. Commit `a794258`.
+- Recorded the white-label branding principle in `CLAUDE.md`. media-ui-verify: 7/7. Deployed live `oura-web` version `5db18c9a`. Commit `a794258`.
+- **REVERTED same session.** Founder flagged the real error: `/photo-editor` was never a 1:1 port of the Stitch design (the `photo_editor` screens are a branded gallery, not a slider editor), the editor is not the current stage, and this session wrongly polished the off-spec screen instead of catching that. Reverted `a794258` (commit `28a8d2a`) and redeployed `oura-web` version `582af4cd` — live is back to exact pre-session state, nothing off-spec live. Lesson logged in `MISTAKES.md`. Editor parked until its stage; build 1:1 from `design/screens/oura_final_production_photo_editor_*/screen.png` then.
 
 ### 2026-07-03
 - Gathered requirements (founder brain-dump), competitor brochure (LOCA) + live pricing page, and full Stitch design export (42/42 screens confirmed present across 5 zips).
