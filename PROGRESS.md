@@ -315,3 +315,19 @@
 - Confirmed the leading principle is now written down where work will read it:
   design is king, code is 1:1 with the Stitch screen.png, design-spec flow leads
   build order; if code and screenshot ever disagree, the screenshot wins.
+
+## 2026-07-12 (cont.): create-event MOBILE bottom-sheet wired (PR #33, live)
+Founder caught a real gap: `/admin/create-event` was built desktop-only and
+shipped without asking where the mobile version was. He supplied the mobile
+Stitch export; wired it as a responsive layout on the same route (desktop card
+`hidden md:flex`; mobile bottom-sheet below `md`), shared submit via separate
+`<form>`s. Founder decisions: removed the export's auto-barcode toggle (a
+code+QR is always generated — no opt-out path, would've been a dead control),
+and rebuilt the export's Google-CDN preview photo as a bundled CSS phone +
+`qr_code_2` card (CLAUDE.md bans CDN assets). Verified: tsc exit 0, eslint
+clean, prod build passes, authenticated 390px Playwright screenshot + real-DOM
+`getBoundingClientRect` RTL measurement (throwaway service-role account + injected
+`@supabase/ssr` cookies, since the sandbox browser can't reach Supabase auth).
+Deployed oura-web version `ab53201d-3a7c-46a3-873c-cf6658498f53`. Live (auth-gated):
+https://oura-web.oura-events.workers.dev/admin/create-event (view on a phone / <768px).
+Lesson logged: when a design covers only one breakpoint, STOP and ask — don't ship half.

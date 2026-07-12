@@ -479,6 +479,15 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 - **PR actions this session (founder-approved):** merged **#30** and **#29** (the
   latter fixes dead Stitch-token paths in the 42-screen index file — complementary,
   not a duplicate); **closed #13** after folding its nav-gap notes into §6b.
+- **PR #33** (`claude/design-fidelity-branding-audit-ec45ip`, open draft): wires the
+  **create-event MOBILE** bottom-sheet layout on `/admin/create-event` (was
+  desktop-only — a gap shipped without flagging; founder supplied the mobile Stitch
+  export). Responsive: desktop card `hidden md:flex`, mobile bottom-sheet below `md`,
+  shared submit via separate `<form>`s. Founder decisions (2026-07-12): auto-barcode
+  toggle **removed** (code+QR always generated, no opt-out path), CDN preview photo
+  **rebuilt** as a bundled CSS phone+`qr_code_2` card (CLAUDE.md bans CDN assets).
+  Verified: tsc/lint clean, prod build passes, authenticated 390px screenshot +
+  `getBoundingClientRect` RTL measurement on a local prod build.
 - **Still open/unmerged after this session:** **#28** (make the guest Photo Editor
   real — open draft, needs review/decide next session), **#16** (trim MD/skill token
   baseline — real conflicts in 5 files, needs a fresh re-derive), **#4** (trim
