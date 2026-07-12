@@ -291,3 +291,27 @@
 - **(1) embed-status after the 3am cron: intact — 286 face_embeddings (was 262), NOT wiped.** Unlink-not-delete cron holds.
 - **(2) DB-guard hardening:** wrote `supabase/migrations/0005_face_embeddings_delete_guard.sql` — `before delete` trigger on `face_embeddings` rejects any delete while the parent photo still exists unless a txn-local opt-in flag is set; guest-scoped cleanup deletes (the 2026-07-09 bug) now raise. Photo-cascade + force re-embed stay allowed (force re-embed routed through new SECURITY DEFINER `admin_clear_faces_for_photos()` RPC). Worker force-backfill updated to call the RPC with a safe fallback pre-apply. Deployed `oura-api` version `37f1a25b`; typecheck clean. Applying the DDL needs a founder Supabase Management PAT (founder opted to paste one for live apply+verify).
 - **0005 APPLIED + VERIFIED LIVE** (founder-pasted Management PAT, applied via api.supabase.com — needed a browser User-Agent, the default urllib UA hits Cloudflare 1010). Verified: guest-scoped delete RAISES the guard; `admin_clear_faces_for_photos([])` returns 0 clean; photo-cascade delete allowed (rollback-tested, no data lost). embed-status still 286. PAT can be revoked.
+
+## 2026-07-12: master Design-to-Code index + design-driven PRD (PR #30); design-index PR pileup reconciled
+
+- **PR #30** (`claude/design-code-index-prd-5vn8xd`, docs-only): built the master
+  Design-to-Code index in `docs/ARCHITECTURE.md` §6b — every `design/screens/*/screen.png`
+  → its code file path(s) + wiring status (Real / static / not-built-Phase-N),
+  the design-spec source files (`oura_design_specifications_final.md` = the master
+  flow = leading build order), and the flow-order build sequence. Rewrote `PRD.md`
+  as a design-to-code PRD (design-spec flow = source of truth for UI *and* build
+  order; each screen = 1:1 wiring of its screen.png). Added `CLAUDE.md` "Session
+  Budget Discipline" section. Anti-drift clause (§11) now requires updating §6b in
+  the same commit as any screen move/rename/wire.
+- **Design-index PR pileup reconciled (founder-approved):** three PRs were all
+  about "index the design" — this session's #30 (canonical map in ARCHITECTURE
+  §6b), **#29** (fixes the dead `{{DATA:SCREEN:SCREEN_###}}` tokens in
+  `design/oura_final_production_index_42_screens.md` → real on-disk paths), and
+  **#13** (a separate `docs/DESIGN_INDEX.md` screen⇆route + nav-gap map).
+  Decision: **merge #29** (complementary — fixes a genuinely broken file #30 never
+  touched), **fold #13's nav-gap findings into §6b and close #13** (its location is
+  superseded by the canonical §6b), **merge #30**. All docs-only — no deploy needed
+  (no CI/CD; merging to main is the whole effect).
+- Confirmed the leading principle is now written down where work will read it:
+  design is king, code is 1:1 with the Stitch screen.png, design-spec flow leads
+  build order; if code and screenshot ever disagree, the screenshot wins.

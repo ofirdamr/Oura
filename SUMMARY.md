@@ -468,3 +468,20 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 - **#7** — `MISTAKES.md` corrections from 2026-07-07 (live-verification diagnosis, merge-authority, stop-when-stuck lessons). Confirmed conflict is scoped to exactly one file: `MISTAKES.md` (`SUMMARY.md` auto-merges clean). Also a contained, quick resolve.
 
 **Standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception. Also: at the start of a mission, after the Token Economist consult, state the concrete plan before executing.
+
+## 2026-07-12 addendum: canonical screen→code map + open-PR state
+
+- **Canonical Design-to-Code map now lives in `docs/ARCHITECTURE.md` §6b** (PR #30,
+  docs-only). It maps every `design/screens/*/screen.png` → code path + wiring
+  status, names the design-spec flow as the leading build order, and is the single
+  source of truth for "which screen is which code." `PRD.md` is now a design-to-code
+  PRD; `CLAUDE.md` has a "Session Budget Discipline" section.
+- **PR actions this session (founder-approved):** merged **#30** and **#29** (the
+  latter fixes dead Stitch-token paths in the 42-screen index file — complementary,
+  not a duplicate); **closed #13** after folding its nav-gap notes into §6b.
+- **Still open/unmerged after this session:** **#28** (make the guest Photo Editor
+  real — open draft, needs review/decide next session), **#16** (trim MD/skill token
+  baseline — real conflicts in 5 files, needs a fresh re-derive), **#4** (trim
+  `universal-framework/SKILL.md` — one-file conflict, focused resolve), **#7**
+  (docs-only process-lessons follow-up). Next session's first mission is a full
+  open-PR inventory + a per-screen 1:1 design-fidelity audit of everything wired.
