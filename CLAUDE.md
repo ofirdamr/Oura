@@ -29,6 +29,31 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - **"Done" always ships with the clickable live link — no exceptions.** Any time you report something done/deployed/fixed/verified, the same message must include the exact live URL to *see it* — deep-linked to the specific screen or flow you changed (e.g. `https://oura-web.oura-events.workers.dev/gallery`), not just the site root, not "it's live." A completion report without a link is an incomplete report. This has been dropped repeatedly; treat the link as a required field of every "done", the same as verification itself.
 - **Never design new visuals directly.** Founder runs new/missing-screen design through Stitch himself. When a task needs a screen or UI element with no existing `design/*/screen.png` source, do not freehand it — write a clear, ready-to-paste Stitch prompt (what the screen is for, key content/actions, how it fits the existing dark-luxury Hebrew/RTL visual language) and hand it to the founder to run through Stitch. Implement in code only once he brings back the resulting export. This does not apply to re-implementing an existing Stitch screen from `design/*` — that's normal code work.
 
+## Session Budget Discipline (5-hour Pro cap — non-negotiable)
+The Pro usage cap burns as (context size) × (turns) + every sub-agent spawn. A
+prior session died mid-mission at the cap; the dominant waste was fixed
+per-mission overhead (Token-Economist agent + Tooling-Scout network search +
+multi-agent fan-out fired on *every* task). These rules exist to stop that:
+
+1. **Token Economist & Tooling Scout run inline** — one line, no sub-agent
+   spawn — for small/medium work. Spin up the full agent team only for
+   genuinely large missions. Most tasks need neither a spawn nor any network
+   search.
+2. **Targeted reading.** `grep` for the symbol, read only the needed line
+   range. Whole-file reads are the rare exception, not the default.
+3. **Decide-once, no re-loops.** Don't re-derive a settled decision or re-read
+   a file already in context.
+4. **Batch independent tool calls** in a single turn. Never one-action-per-turn
+   — it re-bills the whole conversation each turn and ~10×'s the 5-hour burn.
+5. **Design is king; code is a 1:1 wiring of the design; the design-spec flow
+   is the leading build order** (founder's decision — see `PRD.md` and
+   `docs/ARCHITECTURE.md` §6b). The only exception is a live production bug,
+   which may be fixed out of flow-order.
+6. **Hand off via `context-steward`** at the context-guard threshold rather
+   than dying mid-mission.
+7. **Don't hardcode undecided scope** (e.g. Screens 2/3 scope) — the founder
+   decides that later.
+
 ## Repo layout
 ```
 /apps/web                      Next.js app (guest gallery + photographer dashboard)
