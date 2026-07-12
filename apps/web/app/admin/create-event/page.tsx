@@ -14,6 +14,13 @@ const inputClasses =
 const iconClasses =
   "material-symbols-outlined pointer-events-none absolute end-3 top-3 text-on-surface-variant/60";
 
+// Mobile bottom-sheet field styling (matches the founder's mobile Stitch
+// export: full-width pill inputs, leading icon at the start/right edge).
+const mobileInput =
+  "w-full rounded-xl border border-outline-variant bg-surface-high py-4 text-start text-base text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary";
+const mobileIcon =
+  "material-symbols-outlined pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-primary";
+
 // Postgres unique_violation - see `code` column's partial-unique constraint
 // added in migration 0002 (supabase/migrations).
 const UNIQUE_VIOLATION = "23505";
@@ -136,7 +143,7 @@ export default function CreateEventPage() {
 
   return (
     <AdminShell active="אירועים פעילים">
-      <div className="flex justify-center">
+      <div className="hidden justify-center md:flex">
         <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-outline-variant bg-surface-container shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-high px-6 py-5 md:px-8 md:py-6">
@@ -289,6 +296,166 @@ export default function CreateEventPage() {
               <Link
                 href="/admin"
                 className="flex h-14 items-center justify-center rounded-xl border border-outline-variant px-8 font-bold text-on-surface transition-all hover:bg-surface-container-highest active:scale-[0.98]"
+              >
+                ביטול
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Mobile bottom-sheet (founder's mobile Stitch export). Own <form> so
+          only the visible layout's fields submit; barcode toggle intentionally
+          omitted - a code+QR is always generated (founder decision 2026-07-12). */}
+      <div className="-m-6 md:hidden">
+        <div className="flex min-h-[calc(100dvh-4rem)] flex-col rounded-t-[32px] bg-surface-container-low px-6 pb-10 pt-4">
+          <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-surface-container-highest" />
+
+          <div className="mb-8 flex items-start justify-between">
+            <Link
+              href="/admin"
+              aria-label="סגור"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high text-on-surface transition-transform active:scale-95"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </Link>
+            <div className="flex flex-col items-end gap-1 text-end">
+              <h1 className="text-2xl font-bold text-on-surface">אירוע חדש</h1>
+              <p className="text-sm text-on-surface-variant/80">
+                הזן פרטים ליצירת גלריה חכמה
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
+            {/* Event name */}
+            <div className="space-y-2">
+              <label
+                htmlFor="event_name_m"
+                className="block text-start text-xs font-medium text-on-surface-variant"
+              >
+                שם האירוע
+              </label>
+              <input
+                id="event_name_m"
+                name="event_name"
+                type="text"
+                required
+                placeholder="למשל: חתונת יוסי ודנה"
+                className={`${mobileInput} px-4`}
+              />
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <label
+                htmlFor="event_location_m"
+                className="block text-start text-xs font-medium text-on-surface-variant"
+              >
+                מיקום
+              </label>
+              <div className="relative">
+                <span className={mobileIcon}>location_on</span>
+                <input
+                  id="event_location_m"
+                  name="event_location"
+                  type="text"
+                  placeholder="חיפוש אולם או עיר"
+                  className={`${mobileInput} ps-12 pe-4`}
+                />
+              </div>
+            </div>
+
+            {/* Date */}
+            <div className="space-y-2">
+              <label
+                htmlFor="event_date_m"
+                className="block text-start text-xs font-medium text-on-surface-variant"
+              >
+                תאריך האירוע
+              </label>
+              <div className="relative">
+                <span className={mobileIcon}>calendar_today</span>
+                <input
+                  id="event_date_m"
+                  name="event_date"
+                  type="date"
+                  required
+                  className={`${mobileInput} appearance-none ps-12 pe-4`}
+                />
+              </div>
+            </div>
+
+            {/* Auto-barcode preview (no toggle - always generated) */}
+            <div className="rounded-[24px] border border-outline-variant/30 bg-surface-container-high p-5">
+              <div className="mb-4 flex flex-col gap-1 text-end">
+                <h3 className="text-lg font-bold text-on-surface">
+                  הפקת ברקוד אוטומטית
+                </h3>
+                <p className="text-xs text-on-surface-variant">
+                  האורחים יסרקו ויקבלו גישה לגלריה
+                </p>
+              </div>
+              <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface">
+                <div className="flex h-48 w-24 translate-y-4 rotate-6 flex-col rounded-xl border border-surface-bright bg-surface-container p-2 shadow-2xl">
+                  <div className="mb-4 h-2 w-full rounded-full bg-outline-variant/30" />
+                  <div className="mb-2 flex aspect-square w-full items-center justify-center rounded-lg bg-white">
+                    <span className="material-symbols-outlined text-5xl text-black/80">
+                      qr_code_2
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="h-1.5 w-10/12 rounded-full bg-outline-variant/40" />
+                    <div className="h-1.5 w-8/12 rounded-full bg-outline-variant/40" />
+                  </div>
+                </div>
+                <div className="absolute inset-x-6 bottom-4 flex items-center justify-center gap-2 text-primary">
+                  <span className="material-symbols-outlined text-[16px]">
+                    verified
+                  </span>
+                  <span className="text-xs font-medium">הפקה חכמה מופעלת</span>
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+                {error}
+              </p>
+            )}
+
+            {/* Actions */}
+            <div className="mt-auto flex flex-col gap-3 pt-4">
+              <button
+                type="submit"
+                disabled={submitState !== "idle"}
+                className={`flex h-14 items-center justify-center gap-2 rounded-xl text-base font-bold shadow-lg transition-all active:scale-[0.98] disabled:active:scale-100 ${
+                  submitState === "success"
+                    ? "bg-success text-on-primary"
+                    : "bg-primary text-on-primary hover:brightness-110"
+                }`}
+              >
+                {submitState === "idle" && <span>הפקה גלריה וברקוד</span>}
+                {submitState === "submitting" && (
+                  <>
+                    <span className="material-symbols-outlined animate-spin">
+                      sync
+                    </span>
+                    <span>מעבד נתונים...</span>
+                  </>
+                )}
+                {submitState === "success" && (
+                  <>
+                    <span className="material-symbols-outlined">
+                      check_circle
+                    </span>
+                    <span>הושלם בהצלחה</span>
+                  </>
+                )}
+              </button>
+              <Link
+                href="/admin"
+                className="flex h-14 items-center justify-center rounded-xl border border-outline-variant/50 font-bold text-on-surface-variant transition-all hover:bg-surface-container-highest active:scale-[0.98]"
               >
                 ביטול
               </Link>
