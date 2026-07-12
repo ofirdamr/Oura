@@ -315,3 +315,11 @@
 - Confirmed the leading principle is now written down where work will read it:
   design is king, code is 1:1 with the Stitch screen.png, design-spec flow leads
   build order; if code and screenshot ever disagree, the screenshot wins.
+
+## 2026-07-12 — Design-fidelity audit, Phase 1: open-PR inventory + decisions
+Branch `claude/design-fidelity-audit-mvp-4f1mk5` (from `main` @56a033b). Reviewed all 4 open PRs against current `main`/`CLAUDE.md`:
+- #28 (Photo Editor real): KEEP-WAITING — real feature, blocked on 4 founder branding fixes + real-JPEG verify; do fixes on its own branch, then merge (Phase-2 work).
+- #16 (token-baseline trim): KEEP-WAITING — stale 5-file conflict, competes with #4 on SKILL.md; needs dedicated docs-trim re-derive.
+- #4 (SKILL.md trim): KEEP-WAITING — stale base, overlaps #16; resolve both together.
+- #7 (process-lessons docs): CLOSED — its merge-authority lesson ("wait for explicit merge before touching main") directly contradicts the current "Merge is not an ask-first gate" rule (reversed 2026-07-10 post-pileup); other two lessons already covered. Closed with comment.
+Recorded all four in SUMMARY.md OPEN NOW block. Phase 2 (per-screen 1:1 audit) handed to a fresh session.
