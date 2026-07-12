@@ -472,6 +472,27 @@ folder for these retroactively):
 and `supabase/migrations` are the wiring *behind* the guest/photographer
 screens above; see §3–§5 for their structural map.
 
+**Known navigation gaps (from the 2026-07-10 design audit, folded in here as
+the single canonical index):** these are wiring gaps, not design gaps — the
+screens exist and match their `screen.png`, but the links between them don't
+yet.
+- `/admin/qr-management` is reachable only by re-running the create→brand
+  sequence — no sidebar link, and no "view QR" affordance on the event-detail
+  page. Wiring it is a real task.
+- Three dead admin sidebar links: `ארכיון אירועים`, `לקוחות VIP`,
+  `ניתוח נתונים` (archive / VIP clients / analytics) — no destination yet.
+- The Guest Landing Page (screens #22/#32, code `/join`) is unwired: `/`
+  redirects straight to `/gallery-entry`, so `/join` is never entered in the
+  real flow.
+
+The raw `{{DATA:SCREEN:SCREEN_nn}}` tokens in
+`design/oura_final_production_index_42_screens.md` are original Stitch export
+ids, **not** on-disk paths — that file's own header now says so and points at
+`design/screens/<folder>/screen.png`. Never conclude "no design exists" from a
+token alone; `ls design/screens/` and open the `screen.png` first (CLAUDE.md
+guardrail). This §6b table is the authoritative screen→code map; that file is
+the human-readable inventory behind it.
+
 ## 7. Environment / secrets inventory (names only — never values)
 
 **`apps/api` (Wrangler secrets, `wrangler secret put <name>`):**
