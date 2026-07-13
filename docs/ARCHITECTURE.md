@@ -422,7 +422,7 @@ Each row's code path is relative to repo root. **Status** = wiring state (see
 |---|---|---|---|---|
 | 1/13 | Dashboard | `dashboard_desktop_1..3`, `dashboard_mobile_1..3` | `apps/web/app/admin/page.tsx` (+ `components/admin/AdminShell.tsx`) | **Real** |
 | 2/14 | Event List | `event_list_desktop_1..3`, `event_list_mobile_1..3` | `apps/web/app/admin/events/page.tsx` | **Real** |
-| 3/15 | Branding Settings | `branding_settings_desktop_1..3`, `branding_settings_mobile_1..3` | `apps/web/app/admin/branding/page.tsx` | **Real** |
+| 3/15 | Branding Settings | `branding_settings_desktop_1..3` (canonical: **desktop_3**), `branding_settings_mobile_1..3` (canonical: **mobile_3**; mobile_1 is a misfiled personal-gallery PNG) | `apps/web/app/admin/branding/page.tsx` (desktop_3 layout `md+`; dedicated mobile_3 layout below `md` — simpler set: logo + `studio_name` + single brand color + save/cancel) | **Real** |
 | 4/16 | AI Optimization | `ai_optimization_desktop_1..2`, `ai_optimization_mobile` | `apps/web/app/admin/ai-optimization/page.tsx` | Static UI only (no real pipeline behind it — §8) |
 | 5/17 | Statistics & Analytics | `statistics_desktop_1..3`, `statistics_mobile_1..2` | — not built — | Phase 2 |
 | 6/18 | Messaging Center | `messaging_center_desktop`, `messaging_center_mobile` | — not built — | Phase 2 |

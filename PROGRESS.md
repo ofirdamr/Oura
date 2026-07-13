@@ -331,3 +331,23 @@ clean, prod build passes, authenticated 390px Playwright screenshot + real-DOM
 Deployed oura-web version `ab53201d-3a7c-46a3-873c-cf6658498f53`. Live (auth-gated):
 https://oura-web.oura-events.workers.dev/admin/create-event (view on a phone / <768px).
 Lesson logged: when a design covers only one breakpoint, STOP and ask — don't ship half.
+
+## 2026-07-13: /admin/branding wired to desktop_3 + dedicated mobile_3 (deployed)
+Continuation of the branding fidelity audit (PR #34, docs-only mapping, sibling branch
+`claude/branding-fidelity-audit-mei1jn`). Founder decisions: Q1 desktop_3 canonical,
+Q2 build dedicated mobile_3. Wired `apps/web/app/admin/branding/page.tsx`: desktop_3
+wording/section renames (`הגדרות חשבון פלטינום`, `ניהול מיתוג:`, `תצוגה מקדימה ללקוח` +
+subtitle, `לוגו הסטודיו`+`שקוף מומלץ`+`העלה לוגו חדש`+WEBP, `סגנון תצוגת תמונות`,
+silver→`כסף פלטינום`, `זהות המותג`, `סימן מים חכם (Watermark)`, `החלף תמונה לדוגמה:`
+thumb label) for `md+`; a dedicated mobile_3 block below `md` (preview card w/ `פעיל`
+badge, logo dropzone, `שם הסטודיו`→`branding.studio_name`, single brand color, full-width
+save/cancel) rendered inside AdminShell per the PR #33 precedent (no forked bottom-tab
+chrome). Frame/watermark/title/caption are desktop-only, faithful to the simpler mobile_3.
+Text/label drift + the new mobile layout only — no invented features; hoisted the logo
+file-input to top level so both dropzones share it. Verified: tsc/eslint clean, 7/7
+media-ui-verify, authenticated Playwright screenshots at 1280px + 390px, real-DOM
+`getBoundingClientRect` RTL correct on both breakpoints (throwaway service-role account +
+injected `@supabase/ssr` cookie, per the documented sandbox method; the browser can't reach
+Supabase so event data renders as "טוען…" — a data blind spot, not a layout bug). apps/api
+unchanged (not redeployed). Deployed oura-web version `3a221d6a-2a38-4bf8-8053-2841eee24070`.
+Live: https://oura-web.oura-events.workers.dev/admin/branding
