@@ -27,7 +27,7 @@ import { API_BASE_URL } from "@/lib/api";
 const FRAME_STYLES = [
   { key: "crystal", label: "לבן קריסטל", swatchClass: "bg-white" },
   { key: "black", label: "שחור פסנתר", swatchClass: "bg-black" },
-  { key: "silver", label: "כסף קלאסי", swatchClass: "bg-gradient-to-br from-gray-300 to-gray-400" },
+  { key: "silver", label: "כסף פלטינום", swatchClass: "bg-gradient-to-br from-gray-300 to-gray-400" },
   { key: "none", label: "ללא מסגרת", swatchClass: "border-2 border-dashed border-outline-variant bg-transparent" },
 ] as const;
 
@@ -65,6 +65,10 @@ function BrandingSettingsPageInner() {
   const [frame, setFrame] = useState<FrameKey>("crystal");
   const [accentColor, setAccentColor] = useState("#FF8A75");
   const [autoWatermark, setAutoWatermark] = useState(true);
+  // Studio name — the mobile (branding_settings_mobile_3) design surfaces this
+  // as an editable field; persisted to the flexible `branding` jsonb (no schema
+  // change). Drives the mobile preview's studio identity line.
+  const [studioName, setStudioName] = useState("");
   // Title composited onto shared/downloaded guest photos (e.g. "החתונה של…").
   const [eventTitle, setEventTitle] = useState("");
   // Marketing caption pre-filled when a guest shares — promotes the studio.
@@ -123,6 +127,9 @@ function BrandingSettingsPageInner() {
       }
       if (typeof branding.auto_watermark === "boolean") {
         setAutoWatermark(branding.auto_watermark);
+      }
+      if (typeof branding.studio_name === "string") {
+        setStudioName(branding.studio_name);
       }
       if (typeof branding.event_title === "string") {
         setEventTitle(branding.event_title);
@@ -195,6 +202,7 @@ function BrandingSettingsPageInner() {
       frame,
       primary_color: accentColor,
       auto_watermark: autoWatermark,
+      studio_name: studioName.trim(),
       event_title: eventTitle.trim(),
       share_caption: shareCaption.trim(),
     };
@@ -213,6 +221,10 @@ function BrandingSettingsPageInner() {
     setSaveState("saved");
     router.push(`/admin/qr-management?event_id=${eventId}`);
   }
+
+  // Studio identity shown in the mobile preview / subtitle: the edited studio
+  // name, falling back to the event name, then a neutral placeholder.
+  const studioDisplay = studioName.trim() || eventName || "הסטודיו שלך";
 
   const frameFrameClass =
     frame === "none"
@@ -243,57 +255,19 @@ function BrandingSettingsPageInner() {
 
   return (
     <AdminShell active="הגדרות">
-      <div className="flex items-start justify-between gap-4">
-        <div className="text-start">
-          <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-            <span className="material-symbols-outlined text-sm">workspace_premium</span>
-            מהדורת פלטינום
-          </span>
-          <h1 className="text-3xl font-bold text-on-surface">
-            מיתוג ולוגו: {eventName ?? "טוען..."}
-          </h1>
-          <p className="mt-1 max-w-xl text-sm text-on-surface-variant">
-            נהל את הזהות הוויזואלית של הסטודיו שלך. הגדרות אלו יחולו באופן
-            אוטומטי על כל הגלריות והאירועים שתיצור במערכת Oura.
-          </p>
-        </div>
-        {/* Desktop only (matches oura_final_production_branding_settings_desktop_2):
-            Save/Cancel sit beside the title. On mobile the actual design
-            (branding_settings_mobile_2) moves these to a full-width stacked
-            pair at the very end of the page instead - see below. */}
-        <div className="hidden shrink-0 flex-col items-end gap-2 lg:flex">
-          <div className="flex flex-row-reverse gap-3">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={loading || saveState === "saving"}
-              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
-            >
-              {saveState === "saving" && (
-                <span className="material-symbols-outlined animate-spin text-lg">
-                  sync
-                </span>
-              )}
-              {saveState === "saving"
-                ? "שומר..."
-                : saveState === "saved"
-                  ? "נשמר!"
-                  : "שמור שינויים"}
-            </button>
-            <Link
-              href="/admin"
-              className="rounded-xl border border-outline-variant px-6 py-3 font-bold text-on-surface transition-all hover:bg-surface-container-highest"
-            >
-              ביטול
-            </Link>
-          </div>
-          {saveState === "error" && (
-            <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
-              שמירת המיתוג נכשלה. נסו שוב.
-            </p>
-          )}
-        </div>
-      </div>
+      {/* Single hidden file input shared by both the desktop and mobile logo
+          dropzones (hoisted to the top level so it is reachable regardless of
+          which responsive block is currently displayed). */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          void handleLogoFileSelected(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
 
       {loadError && (
         <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
@@ -301,21 +275,75 @@ function BrandingSettingsPageInner() {
         </p>
       )}
 
-      {/* Design (branding_settings_desktop_2) puts the live preview on the
-          left and the settings cards on the right. A plain DOM-order grid
-          under dir="rtl" auto-places the first child into the rightmost
-          track, which put the preview (written first for readability) on
-          the wrong side - measured live at left:787/right:1340 (right half)
-          before this fix. Both panels are pinned with `order` to match the
-          design instead of relying on source order. */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_1fr]">
+      {/* ===== Desktop / tablet (md+) — branding_settings_desktop_3 ===== */}
+      <div className="hidden space-y-8 md:block">
+        <div className="flex items-start justify-between gap-4">
+          <div className="text-start">
+            <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+              <span className="material-symbols-outlined text-sm">verified</span>
+              הגדרות חשבון פלטינום
+            </span>
+            <h1 className="text-3xl font-bold text-on-surface">
+              ניהול מיתוג: {eventName ?? "טוען..."}
+            </h1>
+            <p className="mt-1 max-w-xl text-sm text-on-surface-variant">
+              התאם אישית את הנראות של הגלריות שלך. הלוגו והצבעים שתבחר יחולו
+              באופן גורף על כל האירועים והנכסים הדיגיטליים של הסטודיו.
+            </p>
+          </div>
+          {/* Save/Cancel sit beside the title on desktop_3, on the far (left)
+              side of the header row. */}
+          <div className="hidden shrink-0 flex-col items-end gap-2 md:flex">
+            <div className="flex flex-row-reverse gap-3">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={loading || saveState === "saving"}
+                className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
+              >
+                {saveState === "saving" && (
+                  <span className="material-symbols-outlined animate-spin text-lg">
+                    sync
+                  </span>
+                )}
+                {saveState === "saving"
+                  ? "שומר..."
+                  : saveState === "saved"
+                    ? "נשמר!"
+                    : "שמירת שינויים"}
+              </button>
+              <Link
+                href="/admin"
+                className="rounded-xl border border-outline-variant px-6 py-3 font-bold text-on-surface transition-all hover:bg-surface-container-highest"
+              >
+                ביטול
+              </Link>
+            </div>
+            {saveState === "error" && (
+              <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+                שמירת המיתוג נכשלה. נסו שוב.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* desktop_3 puts the live preview on the left and the settings cards
+            on the right. A plain DOM-order grid under dir="rtl" auto-places the
+            first child into the rightmost track, so both panels are pinned with
+            `order` to match the design instead of relying on source order. */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_1fr]">
         {/* Live preview */}
         <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5 lg:order-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-1.5 text-sm font-bold text-on-surface">
-              <span className="material-symbols-outlined text-base">visibility</span>
-              תצוגה מקדימה חיה
-            </h2>
+          <div className="mb-4 flex items-start justify-between">
+            <div className="text-start">
+              <h2 className="flex items-center gap-1.5 text-sm font-bold text-on-surface">
+                <span className="material-symbols-outlined text-base">visibility</span>
+                תצוגה מקדימה ללקוח
+              </h2>
+              <p className="mt-0.5 text-xs text-on-surface-variant">
+                כך תיראה הגלריה שלך בזמן אמת
+              </p>
+            </div>
             <div className="flex gap-1 rounded-lg bg-surface-container-high p-1">
               <button
                 onClick={() => setDevice("mobile")}
@@ -371,21 +399,32 @@ function BrandingSettingsPageInner() {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-center gap-2">
-            {BACKGROUND_THUMBS.map((thumb, i) => (
-              <button
-                key={thumb.key}
-                type="button"
-                onClick={() => setActiveBg(i)}
-                aria-label={`תצוגה מקדימה על רקע ${thumb.key}`}
-                aria-pressed={activeBg === i}
-                className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-gradient-to-br text-on-surface-variant transition-all ${thumb.gradient} ${
-                  activeBg === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
-                }`}
-              >
-                <span className="material-symbols-outlined text-lg">{thumb.icon}</span>
-              </button>
-            ))}
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+              <span className="material-symbols-outlined text-sm">image</span>
+              החלף תמונה לדוגמה:
+            </span>
+            <div className="flex gap-2">
+              {BACKGROUND_THUMBS.map((thumb, i) => (
+                <button
+                  key={thumb.key}
+                  type="button"
+                  onClick={() => setActiveBg(i)}
+                  aria-label={`תצוגה מקדימה על רקע ${thumb.key}`}
+                  aria-pressed={activeBg === i}
+                  className={`relative flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-gradient-to-br text-on-surface-variant transition-all ${thumb.gradient} ${
+                    activeBg === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-lg">{thumb.icon}</span>
+                  {activeBg === i && (
+                    <span className="absolute -end-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-on-primary">
+                      {i + 1}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           <button
@@ -454,20 +493,15 @@ function BrandingSettingsPageInner() {
         {/* Settings */}
         <div className="space-y-6 lg:order-1">
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
-            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
-              <span className="material-symbols-outlined text-base">add_photo_alternate</span>
-              העלאת לוגו הסטודיו
-            </h2>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                void handleLogoFileSelected(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
+                <span className="material-symbols-outlined text-base">cloud_upload</span>
+                לוגו הסטודיו
+              </h2>
+              <span className="rounded-full bg-surface-container-highest px-2.5 py-1 text-[10px] font-bold text-on-surface-variant">
+                שקוף מומלץ
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -487,13 +521,13 @@ function BrandingSettingsPageInner() {
               }`}
             >
               <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
-                {logoUploading ? "progress_activity" : "add_photo_alternate"}
+                {logoUploading ? "progress_activity" : "add_a_photo"}
               </span>
               <p className="text-sm font-medium text-on-surface">
-                {logoUploading ? "מעלה לוגו..." : "גררו לוגו לכאן או לחצו לבחירה"}
+                {logoUploading ? "מעלה לוגו..." : "העלה לוגו חדש"}
               </p>
               <p className="text-xs text-on-surface-variant">
-                PNG, SVG (רקע שקוף מומלץ)
+                תומך בפורמטים PNG, SVG, WEBP
               </p>
             </button>
             {logoError && (
@@ -551,7 +585,7 @@ function BrandingSettingsPageInner() {
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">grid_view</span>
-              סגנון מסגרת פרימיום
+              סגנון תצוגת תמונות
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {FRAME_STYLES.map((style) => (
@@ -573,14 +607,14 @@ function BrandingSettingsPageInner() {
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
-              <span className="material-symbols-outlined text-base">palette</span>
-              צבעי המותג
+              <span className="material-symbols-outlined text-base">auto_awesome</span>
+              זהות המותג
             </h2>
             <div className="flex items-center justify-between">
               <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">צבע דגש ראשי</p>
                 <p className="text-xs text-on-surface-variant">
-                  צבע הלחצנים והאלמנטים בגלריה
+                  צבע כפתורים ולינקים בגלריה
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -600,10 +634,10 @@ function BrandingSettingsPageInner() {
             <div className="flex items-center justify-between">
               <div className="text-start">
                 <p className="text-sm font-bold text-on-surface">
-                  סימן מים אוטומטי
+                  סימן מים חכם (Watermark)
                 </p>
                 <p className="text-xs text-on-surface-variant">
-                  הוספת לוגו Photo Santos על תמונות
+                  הוסף לוגו Photo Santos על כל התמונות
                 </p>
               </div>
               <button
@@ -624,39 +658,140 @@ function BrandingSettingsPageInner() {
             </div>
           </div>
         </div>
+        </div>
       </div>
 
-      {/* Mobile only (matches branding_settings_mobile_2): full-width stacked
-          Save/Cancel at the end of the page, not beside the title. */}
-      <div className="flex flex-col gap-3 lg:hidden">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={loading || saveState === "saving"}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
-        >
-          {saveState === "saving" && (
-            <span className="material-symbols-outlined animate-spin text-lg">
-              sync
-            </span>
-          )}
-          {saveState === "saving"
-            ? "שומר..."
-            : saveState === "saved"
-              ? "נשמר!"
-              : "שמירת שינויים"}
-        </button>
-        <Link
-          href="/admin"
-          className="w-full rounded-xl border border-outline-variant px-6 py-3 text-center font-bold text-on-surface transition-all hover:bg-surface-container-highest"
-        >
-          ביטול
-        </Link>
-        {saveState === "error" && (
-          <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
-            שמירת המיתוג נכשלה. נסו שוב.
+      {/* ===== Mobile (below md) — branding_settings_mobile_3 =====
+          A distinct, simpler mobile branding design (not a responsive shrink
+          of desktop_3): brand-preview card, logo dropzone, studio-name field,
+          single brand color, full-width Save/Cancel. Frame styles + watermark
+          + share-title/caption are intentionally desktop-only here, matching
+          mobile_3. Rendered inside AdminShell (whose drawer provides mobile
+          nav), following the PR #33 create-event-mobile precedent rather than
+          forking a separate top-bar/bottom-tab chrome. */}
+      <div className="space-y-6 md:hidden">
+        <div className="text-start">
+          <h1 className="text-2xl font-bold text-on-surface">הגדרות מיתוג ולוגו</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            נהל את המראה והתחושה של הסטודיו שלך &apos;<bdi>{studioDisplay}</bdi>&apos; בממשק המערכת.
           </p>
-        )}
+        </div>
+
+        {/* Brand preview */}
+        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-primary">תצוגה מקדימה של המותג</h2>
+            <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-bold text-primary">
+              פעיל
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-outline-variant/20 bg-surface-container-low p-4">
+            <div className="min-w-0 text-start">
+              <p className="truncate text-base font-bold text-on-surface">
+                <bdi>{studioDisplay}</bdi>
+              </p>
+              <p className="text-xs text-on-surface-variant">צילום אירועים פרימיום</p>
+            </div>
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black p-1.5">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo, next/image would need this exact host allow-listed
+                <img src={logoUrl} alt="לוגו הסטודיו" className="h-full w-full object-contain" />
+              ) : (
+                <StudioLogo size={40} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Logo upload */}
+        <div>
+          <h2 className="mb-2 text-start text-sm font-bold text-on-surface">לוגו הסטודיו</h2>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={logoUploading}
+            className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-outline-variant/50 p-8 text-center transition-colors hover:border-primary/50 disabled:opacity-60"
+          >
+            <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
+              {logoUploading ? "progress_activity" : "upload_file"}
+            </span>
+            <p className="text-sm font-bold text-on-surface">
+              {logoUploading ? "מעלה לוגו..." : "החלף לוגו (PNG, SVG)"}
+            </p>
+          </button>
+          {logoError && (
+            <p className="mt-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+              {logoError}
+            </p>
+          )}
+        </div>
+
+        {/* Studio name */}
+        <div>
+          <h2 className="mb-2 text-start text-sm font-bold text-on-surface">שם הסטודיו</h2>
+          <input
+            type="text"
+            value={studioName}
+            onChange={(e) => setStudioName(e.target.value)}
+            placeholder={eventName ?? "שם הסטודיו"}
+            className="w-full rounded-2xl border border-outline-variant/40 bg-surface-container px-4 py-4 text-start text-base font-bold text-on-surface placeholder:font-normal placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none"
+          />
+        </div>
+
+        {/* Brand color */}
+        <div>
+          <h2 className="mb-2 text-start text-sm font-bold text-on-surface">צבע מותג ראשי</h2>
+          <label className="flex items-center justify-between rounded-2xl border border-outline-variant/40 bg-surface-container px-4 py-4">
+            <span className="flex items-center gap-3">
+              <span className="font-mono text-base text-on-surface" dir="ltr">
+                {accentColor.toUpperCase()}
+              </span>
+              <span
+                className="relative h-9 w-9 overflow-hidden rounded-full border-2 border-white/70"
+                style={{ backgroundColor: accentColor }}
+              >
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={(e) => setAccentColor(e.target.value)}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  aria-label="בחר צבע מותג"
+                />
+              </span>
+            </span>
+            <span className="text-sm font-bold text-primary">שינוי</span>
+          </label>
+        </div>
+
+        {/* Save / Cancel */}
+        <div className="flex flex-col gap-3 pt-2">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={loading || saveState === "saving"}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-60"
+          >
+            {saveState === "saving" && (
+              <span className="material-symbols-outlined animate-spin text-lg">sync</span>
+            )}
+            {saveState === "saving"
+              ? "שומר..."
+              : saveState === "saved"
+                ? "נשמר!"
+                : "שמירת שינויים"}
+          </button>
+          <Link
+            href="/admin"
+            className="w-full rounded-2xl border border-outline-variant py-4 text-center font-bold text-on-surface transition-all hover:bg-surface-container-highest"
+          >
+            ביטול
+          </Link>
+          {saveState === "error" && (
+            <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
+              שמירת המיתוג נכשלה. נסו שוב.
+            </p>
+          )}
+        </div>
       </div>
     </AdminShell>
   );

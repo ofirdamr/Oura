@@ -2,6 +2,35 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ✅ DONE 2026-07-13 — /admin/branding wired to desktop_3 + dedicated mobile_3 (deployed)
+Continuation of the branding fidelity audit (PR #34 recorded the six-screen mapping,
+docs-only, on sibling branch `claude/branding-fidelity-audit-mei1jn`). **Founder decisions
+this session:** Q1 = **desktop_3 is canonical**, Q2 = **build the dedicated mobile_3 layout**.
+Wired `apps/web/app/admin/branding/page.tsx`:
+- **Desktop (`md+`) → desktop_3:** badge `הגדרות חשבון פלטינום`, title `ניהול מיתוג:`, preview
+  header `תצוגה מקדימה ללקוח` + subtitle `כך תיראה הגלריה שלך בזמן אמת`, `החלף תמונה לדוגמה:`
+  thumb label, logo card `לוגו הסטודיו` + `שקוף מומלץ` badge + `העלה לוגו חדש` + WEBP hint,
+  frame card `סגנון תצוגת תמונות` + silver→`כסף פלטינום`, brand card `זהות המותג` + watermark
+  `סימן מים חכם (Watermark)`. Text/label drift only — no invented features.
+- **Mobile (below `md`) → dedicated mobile_3:** preview card (`פעיל` badge + studio identity),
+  logo dropzone, `שם הסטודיו` field (persists to `branding.studio_name`, an already-documented
+  jsonb key), single brand color, full-width save/cancel. Rendered inside AdminShell (its drawer
+  is the mobile nav) per the PR #33 create-event precedent — no separate top-bar/bottom-tab chrome.
+- **Deliberate mobile tradeoff (faithful to mobile_3):** frame styles + watermark toggle +
+  share-title/caption are **desktop-only** — mobile_3 is the simpler design the founder chose.
+  If he wants those on mobile too, that's a follow-up.
+- **Not changed (out of scope):** AdminShell's shared sidebar nav labels/accent differ slightly
+  from desktop_3's mockup nav, but that's global admin chrome (would affect every admin page) —
+  left as-is, not restyled for one screen.
+Verified: tsc + eslint clean, all 7 media-ui-verify checks, authenticated Playwright screenshots
+at 1280px + 390px, real-DOM `getBoundingClientRect` RTL measured correct both breakpoints
+(desktop: title-right/buttons-left, preview-left, frame 2×2 crystal·silver right / black·none left,
+color label-right/hex-left; mobile: preview title-right/badge-left, name-right/logo-left,
+hex-right/`שינוי`-left). **Live** (oura-web version `3a221d6a-2a38-4bf8-8053-2841eee24070`): https://oura-web.oura-events.workers.dev/admin/branding
+(auth-gated; append `?event_id=<id>`). PR: this branch `claude/branding-fidelity-audit-mei1jn-u21qlr`
+(supersedes #34's open questions — #34 can be closed). apps/api unchanged (branding save is a
+direct RLS'd Supabase write from the browser; logo endpoint untouched) — not redeployed.
+
 ## 📌 OPEN NOW — Photo Editor branding (4 fixes) + branch decision (2026-07-11)
 - **PR #28** (`claude/wed-2024-face-match-t4wre2`, open draft) made the guest Photo Editor real (adjust → branded export; `photo-editor/page.tsx`, `BrandedFrame.tsx`, `compositeBrandedPhoto` in `watermark.ts`). **NOT merged.**
 - **Founder feedback → 4 fixes still PENDING (not yet coded):** (1) strip `מופעל על ידי Oura` line from the baked branding — it's at `apps/web/app/photo-editor/page.tsx:136` AND in `BrandedFrame`; (2) `compositeBrandedPhoto` frame-off must yield a fully clean photo (zero baked branding); (3) enlarge the photographer logo to the design's prominence; (4) verify with a REAL exported JPEG looked at against `design/screens/oura_final_production_photo_editor_desktop/screen.png`, then deploy + live link. The `photo_editor` design confirms white-label (studio brand baked on, **no Oura credit**) — the 4 fixes are design-faithful, not new design.
