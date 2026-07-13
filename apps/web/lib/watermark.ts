@@ -123,55 +123,58 @@ export async function compositeBrandedPhoto(
   ctx.restore();
   img.close();
 
-  // Bottom branding bar: a gradient scrim so the logo + titles stay legible on
-  // any photo, drawn inside the frame over the image.
-  const barH = Math.round(h * 0.22);
-  const barTop = border + h - barH;
-  const grad = ctx.createLinearGradient(0, barTop, 0, border + h);
-  grad.addColorStop(0, "rgba(0,0,0,0)");
-  grad.addColorStop(1, "rgba(0,0,0,0.72)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(border, barTop, w, barH);
+  // Bottom branding bar — only when a frame is on. Frame "off" means a fully
+  // clean, unbranded photo: no scrim, no logo, no titles baked into the export.
+  if (branding.frameStyle !== "none") {
+    const barH = Math.round(h * 0.24);
+    const barTop = border + h - barH;
+    const grad = ctx.createLinearGradient(0, barTop, 0, border + h);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.72)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(border, barTop, w, barH);
 
-  const pad = Math.round(Math.min(w, h) * 0.05);
-  const baseFont = Math.max(14, Math.round(w * 0.032));
+    const pad = Math.round(Math.min(w, h) * 0.05);
+    const baseFont = Math.max(14, Math.round(w * 0.032));
 
-  // Event title — Hebrew, RTL, flush to the right (start side).
-  if (branding.eventTitle) {
-    ctx.direction = "rtl";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = `700 ${Math.round(baseFont * 1.25)}px Rubik, system-ui, sans-serif`;
-    ctx.fillStyle = "#ffffff";
+    // Event title — Hebrew, RTL, flush to the right (start side).
+    if (branding.eventTitle) {
+      ctx.direction = "rtl";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      ctx.font = `700 ${Math.round(baseFont * 1.25)}px Rubik, system-ui, sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(0,0,0,0.55)";
+      ctx.shadowBlur = Math.round(baseFont * 0.4);
+      ctx.fillText(branding.eventTitle, border + w - pad, border + h - Math.round(barH * 0.34), w - pad * 2);
+      ctx.shadowBlur = 0;
+    }
+
+    // Studio credit (logo + "Photo Santos") — bottom-left (end side), LTR.
+    // Enlarged to the design's prominence: the studio brand is the hero mark.
+    const creditY = border + h - pad;
+    let logoRight = border + pad;
+    if (branding.logoUrl) {
+      try {
+        const logo = await loadBitmap(branding.logoUrl);
+        const logoH = Math.round(baseFont * 2.0);
+        const logoW = Math.round((logo.width / logo.height) * logoH) || logoH;
+        ctx.drawImage(logo, border + pad, creditY - logoH, logoW, logoH);
+        logo.close();
+        logoRight = border + pad + logoW + Math.round(baseFont * 0.5);
+      } catch {
+        // Logo optional — a failed load just falls back to the text credit.
+      }
+    }
+    ctx.direction = "ltr";
+    ctx.textAlign = "left";
+    ctx.font = `700 ${Math.round(baseFont * 1.35)}px "Hanken Grotesk", Rubik, system-ui, sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.shadowColor = "rgba(0,0,0,0.55)";
     ctx.shadowBlur = Math.round(baseFont * 0.4);
-    ctx.fillText(branding.eventTitle, border + w - pad, border + h - Math.round(barH * 0.34), w - pad * 2);
+    ctx.fillText(branding.studioName, logoRight, creditY - Math.round(baseFont * 0.2));
     ctx.shadowBlur = 0;
   }
-
-  // Studio credit (logo + "Photo Santos") — bottom-left (end side), LTR.
-  const creditY = border + h - pad;
-  let logoRight = border + pad;
-  if (branding.logoUrl) {
-    try {
-      const logo = await loadBitmap(branding.logoUrl);
-      const logoH = Math.round(baseFont * 1.4);
-      const logoW = Math.round((logo.width / logo.height) * logoH) || logoH;
-      ctx.drawImage(logo, border + pad, creditY - logoH, logoW, logoH);
-      logo.close();
-      logoRight = border + pad + logoW + Math.round(baseFont * 0.4);
-    } catch {
-      // Logo optional — a failed load just falls back to the text credit.
-    }
-  }
-  ctx.direction = "ltr";
-  ctx.textAlign = "left";
-  ctx.font = `600 ${baseFont}px "Hanken Grotesk", Rubik, system-ui, sans-serif`;
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.shadowColor = "rgba(0,0,0,0.55)";
-  ctx.shadowBlur = Math.round(baseFont * 0.4);
-  ctx.fillText(branding.studioName, logoRight, creditY - Math.round(baseFont * 0.15));
-  ctx.shadowBlur = 0;
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
