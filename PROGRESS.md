@@ -331,3 +331,5 @@ clean, prod build passes, authenticated 390px Playwright screenshot + real-DOM
 Deployed oura-web version `ab53201d-3a7c-46a3-873c-cf6658498f53`. Live (auth-gated):
 https://oura-web.oura-events.workers.dev/admin/create-event (view on a phone / <768px).
 Lesson logged: when a design covers only one breakpoint, STOP and ask — don't ship half.
+
+- 2026-07-13: /admin/branding fidelity audit STARTED (branch claude/branding-fidelity-audit-mei1jn off latest main). Opened all 6 branding_settings PNGs: desktop_1/2/3 = 3 iterations of the same screen (live page matches v1/2; v3 most evolved), mobile_2/3 = a distinct simpler mobile branding design (mobile_3 = Hebrew-localized final), mobile_1 = MISFILED (its PNG is the guest personal gallery). BLOCKED on founder Q1 (is desktop_3 canonical?) + Q2 (build dedicated mobile_3 layout?) before any wiring. Separately RESOLVED the founder's "registered, no auth email" report: not a delivery bug — he already has a confirmed account (ofirdamr@gmail.com since 07-04), Supabase suppresses the email on re-register (anti-enumeration); told him to log in at /login. No code changed.
