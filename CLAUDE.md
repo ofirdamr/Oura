@@ -54,6 +54,19 @@ multi-agent fan-out fired on *every* task). These rules exist to stop that:
    than dying mid-mission.
 7. **Don't hardcode undecided scope** (e.g. Screens 2/3 scope) — the founder
    decides that later.
+8. **No per-task network sweep.** Default is Solo + inline consults + LOCAL
+   tooling only. Do NOT run WebSearch / `SearchMcpRegistry` /
+   `discover_zapier_actions` / connector searches for routine build/fix/wire
+   work — only when a mission genuinely adds a NEW external service the repo
+   doesn't already integrate, and then a single targeted search, not a blanket
+   sweep. (The `tooling-scout` hook was rewritten 2026-07-13 to stop forcing
+   this; don't reintroduce it in prompt-flow.)
+9. **Hand off before the window balloons.** Treat the context-guard BLOCK mark
+   (~22%) as the real stop line, not a suggestion — park via `context-steward`
+   and start a fresh session. A conversation that runs to ~100%+ of the window
+   re-sends the whole thing on every Opus turn; that re-billing, not any single
+   action, is the biggest usage leak. Keep each conversation to one small
+   mission.
 
 ## Repo layout
 ```

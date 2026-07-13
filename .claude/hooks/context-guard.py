@@ -40,8 +40,11 @@ def _env_int(name, default):
 
 
 LIMIT = _env_int("OURA_CONTEXT_LIMIT", 200000)
-WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.15)
-BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.30)
+# Lowered 2026-07-13 after a session ran to 109% of the window: every turn past
+# that re-sends the whole context on Opus, which was the dominant usage burn.
+# Warn early, push the handoff well before context runs away. Advisory only.
+WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.12)
+BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.22)
 
 
 def context_tokens(transcript_path):
