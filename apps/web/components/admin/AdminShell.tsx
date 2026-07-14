@@ -14,6 +14,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 const NAV_ITEMS = [
   { label: "לוח בקרה", icon: "dashboard", href: "/admin" },
   { label: "אירועים פעילים", icon: "calendar_month", href: "/admin/events" },
+  { label: "ניהול QR", icon: "qr_code_2", href: "/admin/qr-management" },
+  { label: "אופטימיזציית AI", icon: "auto_fix_high", href: "/admin/ai-optimization" },
   { label: "ארכיון אירועים", icon: "inventory_2", href: null },
   { label: "לקוחות VIP", icon: "workspace_premium", href: null },
   { label: "ניתוח נתונים", icon: "analytics", href: "/admin/statistics" },
