@@ -238,7 +238,7 @@ export default function PhotoEditorPage() {
         </header>
 
         {/* Body: photo column + sidebar (desktop side-by-side, mobile stacked) */}
-        <div className="flex min-h-screen pt-16 md:flex-row-reverse">
+        <div className="flex min-h-screen pt-16 md:flex-row">
 
           {/* ── Editor sidebar ──
               - Desktop (md+): permanent right-hand panel (logical start = physical right in RTL)
