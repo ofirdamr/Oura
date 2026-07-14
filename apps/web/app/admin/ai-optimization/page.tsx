@@ -12,47 +12,73 @@
 // of scope for MVP, so they were intentionally left out rather than ported.
 // What's kept: the live auto-processing queue, accuracy metrics, and the
 // before/after quality comparison, which all describe what the automatic
-// pipeline is doing, not a manual control surface. The desktop screen.png also
-// renders a literal debug filename ("_Final_Production_AI_Optimization_Desktop")
-// as an on-page heading - a leftover artifact, not real copy, not ported.
+// pipeline is doing, not a manual control surface.
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
+import { getProcessingStatus, type ProcessingStatusResponse } from "@/lib/api";
 
-// Order matches the design's right-to-left reading order for this
-// `grid-cols-4` row (DOM order 1..4 fills right-to-left under RTL): the
-// in-progress tile sits at the far right, the three completed tiles follow
-// to its left.
-const QUEUE_ITEMS = [
-  { status: "scanning" as const, progress: 74 },
-  { status: "done" as const },
-  { status: "done" as const },
-  { status: "done" as const },
-];
+type QueueItem = { status: "processing" | "done" | "pending" | "failed"; label: string };
 
-const ACCURACY_METRICS = [
-  { label: "דיוק זיהוי פנים", value: "99.98%", barPct: 100, tone: "success" as const },
-  { label: "שחזור פרטים בחושך", value: "94.2%", barPct: 94, tone: "primary" as const },
-  { label: "יעילות קודק פלטינום", value: "1:24", barPct: 20, tone: "neutral" as const },
-];
-
-const ERROR_LOG = [
-  {
-    time: "לפני 12 דקות",
-    tag: "CRITICAL",
-    tone: "error" as const,
-    text: "כפילות זיהוי במצלמה 3. נדרשת בדיקת מפעיל ידנית.",
-  },
-  {
-    time: "לפני 45 דקות",
-    tag: "SYSTEM UPDATE",
-    tone: "neutral" as const,
-    text: "מודל זיהוי פנים עודכן לגרסה 4.2.1 לשיפור ביצועי פרופיל.",
-  },
-];
+function toQueueItems(recent: ProcessingStatusResponse["recent"]): QueueItem[] {
+  const items = recent.slice(0, 8).map((p) => ({
+    status: (["done", "processing", "pending", "failed"].includes(p.status)
+      ? p.status
+      : "pending") as QueueItem["status"],
+    label: p.event_name,
+  }));
+  // Pad to at least 4 slots so the grid always looks populated
+  while (items.length < 4) items.push({ status: "pending", label: "" });
+  return items;
+}
 
 export default function AiOptimizationPage() {
   const [comparePct, setComparePct] = useState(50);
+  const [data, setData] = useState<ProcessingStatusResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStatus = useCallback(async () => {
+    const supabase = createSupabaseBrowserClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+    const res = await getProcessingStatus(session.access_token);
+    if (res.ok) setData(res.data);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchStatus();
+    const id = setInterval(fetchStatus, 10_000);
+    return () => clearInterval(id);
+  }, [fetchStatus]);
+
+  const stats = data?.stats ?? { total: 0, done: 0, processing: 0, pending: 0, failed: 0 };
+  const queueItems = data ? toQueueItems(data.recent) : Array(4).fill({ status: "pending", label: "" }) as QueueItem[];
+  const processedPct = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+  const pendingCount = stats.pending + stats.processing;
+  const faceEmbeddings = data?.face_embeddings ?? 0;
+
+  const realMetrics = [
+    {
+      label: "תמונות עובדו",
+      value: stats.total > 0 ? `${processedPct}%` : "—",
+      barPct: processedPct,
+      tone: processedPct >= 90 ? "success" : processedPct >= 50 ? "primary" : "neutral",
+    },
+    {
+      label: "זיהויי פנים שנשמרו",
+      value: faceEmbeddings > 0 ? faceEmbeddings.toLocaleString("he-IL") : "—",
+      barPct: Math.min(100, Math.round((faceEmbeddings / Math.max(stats.done, 1)) * 10)),
+      tone: "primary",
+    },
+    {
+      label: "ממתינות לעיבוד",
+      value: pendingCount > 0 ? String(pendingCount) : "0",
+      barPct: stats.total > 0 ? Math.round((pendingCount / stats.total) * 100) : 0,
+      tone: pendingCount > 0 ? "neutral" : "success",
+    },
+  ] as const;
 
   return (
     <AdminShell active="הגדרות">
@@ -66,8 +92,8 @@ export default function AiOptimizationPage() {
             עיבוד תמונה אוטומטי
           </h1>
           <p className="mt-1 max-w-xl text-sm text-on-surface-variant">
-            מערכת עיבוד תמונה מבוססת AI בזמן אמת עבור סטודיו Photo Santos. כל
-            התמונות עוברות אופטימיזציה אוטומטית עם העלאתן, ללא צורך בפעולה
+            מערכת זיהוי פנים וייעול תמונות מבוססת AI בזמן אמת. כל
+            התמונות עוברות עיבוד אוטומטי עם העלאתן, ללא צורך בפעולה
             ידנית.
           </p>
         </div>
@@ -81,11 +107,15 @@ export default function AiOptimizationPage() {
                 תור עיבוד חי
               </h2>
               <span className="text-xs text-on-surface-variant">
-                ממתינים לעיבוד: 42 תמונות
+                {loading
+                  ? "טוען..."
+                  : pendingCount > 0
+                    ? `ממתינות לעיבוד: ${pendingCount} תמונות`
+                    : "כל התמונות עובדו"}
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2">
-              {QUEUE_ITEMS.map((item, i) => (
+              {queueItems.map((item, i) => (
                 <div
                   key={i}
                   className="relative aspect-[3/4] overflow-hidden rounded-lg bg-surface-container-high"
@@ -104,22 +134,28 @@ export default function AiOptimizationPage() {
                         check
                       </span>
                     </div>
-                  ) : (
+                  ) : item.status === "failed" ? (
+                    <div className="absolute end-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-error">
+                      <span
+                        className="material-symbols-outlined text-xs text-white"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        close
+                      </span>
+                    </div>
+                  ) : item.status === "processing" ? (
                     <div className="absolute inset-x-0 bottom-0 bg-black/70 px-1.5 py-1 text-center">
                       <span
                         className="text-[10px] font-bold text-primary"
                         style={{ unicodeBidi: "isolate" }}
                       >
-                        {item.progress}%
+                        מעבד...
                       </span>
                       <div className="mt-0.5 h-0.5 w-full overflow-hidden rounded-full bg-white/20">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${item.progress}%` }}
-                        />
+                        <div className="h-full animate-pulse bg-primary" style={{ width: "60%" }} />
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -137,11 +173,6 @@ export default function AiOptimizationPage() {
                 <span className="material-symbols-outlined text-5xl text-on-surface-variant/20">
                   image
                 </span>
-                {/* Stays in the always-visible "optimized" region regardless
-                    of slider position, since the original overlay grows
-                    inward from the start (right) edge - anchoring this badge
-                    to the opposite (end/left) edge is what keeps it
-                    unobscured, matching the design's fixed top-left badge. */}
                 <span className="absolute end-3 top-3 rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-on-primary">
                   OPTIMIZED
                 </span>
@@ -153,12 +184,6 @@ export default function AiOptimizationPage() {
                 <span className="material-symbols-outlined text-5xl text-on-surface-variant/10">
                   image
                 </span>
-                {/* This panel is anchored at start-0 (right edge), so its own
-                    `start` edge is the container's fixed right edge - placing
-                    the badge there keeps it pinned top-right regardless of
-                    slider position, matching the design's fixed top-right
-                    badge (rather than drifting with the panel's shrinking
-                    end/left edge). */}
                 <span className="absolute start-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">
                   ORIGINAL
                 </span>
@@ -184,10 +209,10 @@ export default function AiOptimizationPage() {
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">insights</span>
-              מדדי דיוק פלטינום
+              מדדי עיבוד בזמן אמת
             </h2>
             <div className="space-y-4">
-              {ACCURACY_METRICS.map((metric) => (
+              {realMetrics.map((metric) => (
                 <div key={metric.label}>
                   <div className="mb-1 flex items-baseline justify-between">
                     <span className="text-xs text-on-surface-variant">
@@ -221,55 +246,58 @@ export default function AiOptimizationPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex items-center gap-3 rounded-xl bg-success/5 p-3">
-              <span className="material-symbols-outlined text-success">
-                verified
-              </span>
-              <div className="text-start">
-                <p className="text-sm font-bold text-success">
-                  אימות VIP מאושר
-                </p>
-                <p className="text-xs text-on-surface-variant">
-                  38 אנשי מפתח זוהו אוטומטית
-                </p>
+            {stats.done > 0 && (
+              <div className="mt-4 flex items-center gap-3 rounded-xl bg-success/5 p-3">
+                <span className="material-symbols-outlined text-success">
+                  verified
+                </span>
+                <div className="text-start">
+                  <p className="text-sm font-bold text-success">
+                    עיבוד פעיל
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    {stats.done} תמונות עובדו, {faceEmbeddings} פנים זוהו
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
-              <span className="material-symbols-outlined text-base">warning</span>
-              סיכום שגיאות זיהוי
+              <span className="material-symbols-outlined text-base">summarize</span>
+              סיכום מצב
             </h2>
             <div className="space-y-3">
-              {ERROR_LOG.map((entry, i) => (
-                <div
-                  key={i}
-                  className={`rounded-xl border-s-4 p-3 text-start ${
-                    entry.tone === "error"
-                      ? "border-error bg-error/5"
-                      : "border-outline-variant bg-surface-container-high"
-                  }`}
-                >
+              {stats.failed > 0 ? (
+                <div className="rounded-xl border-s-4 border-error bg-error/5 p-3 text-start">
                   <div className="flex items-center justify-between">
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wide ${
-                        entry.tone === "error" ? "text-error" : "text-on-surface-variant"
-                      }`}
-                    >
-                      {entry.tag}
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-error">
+                      נכשל
                     </span>
                     <span className="text-[10px] text-on-surface-variant">
-                      {entry.time}
+                      {stats.failed} תמונות
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-on-surface">{entry.text}</p>
+                  <p className="mt-1 text-xs text-on-surface">
+                    חלק מהתמונות לא עובדו. ניתן להפעיל מחדש את העיבוד מדף ניהול האירוע.
+                  </p>
                 </div>
-              ))}
+              ) : null}
+              <div className="rounded-xl border-s-4 border-outline-variant bg-surface-container-high p-3 text-start">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-on-surface-variant">
+                    סטטוס מערכת
+                  </span>
+                  <span className="text-[10px] text-on-surface-variant">
+                    {loading ? "מתחבר..." : "פעיל"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-on-surface">
+                  מנוע זיהוי הפנים פעיל. תמונות חדשות יעובדו אוטומטית עם העלאתן.
+                </p>
+              </div>
             </div>
-            <button className="mt-3 w-full text-center text-xs font-medium text-primary underline underline-offset-4">
-              צפייה בכל הדיווחים
-            </button>
           </div>
         </div>
       </div>
