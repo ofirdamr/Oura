@@ -2,6 +2,21 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## 🎯 2026-07-14 — NEXT MISSION (founder's explicit direction): whole-app NAVIGATION-ONLY prototype
+The founder is (rightly) frustrated that the app is a disconnected mess and he can't tell what leads where. **Decision: before ANY more feature wiring, build a click-through navigation prototype so he can walk the whole flow end-to-end and see every screen.** Scope, precisely:
+- **Every Stitch screen in `design/screens/` becomes a reachable page.** There are ~60 design screens but only 21 routes exist (`find apps/web/app -name page.tsx`). Missing ones (checkout, order_confirmation, personal_gallery, premium_prints, statistics, reports_management, messaging_center, notification_center, event_book_designer, digital_brochure, guest_landing_page, etc.) need at least a stub page rendering their Stitch `screen.png`/`code.html` 1:1.
+- **Every navigation button/link works** — you can go from any page to the next per the product flow (guest flow: join → gallery-entry → selfie → consent → gift-reveal → gallery → photo lightbox; photographer flow: login → dashboard → events → event → branding/qr/ai-optimization/reports/etc.). Bottom navs, top navs, back buttons, CTAs that are purely navigational.
+- **NOT in scope yet:** real data wiring, uploads, payments, actual editing. Only navigation. Next level (a LATER session) wires function one page at a time, starting with the MVP pages.
+- **HARD RULE REMINDER (this session violated it — do not repeat):** per CLAUDE.md "Never design new visuals directly." The current `/photo-editor` lightbox was FREEHANDED by a prior session (oversized "Photo Santos" watermark, a crop button with no crop wired, only rotate works) — that is the mess the founder is calling out. Do NOT freehand any screen. Where a screen/element has no Stitch source, write a Stitch prompt for the founder, don't invent UI.
+
+### Founder's concrete bug list (2026-07-14) — capture, fix during proper wiring, do NOT freehand fixes:
+1. `/photo-editor` lightbox is freehanded (rule violation) — "Photo Santos" watermark far too large on the photo; the editor itself is not from Stitch. Rebuild the editor experience from the real Stitch `photo_editor` screens only.
+2. Editor has crop + rotate controls but only rotate is wired; crop does nothing.
+3. Gift-box / gift-reveal page: "download all gallery" button does nothing (not wired).
+4. Face recognition must be dead reliable end-to-end (cold-start permanently fixed via keep-warm cron `28f38ac3`, see below; keep watching for any other failure path).
+
+
+
 ## 🚨 2026-07-11 — OPEN DECISION: `/photo-editor` is off-spec (freehanded, not 1:1) AND not the current stage — resolve before any more editor work
 **Founder flagged (correctly) that this session made a real error — read `MISTAKES.md` 2026-07-11 "Polished a freehanded `/photo-editor`" first.** The `oura_final_production_photo_editor_{desktop,mobile}/screen.png` Stitch screens are a **white-label branded guest GALLERY** (hero, date badge, "רגעים של אושר צרוף", PHOTO SANTOS baked on each photo, 4-tab nav ראשי/גלריה/עריכה/פרופיל) — NOT a slider/crop editing tool. The app's `/photo-editor` (PR #28) is a freehanded editing UI that matches nothing in Stitch. The founder had also said the photo editor is not the current stage — build it 1:1 when its phase comes. This session wrongly polished branding on that off-spec screen instead of catching the mismatch.
 **REVERTED (2026-07-11).** This session's branding changes were reverted (commit `28a8d2a` reverts `a794258`) and `oura-web` redeployed to version `582af4cd` — the live site is back to its exact pre-session state; nothing off-spec from this session is live. The freehanded `/photo-editor` from earlier work (PR #28) is untouched by this revert and PARKED until its proper stage; it is NOT to be advanced or polished before then, and when built it must be a 1:1 port of the actual Stitch `photo_editor` screens (which are the white-label branded gallery).
