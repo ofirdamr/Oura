@@ -498,6 +498,10 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 
 **Standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception. Also: at the start of a mission, after the Token Economist consult, state the concrete plan before executing.
 
+## 2026-07-14: /guest-landing wired to real data (PR #38, deployed)
+
+`apps/web/app/guest-landing/page.tsx` now loads the saved guest session token and calls `GET /gallery/:token` on mount. Real data surfaced: event name in the welcome subtitle, studio logo (falls back to Oura lockup), first 4 event photos in the staggered 2-col preview grid. Graceful degradation to placeholder tiles for first-time visitors (no token yet). ESLint + build clean, deployed `oura-web` version `7a83c4dd`. **PR #38** (`claude/guest-landing-wire-data-g7o094`, draft, open). Live: https://oura-web.oura-events.workers.dev/guest-landing
+
 ## 2026-07-12 addendum: canonical screen→code map + open-PR state
 
 - **Canonical Design-to-Code map now lives in `docs/ARCHITECTURE.md` §6b** (PR #30,

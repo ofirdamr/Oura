@@ -1,5 +1,9 @@
 # Progress Log
 
+### 2026-07-14
+- Wired `/guest-landing` to real event data: loads guest session token → `GET /gallery/:token` → populates event name in subtitle, studio logo in header, first 4 real event photos in the staggered 2-col preview grid. Graceful fallback to placeholder tiles for first-time visitors. RTL logical props throughout, design-system tokens.
+- ESLint clean, `next build` passes. Deployed `oura-web` version `7a83c4dd`. **PR #38** (`claude/guest-landing-wire-data-g7o094`, draft) — live: https://oura-web.oura-events.workers.dev/guest-landing
+
 ### 2026-07-03
 - Gathered requirements (founder brain-dump), competitor brochure (LOCA) + live pricing page, and full Stitch design export (42/42 screens confirmed present across 5 zips).
 - Read brand spec + 6 representative screens to ground architecture decisions in real design (gift-box = real Three.js/GSAP scene, Platinum tier already named in design, personal gallery tags photos by event moment, notification center includes a misidentification-report moderation queue).
