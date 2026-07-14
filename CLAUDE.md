@@ -12,6 +12,8 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - Payments: Stripe Billing (subscriptions) + Stripe Checkout (pay-per-event); Stripe Connect only once print commissions are live.
 
 ## Guardrails (do not violate)
+- **NEVER mutate the real founder account's auth credentials.** Calling `auth.admin.updateUserById()`, the Supabase Management API (`PATCH /v1/projects/.../config/auth`), or any equivalent against `ofirdamr@gmail.com` or any live production Supabase user is **prohibited** during testing, debugging, or any session work. For auth testing: create a throwaway account with a different email, test with it, delete it when done. The founder's password has been randomized multiple times by sessions doing "quick tests" on the real account — this must never happen again.
+- **The sole legitimate `auth.updateUser` call is `apps/web/app/reset-password/page.tsx`** — it is correctly gated behind a Supabase `PASSWORD_RECOVERY` session (requires the email link). Do not add any other password/auth mutation anywhere in the codebase without an explicit founder ask.
 - Before reporting any change to `/packages/processing-pipeline` or `/apps/web` as done, run the `media-ui-verify` skill (lint/typecheck, RTL, font, R2-vs-Supabase boundary, consent-gate ordering, design fidelity, live screenshot — see `.claude/skills/media-ui-verify/`).
 - Media binaries never touch Supabase storage — R2 only.
 - Guests never require login/signup — signed opaque event-scoped token only.

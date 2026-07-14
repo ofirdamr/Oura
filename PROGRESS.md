@@ -1,5 +1,8 @@
 # Progress Log
 
+### 2026-07-14 (session 2)
+- Audited auth + face-embed reliability. face_embeddings = 286 live (guard migration 0005 holding, no regression). Auth code clean — only `updateUser` is reset-password/page.tsx, gated behind recovery session. Password randomization root cause: ad-hoc admin API calls from sessions, not product code. Added CLAUDE.md hard guardrail prohibiting any auth mutation against real accounts. MISTAKES.md entry added. PR #44 (draft, docs-only, no deploy needed). Email confirmation disable: founder action required at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/auth/providers (one click, no redeploy).
+
 ### 2026-07-14
 - Deployed PR #42 (`claude/next-prd-screen-geun3z`): `GET /admin/processing-status` endpoint live on oura-api (`5e2b4bdb`), `/admin/ai-optimization` polls it every 10s showing real queue tiles + metrics. Verified: API returns 17 photos (15 done/1 processing/1 failed), 0 face_embeddings counter. oura-web version `8a63c910`. Updated ARCHITECTURE.md §6b (AI Optimization: Static UI → Real). PR #42 merged.
 - Wired `/guest-landing` to real event data: loads guest session token → `GET /gallery/:token` → populates event name in subtitle, studio logo in header, first 4 real event photos in the staggered 2-col preview grid. Graceful fallback to placeholder tiles for first-time visitors. RTL logical props throughout, design-system tokens.
