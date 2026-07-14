@@ -148,7 +148,7 @@ function QrManagementPageInner() {
 
   if (!eventId) {
     return (
-      <AdminShell active="אירועים פעילים">
+      <AdminShell active="ניהול QR">
         <div className="mx-auto max-w-md py-20 text-center">
           <p className="mb-4 text-on-surface-variant">
             לא נבחר אירוע. יש ליצור אירוע חדש כדי לקבל קוד וברקוד.
@@ -169,7 +169,7 @@ function QrManagementPageInner() {
     : "טוען...";
 
   return (
-    <AdminShell active="אירועים פעילים">
+    <AdminShell active="ניהול QR">
       <div className="mx-auto max-w-3xl text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
           <span className="material-symbols-outlined text-3xl text-primary">

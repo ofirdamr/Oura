@@ -81,7 +81,7 @@ export default function AiOptimizationPage() {
   ] as const;
 
   return (
-    <AdminShell active="הגדרות">
+    <AdminShell active="אופטימיזציית AI">
       <div className="flex items-start justify-between gap-4">
         <div className="text-start">
           <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
