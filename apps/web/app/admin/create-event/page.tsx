@@ -147,13 +147,6 @@ export default function CreateEventPage() {
         <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-outline-variant bg-surface-container shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-high px-6 py-5 md:px-8 md:py-6">
-            <Link
-              href="/admin"
-              className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
-              aria-label="סגור"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </Link>
             <div className="flex flex-col items-end">
               <h1 className="text-2xl font-bold text-primary md:text-3xl">
                 אירוע חדש
@@ -162,6 +155,13 @@ export default function CreateEventPage() {
                 הזן פרטים ליצירת גלריה חכמה עבור Photo Santos
               </p>
             </div>
+            <Link
+              href="/admin"
+              className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
+              aria-label="סגור"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </Link>
           </div>
 
           {/* Form */}
@@ -312,6 +312,12 @@ export default function CreateEventPage() {
           <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-surface-container-highest" />
 
           <div className="mb-8 flex items-start justify-between">
+            <div className="flex flex-col items-end gap-1 text-end">
+              <h1 className="text-2xl font-bold text-on-surface">אירוע חדש</h1>
+              <p className="text-sm text-on-surface-variant/80">
+                הזן פרטים ליצירת גלריה חכמה
+              </p>
+            </div>
             <Link
               href="/admin"
               aria-label="סגור"
@@ -319,12 +325,6 @@ export default function CreateEventPage() {
             >
               <span className="material-symbols-outlined">close</span>
             </Link>
-            <div className="flex flex-col items-end gap-1 text-end">
-              <h1 className="text-2xl font-bold text-on-surface">אירוע חדש</h1>
-              <p className="text-sm text-on-surface-variant/80">
-                הזן פרטים ליצירת גלריה חכמה
-              </p>
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
