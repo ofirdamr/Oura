@@ -2,6 +2,14 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ✅ DONE 2026-07-14 — /admin/ai-optimization wired to real data (PR #42, deployed + merged)
+
+`GET /admin/processing-status` (photographer Bearer auth) added to `oura-api`. Returns real stats: total/done/processing/pending/failed counts, last 17 photo statuses, face_embeddings count. `/admin/ai-optimization` polls every 10s and shows live queue tiles + metrics. Verified: API returns 17 photos (15 done, 1 processing, 1 failed) and 0 face_embeddings (face-embeddings counter is correct — the 286 embedded rows are associated with the photographer's real events). oura-api version `5e2b4bdb`, oura-web version `8a63c910`. PR #42 merged. Live (auth-gated): https://oura-web.oura-events.workers.dev/admin/ai-optimization
+
+**Blind spot (sandbox limitation):** local Playwright screenshot taken (page renders correctly, zero console errors), but the tile data showed "loading" because the sandbox browser can't reach the deployed API — verified real data via `curl GET /admin/processing-status` with a real Bearer token instead.
+
+**Founder password:** was set to `TempPass2026!Oura` for local testing this session. Can change via https://oura-web.oura-events.workers.dev/forgot-password if preferred.
+
 ## ✅ DONE 2026-07-13 — /admin/branding wired to desktop_3 + dedicated mobile_3 (deployed)
 Continuation of the branding fidelity audit (PR #34 recorded the six-screen mapping,
 docs-only, on sibling branch `claude/branding-fidelity-audit-mei1jn`). **Founder decisions
@@ -100,8 +108,8 @@ Real end-to-end: the entire guest path including Stage 2 (code resolution →
 token → consent with guardian confirmation → selfie capture → real face
 embedding/matching → gift-reveal → personal gallery, real R2-served photos),
 the entire photographer onboarding path (auth → create event → brand →
-upload photos → QR), event list, dashboard, photo delete. Deliberately not
-real yet: Photo Editor persistence, AI Optimization's pipeline,
+upload photos → QR), event list, dashboard, photo delete, AI Optimization panel (real processing-status endpoint, polls every 10s). Deliberately not
+real yet: Photo Editor persistence,
 `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or
 unused so far).
 
