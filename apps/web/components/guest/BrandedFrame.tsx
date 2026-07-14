@@ -63,7 +63,7 @@ export function BrandedFrame({
         <div className="flex items-center gap-2">
           {branding.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo
-            <img src={branding.logoUrl} alt="" className="w-auto object-contain" style={{ height: "clamp(18px, 4.4vmin, 34px)" }} />
+            <img src={branding.logoUrl} alt="" className="w-auto object-contain" style={{ height: "clamp(28px, 6vmin, 48px)" }} />
           ) : null}
           <span
             className="font-display uppercase leading-none tracking-wide text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]"

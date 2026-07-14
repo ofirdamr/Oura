@@ -528,18 +528,6 @@ export default function PhotoEditorPage() {
                           <p className="pe-watermark font-extrabold uppercase" style={{ fontSize: 28, letterSpacing: "0.2em", marginBottom: 8 }}>
                             {STUDIO_NAME.toUpperCase()}
                           </p>
-                          {/* Desktop: Oura credit line */}
-                          <div className="hidden md:flex items-center gap-3" style={{ color: "rgba(255,255,255,0.6)" }}>
-                            <div style={{ filter: "grayscale(1) brightness(2)", opacity: 0.7 }}>
-                              <StudioLogo size={24} />
-                            </div>
-                            <span style={{ fontSize: 14, fontWeight: 300 }}>מופעל על ידי Oura - צלם האירוע הרשמי</span>
-                          </div>
-                          {/* Mobile: copyright line */}
-                          <div className="md:hidden flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.6)", marginTop: 4 }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>copyright</span>
-                            <span style={{ fontSize: 10 }}>כל הזכויות שמורות למותג</span>
-                          </div>
                         </div>
 
                         {/* Action buttons – RTL end = physical left */}
