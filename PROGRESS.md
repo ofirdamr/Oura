@@ -351,3 +351,7 @@ injected `@supabase/ssr` cookie, per the documented sandbox method; the browser 
 Supabase so event data renders as "טוען…" — a data blind spot, not a layout bug). apps/api
 unchanged (not redeployed). Deployed oura-web version `3a221d6a-2a38-4bf8-8053-2841eee24070`.
 Live: https://oura-web.oura-events.workers.dev/admin/branding
+
+## 2026-07-14: photo-editor 4 fixes verified + deployed (branch claude/wed-2024-face-match-t4wre2, PR #28 already merged)
+- Verified all 4 founder fixes already committed in 4cdd9cd: Oura credit absent (grep+DOM), frame-off clean export, logo enlarged, design-faithful.
+- Deployed oura-web version bdb7b3ad. SUMMARY updated to reflect done state.
