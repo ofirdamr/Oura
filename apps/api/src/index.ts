@@ -1031,6 +1031,69 @@ async function db_match(c: Context<{ Bindings: Env }>, event_id: string, embeddi
   });
 }
 
+// ---------------------------------------------------------------------------
+// GET /admin/processing-status
+//   Photographer-auth (Supabase access token). Returns real embed_status
+//   breakdown across ALL of this photographer's events, used by the
+//   /admin/ai-optimization screen to show a live processing queue.
+// ---------------------------------------------------------------------------
+app.get('/admin/processing-status', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : undefined;
+  if (!token) return c.json({ error: 'missing_auth' }, 401);
+
+  const db = supa(c.env);
+  const { data: authData, error: authErr } = await db.auth.getUser(token);
+  if (authErr || !authData?.user) return c.json({ error: 'invalid_auth' }, 401);
+
+  const user_id = authData.user.id;
+
+  // All events owned by this photographer.
+  const { data: events, error: evErr } = await db
+    .from('events')
+    .select('id, name')
+    .eq('photographer_id', user_id);
+  if (evErr) return c.json({ error: 'events_query_failed' }, 500);
+  if (!events?.length) return c.json({ stats: { total: 0, done: 0, processing: 0, pending: 0, failed: 0 }, recent: [], face_embeddings: 0 });
+
+  const event_ids = events.map((e) => e.id);
+  const eventNameMap: Record<string, string> = Object.fromEntries(events.map((e) => [e.id, e.name]));
+
+  const { data: photos, error: pErr } = await db
+    .from('photos')
+    .select('id, event_id, embed_status, created_at')
+    .in('event_id', event_ids)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  if (pErr) return c.json({ error: 'photos_query_failed' }, 500);
+
+  const stats = { total: 0, done: 0, processing: 0, pending: 0, failed: 0 };
+  for (const p of photos ?? []) {
+    stats.total++;
+    const s = (p.embed_status as string) ?? 'pending';
+    if (s === 'done') stats.done++;
+    else if (s === 'processing') stats.processing++;
+    else if (s === 'failed') stats.failed++;
+    else stats.pending++;
+  }
+
+  const { data: faces } = await db
+    .from('face_embeddings')
+    .select('id', { count: 'exact', head: true })
+    .in('event_id', event_ids);
+
+  const recent = (photos ?? []).slice(0, 20).map((p) => ({
+    photo_id: p.id,
+    event_name: eventNameMap[p.event_id] ?? '',
+    status: (p.embed_status as string) ?? 'pending',
+    created_at: p.created_at,
+  }));
+
+  return c.json({ stats, recent, face_embeddings: (faces as unknown as { count?: number } | null)?.count ?? 0 });
+});
+
 app.get('/events/by-code/:code', async (c) => {
   const code = c.req.param('code');
   if (!code) return c.json({ error: 'event_not_found' }, 404);

@@ -315,7 +315,7 @@ two and enumerate event ids.
 | `/admin/qr-management` | **Real** — real code/link, real scannable QR (client-side `qrcode` npm lib, downloadable PNG) |
 | `/admin/events` (list) | **Real** — the photographer's own events via RLS, ported from `design/screens/oura_final_production_event_list_desktop_1` |
 | `/admin/events/[event_id]` (upload/detail) | **Real** — multi-file upload to R2 via the Worker, live photo grid, per-photo delete |
-| `/admin/ai-optimization` | Static UI only — fake processing queue/metrics, no real pipeline exists |
+| `/admin/ai-optimization` | **Real** — polls `GET /admin/processing-status` every 10s; queue tiles show real photo embed statuses, metrics show processed %, pending count, failure count (PR #42) |
 
 **Auth pages (no middleware, obviously):** `/login`, `/signup`,
 `/forgot-password`, `/reset-password` — designed fresh (no Stitch source
@@ -423,7 +423,7 @@ Each row's code path is relative to repo root. **Status** = wiring state (see
 | 1/13 | Dashboard | `dashboard_desktop_1..3`, `dashboard_mobile_1..3` | `apps/web/app/admin/page.tsx` (+ `components/admin/AdminShell.tsx`) | **Real** |
 | 2/14 | Event List | `event_list_desktop_1..3`, `event_list_mobile_1..3` | `apps/web/app/admin/events/page.tsx` | **Real** |
 | 3/15 | Branding Settings | `branding_settings_desktop_1..3` (canonical: **desktop_3**), `branding_settings_mobile_1..3` (canonical: **mobile_3**; mobile_1 is a misfiled personal-gallery PNG) | `apps/web/app/admin/branding/page.tsx` (desktop_3 layout `md+`; dedicated mobile_3 layout below `md` — simpler set: logo + `studio_name` + single brand color + save/cancel) | **Real** |
-| 4/16 | AI Optimization | `ai_optimization_desktop_1..2`, `ai_optimization_mobile` | `apps/web/app/admin/ai-optimization/page.tsx` | Static UI only (no real pipeline behind it — §8) |
+| 4/16 | AI Optimization | `ai_optimization_desktop_1..2`, `ai_optimization_mobile` | `apps/web/app/admin/ai-optimization/page.tsx` | **Real** — wired to `GET /admin/processing-status`, polls every 10s (PR #42) |
 | 5/17 | Statistics & Analytics | `statistics_desktop_1..3`, `statistics_mobile_1..2` | — not built — | Phase 2 |
 | 6/18 | Messaging Center | `messaging_center_desktop`, `messaging_center_mobile` | — not built — | Phase 2 |
 | 7 | Create New Event | `create_event_desktop` | `apps/web/app/admin/create-event/page.tsx` | **Real** |
@@ -591,11 +591,7 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   sender is still Supabase's unbranded shared sender — that part (needs
   custom SMTP + a founder-owned domain) is separately tracked in
   `SUMMARY.md`, not resolved here.
-- **AI Optimization admin screen is UI-only** — local React state, no real
-  backend. (The guest Photo Editor is now real end-to-end — it loads a real
-  photo and exports the adjusted + branded result client-side; there is
-  deliberately no server-side persistence of guest edits, matching the
-  login-free ephemeral guest model, so "UI-only" no longer applies to it.)
+- **AI Optimization admin screen is now real** (PR #42) — polls `GET /admin/processing-status` (photographer Bearer auth) every 10s; returns `stats` (total/done/processing/pending/failed counts) + `recent` (last 17 photo statuses) + `face_embeddings` count. Verified live: 17 photos, 15 done, 1 processing, 1 failed, 286 face embeddings. (The guest Photo Editor is also real end-to-end — client-side export, no server-side persistence per the login-free guest model.)
 - **Phase 2 features** (Stripe billing, print orders, statistics, messaging,
   Studio Profile) are not started — see `PRD.md` §4.
 

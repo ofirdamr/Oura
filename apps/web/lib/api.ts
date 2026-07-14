@@ -230,6 +230,18 @@ export type DeletePhotoResponse = { id: string; event_id: string };
 // can safely go through the shared json request() helper (its hardcoded
 // Content-Type doesn't matter for a bodyless DELETE); only the Authorization
 // header needs threading through per call.
+export type ProcessingStatusResponse = {
+  stats: { total: number; done: number; processing: number; pending: number; failed: number };
+  recent: Array<{ photo_id: string; event_name: string; status: string; created_at: string }>;
+  face_embeddings: number;
+};
+
+export function getProcessingStatus(accessToken: string): Promise<ApiResult<ProcessingStatusResponse>> {
+  return request<ProcessingStatusResponse>("/admin/processing-status", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function deletePhoto(
   eventId: string,
   photoId: string,
