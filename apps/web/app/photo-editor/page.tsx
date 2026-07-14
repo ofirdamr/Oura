@@ -14,6 +14,7 @@
 // placeholder tile - no real image processing backend exists yet.
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 
@@ -41,6 +42,7 @@ const ENHANCED_VALUES: Record<SliderKey, number> = {
 };
 
 export default function PhotoEditorPage() {
+  const router = useRouter();
   const [values, setValues] = useState<Record<SliderKey, number>>(NEUTRAL_VALUES);
   const [autoOptimizeOn, setAutoOptimizeOn] = useState(false);
   const [showFrame, setShowFrame] = useState(true);
@@ -87,6 +89,7 @@ export default function PhotoEditorPage() {
         <div className="mx-auto flex h-16 w-full max-w-lg flex-row-reverse items-center justify-between px-4">
           <button
             type="button"
+            onClick={() => router.back()}
             className="material-symbols-outlined text-on-surface transition-opacity hover:opacity-70"
             aria-label="חזרה"
           >
