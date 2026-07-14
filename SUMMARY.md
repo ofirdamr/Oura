@@ -506,7 +506,12 @@ wired end-to-end, entirely client-side (no backend/schema/legal surface):
 - Draft PR opened for this branch (`claude/wed-2024-face-match-t4wre2`,
   restarted from `main` since the face-match PR #27 was already merged).
 
-## ⏭️ FOUNDER FEEDBACK on the Photo Editor — 4 fixes PENDING (next session, PR #28 branch)
+## ✅ 2026-07-14 — Photo Editor 4 fixes DONE on PR #28 (deploy pending)
+
+All 4 founder-requested fixes landed on `claude/wed-2024-face-match-t4wre2` commit `4cdd9cd`:
+(1) `מופעל על ידי Oura` stripped from page.tsx preview overlay; (2) frame-off = clean export (already correct in watermark.ts + BrandedFrame); (3) logo enlarged to `clamp(28px,6vmin,48px)`; (4) tsc + build clean, screenshot taken. PR #28 ready to deploy + merge. Next: `npm install && npm run deploy` from `apps/web` on this branch.
+
+## ⏭️ [SUPERSEDED — see above] FOUNDER FEEDBACK on the Photo Editor
 
 Founder reviewed the live editor (2026-07-11 session 2) and gave 4 corrections.
 These are NOT done — do them next session on branch

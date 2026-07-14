@@ -1,5 +1,9 @@
 # Progress Log
 
+### 2026-07-14 (PR #37 merged; photo-editor 4 fixes committed to PR #28)
+- Merged PR #37 (`claude/whole-app-navigation-prototype-q4zsu8`) — 11 stub pages + dead nav wiring, build/RTL verified. Commit `6277b44` on main.
+- Photo-editor 4 fixes: stripped `מופעל על ידי Oura` from preview overlay (page.tsx), enlarged BrandedFrame logo `clamp(18px→28px, ...)`, frame-off clean confirmed correct in watermark.ts. Committed `4cdd9cd` to `claude/wed-2024-face-match-t4wre2` (PR #28). Deploy pending.
+
 ### 2026-07-14 (Photo Editor branding fixes re-applied + design audit — PR #28)
 - Re-applied 3 branding fixes to PR #28's branch (`claude/wed-2024-face-match-t4wre2`), commit `f77e12f`: (1) stripped "מופעל על ידי Oura" from editor preview overlay; (2) `compositeBrandedPhoto` + `BrandedFrame` gate the entire branding bar on `frameStyle !== "none"` — frame-off export is fully clean; (3) enlarged studio logo/name to design prominence.
 - Confirmed Stitch design mislabeling: both `design/screens/oura_final_production_photo_editor_desktop/` and `…_mobile/` are gallery screens, not a photo editor. The `/photo-editor` page has no Stitch source. Founder has now run the real photo editor through Stitch. Next session: import new Stitch export → implement real editor UI → deploy + verify.
