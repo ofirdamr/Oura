@@ -31,7 +31,15 @@ hex-right/`שינוי`-left). **Live** (oura-web version `3a221d6a-2a38-4bf8-805
 (supersedes #34's open questions — #34 can be closed). apps/api unchanged (branding save is a
 direct RLS'd Supabase write from the browser; logo endpoint untouched) — not redeployed.
 
-## 📌 OPEN NOW — Photo Editor branding (4 fixes) + branch decision (2026-07-11)
+## ✅ 2026-07-14 — PR #38 merged + open-PR cleanup
+- **PR #38 merged to main** (`/guest-landing` wired to real event data — new route, build-verified + deployed live `oura-web 7a83c4dd`). Live: https://oura-web.oura-events.workers.dev/guest-landing
+- **Closed as superseded:** **#34** (branding audit — SUMMARY already marked it closeable) and **#31** (PR-inventory docs — decisions already landed here/PROGRESS).
+- **Still open, parked with reason:**
+  - **#32** — create-event desktop RTL fix. VERIFIED still-unapplied: `apps/web/app/admin/create-event/page.tsx:261` still has `md:flex-row-reverse` (should be `md:flex-row`; design = wide-primary right, cancel left). Code auto-merges clean; only its SUMMARY/PROGRESS docs conflict. **Next-session job:** apply the 2-line fix directly on a fresh branch, screenshot authed `/admin/create-event` "אירוע חדש" modal at 1280px, deploy, close #32. Sonnet-sized.
+  - **#16** + **#4** — both trim MD/skill token baseline; stale bases with real conflicts, overlap on SKILL.md. Need ONE dedicated docs-trim session to re-derive together.
+- **Photo Editor (#28 / the 4 branding fixes below): NOT started this session — deliberately parked.** Still open and pending exactly as described below.
+
+## 📌 OPEN — Photo Editor branding (4 fixes) + branch decision (2026-07-11)
 - **PR #28** (`claude/wed-2024-face-match-t4wre2`, open draft) made the guest Photo Editor real (adjust → branded export; `photo-editor/page.tsx`, `BrandedFrame.tsx`, `compositeBrandedPhoto` in `watermark.ts`). **NOT merged.**
 - **Founder feedback → 4 fixes still PENDING (not yet coded):** (1) strip `מופעל על ידי Oura` line from the baked branding — it's at `apps/web/app/photo-editor/page.tsx:136` AND in `BrandedFrame`; (2) `compositeBrandedPhoto` frame-off must yield a fully clean photo (zero baked branding); (3) enlarge the photographer logo to the design's prominence; (4) verify with a REAL exported JPEG looked at against `design/screens/oura_final_production_photo_editor_desktop/screen.png`, then deploy + live link. The `photo_editor` design confirms white-label (studio brand baked on, **no Oura credit**) — the 4 fixes are design-faithful, not new design.
 - **OPEN QUESTION for founder (blocking the 4 code fixes):** which branch? The fix targets all live on both `main` and PR #28, but PR #28 heavily rewrote the same files and is unmerged — doing the fixes on a separate main-based branch risks the documented pileup (PRs #9/#17/#18). **Recommendation: do the 4 fixes ON PR #28's branch `claude/wed-2024-face-match-t4wre2`** so they land in the same PR, not a parallel one. Awaiting founder's yes.
