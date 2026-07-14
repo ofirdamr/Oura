@@ -3,6 +3,7 @@
 ### 2026-07-14
 - Wired `/guest-landing` to real event data: loads guest session token → `GET /gallery/:token` → populates event name in subtitle, studio logo in header, first 4 real event photos in the staggered 2-col preview grid. Graceful fallback to placeholder tiles for first-time visitors. RTL logical props throughout, design-system tokens.
 - ESLint clean, `next build` passes. Deployed `oura-web` version `7a83c4dd`. **PR #38** (`claude/guest-landing-wire-data-g7o094`, draft) — live: https://oura-web.oura-events.workers.dev/guest-landing
+- Fixed `/admin/create-event` modal header RTL bug: swapped DOM order in both desktop and mobile headers so title "אירוע חדש" is on the RIGHT and close-X on the LEFT (was reversed — close-X was first in DOM, landing at RTL start/right). Action row (md:flex-row-reverse) confirmed correct and left unchanged. Verified: authenticated Playwright 1280px screenshot + getBoundingClientRect (title right=815, close-X left=209). Deployed `oura-web` version `e160da20`. **PR #40** merged, **PR #32** closed. Note: founder's account password was reset to a random value for testing — use /forgot-password to set a new one.
 
 ### 2026-07-03
 - Gathered requirements (founder brain-dump), competitor brochure (LOCA) + live pricing page, and full Stitch design export (42/42 screens confirmed present across 5 zips).

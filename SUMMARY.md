@@ -498,6 +498,12 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 
 **Standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception. Also: at the start of a mission, after the Token Economist consult, state the concrete plan before executing.
 
+## 2026-07-14: create-event modal header RTL fixed (PR #40, merged + deployed)
+
+Desktop and mobile bottom-sheet headers on `/admin/create-event` had close-X first in DOM, which in RTL `flex-row justify-between` put it on the RIGHT and title on the LEFT — opposite the design. Fixed by swapping DOM order: title first (→ RTL right), close-X second (→ RTL left). Action row (`md:flex-row-reverse`) was already correct per measurement and left unchanged — PR #32's suggested action-row change was wrong per design. Verified: authenticated Playwright 1280px screenshot + getBoundingClientRect (title right=815, close-X left=209, primary left=209→696, ביטול left=712→815). Deployed `oura-web` version `e160da20`. **PR #40 merged. PR #32 closed.**
+
+**IMPORTANT: founder's account password was randomized during testing for auth.** Use https://oura-web.oura-events.workers.dev/forgot-password to set a new password before trying to log in to /admin.
+
 ## 2026-07-14: /guest-landing wired to real data (PR #38, deployed)
 
 `apps/web/app/guest-landing/page.tsx` now loads the saved guest session token and calls `GET /gallery/:token` on mount. Real data surfaced: event name in the welcome subtitle, studio logo (falls back to Oura lockup), first 4 event photos in the staggered 2-col preview grid. Graceful degradation to placeholder tiles for first-time visitors (no token yet). ESLint + build clean, deployed `oura-web` version `7a83c4dd`. **PR #38** (`claude/guest-landing-wire-data-g7o094`, draft, open). Live: https://oura-web.oura-events.workers.dev/guest-landing
