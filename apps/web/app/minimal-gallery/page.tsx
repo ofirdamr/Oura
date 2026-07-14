@@ -209,19 +209,19 @@ export default function MinimalGalleryPage() {
                 קישורים מהירים
               </h4>
               <a
-                href="#"
+                href="/gallery-entry"
                 className="text-sm text-on-surface-variant transition-colors hover:text-primary"
               >
                 האירועים שלי
               </a>
               <a
-                href="#"
+                href="/gallery"
                 className="text-sm text-on-surface-variant transition-colors hover:text-primary"
               >
                 גלריית אורחים
               </a>
               <a
-                href="#"
+                href="/premium-prints"
                 className="text-sm text-on-surface-variant transition-colors hover:text-primary"
               >
                 הזמנת אלבומים
