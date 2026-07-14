@@ -1,5 +1,8 @@
 # Progress Log
 
+### 2026-07-14 (session 3)
+- Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
+
 ### 2026-07-14 (session 2)
 - Audited auth + face-embed reliability. face_embeddings = 286 live (guard migration 0005 holding, no regression). Auth code clean — only `updateUser` is reset-password/page.tsx, gated behind recovery session. Password randomization root cause: ad-hoc admin API calls from sessions, not product code. Added CLAUDE.md hard guardrail prohibiting any auth mutation against real accounts. MISTAKES.md entry added. PR #44 (draft, docs-only, no deploy needed). Email confirmation disable: founder action required at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/auth/providers (one click, no redeploy).
 
