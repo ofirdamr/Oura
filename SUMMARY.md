@@ -2,6 +2,12 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ✅ DONE 2026-07-14 — Admin sidebar nav gaps fixed (PR #43, deployed + merged)
+
+"ניהול QR" (`/admin/qr-management`) and "אופטימיזציית AI" (`/admin/ai-optimization`) added to AdminShell sidebar nav. Both screens were Real but unreachable from the sidebar — photographers couldn't find their QR code without re-running the full create→brand flow. Fixed `active` prop on both pages. oura-web `02e2491a`. **Live:** https://oura-web.oura-events.workers.dev/admin
+
+**Still open/unmerged:** #16 (token baseline trim — 5-file conflicts), #4 (universal-framework skill trim — 1-file conflict). Both docs-only, both stale; need a dedicated re-derive session, not a blind merge.
+
 ## ✅ DONE 2026-07-14 — /admin/ai-optimization wired to real data (PR #42, deployed + merged)
 
 `GET /admin/processing-status` (photographer Bearer auth) added to `oura-api`. Returns real stats: total/done/processing/pending/failed counts, last 17 photo statuses, face_embeddings count. `/admin/ai-optimization` polls every 10s and shows live queue tiles + metrics. Verified: API returns 17 photos (15 done, 1 processing, 1 failed) and 0 face_embeddings (face-embeddings counter is correct — the 286 embedded rows are associated with the photographer's real events). oura-api version `5e2b4bdb`, oura-web version `8a63c910`. PR #42 merged. Live (auth-gated): https://oura-web.oura-events.workers.dev/admin/ai-optimization

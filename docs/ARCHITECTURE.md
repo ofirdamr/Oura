@@ -476,9 +476,7 @@ screens above; see §3–§5 for their structural map.
 the single canonical index):** these are wiring gaps, not design gaps — the
 screens exist and match their `screen.png`, but the links between them don't
 yet.
-- `/admin/qr-management` is reachable only by re-running the create→brand
-  sequence — no sidebar link, and no "view QR" affordance on the event-detail
-  page. Wiring it is a real task.
+- `/admin/qr-management` is now in the sidebar nav (PR #43). Event-detail page also has a direct "קוד QR וגישה" link.
 - Three dead admin sidebar links: `ארכיון אירועים`, `לקוחות VIP`,
   `ניתוח נתונים` (archive / VIP clients / analytics) — no destination yet.
 - The Guest Landing Page (screens #22/#32, code `/join`) is unwired: `/`

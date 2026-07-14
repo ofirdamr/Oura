@@ -1,6 +1,7 @@
 # Progress Log
 
 ### 2026-07-14
+- PR #43 merged: added "ניהול QR" + "אופטימיזציית AI" to AdminShell sidebar nav — both Real screens had no sidebar link; photographers couldn't navigate to QR Management without re-running the create→brand flow. Fixed `active` prop on both pages. oura-web `02e2491a`.
 - Deployed PR #42 (`claude/next-prd-screen-geun3z`): `GET /admin/processing-status` endpoint live on oura-api (`5e2b4bdb`), `/admin/ai-optimization` polls it every 10s showing real queue tiles + metrics. Verified: API returns 17 photos (15 done/1 processing/1 failed), 0 face_embeddings counter. oura-web version `8a63c910`. Updated ARCHITECTURE.md §6b (AI Optimization: Static UI → Real). PR #42 merged.
 - Wired `/guest-landing` to real event data: loads guest session token → `GET /gallery/:token` → populates event name in subtitle, studio logo in header, first 4 real event photos in the staggered 2-col preview grid. Graceful fallback to placeholder tiles for first-time visitors. RTL logical props throughout, design-system tokens.
 - ESLint clean, `next build` passes. Deployed `oura-web` version `7a83c4dd`. **PR #38** (`claude/guest-landing-wire-data-g7o094`, draft) — live: https://oura-web.oura-events.workers.dev/guest-landing
