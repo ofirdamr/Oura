@@ -54,18 +54,20 @@ export function BrandedFrame({
         style={{ maxHeight: imgMaxHeight, maxWidth: imgMaxWidth }}
       />
 
-      {/* Branding footer — attached to the image's bottom edge. */}
+      {/* Branding footer — attached to the image's bottom edge. Hidden when the
+          frame is off so an "unframed" export is a fully clean, unbranded photo. */}
+      {branding.frameStyle !== "none" && (
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 px-[4%] pb-[3.5%] pt-[14%]"
         style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0))" }}
       >
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {branding.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded logo
-            <img src={branding.logoUrl} alt="" className="w-auto object-contain" style={{ height: "clamp(14px, 3.4vmin, 26px)" }} />
+            <img src={branding.logoUrl} alt="" className="w-auto object-contain" style={{ height: "clamp(28px, 6vmin, 48px)" }} />
           ) : null}
           <span
             className="font-display uppercase leading-none tracking-wide text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]"
-            style={{ fontSize: "clamp(11px, 2.2vmin, 18px)" }}
+            style={{ fontSize: "clamp(13px, 2.8vmin, 24px)" }}
           >
             {branding.studioName}
           </span>
@@ -80,6 +82,7 @@ export function BrandedFrame({
           </span>
         ) : null}
       </div>
+      )}
     </div>
   );
 }

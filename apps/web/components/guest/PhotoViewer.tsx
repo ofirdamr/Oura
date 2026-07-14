@@ -16,6 +16,7 @@
 // so a vertical dismiss can't fight a horizontal page-turn.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { GuestPhoto } from "@/lib/api";
 import { compositeBrandedPhoto, downloadFileName, type CompositeBranding } from "@/lib/watermark";
 import { BrandedFrame } from "@/components/guest/BrandedFrame";
@@ -44,6 +45,7 @@ export function PhotoViewer({
   shareCaption?: string;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [index, setIndex] = useState(startIndex);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
@@ -280,6 +282,16 @@ export function PhotoViewer({
           {index + 1} / {photos.length}
         </span>
         <div className="flex items-center gap-2">
+          {!isVideo(photo) && (
+            <button
+              type="button"
+              onClick={() => router.push(`/photo-editor?photo=${encodeURIComponent(photo.id)}`)}
+              aria-label="עריכת התמונה"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            >
+              <span className="material-symbols-outlined">tune</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={handleShare}

@@ -46,3 +46,34 @@ export async function embed(bytes: ArrayBuffer, env: EmbedEnv): Promise<EmbedFac
   const data = (await res.json()) as { faces: EmbedFace[] };
   return data.faces;
 }
+
+// Guest-facing wrapper: the embed service (Cloud Run) can scale to zero, and a
+// cold start — spinning up the container and loading the InsightFace model —
+// routinely exceeds EMBED_TIMEOUT_MS on the FIRST request. Without a retry that
+// single timeout surfaces to the guest as "face not recognized," which then
+// "fixes itself" on a later attempt once the container is warm. Retrying here
+// absorbs the cold start so a returning guest doesn't see an intermittent miss.
+// Transient only: a timeout or 5xx is retried; a real 4xx (e.g. bad auth) is not.
+export async function embedWithRetry(
+  bytes: ArrayBuffer,
+  env: EmbedEnv,
+  attempts = 3,
+): Promise<EmbedFace[]> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await embed(bytes, env);
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      const transient =
+        msg === 'embed_service_timeout' ||
+        /^embed_service_error_5\d\d$/.test(msg) ||
+        /^embed_service_error_429$/.test(msg);
+      if (!transient || i === attempts - 1) throw err;
+      // Short backoff to let a cold container finish warming before the retry.
+      await new Promise((r) => setTimeout(r, 1_500 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}

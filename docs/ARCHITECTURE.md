@@ -303,7 +303,7 @@ two and enumerate event ids.
 | `/gallery` | **Real** — real photos from R2 via the Worker; personal gallery is real Stage 2 face-matched photos (populated once consented) |
 | `/festive-gallery`, `/minimal-gallery` | Static UI only — alternate gallery theme variants, never wired |
 | `/gift-reveal` | **Real** Three.js/GSAP scene, wired into the guest flow — `/selfie`'s confirm-submit routes here (matched or not), landing on `/gallery` |
-| `/photo-editor` | Local React state only (adjustments preview live via CSS filters) — nothing persists back to a real photo |
+| `/photo-editor` | **Real** — reached from `/gallery`'s viewer ("עריכה"/tune icon) with `?photo=<id>`; re-reads the guest's gallery (opaque token) to load that real R2 photo, previews adjustments live via CSS filters, and Save/Share exports the **adjusted + branded** JPEG (same filter math baked into the canvas render via `lib/watermark.adjustmentsFilter` + rotation) to the phone via the share sheet. Ephemeral by design — no server-side persistence (guest flow is login-free) |
 
 **Photographer-facing (behind `/admin/*` auth middleware) — wired-vs-static status:**
 
@@ -591,8 +591,11 @@ the browser"):** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   sender is still Supabase's unbranded shared sender — that part (needs
   custom SMTP + a founder-owned domain) is separately tracked in
   `SUMMARY.md`, not resolved here.
-- **AI Optimization admin screen and Photo Editor persistence are UI-only** —
-  local React state, no real backend behind either.
+- **AI Optimization admin screen is UI-only** — local React state, no real
+  backend. (The guest Photo Editor is now real end-to-end — it loads a real
+  photo and exports the adjusted + branded result client-side; there is
+  deliberately no server-side persistence of guest edits, matching the
+  login-free ephemeral guest model, so "UI-only" no longer applies to it.)
 - **Phase 2 features** (Stripe billing, print orders, statistics, messaging,
   Studio Profile) are not started — see `PRD.md` §4.
 
