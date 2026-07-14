@@ -10,6 +10,7 @@ import {
 import { embed, embedWithRetry } from './pipeline/embedClient';
 import { handleQueue, type PhotoEmbedMessage } from './queueConsumer';
 import { handleScheduled } from './scheduledCleanup';
+import { keepEmbedWarm } from './keepEmbedWarm';
 
 // Bindings & secrets available on the Worker env.
 // Secrets are injected via `wrangler secret put` — never hardcoded (CLAUDE.md).
@@ -1054,5 +1055,14 @@ app.get('/', (c) => c.text('oura-api'));
 export default {
   fetch: app.fetch,
   queue: (batch: MessageBatch<PhotoEmbedMessage>, env: Env) => handleQueue(batch, env, supa),
-  scheduled: (event: ScheduledController, env: Env) => handleScheduled(event, env, supa),
+  scheduled: (event: ScheduledController, env: Env) => {
+    // Two crons share this handler; dispatch on which one fired.
+    // "0 3 * * *"  → daily biometric-retention cleanup.
+    // "*/5 * * * *" → keep the embed service warm so guest selfies never hit a
+    //                 cold start (SUMMARY.md 2026-07-14). Fire-and-forget.
+    if (event.cron === '0 3 * * *') {
+      return handleScheduled(event, env, supa);
+    }
+    return keepEmbedWarm(env);
+  },
 } satisfies ExportedHandler<Env, PhotoEmbedMessage>;
