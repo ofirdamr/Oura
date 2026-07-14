@@ -1,5 +1,10 @@
 # Progress Log
 
+### 2026-07-14 (Photo Editor branding fixes re-applied + design audit — PR #28)
+- Re-applied 3 branding fixes to PR #28's branch (`claude/wed-2024-face-match-t4wre2`), commit `f77e12f`: (1) stripped "מופעל על ידי Oura" from editor preview overlay; (2) `compositeBrandedPhoto` + `BrandedFrame` gate the entire branding bar on `frameStyle !== "none"` — frame-off export is fully clean; (3) enlarged studio logo/name to design prominence.
+- Confirmed Stitch design mislabeling: both `design/screens/oura_final_production_photo_editor_desktop/` and `…_mobile/` are gallery screens, not a photo editor. The `/photo-editor` page has no Stitch source. Founder has now run the real photo editor through Stitch. Next session: import new Stitch export → implement real editor UI → deploy + verify.
+- NOT deployed this session (no node_modules in fresh clone; deploy is the next session's first step after installing and verifying the build).
+
 ### 2026-07-11 (Photo Editor white-label branding — PR #28)
 - Landed the 4 pending Photo Editor branding fixes on PR #28's branch (`claude/wed-2024-face-match-t4wre2`), per founder approval to keep them in #28 (not a parallel branch). Design authority: `design/screens/oura_final_production_photo_editor_desktop/screen.png` (white-label — prominent studio name baked on each photo, no "powered by Oura").
 - (1) Stripped the `מופעל על ידי Oura` line from the editor preview (`app/photo-editor/page.tsx`). `BrandedFrame.tsx` was already clean of it — the mission's note that it was "baked" there was stale; verified and left correct.
