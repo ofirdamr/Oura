@@ -7,7 +7,7 @@ import {
   tokenHash,
   type GuestTokenPayload,
 } from './token';
-import { embed } from './pipeline/embedClient';
+import { embed, embedWithRetry } from './pipeline/embedClient';
 import { handleQueue, type PhotoEmbedMessage } from './queueConsumer';
 import { handleScheduled } from './scheduledCleanup';
 
@@ -465,7 +465,9 @@ app.post('/guests/:token/selfie', async (c) => {
 
   let faces: Awaited<ReturnType<typeof embed>>;
   try {
-    faces = await embed(await file.arrayBuffer(), {
+    // Retry across a Cloud Run cold start so a returning guest doesn't get an
+    // intermittent "face not recognized" on the first (still-warming) request.
+    faces = await embedWithRetry(await file.arrayBuffer(), {
       EMBED_SERVICE_URL: c.env.EMBED_SERVICE_URL,
       EMBED_SERVICE_TOKEN: c.env.EMBED_SERVICE_TOKEN,
     });

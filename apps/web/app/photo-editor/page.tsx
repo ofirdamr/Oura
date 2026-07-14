@@ -390,7 +390,7 @@ export default function PhotoEditorPage() {
           {/* Load More FAB */}
           {photos.length > 0 && (
             <button
-              className="fixed z-40 flex items-center gap-3 font-bold rounded-full transition-all hover:scale-105 hover:opacity-90 active:scale-95 group"
+              className="hidden md:flex fixed z-40 items-center gap-3 font-bold rounded-full transition-all hover:scale-105 hover:opacity-90 active:scale-95 group"
               style={{
                 bottom: 96,
                 left: "50%",
