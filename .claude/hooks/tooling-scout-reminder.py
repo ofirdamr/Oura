@@ -1,17 +1,36 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit hook: enforce the Tooling Scout first-look (universal-
-framework §1) mechanically. On a prompt that looks like a new build/mission,
-inject a reminder to check for an existing skill / installed MCP-connector /
-network-published skill or plugin that fits THIS mission before solving from
-scratch — and lists the project's local skills so the menu is in view.
+"""UserPromptSubmit hook: LOCAL-first tooling nudge (universal-framework §1).
 
-Kept quiet on short/chatty prompts so it only fires on real missions. Fails
-open."""
+History (2026-07-13): the previous version fired on essentially every
+mission-shaped prompt (fix|wire|deploy|add|design|refactor|…) and *commanded* a
+full network sweep every time — WebSearch across GitHub + the marketplace,
+SearchMcpRegistry, discover_zapier_actions over 9,000 Zapier apps,
+SuggestConnectors, etc. Each of those dumps a large result payload into context
+that is then re-billed on every subsequent turn (Opus), and the model burned
+turns running searches it almost never needed (you don't search 9,000 Zapier
+apps to strip an "Oura" credit line from a photo export). That per-task network
+sweep was the dominant, compounding token leak — the exact thing CLAUDE.md's
+"Session Budget Discipline" already names as what killed a prior session.
+
+New behavior:
+  - Only fires when the prompt looks like NEW external-integration work — a
+    service the repo doesn't already wire (payments, an OAuth connector, an
+    email/SMS provider, a print vendor, a brand-new third-party API/webhook).
+    Routine build/fix/wire/deploy/refactor/design of EXISTING code no longer
+    triggers it at all.
+  - Even then it nudges LOCAL-first (already-present skills) and only says to
+    reach for the network if the local menu genuinely has no fit — it does not
+    order a blanket 9,000-app / MCP-registry / GitHub sweep.
+
+Fails open."""
 import sys, json, os, glob, re
 
-MISSION_RE = re.compile(
-    r"build|implement|add\b|create|feature|wire|integrat|payment|stripe|upload|"
-    r"comment|print|gift|checkout|migrat|deploy|refactor|design",
+# Fire ONLY on genuinely new external-integration work, not routine code edits.
+NEW_INTEGRATION_RE = re.compile(
+    r"\b(stripe|paypal|payment|checkout|subscription|billing|oauth|connector|"
+    r"webhook|zapier|twilio|sendgrid|resend|mailgun|email\s+provider|sms|"
+    r"third[- ]party|external\s+(api|service)|print\s+(vendor|partner|lab)|"
+    r"integrat\w*\s+with)\b",
     re.I,
 )
 
@@ -21,8 +40,7 @@ def main():
     except Exception:
         sys.exit(0)
     prompt = data.get("prompt") or ""
-    # Only nudge when it reads like a real mission, not a one-line reply.
-    if len(prompt) < 180 and not MISSION_RE.search(prompt):
+    if not NEW_INTEGRATION_RE.search(prompt):
         sys.exit(0)
 
     root = os.environ.get("CLAUDE_PROJECT_DIR", ".")
@@ -32,16 +50,14 @@ def main():
     )
     menu = ", ".join(skills) if skills else "(none found locally)"
     print(
-        "[tooling-scout] MISSION DETECTED — run the Tooling Scout (universal-framework §1) BEFORE building from "
-        "scratch, and actually SEARCH THE NETWORK, not just what's installed:\n"
-        "  1. Installed/local first: SearchSkills, ListSkills, ListPlugins, ListConnectors, list_enabled_zapier_actions.\n"
-        "  2. NOT-yet-installed (this is the point — search everything, adopt/surface the best fit): SearchPlugins and "
-        "SearchMcpRegistry for published plugins/MCP servers; SuggestConnectors/SuggestPluginInstall; discover_zapier_actions "
-        "for the 9,000+ Zapier apps; and WebSearch across GitHub + the Anthropic/Claude marketplace + connector directory "
-        "for a skill/plugin/connector that fits THIS mission.\n"
-        "  3. Adopt a safe published skill directly (skills are just files); for anything needing OAuth/install, surface it "
-        "to the founder with the concrete value + the one-time connect step.\n"
-        f"Local skills already present: {menu}. Judge relevance by description; one strong find is enough — don't over-search."
+        "[tooling-scout] This looks like NEW external-integration work. Check LOCAL first "
+        "(one quick look, no token-heavy sweep): SearchSkills / ListSkills / "
+        "list_enabled_zapier_actions. Local skills present: "
+        f"{menu}. Only if nothing local fits AND this needs a service the repo doesn't "
+        "already wire should you reach for the network — and then a single targeted "
+        "search, not a blanket 9,000-app / MCP-registry / GitHub sweep. For anything "
+        "needing OAuth/install, surface it to the founder with the one-time connect step "
+        "rather than searching broadly."
     )
     sys.exit(0)
 

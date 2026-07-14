@@ -2,27 +2,40 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
-## 🎯 2026-07-14 — NEXT MISSION (founder's explicit direction): whole-app NAVIGATION-ONLY prototype
-The founder is (rightly) frustrated that the app is a disconnected mess and he can't tell what leads where. **Decision: before ANY more feature wiring, build a click-through navigation prototype so he can walk the whole flow end-to-end and see every screen.** Scope, precisely:
-- **Every Stitch screen in `design/screens/` becomes a reachable page.** There are ~60 design screens but only 21 routes exist (`find apps/web/app -name page.tsx`). Missing ones (checkout, order_confirmation, personal_gallery, premium_prints, statistics, reports_management, messaging_center, notification_center, event_book_designer, digital_brochure, guest_landing_page, etc.) need at least a stub page rendering their Stitch `screen.png`/`code.html` 1:1.
-- **Every navigation button/link works** — you can go from any page to the next per the product flow (guest flow: join → gallery-entry → selfie → consent → gift-reveal → gallery → photo lightbox; photographer flow: login → dashboard → events → event → branding/qr/ai-optimization/reports/etc.). Bottom navs, top navs, back buttons, CTAs that are purely navigational.
-- **NOT in scope yet:** real data wiring, uploads, payments, actual editing. Only navigation. Next level (a LATER session) wires function one page at a time, starting with the MVP pages.
-- **HARD RULE REMINDER (this session violated it — do not repeat):** per CLAUDE.md "Never design new visuals directly." The current `/photo-editor` lightbox was FREEHANDED by a prior session (oversized "Photo Santos" watermark, a crop button with no crop wired, only rotate works) — that is the mess the founder is calling out. Do NOT freehand any screen. Where a screen/element has no Stitch source, write a Stitch prompt for the founder, don't invent UI.
+## ✅ DONE 2026-07-13 — /admin/branding wired to desktop_3 + dedicated mobile_3 (deployed)
+Continuation of the branding fidelity audit (PR #34 recorded the six-screen mapping,
+docs-only, on sibling branch `claude/branding-fidelity-audit-mei1jn`). **Founder decisions
+this session:** Q1 = **desktop_3 is canonical**, Q2 = **build the dedicated mobile_3 layout**.
+Wired `apps/web/app/admin/branding/page.tsx`:
+- **Desktop (`md+`) → desktop_3:** badge `הגדרות חשבון פלטינום`, title `ניהול מיתוג:`, preview
+  header `תצוגה מקדימה ללקוח` + subtitle `כך תיראה הגלריה שלך בזמן אמת`, `החלף תמונה לדוגמה:`
+  thumb label, logo card `לוגו הסטודיו` + `שקוף מומלץ` badge + `העלה לוגו חדש` + WEBP hint,
+  frame card `סגנון תצוגת תמונות` + silver→`כסף פלטינום`, brand card `זהות המותג` + watermark
+  `סימן מים חכם (Watermark)`. Text/label drift only — no invented features.
+- **Mobile (below `md`) → dedicated mobile_3:** preview card (`פעיל` badge + studio identity),
+  logo dropzone, `שם הסטודיו` field (persists to `branding.studio_name`, an already-documented
+  jsonb key), single brand color, full-width save/cancel. Rendered inside AdminShell (its drawer
+  is the mobile nav) per the PR #33 create-event precedent — no separate top-bar/bottom-tab chrome.
+- **Deliberate mobile tradeoff (faithful to mobile_3):** frame styles + watermark toggle +
+  share-title/caption are **desktop-only** — mobile_3 is the simpler design the founder chose.
+  If he wants those on mobile too, that's a follow-up.
+- **Not changed (out of scope):** AdminShell's shared sidebar nav labels/accent differ slightly
+  from desktop_3's mockup nav, but that's global admin chrome (would affect every admin page) —
+  left as-is, not restyled for one screen.
+Verified: tsc + eslint clean, all 7 media-ui-verify checks, authenticated Playwright screenshots
+at 1280px + 390px, real-DOM `getBoundingClientRect` RTL measured correct both breakpoints
+(desktop: title-right/buttons-left, preview-left, frame 2×2 crystal·silver right / black·none left,
+color label-right/hex-left; mobile: preview title-right/badge-left, name-right/logo-left,
+hex-right/`שינוי`-left). **Live** (oura-web version `3a221d6a-2a38-4bf8-8053-2841eee24070`): https://oura-web.oura-events.workers.dev/admin/branding
+(auth-gated; append `?event_id=<id>`). PR: this branch `claude/branding-fidelity-audit-mei1jn-u21qlr`
+(supersedes #34's open questions — #34 can be closed). apps/api unchanged (branding save is a
+direct RLS'd Supabase write from the browser; logo endpoint untouched) — not redeployed.
 
-### Founder's concrete bug list (2026-07-14) — capture, fix during proper wiring, do NOT freehand fixes:
-1. `/photo-editor` lightbox is freehanded (rule violation) — "Photo Santos" watermark far too large on the photo; the editor itself is not from Stitch. Rebuild the editor experience from the real Stitch `photo_editor` screens only.
-2. Editor has crop + rotate controls but only rotate is wired; crop does nothing.
-3. Gift-box / gift-reveal page: "download all gallery" button does nothing (not wired).
-4. Face recognition must be dead reliable end-to-end (cold-start permanently fixed via keep-warm cron `28f38ac3`, see below; keep watching for any other failure path).
-
-
-
-## 🚨 2026-07-11 — OPEN DECISION: `/photo-editor` is off-spec (freehanded, not 1:1) AND not the current stage — resolve before any more editor work
-**Founder flagged (correctly) that this session made a real error — read `MISTAKES.md` 2026-07-11 "Polished a freehanded `/photo-editor`" first.** The `oura_final_production_photo_editor_{desktop,mobile}/screen.png` Stitch screens are a **white-label branded guest GALLERY** (hero, date badge, "רגעים של אושר צרוף", PHOTO SANTOS baked on each photo, 4-tab nav ראשי/גלריה/עריכה/פרופיל) — NOT a slider/crop editing tool. The app's `/photo-editor` (PR #28) is a freehanded editing UI that matches nothing in Stitch. The founder had also said the photo editor is not the current stage — build it 1:1 when its phase comes. This session wrongly polished branding on that off-spec screen instead of catching the mismatch.
-**REVERTED (2026-07-11).** This session's branding changes were reverted (commit `28a8d2a` reverts `a794258`) and `oura-web` redeployed to version `582af4cd` — the live site is back to its exact pre-session state; nothing off-spec from this session is live. The freehanded `/photo-editor` from earlier work (PR #28) is untouched by this revert and PARKED until its proper stage; it is NOT to be advanced or polished before then, and when built it must be a 1:1 port of the actual Stitch `photo_editor` screens (which are the white-label branded gallery).
-**Editor is parked, no open question outstanding from this session** — the mistake was undone rather than left for a founder decision. When the photo-editor stage arrives: start from `design/screens/oura_final_production_photo_editor_{desktop,mobile}/screen.png`, confirm what those screens actually are (a branded gallery), and build 1:1.
-**UPDATE 2026-07-14 — founder ACCEPTED the current editor.** He reviewed the deployed `/photo-editor` (rewritten this session to the gallery→lightbox→editor pattern from `design/screens/oura_final_production_photo_editor_{desktop,mobile}/code.html`) and said "this is the most close to the correct one, so keep it deployed." The earlier "off-spec / DO NOT merge" flag is superseded — PR #28 is now the accepted editor. Only change requested + done: mobile no longer shows the yellow load-more FAB (scroll reveals more photos). Live: https://oura-web.oura-events.workers.dev/photo-editor (web version `5fc0fce9`).
-**Open PRs (named per standing rule):** #28 (photo-editor — ACCEPTED by founder 2026-07-14, deployed, ok to merge), #29 (design-index root-cause docs), #13, plus the stale-diff trio #16/#4/#7 below.
+## 📌 OPEN NOW — Photo Editor branding (4 fixes) + branch decision (2026-07-11)
+- **PR #28** (`claude/wed-2024-face-match-t4wre2`, open draft) made the guest Photo Editor real (adjust → branded export; `photo-editor/page.tsx`, `BrandedFrame.tsx`, `compositeBrandedPhoto` in `watermark.ts`). **NOT merged.**
+- **Founder feedback → 4 fixes still PENDING (not yet coded):** (1) strip `מופעל על ידי Oura` line from the baked branding — it's at `apps/web/app/photo-editor/page.tsx:136` AND in `BrandedFrame`; (2) `compositeBrandedPhoto` frame-off must yield a fully clean photo (zero baked branding); (3) enlarge the photographer logo to the design's prominence; (4) verify with a REAL exported JPEG looked at against `design/screens/oura_final_production_photo_editor_desktop/screen.png`, then deploy + live link. The `photo_editor` design confirms white-label (studio brand baked on, **no Oura credit**) — the 4 fixes are design-faithful, not new design.
+- **OPEN QUESTION for founder (blocking the 4 code fixes):** which branch? The fix targets all live on both `main` and PR #28, but PR #28 heavily rewrote the same files and is unmerged — doing the fixes on a separate main-based branch risks the documented pileup (PRs #9/#17/#18). **Recommendation: do the 4 fixes ON PR #28's branch `claude/wed-2024-face-match-t4wre2`** so they land in the same PR, not a parallel one. Awaiting founder's yes.
+- **PR #29** (`claude/photo-editor-branding-fixes-qxa9x2`, open draft, docs-only): fixed the unusable 42-screen design index (mapped to dead `SCREEN_###` tokens instead of disk paths — the root cause of repeated "no design exists" freehanding). Overlaps in spirit with **PR #13** (`docs/DESIGN_INDEX.md`); reconcile into one index.
 
 ## 🚨 2026-07-11 — "nothing is live" incident + real root cause (read before trusting any "deployed" claim below)
 The founder reported the live site showed the OLD gift box and face-match failing, despite many prior "deployed and verified live" reports. Two root causes found and one fixed:
@@ -32,10 +45,6 @@ The founder reported the live site showed the OLD gift box and face-match failin
 **Redeployed 2026-07-11 from current `main` (both fixes confirmed present in code):**
 - `oura-web` version `d84ad79f-d184-40b9-a88e-0371479ccb59` — includes gift-box fixes `c02ac60` (photo no longer intersects lifted lid) + `4039eba` (real photo rising out of box). Live BUILD_ID `TyxeNcnzEYIdilVLw35wC`. Founder must **hard-refresh** (old HTML was edge-cached with `s-maxage=31536000`).
 - `oura-api` version `af442cb6-677d-4c60-8580-62c5f67d941d` — `EMBED_SERVICE_URL` set (Cloud Run `oura-embed`), `GUEST_MATCH_THRESHOLD=0.42`, `GUEST_MATCH_TOPK=20`.
-
-## ✅ 2026-07-14 — Intermittent "face not recognized" = embed-service COLD START — PERMANENTLY FIXED (keep-warm cron)
-Founder reports the fault keeps coming back: his face isn't recognized even though he's in most photos, then later it works. The matching math is NOT the cause (see RESOLVED note below — his face is indexed and clears 0.35 with margin). Root cause is availability: `embedClient.ts` had a 25s timeout and **no retry**, and the guest selfie route returned 502 on the first failure. When Cloud Run `oura-embed` scales to zero, the first selfie cold-starts the container + loads InsightFace (>25s) → timeout → guest sees "not recognized"; a later attempt hits a warm container and works. **Shipped (commit `edc02a4`, `oura-api` version `8e82dcbf`):** `embedWithRetry` on the guest selfie route — 3 attempts, backoff, retries only on timeout/5xx/429. This absorbs the cold start.
-**PERMANENT FIX — SHIPPED 2026-07-14 (no GCP access needed), commit pushed, `oura-api` version `28f38ac3`:** a second Worker cron `*/5 * * * *` (`src/keepEmbedWarm.ts`, dispatched in `index.ts` `scheduled` by `event.cron`) pings the embed service's unauthenticated `GET /health` every 5 minutes. Any request resets Cloud Run's ~15-min scale-to-zero timer, so exactly one instance stays warm forever and a real guest selfie always hits a hot container. Verified reachable: `GET https://oura-embed-…run.app/health` → `{"ok":true,"model":"buffalo_l"}`. This is the durable cure; the selfie-route retry (`embedWithRetry`) is now just belt-and-suspenders. Cloud Run min-instances=1 in the GCP console would be equivalent but is NO LONGER REQUIRED — the fix lives entirely in code and self-deploys with the Worker. If the embed service URL ever changes, update `EMBED_SERVICE_URL` and the keep-warm follows automatically.
 
 **FACE-MATCH — RESOLVED 2026-07-11. The founder's actual selfie was run through the real embed→match_faces path and IT MATCHES.** Via a new `POST /admin/selfie-test?event_id=` (bearer `ADMIN_BACKFILL_TOKEN` = `oura-backfill-fixed-20260711`; multipart `file`, zero-retention, writes/links nothing): his selfie's face IS detected (detection_score 0.82) and matched cluster `9bf05c4e` with **best similarity 0.58**, 11 of his true faces at **0.42–0.58**, and the nearest STRANGER cluster at only **0.31**. So there is a clean 0.31→0.42 gap and the current `GUEST_MATCH_THRESHOLD=0.35` sits safely inside it — it matches him with margin AND excludes strangers, and respects the ≥0.32 privacy floor. **Kept 0.35, no change.** It's NOT a threshold problem and his face IS in the index. The earlier "doesn't match" was the combination the prior investigation already fixed: the 3am cron wiping the shared index (now unlink-only) plus the pre-fix state — not the selfie. (Tested a hypothesis that iPhone EXIF orientation 6 broke detection — DISPROVEN: raw sideways and EXIF-corrected upright both detect + match near-identically, so InsightFace/SCRFD handled the 90° selfie fine. No embed-service change made.)
 Diagnostics live on the worker (all bearer `ADMIN_BACKFILL_TOKEN`): `GET /admin/embed-status?event_id=`, `GET /admin/match-test?event_id=[&photo_id=]`, `POST /admin/selfie-test?event_id=`. Sandbox can't reach Supabase's DB directly (proxy 502); use these live worker endpoints. **Pipeline proven healthy earlier this session via match-test** (photo→own-face distance 0, same-person 0.54–0.74, strangers 0.11–0.28).
@@ -87,10 +96,8 @@ Real end-to-end: the entire guest path including Stage 2 (code resolution →
 token → consent with guardian confirmation → selfie capture → real face
 embedding/matching → gift-reveal → personal gallery, real R2-served photos),
 the entire photographer onboarding path (auth → create event → brand →
-upload photos → QR), event list, dashboard, photo delete, **and the guest
-Photo Editor** (as of 2026-07-11 — reachable from `/gallery`, loads a real
-photo, exports the adjusted+branded result client-side; see section below).
-Deliberately not real yet: AI Optimization's pipeline,
+upload photos → QR), event list, dashboard, photo delete. Deliberately not
+real yet: Photo Editor persistence, AI Optimization's pipeline,
 `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or
 unused so far).
 
@@ -478,89 +485,6 @@ Rough edges worth a Plan/PM consult on sequencing, none blocking:
 **Open questions still blocking Phase 2 (not this milestone):** see `PRD.md`
 §8 — final ILS pricing, print fulfillment partner choice.
 
-## 2026-07-11 (session 2): guest Photo Editor made real (deployed + live)
-
-Picked per the standing directive (decide the next PRD-order MVP gap myself,
-don't ask): the `/photo-editor` screen was a dead, unreachable UI mock
-(placeholder icon, no-op save, no entry point) — the one core guest-flow MVP
-step from PRD §3 (`gallery → Photo Editor → Share`) that wasn't real. Now
-wired end-to-end, entirely client-side (no backend/schema/legal surface):
-- Entry: the gallery's `PhotoViewer` got a "tune" edit control →
-  `/photo-editor?photo=<id>`.
-- The editor re-reads the guest's gallery via the stored opaque token, loads
-  that real R2 photo, previews brightness/contrast/saturation/exposure +
-  rotation + frame toggle live.
-- Save/Share export the **adjusted + branded** JPEG (filter math factored into
-  `lib/watermark.adjustmentsFilter` so CSS preview == canvas render;
-  `compositeBrandedPhoto` now applies filter + quarter-turn rotation) to the
-  phone via the share sheet — consistent with the rest of the guest flow. No
-  server-side persistence (login-free ephemeral guest model). Back button wired.
-- media-ui-verify all 7 checks pass; Playwright screenshot captured (local
-  build, mocked API/image — the documented proxy blind spot blocks the
-  in-sandbox browser from the live API/R2). Deployed to `oura-web`
-  version `b050e877`; confirmed live by grepping the deployed chunk (new
-  labels present, old `שמירת שינויים` gone). **Live: open a photo in**
-  `https://oura-web.oura-events.workers.dev/gallery` **→ tap the tune (עריכה)
-  icon** (needs a consented `WED-2024` guest session; direct
-  `.../photo-editor?photo=<id>` also works with a session).
-- Draft PR opened for this branch (`claude/wed-2024-face-match-t4wre2`,
-  restarted from `main` since the face-match PR #27 was already merged).
-
-## ✅ 2026-07-14 — Photo Editor 4 fixes DONE on PR #28 (deploy pending)
-
-All 4 founder-requested fixes landed on `claude/wed-2024-face-match-t4wre2` commit `4cdd9cd`:
-(1) `מופעל על ידי Oura` stripped from page.tsx preview overlay; (2) frame-off = clean export (already correct in watermark.ts + BrandedFrame); (3) logo enlarged to `clamp(28px,6vmin,48px)`; (4) tsc + build clean, screenshot taken. PR #28 ready to deploy + merge. Next: `npm install && npm run deploy` from `apps/web` on this branch.
-
-## ⏭️ [SUPERSEDED — see above] FOUNDER FEEDBACK on the Photo Editor
-
-Founder reviewed the live editor (2026-07-11 session 2) and gave 4 corrections.
-These are NOT done — do them next session on branch
-`claude/wed-2024-face-match-t4wre2` (PR #28), then **verify by saving a REAL
-exported photo and looking at the actual JPEG** (not just the preview — the
-prior logo-size "fix" failed because it wasn't checked on the real export).
-
-**PRODUCT PRINCIPLE the founder stated (record in CLAUDE.md too):** Oura is a
-**white-label platform** sold to photographers; the **photographer's brand is
-primary** and the guest should feel it's the photographer's, not Oura's. Oura
-must NOT bake its own marketing onto the photographer's delivered photos or
-otherwise undermine his business. (Photo Santos = the MVP example photographer;
-real photographers each bring their own brand.)
-
-1. **Remove Oura marketing baked "inside the photo."** The editor preview
-   overlay (`apps/web/app/photo-editor/page.tsx`, the `showFrame` block) prints
-   `מופעל על ידי Oura — הצלם הרשמי של האירוע`. Remove that Oura line from the
-   baked-on-image branding — keep only the photographer's brand (Photo Santos
-   logo + name + event title). Also check `components/guest/BrandedFrame.tsx`
-   (the gallery viewer's WYSIWYG frame) for the same Oura line and strip it
-   there too. NOTE: the export path `lib/watermark.ts compositeBrandedPhoto`
-   already does NOT bake the Oura line (it bakes event title + logo + studio
-   name only) — so this is mainly a preview/BrandedFrame WYSIWYG mismatch to
-   align. (Oura may still market itself elsewhere — share captions, the gallery
-   chrome — just never printed onto the delivered photo.)
-2. **Frame toggle OFF must produce a fully clean photo.** Currently
-   `frameStyle:"none"` only drops the border but `compositeBrandedPhoto` still
-   draws the whole branding bar (gradient + event title + logo + studio name).
-   Guard that entire bar with `if (branding.frameStyle !== "none")` so "without
-   frame" = no border, no logo, no watermark, no text — just the photo. (Founder
-   noted guests will usually pick no-frame; lead-gen tradeoff is his call, this
-   is what he asked for.)
-3. **Photographer logo is TOO SMALL — still.** In `compositeBrandedPhoto`,
-   `logoH = baseFont * 1.4` is too small; enlarge it substantially (and the
-   preview `StudioLogo size={28}` in the editor). This was claimed-fixed before
-   and wasn't — so this time tune it against a REAL saved export and show him
-   the actual JPEG, iterating on size until it reads as prominent.
-4. **Design comparison (he asked FIRST):** he wants side-by-side Stitch
-   `screen.png` vs the live screen, proving each is wired exactly, nothing
-   freehanded. HONEST FINDING for the editor specifically:
-   `design/screens/oura_final_production_photo_editor_mobile/screen.png` is a
-   full EVENT GALLERY, not an editor — the editor controls live only in that
-   folder's `code.html` hidden lightbox panel. So the current `/photo-editor`
-   has **no true Stitch editor screen** to match; it was built from the
-   code.html panel + sanctioned freehand branding. Surface this: if he wants a
-   real editor screen, he runs one through Stitch (per the never-freehand-new-
-   visuals guardrail). A broader per-screen live-vs-`screen.png` audit is a good
-   dedicated `qa-verifier` mission (token-heavy — its own fresh session).
-
 ## 2026-07-11: PR #12 closed (superseded); #16/#4/#7 confirmed real conflicts, still open
 
 **Merged + live 2026-07-10/11:** #10 (branded gallery viewer, was the "lost work"), #15 (context-guard hook), #18 (media-ui-verify skill + QR fullscreen), #19 (pileup docs + deploy-env guard), #11 (face-matching retention-cron fix — **deployed live** to `oura-api`, but its "re-run `POST /admin/backfill-embeddings` against `WED-2024`" step is still NOT done — needs `ADMIN_BACKFILL_TOKEN`).
@@ -571,7 +495,31 @@ real photographers each bring their own brand.)
 - **#16** — cuts `SUMMARY.md`/`PROGRESS.md`/`MISTAKES.md`/`universal-framework/SKILL.md` size for token baseline. Confirmed conflicts in all 5 touched files (`SUMMARY.md`, `PROGRESS.md`, `MISTAKES.md`, `CLAUDE.md`, `.claude/skills/universal-framework/SKILL.md`) — the goal (trim the baseline) is still valid, but the diff itself is stale; needs a dedicated session to re-derive the trim against current content, not a blind merge.
 - **#4** — trims `universal-framework/SKILL.md` (moves rare-case protocols to `references/escalation-and-handoff.md`). Confirmed conflict is scoped to exactly one file: `.claude/skills/universal-framework/SKILL.md`. Smallest of the three — good candidate for a focused resolve next session.
 - **#7** — `MISTAKES.md` corrections from 2026-07-07 (live-verification diagnosis, merge-authority, stop-when-stuck lessons). Confirmed conflict is scoped to exactly one file: `MISTAKES.md` (`SUMMARY.md` auto-merges clean). Also a contained, quick resolve.
-- **#13** — docs-only `docs/DESIGN_INDEX.md` (Stitch-screen ⇆ route index + nav map). Not a draft; no code touched. Left open (not merged) pending a founder/PM call on whether to keep it as a maintained doc vs. fold into `ARCHITECTURE.md` §6's existing per-screen table — low urgency, no conflict.
-- **New this session** — draft PR for the Photo Editor work above (branch `claude/wed-2024-face-match-t4wre2`). Deployed + live already; the draft PR is the record, mergeable once reviewed.
 
 **Standing rule (founder, 2026-07-11):** nothing unmerged/paused gets left undocumented — every open PR, whether mergeable now or not, must be named here with what it is and why it's not merged, every single session, no exception. Also: at the start of a mission, after the Token Economist consult, state the concrete plan before executing.
+
+## 2026-07-12 addendum: canonical screen→code map + open-PR state
+
+- **Canonical Design-to-Code map now lives in `docs/ARCHITECTURE.md` §6b** (PR #30,
+  docs-only). It maps every `design/screens/*/screen.png` → code path + wiring
+  status, names the design-spec flow as the leading build order, and is the single
+  source of truth for "which screen is which code." `PRD.md` is now a design-to-code
+  PRD; `CLAUDE.md` has a "Session Budget Discipline" section.
+- **PR actions this session (founder-approved):** merged **#30** and **#29** (the
+  latter fixes dead Stitch-token paths in the 42-screen index file — complementary,
+  not a duplicate); **closed #13** after folding its nav-gap notes into §6b.
+- **PR #33** (`claude/design-fidelity-branding-audit-ec45ip`, open draft): wires the
+  **create-event MOBILE** bottom-sheet layout on `/admin/create-event` (was
+  desktop-only — a gap shipped without flagging; founder supplied the mobile Stitch
+  export). Responsive: desktop card `hidden md:flex`, mobile bottom-sheet below `md`,
+  shared submit via separate `<form>`s. Founder decisions (2026-07-12): auto-barcode
+  toggle **removed** (code+QR always generated, no opt-out path), CDN preview photo
+  **rebuilt** as a bundled CSS phone+`qr_code_2` card (CLAUDE.md bans CDN assets).
+  Verified: tsc/lint clean, prod build passes, authenticated 390px screenshot +
+  `getBoundingClientRect` RTL measurement on a local prod build.
+- **Still open/unmerged after this session:** **#28** (make the guest Photo Editor
+  real — open draft, needs review/decide next session), **#16** (trim MD/skill token
+  baseline — real conflicts in 5 files, needs a fresh re-derive), **#4** (trim
+  `universal-framework/SKILL.md` — one-file conflict, focused resolve), **#7**
+  (docs-only process-lessons follow-up). Next session's first mission is a full
+  open-PR inventory + a per-screen 1:1 design-fidelity audit of everything wired.

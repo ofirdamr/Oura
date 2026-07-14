@@ -18,6 +18,7 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - No CDN `<script>` tags in production builds (Tailwind/fonts/Three.js/GSAP must be bundled npm deps) — the Stitch export used CDN tags, that was fine for a mockup only.
 - Face-matching may not run before the guest accepts the biometric-consent gate. No exceptions, no "just for the pilot."
 - Per-screen implementation must match `design/*/screen.png`, not the folder name — a naming/content mismatch was already found once in the export.
+- **Never claim a screen "has no design" — and never freehand one — without first running `ls design/screens/` and opening the matching `screen.png`.** All 42 screens exist as folders (`design/screens/oura_final_production_<name>_<desktop|mobile>[_N]/screen.png`); the map is `design/oura_final_production_index_42_screens.md`. The `{{DATA:SCREEN:SCREEN_###}}` tokens in older notes are Stitch export IDs, NOT file paths — resolving them off the index alone is what made past sessions wrongly declare a design missing and waste a whole conversation freehanding + re-wiring it (see `MISTAKES.md` 2026-07-11). Design leads; our job is to wire it, not invent it.
 - `--font-display` (Hanken Grotesk) has no Hebrew glyphs — never apply it to elements that render Hebrew text (already caused one fallback-font bug). Use it only for pure-Latin branding bits (e.g. "OURA", "PLATINUM" badges). Rubik (`--font-sans`) is the default for everything else.
 - Use CSS logical properties (`ms-*`/`me-*`/`ps-*`/`pe-*`/`text-start`/`text-end`), never physical `ml-*`/`mr-*`/`text-left`/`text-right`, per `hebrew-rtl-best-practices`.
 - Every task starts with a visible Token Economist consult (leanest path / model / scope guard / orchestration mode) — see `MISTAKES.md` for why this is non-negotiable here.
@@ -28,6 +29,44 @@ Event-photography SaaS. Guests scan a QR at an event → live, face-matched, bra
 - **State the concrete plan before executing it.** After the Token Economist consult (leanest path/model/scope/mode), say in one or two lines what you're actually about to build/change/deploy before doing it — not just the abstract mode/model — so the founder can redirect before tokens are spent, not after finding out from the diff.
 - **"Done" always ships with the clickable live link — no exceptions.** Any time you report something done/deployed/fixed/verified, the same message must include the exact live URL to *see it* — deep-linked to the specific screen or flow you changed (e.g. `https://oura-web.oura-events.workers.dev/gallery`), not just the site root, not "it's live." A completion report without a link is an incomplete report. This has been dropped repeatedly; treat the link as a required field of every "done", the same as verification itself.
 - **Never design new visuals directly.** Founder runs new/missing-screen design through Stitch himself. When a task needs a screen or UI element with no existing `design/*/screen.png` source, do not freehand it — write a clear, ready-to-paste Stitch prompt (what the screen is for, key content/actions, how it fits the existing dark-luxury Hebrew/RTL visual language) and hand it to the founder to run through Stitch. Implement in code only once he brings back the resulting export. This does not apply to re-implementing an existing Stitch screen from `design/*` — that's normal code work.
+
+## Session Budget Discipline (5-hour Pro cap — non-negotiable)
+The Pro usage cap burns as (context size) × (turns) + every sub-agent spawn. A
+prior session died mid-mission at the cap; the dominant waste was fixed
+per-mission overhead (Token-Economist agent + Tooling-Scout network search +
+multi-agent fan-out fired on *every* task). These rules exist to stop that:
+
+1. **Token Economist & Tooling Scout run inline** — one line, no sub-agent
+   spawn — for small/medium work. Spin up the full agent team only for
+   genuinely large missions. Most tasks need neither a spawn nor any network
+   search.
+2. **Targeted reading.** `grep` for the symbol, read only the needed line
+   range. Whole-file reads are the rare exception, not the default.
+3. **Decide-once, no re-loops.** Don't re-derive a settled decision or re-read
+   a file already in context.
+4. **Batch independent tool calls** in a single turn. Never one-action-per-turn
+   — it re-bills the whole conversation each turn and ~10×'s the 5-hour burn.
+5. **Design is king; code is a 1:1 wiring of the design; the design-spec flow
+   is the leading build order** (founder's decision — see `PRD.md` and
+   `docs/ARCHITECTURE.md` §6b). The only exception is a live production bug,
+   which may be fixed out of flow-order.
+6. **Hand off via `context-steward`** at the context-guard threshold rather
+   than dying mid-mission.
+7. **Don't hardcode undecided scope** (e.g. Screens 2/3 scope) — the founder
+   decides that later.
+8. **No per-task network sweep.** Default is Solo + inline consults + LOCAL
+   tooling only. Do NOT run WebSearch / `SearchMcpRegistry` /
+   `discover_zapier_actions` / connector searches for routine build/fix/wire
+   work — only when a mission genuinely adds a NEW external service the repo
+   doesn't already integrate, and then a single targeted search, not a blanket
+   sweep. (The `tooling-scout` hook was rewritten 2026-07-13 to stop forcing
+   this; don't reintroduce it in prompt-flow.)
+9. **Hand off before the window balloons.** Treat the context-guard BLOCK mark
+   (~22%) as the real stop line, not a suggestion — park via `context-steward`
+   and start a fresh session. A conversation that runs to ~100%+ of the window
+   re-sends the whole thing on every Opus turn; that re-billing, not any single
+   action, is the biggest usage leak. Keep each conversation to one small
+   mission.
 
 ## Repo layout
 ```

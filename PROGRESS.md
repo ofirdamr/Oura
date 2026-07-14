@@ -1,23 +1,5 @@
 # Progress Log
 
-### 2026-07-14 (PR #37 merged; photo-editor 4 fixes committed to PR #28)
-- Merged PR #37 (`claude/whole-app-navigation-prototype-q4zsu8`) — 11 stub pages + dead nav wiring, build/RTL verified. Commit `6277b44` on main.
-- Photo-editor 4 fixes: stripped `מופעל על ידי Oura` from preview overlay (page.tsx), enlarged BrandedFrame logo `clamp(18px→28px, ...)`, frame-off clean confirmed correct in watermark.ts. Committed `4cdd9cd` to `claude/wed-2024-face-match-t4wre2` (PR #28). Deploy pending.
-
-### 2026-07-14 (Photo Editor branding fixes re-applied + design audit — PR #28)
-- Re-applied 3 branding fixes to PR #28's branch (`claude/wed-2024-face-match-t4wre2`), commit `f77e12f`: (1) stripped "מופעל על ידי Oura" from editor preview overlay; (2) `compositeBrandedPhoto` + `BrandedFrame` gate the entire branding bar on `frameStyle !== "none"` — frame-off export is fully clean; (3) enlarged studio logo/name to design prominence.
-- Confirmed Stitch design mislabeling: both `design/screens/oura_final_production_photo_editor_desktop/` and `…_mobile/` are gallery screens, not a photo editor. The `/photo-editor` page has no Stitch source. Founder has now run the real photo editor through Stitch. Next session: import new Stitch export → implement real editor UI → deploy + verify.
-- NOT deployed this session (no node_modules in fresh clone; deploy is the next session's first step after installing and verifying the build).
-
-### 2026-07-11 (Photo Editor white-label branding — PR #28)
-- Landed the 4 pending Photo Editor branding fixes on PR #28's branch (`claude/wed-2024-face-match-t4wre2`), per founder approval to keep them in #28 (not a parallel branch). Design authority: `design/screens/oura_final_production_photo_editor_desktop/screen.png` (white-label — prominent studio name baked on each photo, no "powered by Oura").
-- (1) Stripped the `מופעל על ידי Oura` line from the editor preview (`app/photo-editor/page.tsx`). `BrandedFrame.tsx` was already clean of it — the mission's note that it was "baked" there was stale; verified and left correct.
-- (2) `compositeBrandedPhoto` (`lib/watermark.ts`): frame-off (`frameStyle: "none"`) now produces a fully clean photo — the whole branding block (scrim + studio credit + event title) is gated behind frame-on. The frame toggle is the branding switch.
-- (3) Enlarged + emboldened the PHOTO SANTOS studio name/logo to the design's prominence across the export (`watermark.ts`: creditFont ×1.2, weight 700, letter-spacing, logo ×1.6), the gallery viewer (`BrandedFrame.tsx`), and the editor preview (logo 28→44, text-base→text-2xl).
-- (4) Verified by rendering REAL JPEGs through the actual deployed compositing code in headless Chromium (`scratchpad/render.mjs`) and looking at both frame-on (prominent PHOTO SANTOS, no Oura line) and frame-off (fully clean) outputs against the design.
-- Recorded the white-label branding principle in `CLAUDE.md`. media-ui-verify: 7/7. Deployed live `oura-web` version `5db18c9a`. Commit `a794258`.
-- **REVERTED same session.** Founder flagged the real error: `/photo-editor` was never a 1:1 port of the Stitch design (the `photo_editor` screens are a branded gallery, not a slider editor), the editor is not the current stage, and this session wrongly polished the off-spec screen instead of catching that. Reverted `a794258` (commit `28a8d2a`) and redeployed `oura-web` version `582af4cd` — live is back to exact pre-session state, nothing off-spec live. Lesson logged in `MISTAKES.md`. Editor parked until its stage; build 1:1 from `design/screens/oura_final_production_photo_editor_*/screen.png` then.
-
 ### 2026-07-03
 - Gathered requirements (founder brain-dump), competitor brochure (LOCA) + live pricing page, and full Stitch design export (42/42 screens confirmed present across 5 zips).
 - Read brand spec + 6 representative screens to ground architecture decisions in real design (gift-box = real Three.js/GSAP scene, Platinum tier already named in design, personal gallery tags photos by event moment, notification center includes a misidentification-report moderation queue).
@@ -310,8 +292,62 @@
 - **(2) DB-guard hardening:** wrote `supabase/migrations/0005_face_embeddings_delete_guard.sql` — `before delete` trigger on `face_embeddings` rejects any delete while the parent photo still exists unless a txn-local opt-in flag is set; guest-scoped cleanup deletes (the 2026-07-09 bug) now raise. Photo-cascade + force re-embed stay allowed (force re-embed routed through new SECURITY DEFINER `admin_clear_faces_for_photos()` RPC). Worker force-backfill updated to call the RPC with a safe fallback pre-apply. Deployed `oura-api` version `37f1a25b`; typecheck clean. Applying the DDL needs a founder Supabase Management PAT (founder opted to paste one for live apply+verify).
 - **0005 APPLIED + VERIFIED LIVE** (founder-pasted Management PAT, applied via api.supabase.com — needed a browser User-Agent, the default urllib UA hits Cloudflare 1010). Verified: guest-scoped delete RAISES the guard; `admin_clear_faces_for_photos([])` returns 0 clean; photo-cascade delete allowed (rollback-tested, no data lost). embed-status still 286. PAT can be revoked.
 
-## 2026-07-11 (session 2)
-- Guest Photo Editor made real end-to-end. `PhotoViewer` entry point (tune icon → `/photo-editor?photo=<id>`), editor loads the real R2 photo via the guest token, live-previews brightness/contrast/saturation/exposure + rotation + frame toggle, and Save/Share export the adjusted+branded JPEG client-side (filter math factored into `lib/watermark.adjustmentsFilter`; `compositeBrandedPhoto` now applies filter + quarter-turn rotation). Wired the dead back button. No backend/persistence — login-free ephemeral guest model.
-- Files: `apps/web/app/photo-editor/page.tsx` (rewrite), `apps/web/lib/watermark.ts`, `apps/web/components/guest/PhotoViewer.tsx`, `docs/ARCHITECTURE.md`. Commit `6a1b907`.
-- Verified: tsc + build pass; media-ui-verify 7/7; Playwright screenshot (local build, mocked API/image per proxy blind spot). Deployed `oura-web` version `b050e877`; live chunk grep-confirmed (new labels in, old out).
-- Branch `claude/wed-2024-face-match-t4wre2` restarted from `main` (face-match PR #27 already merged). Draft PR opened.
+## 2026-07-12: master Design-to-Code index + design-driven PRD (PR #30); design-index PR pileup reconciled
+
+- **PR #30** (`claude/design-code-index-prd-5vn8xd`, docs-only): built the master
+  Design-to-Code index in `docs/ARCHITECTURE.md` §6b — every `design/screens/*/screen.png`
+  → its code file path(s) + wiring status (Real / static / not-built-Phase-N),
+  the design-spec source files (`oura_design_specifications_final.md` = the master
+  flow = leading build order), and the flow-order build sequence. Rewrote `PRD.md`
+  as a design-to-code PRD (design-spec flow = source of truth for UI *and* build
+  order; each screen = 1:1 wiring of its screen.png). Added `CLAUDE.md` "Session
+  Budget Discipline" section. Anti-drift clause (§11) now requires updating §6b in
+  the same commit as any screen move/rename/wire.
+- **Design-index PR pileup reconciled (founder-approved):** three PRs were all
+  about "index the design" — this session's #30 (canonical map in ARCHITECTURE
+  §6b), **#29** (fixes the dead `{{DATA:SCREEN:SCREEN_###}}` tokens in
+  `design/oura_final_production_index_42_screens.md` → real on-disk paths), and
+  **#13** (a separate `docs/DESIGN_INDEX.md` screen⇆route + nav-gap map).
+  Decision: **merge #29** (complementary — fixes a genuinely broken file #30 never
+  touched), **fold #13's nav-gap findings into §6b and close #13** (its location is
+  superseded by the canonical §6b), **merge #30**. All docs-only — no deploy needed
+  (no CI/CD; merging to main is the whole effect).
+- Confirmed the leading principle is now written down where work will read it:
+  design is king, code is 1:1 with the Stitch screen.png, design-spec flow leads
+  build order; if code and screenshot ever disagree, the screenshot wins.
+
+## 2026-07-12 (cont.): create-event MOBILE bottom-sheet wired (PR #33, live)
+Founder caught a real gap: `/admin/create-event` was built desktop-only and
+shipped without asking where the mobile version was. He supplied the mobile
+Stitch export; wired it as a responsive layout on the same route (desktop card
+`hidden md:flex`; mobile bottom-sheet below `md`), shared submit via separate
+`<form>`s. Founder decisions: removed the export's auto-barcode toggle (a
+code+QR is always generated — no opt-out path, would've been a dead control),
+and rebuilt the export's Google-CDN preview photo as a bundled CSS phone +
+`qr_code_2` card (CLAUDE.md bans CDN assets). Verified: tsc exit 0, eslint
+clean, prod build passes, authenticated 390px Playwright screenshot + real-DOM
+`getBoundingClientRect` RTL measurement (throwaway service-role account + injected
+`@supabase/ssr` cookies, since the sandbox browser can't reach Supabase auth).
+Deployed oura-web version `ab53201d-3a7c-46a3-873c-cf6658498f53`. Live (auth-gated):
+https://oura-web.oura-events.workers.dev/admin/create-event (view on a phone / <768px).
+Lesson logged: when a design covers only one breakpoint, STOP and ask — don't ship half.
+
+## 2026-07-13: /admin/branding wired to desktop_3 + dedicated mobile_3 (deployed)
+Continuation of the branding fidelity audit (PR #34, docs-only mapping, sibling branch
+`claude/branding-fidelity-audit-mei1jn`). Founder decisions: Q1 desktop_3 canonical,
+Q2 build dedicated mobile_3. Wired `apps/web/app/admin/branding/page.tsx`: desktop_3
+wording/section renames (`הגדרות חשבון פלטינום`, `ניהול מיתוג:`, `תצוגה מקדימה ללקוח` +
+subtitle, `לוגו הסטודיו`+`שקוף מומלץ`+`העלה לוגו חדש`+WEBP, `סגנון תצוגת תמונות`,
+silver→`כסף פלטינום`, `זהות המותג`, `סימן מים חכם (Watermark)`, `החלף תמונה לדוגמה:`
+thumb label) for `md+`; a dedicated mobile_3 block below `md` (preview card w/ `פעיל`
+badge, logo dropzone, `שם הסטודיו`→`branding.studio_name`, single brand color, full-width
+save/cancel) rendered inside AdminShell per the PR #33 precedent (no forked bottom-tab
+chrome). Frame/watermark/title/caption are desktop-only, faithful to the simpler mobile_3.
+Text/label drift + the new mobile layout only — no invented features; hoisted the logo
+file-input to top level so both dropzones share it. Verified: tsc/eslint clean, 7/7
+media-ui-verify, authenticated Playwright screenshots at 1280px + 390px, real-DOM
+`getBoundingClientRect` RTL correct on both breakpoints (throwaway service-role account +
+injected `@supabase/ssr` cookie, per the documented sandbox method; the browser can't reach
+Supabase so event data renders as "טוען…" — a data blind spot, not a layout bug). apps/api
+unchanged (not redeployed). Deployed oura-web version `3a221d6a-2a38-4bf8-8053-2841eee24070`.
+Live: https://oura-web.oura-events.workers.dev/admin/branding

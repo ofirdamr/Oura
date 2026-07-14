@@ -377,6 +377,122 @@ incident is just as likely to be a rendering bug as an API bug.
   time per CLAUDE.md's "never freehand new visuals without either an
   existing source or explicit approval" rule.
 
+## 6b. Design-to-Code master index (design is king — code is 1:1 wiring)
+
+**The design is the source of truth. Code is a 1:1 wiring of each
+`design/screens/*/screen.png`, and the design-spec flow is the leading build
+order.** This section is the master map from every design screen → its code
+file(s). "Indexing" here means paths, not contents — keep it a lookup table.
+
+**Per-screen fidelity rule (CLAUDE.md guardrail):** implement to the actual
+`screen.png` *content*, not the folder name — several folder/content
+mismatches were found during the initial port (see §6a, `MISTAKES.md`). When a
+screen has no `design/screens/*` source at all, it is either designed fresh
+with founder sign-off or built from a separate Stitch export (noted per row);
+never freehand a new visual.
+
+### Design-spec source files (the master flow lives here)
+
+| File | Role |
+|---|---|
+| `design/oura_design_specifications_final.md` | **Brand + flow source of truth.** Color palette, typography (Hanken Grotesk Latin / Rubik Hebrew), spacing/grid, component library, and — §6 "Functional Prototypes & Flows" — **the two canonical flows that set build order** (Photographer, Guest). Read this first before touching any screen. |
+| `design/oura_final_production_index_42_screens.md` | The 42 logical screens, grouped by surface (Photographer Admin desktop/mobile, Guest desktop/mobile, Marketing). The `{{DATA:SCREEN:SCREEN_nn}}` tokens are the original Stitch export ids; the real per-screen assets live under `design/screens/<folder>/{screen.png,code.html}`. |
+| `design/stitch-theme.json` | Machine-readable Stitch theme tokens (colors/type) backing the spec above. |
+
+### Leading build order (from the design-spec flows — §6 of the spec)
+
+This flow ordering, not the repo folder order, is how screens get built:
+
+1. **Photographer flow:** Dashboard → Create Event → Configure Branding →
+   Generate QR (→ upload/monitor). *All Real today.*
+2. **Guest flow:** QR Scan → Landing Page → AI Recognition Explanation
+   (consent + selfie) → Personal Gallery → Order Prints (Phase 2). *Guest path
+   Real through the gallery; Order Prints onward is Phase 2.*
+
+### Master map: design screen → code
+
+Design folders share a `design/screens/oura_final_production_` prefix (elided
+below; e.g. `dashboard_desktop_1` = `design/screens/oura_final_production_dashboard_desktop_1/`).
+Each row's code path is relative to repo root. **Status** = wiring state (see
+§6 for the full wired-vs-static rationale).
+
+**Photographer Admin** (behind `/admin/*` auth middleware):
+
+| # | Screen | Design folders (desktop / mobile) | Code | Status |
+|---|---|---|---|---|
+| 1/13 | Dashboard | `dashboard_desktop_1..3`, `dashboard_mobile_1..3` | `apps/web/app/admin/page.tsx` (+ `components/admin/AdminShell.tsx`) | **Real** |
+| 2/14 | Event List | `event_list_desktop_1..3`, `event_list_mobile_1..3` | `apps/web/app/admin/events/page.tsx` | **Real** |
+| 3/15 | Branding Settings | `branding_settings_desktop_1..3` (canonical: **desktop_3**), `branding_settings_mobile_1..3` (canonical: **mobile_3**; mobile_1 is a misfiled personal-gallery PNG) | `apps/web/app/admin/branding/page.tsx` (desktop_3 layout `md+`; dedicated mobile_3 layout below `md` — simpler set: logo + `studio_name` + single brand color + save/cancel) | **Real** |
+| 4/16 | AI Optimization | `ai_optimization_desktop_1..2`, `ai_optimization_mobile` | `apps/web/app/admin/ai-optimization/page.tsx` | Static UI only (no real pipeline behind it — §8) |
+| 5/17 | Statistics & Analytics | `statistics_desktop_1..3`, `statistics_mobile_1..2` | — not built — | Phase 2 |
+| 6/18 | Messaging Center | `messaging_center_desktop`, `messaging_center_mobile` | — not built — | Phase 2 |
+| 7 | Create New Event | `create_event_desktop` | `apps/web/app/admin/create-event/page.tsx` | **Real** |
+| 8/19 | Barcode/QR Management | `barcode_management_desktop`, `barcode_management_mobile` | `apps/web/app/admin/qr-management/page.tsx` | **Real** |
+| 9/20 | Notification Center | `notification_center_desktop`, `notification_center_mobile` | — not built — | Phase 2 |
+| 10/21 | Reports Management | `reports_management_desktop`, `reports_management_mobile` | — not built — | Phase 2 |
+| 11 | Event Book Designer | `event_book_designer_desktop` | — not built — | Phase 3 |
+| 12 | Studio Profile | `studio_profile_desktop` | — not built — | Phase 2 |
+
+**Guest Experience** (no auth, opaque-token gated, dark-luxury RTL):
+
+| # | Screen | Design folders (desktop / mobile) | Code | Status |
+|---|---|---|---|---|
+| 22/32 | Landing Page | `guest_landing_page_desktop_1..2`, `guest_landing_page_mobile` | `apps/web/app/join/page.tsx` | Static UI only — superseded in practice by `/gallery-entry` (§6) |
+| 23/33 | Gallery Entry | `gallery_entry_desktop`, `gallery_entry_mobile` | `apps/web/app/gallery-entry/page.tsx` | **Real** |
+| 24/34 | Festive Gallery | `festive_gallery_desktop_1..3`, `festive_gallery_mobile_1..2` | `apps/web/app/festive-gallery/page.tsx` | Static UI only — the **real** festive theme renders through `/gallery` (`events.gallery_theme='festive'`) |
+| 25/35 | Minimal Gallery | `minimal_gallery_desktop`, `minimal_gallery_mobile` | `apps/web/app/minimal-gallery/page.tsx` | Static UI only — real minimal theme also renders through `/gallery` |
+| 26/36 | Personal Gallery | `personal_gallery_desktop_1..2`, `personal_gallery_mobile` | `apps/web/app/gallery/page.tsx` (+ `components/guest/PhotoViewer.tsx`, `BottomNav.tsx`, `BrandedFrame.tsx`) | **Real** — the live gallery; personal tab is Stage 2 face-matched |
+| 27/37 | Photo Editor | `photo_editor_desktop`, `photo_editor_mobile` | `apps/web/app/photo-editor/page.tsx` | Local React state only — no persistence (§8) |
+| 28/38 | Premium Prints | `premium_prints_desktop`, `premium_prints_mobile` | — not built — | Phase 2 |
+| 29/39 | 3D Gift Box Reveal | `gift_box_reveal_desktop`, `gift_box_reveal_mobile` | `apps/web/app/gift-reveal/page.tsx` (+ `components/guest/GiftBoxReveal.tsx`) | **Real** — Three.js/GSAP, wired into the guest flow |
+| 30/40 | Checkout | `checkout_desktop`, `checkout_mobile` | — not built — | Phase 2 |
+| 31/41 | Order Confirmation | `order_confirmation_desktop`, `order_confirmation_mobile` | — not built — | Phase 2 |
+
+**Marketing:**
+
+| # | Screen | Design folder | Code | Status |
+|---|---|---|---|---|
+| 42 | Digital Brochure | `digital_brochure` | — not built — | Phase 3 (Oura's own marketing site) |
+
+**Screens with NO `design/screens/*` source** (fresh design or separate export
+— per CLAUDE.md, each got explicit founder sign-off; do not backfill a Stitch
+folder for these retroactively):
+
+| Screen | Code | Source |
+|---|---|---|
+| Splash / marketing root | `apps/web/app/page.tsx` | Fresh — static splash, no data |
+| Biometric Consent gate | `apps/web/app/consent/page.tsx` | Fresh — new for MVP, not in the design export (matches the dark-luxury card pattern) |
+| AI Recognition / Selfie | `apps/web/app/selfie/page.tsx` | Built from a **separate** Stitch AI export (`oura_ai_desktop.html`/`oura_ai_mobile.html`, not under `design/screens/`) — this is the guest flow's "AI Recognition Explanation" step (§4a step 5) |
+| Login | `apps/web/app/login/page.tsx` | Fresh — matches `/consent` card language |
+| Signup | `apps/web/app/signup/page.tsx` | Fresh |
+| Forgot Password | `apps/web/app/forgot-password/page.tsx` | Fresh |
+| Reset Password | `apps/web/app/reset-password/page.tsx` | Fresh |
+
+**Backend has no design screens** — `apps/api`, `packages/processing-pipeline`,
+and `supabase/migrations` are the wiring *behind* the guest/photographer
+screens above; see §3–§5 for their structural map.
+
+**Known navigation gaps (from the 2026-07-10 design audit, folded in here as
+the single canonical index):** these are wiring gaps, not design gaps — the
+screens exist and match their `screen.png`, but the links between them don't
+yet.
+- `/admin/qr-management` is reachable only by re-running the create→brand
+  sequence — no sidebar link, and no "view QR" affordance on the event-detail
+  page. Wiring it is a real task.
+- Three dead admin sidebar links: `ארכיון אירועים`, `לקוחות VIP`,
+  `ניתוח נתונים` (archive / VIP clients / analytics) — no destination yet.
+- The Guest Landing Page (screens #22/#32, code `/join`) is unwired: `/`
+  redirects straight to `/gallery-entry`, so `/join` is never entered in the
+  real flow.
+
+The raw `{{DATA:SCREEN:SCREEN_nn}}` tokens in
+`design/oura_final_production_index_42_screens.md` are original Stitch export
+ids, **not** on-disk paths — that file's own header now says so and points at
+`design/screens/<folder>/screen.png`. Never conclude "no design exists" from a
+token alone; `ls design/screens/` and open the `screen.png` first (CLAUDE.md
+guardrail). This §6b table is the authoritative screen→code map; that file is
+the human-readable inventory behind it.
+
 ## 7. Environment / secrets inventory (names only — never values)
 
 **`apps/api` (Wrangler secrets, `wrangler secret put <name>`):**
@@ -603,6 +719,10 @@ as the code change if practical:
 - A table, column, or RLS policy changes (§3) — add a new migration entry.
 - A new secret/env var is introduced (§7).
 - A "known gap" gets closed, or a new one is discovered.
+- **A design screen gets wired/moved/renamed, or any file the Design-to-Code
+  index (§6b) points to moves — update the §6b row in the SAME commit as the
+  code move.** The index is only useful while it's exact; a stale path there is
+  the same "debugging in the dark" failure this whole file exists to prevent.
 
 `SUMMARY.md` stays the narrative "what's the current story" snapshot for
 session continuity; this file is the structural reference — endpoints,

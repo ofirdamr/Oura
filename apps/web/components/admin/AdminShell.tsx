@@ -16,7 +16,10 @@ const NAV_ITEMS = [
   { label: "אירועים פעילים", icon: "calendar_month", href: "/admin/events" },
   { label: "ארכיון אירועים", icon: "inventory_2", href: null },
   { label: "לקוחות VIP", icon: "workspace_premium", href: null },
-  { label: "ניתוח נתונים", icon: "analytics", href: null },
+  { label: "ניתוח נתונים", icon: "analytics", href: "/admin/statistics" },
+  { label: "מרכז הודעות", icon: "chat", href: "/admin/messaging" },
+  { label: "דוחות", icon: "bar_chart", href: "/admin/reports" },
+  { label: "ספר האירוע", icon: "auto_stories", href: "/admin/event-book" },
 ];
 
 export function AdminShell({
@@ -94,9 +97,9 @@ export function AdminShell({
               </span>
             </div>
           </div>
-          <span className="material-symbols-outlined cursor-pointer text-on-surface-variant transition-colors hover:text-primary">
+          <Link href="/admin/notifications" className="material-symbols-outlined cursor-pointer text-on-surface-variant transition-colors hover:text-primary">
             notifications
-          </span>
+          </Link>
           <Link
             href="/admin/events"
             className="rounded-full bg-primary px-6 py-2 text-sm font-bold text-on-primary shadow-lg shadow-primary/10 transition-all hover:brightness-110 active:scale-95"
@@ -116,7 +119,7 @@ export function AdminShell({
 
       <aside className="fixed top-0 z-40 hidden h-screen w-64 flex-col border-e border-outline-variant bg-surface-container pb-6 pt-20 md:start-0 md:flex">
         <div className="mb-8 flex flex-col gap-2 px-4">
-          <div className="flex flex-col items-center rounded-2xl border border-outline-variant/10 bg-surface-container-high p-6 text-center">
+          <Link href="/admin/studio-profile" className="flex flex-col items-center rounded-2xl border border-outline-variant/10 bg-surface-container-high p-6 text-center transition-colors hover:border-primary/30">
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-primary/30 bg-black p-2">
               <StudioLogo size={64} />
             </div>
@@ -126,7 +129,7 @@ export function AdminShell({
             <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
               שותף מורשה
             </span>
-          </div>
+          </Link>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
           {NAV_ITEMS.map((item) =>

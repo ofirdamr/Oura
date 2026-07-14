@@ -2,6 +2,7 @@
 // a real event (no backend); this establishes the screen per the Stitch design.
 // Preview photos are placeholders until real event media exists.
 
+import Link from "next/link";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 
 function PreviewTile({ aspect }: { aspect: string }) {
@@ -55,12 +56,12 @@ export default function JoinPage() {
           <h2 className="text-lg font-medium text-primary">
             תמונות אחרונות מהאירוע
           </h2>
-          <button className="flex items-center gap-1 text-sm font-medium text-[#f4cd4d] hover:opacity-80">
+          <Link href="/gallery" className="flex items-center gap-1 text-sm font-medium text-[#f4cd4d] hover:opacity-80">
             <span>לגלריה המלאה</span>
             <span className="material-symbols-outlined text-base">
               arrow_forward
             </span>
-          </button>
+          </Link>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-2">
@@ -91,7 +92,7 @@ export default function JoinPage() {
               <div className="absolute bottom-0 end-0 h-8 w-8 rounded-bl-xl border-b-2 border-s-2 border-primary/60" />
               <div className="absolute bottom-0 start-0 h-8 w-8 rounded-br-xl border-b-2 border-e-2 border-primary/60" />
             </div>
-            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary transition-all active:scale-[0.98]">
+            <Link href="/gallery-entry" className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary transition-all active:scale-[0.98]">
               {/* Design (guest_landing_page_mobile) puts the camera icon at
                   the left of this label, not the right - measured live at
                   center-x 288 (right-of-center in a 49-371 button) before
@@ -101,7 +102,7 @@ export default function JoinPage() {
               <span className="material-symbols-outlined">
                 camera_enhance
               </span>
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -130,9 +131,9 @@ export default function JoinPage() {
                 vpn_key
               </span>
             </div>
-            <button className="w-full rounded-xl border-2 border-primary/40 py-4 font-bold text-on-surface transition-all hover:bg-primary/10 active:scale-[0.98]">
+            <Link href="/gallery-entry" className="block w-full rounded-xl border-2 border-primary/40 py-4 text-center font-bold text-on-surface transition-all hover:bg-primary/10 active:scale-[0.98]">
               כניסה לגלריה
-            </button>
+            </Link>
           </div>
         </div>
       </div>
