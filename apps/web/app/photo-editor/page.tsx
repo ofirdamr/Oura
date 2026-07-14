@@ -1,22 +1,7 @@
 "use client";
 
-// Photo Editor: a guest adjusts one selected photo, then saves/shares the
-// finished, branded result. Reached from the gallery's full-screen viewer
-// ("עריכה") with ?photo=<id>; it re-reads the guest's gallery (via the stored
-// opaque token) so a direct link / refresh still works, finds that photo, and
-// lets the guest tune brightness/contrast/saturation/exposure, auto-optimize,
-// rotate, and toggle the photographer frame.
-//
-// The adjustments drive a live CSS-filter preview on the REAL photo, and the
-// exact same filter math (lib/watermark.adjustmentsFilter) is baked into the
-// exported JPEG by compositeBrandedPhoto, so what the guest sees == what they
-// save. No processing backend and no persistence: the guest flow is ephemeral
-// and login-free, so "save" produces a real branded image on the device via
-// the phone's share sheet (lib/photoActions), not a server-side edit record.
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { OuraLogo } from "@/components/brand/OuraLogo";
 import { StudioLogo } from "@/components/brand/StudioLogo";
 import {
   API_BASE_URL,
@@ -64,7 +49,12 @@ const ENHANCED_VALUES: Record<SliderKey, number> = {
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; photo: GuestPhoto; branding: EventBranding; eventName: string | null };
+  | {
+      status: "ready";
+      photo: GuestPhoto;
+      branding: EventBranding;
+      eventName: string | null;
+    };
 
 export default function PhotoEditorPage() {
   const router = useRouter();
@@ -74,12 +64,10 @@ export default function PhotoEditorPage() {
   const [showFrame, setShowFrame] = useState(true);
   const [cropMode, setCropMode] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [busy, setBusy] = useState<null | "save" | "share">(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Read ?photo=<id>, load the guest's gallery, and resolve the target photo.
-  // window.location (not useSearchParams) avoids a Suspense boundary on this
-  // client-only guest route.
   useEffect(() => {
     let cancelled = false;
     async function run() {
@@ -131,7 +119,6 @@ export default function PhotoEditorPage() {
       studioName: STUDIO_NAME,
       eventTitle: b.event_title || load.eventName || null,
       logoUrl: b.logo_key ? `${API_BASE_URL}/media/${b.logo_key}` : null,
-      // Frame toggle: an "off" frame exports with no photographer border.
       frameStyle: showFrame ? ((b.frame as FrameStyle) ?? "crystal") : "none",
       primaryColor: b.primary_color ?? "#FF8A75",
     };
@@ -169,7 +156,7 @@ export default function PhotoEditorPage() {
         const item = { blob, filename: downloadFileName(load.photo.id, STUDIO_NAME) };
         if (mode === "save") {
           const res = await savePhotos([item]);
-          if (res === "downloaded") flash("התמונה נשמרה");
+          if (res === "downloaded") flash("השינויים נשמרו");
           else if (res === "failed") flash("השמירה נכשלה. נסו שוב.");
         } else {
           const title = compositeBranding.eventTitle;
@@ -190,233 +177,441 @@ export default function PhotoEditorPage() {
   );
 
   return (
-    <div className="min-h-screen pb-40">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-background/95 backdrop-blur-md">
-        <div className="mx-auto flex h-16 w-full max-w-lg flex-row-reverse items-center justify-between px-4">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="material-symbols-outlined text-on-surface transition-opacity hover:opacity-70"
-            aria-label="חזרה"
-          >
-            arrow_forward
-          </button>
-          <h1 className="text-lg font-bold text-on-surface">עריכת תמונה</h1>
-          <OuraLogo size={24} />
+    <div
+      className="min-h-screen overflow-x-hidden"
+      style={{ background: "#0e0e0e", color: "#e5e2e1" }}
+    >
+      {/* ── Fixed header ── */}
+      <header
+        className="fixed top-0 z-50 flex w-full flex-row-reverse items-center justify-between border-b px-6 md:px-20"
+        style={{
+          height: 64,
+          background: "rgba(14,14,14,0.9)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: "rgba(255,255,255,0.05)",
+        }}
+      >
+        {/* Right: back arrow (RTL → visual left on screen) */}
+        <button
+          type="button"
+          onClick={() => router.back()}
+          aria-label="חזרה"
+          className="material-symbols-outlined transition-opacity hover:opacity-70"
+          style={{ color: "#e5e2e1", fontSize: 28 }}
+        >
+          arrow_forward
+        </button>
+
+        {/* Title */}
+        <h1 className="text-lg font-bold" style={{ color: "#e5e2e1" }}>
+          עריכת תמונה
+        </h1>
+
+        {/* Left: studio logo */}
+        <div className="flex items-center gap-2">
+          <StudioLogo size={32} />
         </div>
       </header>
 
-      <main className="mx-auto max-w-lg space-y-6 px-4 py-6">
-        {/* Preview */}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border border-white/5 bg-surface-container shadow-xl">
-          {load.status === "ready" ? (
-            <div className="h-full w-full transition-[filter] duration-200" style={{ filter }}>
-              <div
-                className="flex h-full w-full items-center justify-center transition-transform duration-300"
-                style={{ transform: `rotate(${rotation}deg)` }}
-              >
-                {/* Real photo, taint-safe fetch handled at export; preview is a
-                    plain <img> so the CSS filter/rotation match the export. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={load.photo.url}
-                  alt=""
-                  className="max-h-full max-w-full object-contain"
-                  crossOrigin="anonymous"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              {load.status === "loading" ? (
-                <span className="material-symbols-outlined animate-spin text-4xl text-primary">
-                  progress_activity
-                </span>
+      {/* ── Main area: photo + sidebar ── */}
+      <main className="flex min-h-screen flex-col pt-16 md:flex-row">
+
+        {/* Photo column */}
+        <div className="relative flex flex-1 flex-col items-center justify-center px-6 py-10 md:px-20">
+
+          {/* Festive frame wrapping the photo */}
+          <div
+            className="relative w-full max-w-lg overflow-hidden"
+            style={{
+              padding: 8,
+              background: "rgba(255,255,255,0.03)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 12px 40px 0 rgba(0,0,0,0.6)",
+              borderRadius: 4,
+            }}
+          >
+            {/* Photo + filter */}
+            <div
+              className="relative overflow-hidden"
+              style={{
+                transition: "filter 0.2s",
+                filter: load.status === "ready" ? filter : undefined,
+              }}
+            >
+              {load.status === "ready" ? (
+                <div
+                  style={{
+                    transition: "transform 0.3s",
+                    transform: `rotate(${rotation}deg)`,
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={load.photo.url}
+                    alt=""
+                    className="block w-full object-contain"
+                    style={{ maxHeight: "70vh" }}
+                    crossOrigin="anonymous"
+                  />
+                </div>
               ) : (
-                <p className="px-6 text-center text-sm text-on-surface-variant">{load.message}</p>
+                <div
+                  className="flex items-center justify-center"
+                  style={{ height: 480, background: "rgba(32,31,31,1)" }}
+                >
+                  {load.status === "loading" ? (
+                    <span
+                      className="material-symbols-outlined animate-spin"
+                      style={{ fontSize: 40, color: "#ffb4a6" }}
+                    >
+                      progress_activity
+                    </span>
+                  ) : (
+                    <p className="px-6 text-center text-sm" style={{ color: "#dcc0bb" }}>
+                      {load.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Crop grid overlay */}
+              {cropMode && load.status === "ready" && (
+                <div className="pointer-events-none absolute inset-0 grid grid-cols-3 grid-rows-3">
+                  {Array.from({ length: 9 }).map((_, i) => (
+                    <div key={i} style={{ border: "1px solid rgba(255,255,255,0.25)" }} />
+                  ))}
+                </div>
+              )}
+
+              {/* Branding overlay — studio name, no Oura credit, logo enlarged per design */}
+              {showFrame && load.status === "ready" && (
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-row-reverse items-end justify-between"
+                  style={{
+                    padding: "40px 40px 28px",
+                    background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
+                  }}
+                >
+                  <div className="flex flex-row-reverse items-center gap-3 text-start">
+                    <StudioLogo size={52} />
+                    <p
+                      className="font-bold uppercase"
+                      style={{
+                        color: "#fff",
+                        fontSize: 20,
+                        letterSpacing: "0.22em",
+                        textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+                      }}
+                    >
+                      PHOTO SANTOS
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
-          )}
+          </div>
 
-          {cropMode && load.status === "ready" && (
-            <div className="pointer-events-none absolute inset-0 grid grid-cols-3 grid-rows-3">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="border border-white/25" />
-              ))}
-            </div>
-          )}
+          {/* Action buttons below photo */}
+          <div className="mt-6 flex w-full max-w-lg flex-row-reverse items-center gap-3">
+            {/* Edit button — opens the sidebar */}
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              disabled={load.status !== "ready"}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{
+                background: "#ffb4a6",
+                color: "#601308",
+                boxShadow: "0 8px 24px rgba(255,180,166,0.2)",
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                tune
+              </span>
+              עריכה מתקדמת
+            </button>
 
-          {showFrame && load.status === "ready" && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-row-reverse items-end justify-between bg-gradient-to-t from-black/90 via-black/30 to-transparent p-4">
-              <div className="flex flex-row-reverse items-center gap-3 text-start">
-                <StudioLogo size={40} />
-                <p className="font-display text-xl font-bold uppercase tracking-[0.22em] text-white [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]">
-                  PHOTO SANTOS
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Auto-optimize */}
-        <button
-          type="button"
-          onClick={toggleAutoOptimize}
-          disabled={load.status !== "ready"}
-          className={`flex w-full items-center justify-between rounded-2xl border p-4 transition-all active:scale-[0.98] disabled:opacity-50 ${
-            autoOptimizeOn
-              ? "border-primary/40 bg-primary/10"
-              : "border-white/5 bg-surface-container"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`rounded-xl p-2.5 ${autoOptimizeOn ? "bg-primary" : "bg-surface-container-high"}`}
+            {/* Share */}
+            <button
+              type="button"
+              onClick={() => runExport("share")}
+              disabled={busy !== null || load.status !== "ready"}
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border transition-all active:scale-95 disabled:opacity-50"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                borderColor: "rgba(255,255,255,0.1)",
+                color: "#e5e2e1",
+              }}
+              aria-label="שיתוף"
             >
               <span
-                className={`material-symbols-outlined ${autoOptimizeOn ? "text-on-primary" : "text-on-surface-variant"}`}
-                style={{ fontVariationSettings: "'FILL' 1" }}
+                className={`material-symbols-outlined ${busy === "share" ? "animate-spin" : ""}`}
+                style={{ fontSize: 20 }}
               >
-                magic_button
+                {busy === "share" ? "progress_activity" : "ios_share"}
               </span>
-            </div>
-            <div className="text-start">
-              <h3 className="text-sm font-bold text-on-surface">
-                שיפור אוטומטי
-              </h3>
-              <p className="mt-0.5 text-xs text-on-surface-variant">
-                אופטימיזציה חכמה של אור וצבע בלחיצה אחת
-              </p>
-            </div>
+            </button>
+
+            {/* Save */}
+            <button
+              type="button"
+              onClick={() => runExport("save")}
+              disabled={busy !== null || load.status !== "ready"}
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border transition-all active:scale-95 disabled:opacity-50"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                borderColor: "rgba(255,255,255,0.1)",
+                color: "#e5e2e1",
+              }}
+              aria-label="הורדה"
+            >
+              <span
+                className={`material-symbols-outlined ${busy === "save" ? "animate-spin" : ""}`}
+                style={{ fontSize: 20 }}
+              >
+                {busy === "save" ? "progress_activity" : "download"}
+              </span>
+            </button>
           </div>
-          <span
-            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-              autoOptimizeOn ? "bg-primary" : "bg-surface-container-highest"
-            }`}
-          >
-            <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-md transition-all ${
-                autoOptimizeOn ? "start-6" : "start-1"
-              }`}
+        </div>
+
+        {/* ── Editor sidebar ──
+              Desktop: fixed-width panel on the inline-start side (right in RTL).
+              Mobile: slides in as an overlay from the end side (left in RTL). */}
+        <>
+          {/* Backdrop for mobile */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 z-[110] md:hidden"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+              onClick={() => setSidebarOpen(false)}
             />
-          </span>
-        </button>
+          )}
 
-        {/* Sliders */}
-        <div className="space-y-5 rounded-2xl border border-white/5 bg-surface-container/60 p-5">
-          <h2 className="text-sm font-bold text-on-surface-variant">
-            כוונון ידני
-          </h2>
-          {SLIDERS.map((slider) => (
-            <div key={slider.key} className="space-y-2">
-              <div className="flex items-center justify-between text-sm font-medium text-on-surface">
-                <span>{slider.label}</span>
-                <span
-                  className="font-bold text-primary"
-                  style={{ unicodeBidi: "isolate", direction: "ltr" }}
-                >
-                  {values[slider.key]}
+          <aside
+            id="edit-sidebar"
+            className={[
+              "flex flex-col gap-8",
+              // Mobile: slide-over from end (left in RTL)
+              "fixed top-0 bottom-0 start-0 z-[120] w-80",
+              "transition-transform duration-500 md:relative md:top-auto md:bottom-auto md:start-auto",
+              "md:w-80 md:flex md:translate-x-0",
+              sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            ].join(" ")}
+            style={{
+              background: "rgba(14,14,14,0.98)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderInlineEnd: "1px solid rgba(255,255,255,0.1)",
+              padding: 32,
+              paddingTop: 80,
+              boxShadow: "10px 0 30px rgba(0,0,0,0.5)",
+            }}
+          >
+            {/* Sidebar header */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold" style={{ color: "#fff" }}>
+                כלי עריכה
+              </h3>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="rounded-full p-1 transition-colors hover:bg-white/10 md:hidden"
+                aria-label="סגירה"
+              >
+                <span className="material-symbols-outlined" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  close
                 </span>
-              </div>
-              <input
-                type="range"
-                min={-100}
-                max={100}
-                value={values[slider.key]}
-                onChange={(e) => handleSliderChange(slider.key, e.target.value)}
-                disabled={load.status !== "ready"}
-                className="w-full accent-primary disabled:opacity-50"
-              />
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* Crop/rotate + frame toggles */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setCropMode((v) => !v)}
-            disabled={load.status !== "ready"}
-            className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all active:scale-[0.98] disabled:opacity-50 ${
-              cropMode
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-white/5 bg-surface-container text-on-surface"
-            }`}
-          >
-            <span className="material-symbols-outlined">crop</span>
-            <span className="text-sm font-bold">חיתוך וסיבוב</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowFrame((v) => !v)}
-            disabled={load.status !== "ready"}
-            className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all active:scale-[0.98] disabled:opacity-50 ${
-              showFrame
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-white/5 bg-surface-container text-on-surface"
-            }`}
-          >
-            <span className="material-symbols-outlined">frame_person</span>
-            <span className="text-sm font-bold">מסגרת Photo Santos</span>
-          </button>
-        </div>
+            {/* Sliders */}
+            <div className="space-y-8">
+              {SLIDERS.map((slider, idx) => (
+                <div
+                  key={slider.key}
+                  className="space-y-3"
+                  style={{
+                    opacity: 0,
+                    animation: sidebarOpen
+                      ? `fadeSlideUp 0.4s ease-out ${0.1 + idx * 0.1}s forwards`
+                      : undefined,
+                  }}
+                >
+                  <div className="flex items-center justify-between text-sm font-medium"
+                    style={{ color: "rgba(255,255,255,0.9)" }}>
+                    <span>{slider.label}</span>
+                    <span
+                      className="font-bold"
+                      style={{ color: "#ffb4a6", direction: "ltr", unicodeBidi: "isolate" }}
+                    >
+                      {values[slider.key]}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={-100}
+                    max={100}
+                    value={values[slider.key]}
+                    onChange={(e) => handleSliderChange(slider.key, e.target.value)}
+                    disabled={load.status !== "ready"}
+                    className="w-full cursor-pointer appearance-none bg-transparent disabled:opacity-50"
+                    style={{ accentColor: "#ffb4a6" }}
+                  />
+                </div>
+              ))}
+            </div>
 
-        {cropMode && (
-          <div className="flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => setRotation((r) => r - 90)}
-              className="flex items-center gap-2 rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-on-surface transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined">rotate_left</span>
-              <span className="text-sm font-medium">סיבוב שמאלה</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setRotation((r) => r + 90)}
-              className="flex items-center gap-2 rounded-xl border border-white/5 bg-surface-container px-4 py-3 text-on-surface transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined">rotate_right</span>
-              <span className="text-sm font-medium">סיבוב ימינה</span>
-            </button>
-          </div>
-        )}
+            {/* Bottom action buttons */}
+            <div className="mt-auto space-y-3">
+              {/* Auto-optimize */}
+              <button
+                type="button"
+                onClick={toggleAutoOptimize}
+                disabled={load.status !== "ready"}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  background: autoOptimizeOn ? "#ffb4a6" : "#fff",
+                  color: autoOptimizeOn ? "#601308" : "#000",
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                  magic_button
+                </span>
+                שיפור אוטומטי
+              </button>
+
+              {/* Crop / rotate */}
+              <button
+                type="button"
+                onClick={() => {
+                  setCropMode((v) => !v);
+                  setSidebarOpen(false);
+                }}
+                disabled={load.status !== "ready"}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border py-4 font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  borderColor: "rgba(255,255,255,0.1)",
+                  color: cropMode ? "#ffb4a6" : "#fff",
+                  background: cropMode ? "rgba(255,180,166,0.08)" : "transparent",
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                  crop
+                </span>
+                חיתוך וסיבוב
+              </button>
+
+              {/* Frame toggle */}
+              <button
+                type="button"
+                onClick={() => setShowFrame((v) => !v)}
+                disabled={load.status !== "ready"}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border py-4 font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  borderColor: "rgba(255,255,255,0.1)",
+                  color: showFrame ? "#ffb4a6" : "#fff",
+                  background: showFrame ? "rgba(255,180,166,0.08)" : "transparent",
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                  frame_person
+                </span>
+                מסגרת {STUDIO_NAME}
+              </button>
+
+              {/* Save changes */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSidebarOpen(false);
+                  runExport("save");
+                }}
+                disabled={busy !== null || load.status !== "ready"}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  background: "#ffb4a6",
+                  color: "#601308",
+                  boxShadow: "0 8px 24px rgba(255,180,166,0.2)",
+                }}
+              >
+                <span
+                  className={`material-symbols-outlined ${busy === "save" ? "animate-spin" : ""}`}
+                  style={{ fontSize: 20 }}
+                >
+                  {busy === "save" ? "progress_activity" : "download"}
+                </span>
+                שמירת שינויים
+              </button>
+            </div>
+          </aside>
+        </>
       </main>
 
-      {/* Sticky action bar — a real branded export: Save lands in the phone's
-          Photos, Share opens the sheet with a caption. */}
-      <div className="glass-panel fixed inset-x-0 bottom-0 z-50 border-t border-white/10 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-        <div className="mx-auto flex max-w-lg items-center gap-3">
+      {/* Crop rotate controls (shown below photo when crop is active) */}
+      {cropMode && (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-3 border-t pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4"
+          style={{ background: "rgba(14,14,14,0.95)", backdropFilter: "blur(16px)", borderColor: "rgba(255,255,255,0.05)" }}>
           <button
             type="button"
-            onClick={() => runExport("share")}
-            disabled={busy !== null || load.status !== "ready"}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-4 font-bold text-on-surface transition-all active:scale-[0.98] disabled:opacity-50"
+            onClick={() => setRotation((r) => r - 90)}
+            className="flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-all active:scale-95"
+            style={{ borderColor: "rgba(255,255,255,0.1)", color: "#e5e2e1", background: "rgba(255,255,255,0.05)" }}
           >
-            <span className={`material-symbols-outlined ${busy === "share" ? "animate-spin" : ""}`}>
-              {busy === "share" ? "progress_activity" : "ios_share"}
-            </span>
-            שיתוף
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>rotate_left</span>
+            סיבוב שמאלה
           </button>
           <button
             type="button"
-            onClick={() => runExport("save")}
-            disabled={busy !== null || load.status !== "ready"}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50"
+            onClick={() => setRotation((r) => r + 90)}
+            className="flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-all active:scale-95"
+            style={{ borderColor: "rgba(255,255,255,0.1)", color: "#e5e2e1", background: "rgba(255,255,255,0.05)" }}
           >
-            <span className={`material-symbols-outlined ${busy === "save" ? "animate-spin" : ""}`}>
-              {busy === "save" ? "progress_activity" : "download"}
-            </span>
-            שמירת התמונה
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>rotate_right</span>
+            סיבוב ימינה
           </button>
         </div>
-      </div>
+      )}
 
+      {/* Toast */}
       {toast && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[60] mx-auto w-fit rounded-full bg-white/15 px-4 py-2 text-sm text-white backdrop-blur-md">
+        <div
+          className="pointer-events-none fixed inset-x-0 bottom-28 z-[200] mx-auto w-fit rounded-full px-4 py-2 text-sm"
+          style={{
+            background: "rgba(255,255,255,0.15)",
+            color: "#fff",
+            backdropFilter: "blur(12px)",
+          }}
+        >
           {toast}
         </div>
       )}
+
+      {/* Stagger animation for slider tool-items */}
+      <style>{`
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #ffb4a6;
+          cursor: pointer;
+          margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 4px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 2px;
+        }
+      `}</style>
     </div>
   );
 }
