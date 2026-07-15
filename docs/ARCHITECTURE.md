@@ -441,8 +441,8 @@ Each row's code path is relative to repo root. **Status** = wiring state (see
 | 23/33 | Gallery Entry | `gallery_entry_desktop`, `gallery_entry_mobile` | `apps/web/app/gallery-entry/page.tsx` | **Real** |
 | 24/34 | Festive Gallery | `festive_gallery_desktop_1..3`, `festive_gallery_mobile_1..2` | `apps/web/app/festive-gallery/page.tsx` | Static UI only — the **real** festive theme renders through `/gallery` (`events.gallery_theme='festive'`) |
 | 25/35 | Minimal Gallery | `minimal_gallery_desktop`, `minimal_gallery_mobile` | `apps/web/app/minimal-gallery/page.tsx` | Static UI only — real minimal theme also renders through `/gallery` |
-| 26/36 | Personal Gallery | `personal_gallery_desktop_1..2`, `personal_gallery_mobile` | `apps/web/app/gallery/page.tsx` (+ `components/guest/PhotoViewer.tsx`, `BottomNav.tsx`, `BrandedFrame.tsx`) | **Real** — the live gallery; personal tab is Stage 2 face-matched |
-| 27/37 | Photo Editor | `photo_editor_desktop`, `photo_editor_mobile` | `apps/web/app/photo-editor/page.tsx` | Local React state only — no persistence (§8) |
+| 26/36 | Personal Gallery | `personal_gallery_desktop_1..2`, `personal_gallery_mobile` | `apps/web/app/gallery/page.tsx` (+ `components/guest/PhotoViewer.tsx`, `BottomNav.tsx`, `BrandedFrame.tsx`) | **Real** — the live gallery; personal tab is Stage 2 face-matched; guest name headline, event subtitle, AI match % badges wired (PR #48) |
+| 27/37 | Photo Editor | `photo_editor_desktop`, `photo_editor_mobile` | `apps/web/app/photo-editor/page.tsx` | **Real** — adjustments persist in `localStorage` per guest+photo (PR #47) |
 | 28/38 | Premium Prints | `premium_prints_desktop`, `premium_prints_mobile` | — not built — | Phase 2 |
 | 29/39 | 3D Gift Box Reveal | `gift_box_reveal_desktop`, `gift_box_reveal_mobile` | `apps/web/app/gift-reveal/page.tsx` (+ `components/guest/GiftBoxReveal.tsx`) | **Real** — Three.js/GSAP, wired into the guest flow |
 | 30/40 | Checkout | `checkout_desktop`, `checkout_mobile` | — not built — | Phase 2 |
@@ -472,15 +472,10 @@ folder for these retroactively):
 and `supabase/migrations` are the wiring *behind* the guest/photographer
 screens above; see §3–§5 for their structural map.
 
-**Known navigation gaps (from the 2026-07-10 design audit, folded in here as
-the single canonical index):** these are wiring gaps, not design gaps — the
-screens exist and match their `screen.png`, but the links between them don't
-yet.
-- `/admin/qr-management` is reachable only by re-running the create→brand
-  sequence — no sidebar link, and no "view QR" affordance on the event-detail
-  page. Wiring it is a real task.
-- Three dead admin sidebar links: `ארכיון אירועים`, `לקוחות VIP`,
-  `ניתוח נתונים` (archive / VIP clients / analytics) — no destination yet.
+**Known navigation gaps (from the 2026-07-10 design audit, updated 2026-07-15):**
+- `/admin/qr-management` sidebar link: **RESOLVED** — PR #43 merged to main. AdminShell navItems includes `ניהול QR` → `/admin/qr-management`. Event-detail page also has a "קוד QR וגישה" link to `/admin/qr-management?event_id=…`.
+- Dead sidebar items (`ארכיון אירועים`, `לקוחות VIP`): `href: null`, render as non-clickable — Phase 2 features, intentionally disabled.
+- Phase 2 stub pages (`/admin/statistics`, `/admin/messaging`, `/admin/reports`, `/admin/event-book`): have sidebar links but are empty placeholder pages — intentional until Phase 2.
 - The Guest Landing Page (screens #22/#32, code `/join`) is unwired: `/`
   redirects straight to `/gallery-entry`, so `/join` is never entered in the
   real flow.
