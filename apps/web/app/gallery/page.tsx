@@ -363,15 +363,11 @@ export default function GalleryPage() {
               </>
             ) : (
               <>
-                מצאנו{" "}
-                <span className="font-bold text-primary" style={{ unicodeBidi: "isolate" }}>
-                  {personalPhotos.length}
-                </span>{" "}
-                תמונות שלך מתוך{" "}
+                מחפשים אותך ב-
                 <span className="font-bold" style={{ unicodeBidi: "isolate" }}>
                   {generalPhotos.length}
                 </span>{" "}
-                תמונות{data.event?.name ? ` באירוע "${data.event.name}"` : " באירוע"}.
+                תמונות{data.event?.name ? ` מהאירוע "${data.event.name}"` : " מהאירוע"}
               </>
             )}
           </p>
@@ -404,8 +400,10 @@ export default function GalleryPage() {
                 </span>
                 {bulk?.mode === "download" ? (
                   <span style={{ unicodeBidi: "isolate" }}>{`מכין ${bulk.done}/${bulk.total}...`}</span>
-                ) : (
+                ) : personalPhotos.length > 0 ? (
                   "שמירת התמונות שלי"
+                ) : (
+                  "שמירת כל התמונות"
                 )}
               </button>
               <button
@@ -419,8 +417,10 @@ export default function GalleryPage() {
                 </span>
                 {bulk?.mode === "share" ? (
                   <span style={{ unicodeBidi: "isolate" }}>{`מכין ${bulk.done}/${bulk.total}...`}</span>
-                ) : (
+                ) : personalPhotos.length > 0 ? (
                   "שיתוף התמונות שלי"
+                ) : (
+                  "שיתוף כל התמונות"
                 )}
               </button>
             </div>
