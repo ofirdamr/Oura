@@ -367,3 +367,13 @@ Live: https://oura-web.oura-events.workers.dev/admin/branding
 ## 2026-07-14: photo-editor 4 fixes verified + deployed (branch claude/wed-2024-face-match-t4wre2, PR #28 already merged)
 - Verified all 4 founder fixes already committed in 4cdd9cd: Oura credit absent (grep+DOM), frame-off clean export, logo enlarged, design-faithful.
 - Deployed oura-web version bdb7b3ad. SUMMARY updated to reflect done state.
+
+## 2026-07-15 — Personal gallery: guest name + event name + AI match % badges (PR #48)
+
+Wired three design gaps confirmed missing from `personal_gallery_desktop/mobile` Stitch screens:
+1. Guest name in h1: "הגלריה האישית של {name}" (falls back to "שלך" when no name stored)
+2. Subtitle now reads the full Stitch copy: "הבינה המלאכותית שלנו זיהתה X רגעים מושלמים מתוך Y תמונות באירוע '{event name}'"
+3. Per-photo match badge: numeric "96% ✓" (top-start/RTL) replacing the old text label
+
+API: `resolveGuest` now selects `display_name`; `GET /gallery/:token` returns `guest_display_name`.
+Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch `claude/next-mvp-mission-ftbaja`.
