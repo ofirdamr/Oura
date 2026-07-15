@@ -1115,6 +1115,74 @@ app.get('/admin/processing-status', async (c) => {
   return c.json({ stats, recent, face_embeddings: (faces as unknown as { count?: number } | null)?.count ?? 0 });
 });
 
+// GET /admin/statistics
+//   Photographer-auth (Supabase access token). Returns aggregate stats across
+//   all of this photographer's events, used by /admin/statistics.
+// ---------------------------------------------------------------------------
+app.get('/admin/statistics', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : undefined;
+  if (!token) return c.json({ error: 'missing_auth' }, 401);
+
+  const db = supa(c.env);
+  const { data: authData, error: authErr } = await db.auth.getUser(token);
+  if (authErr || !authData?.user) return c.json({ error: 'invalid_auth' }, 401);
+
+  const user_id = authData.user.id;
+
+  const { data: events, error: evErr } = await db
+    .from('events')
+    .select('id, name, event_date, status')
+    .eq('photographer_id', user_id)
+    .order('event_date', { ascending: false });
+  if (evErr) return c.json({ error: 'events_query_failed' }, 500);
+
+  const events_total = events?.length ?? 0;
+  if (!events_total) {
+    return c.json({
+      events_total: 0, photos_ai_done: 0, face_embeddings: 0, guests_total: 0,
+      top_events: [],
+    });
+  }
+
+  const event_ids = (events ?? []).map((e) => e.id);
+
+  const [photosRes, facesRes, guestsRes] = await Promise.all([
+    db.from('photos').select('id, event_id, embed_status', { count: 'exact' }).in('event_id', event_ids),
+    db.from('face_embeddings').select('id', { count: 'exact', head: true }).in('event_id', event_ids),
+    db.from('guests').select('id, event_id', { count: 'exact' }).in('event_id', event_ids),
+  ]);
+
+  const photos_ai_done = (photosRes.data ?? []).filter((p) => p.embed_status === 'done').length;
+  const face_embeddings = (facesRes as unknown as { count?: number } | null)?.count ?? 0;
+  const guests_total = (guestsRes as unknown as { count?: number } | null)?.count ?? 0;
+
+  // Per-event photo + guest counts for the top-events table
+  const photoCountByEvent: Record<string, number> = {};
+  for (const p of photosRes.data ?? []) {
+    photoCountByEvent[p.event_id] = (photoCountByEvent[p.event_id] ?? 0) + 1;
+  }
+  const guestCountByEvent: Record<string, number> = {};
+  for (const g of guestsRes.data ?? []) {
+    guestCountByEvent[g.event_id] = (guestCountByEvent[g.event_id] ?? 0) + 1;
+  }
+
+  const top_events = (events ?? [])
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      date: e.event_date ?? null,
+      photos: photoCountByEvent[e.id] ?? 0,
+      guests: guestCountByEvent[e.id] ?? 0,
+    }))
+    .sort((a, b) => b.photos - a.photos)
+    .slice(0, 5);
+
+  return c.json({ events_total, photos_ai_done, face_embeddings, guests_total, top_events });
+});
+
 app.get('/events/by-code/:code', async (c) => {
   const code = c.req.param('code');
   if (!code) return c.json({ error: 'event_not_found' }, 404);

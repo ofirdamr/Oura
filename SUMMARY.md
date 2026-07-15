@@ -45,19 +45,19 @@ A photographer can: sign up → log in → create an event → brand it (real R2
 
 **Demo event:** code `WED-2024`, 17 real wedding photos. Entry: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
-## ✅ DONE 2026-07-15 — Gallery Theme Selector wired end-to-end (PR #50, deployed)
+## ✅ DONE 2026-07-15 — Auth callback route fixed (PR #51, merged to main)
 
-All three layers wired:
-- **Branding page**: "ערכת נושא לגלריה" picker (חגיגי / מינימל / שלי) saves to `events.gallery_theme`. Desktop + mobile layouts both have the picker.
-- **API** `GET /gallery/:token`: now selects + returns `gallery_theme` in the event object.
-- **Gallery page**: renders three distinct experiences:
-  - Festive: 2-col grid, event-type filter chips (כל התמונות/חופה/קבלת פנים/מסיבה), mobile hero image
-  - Minimal: editorial grid (2-col header row + 3-col body), STORY COLLECTION badge, photo count
-  - Personal (שלי): existing 3-col square grid, unchanged
+Added `/auth/callback` route so Supabase magic-link and password-reset emails redirect correctly instead of falling through to the guest entry page. One Supabase dashboard config step needed: add `https://oura-web.oura-events.workers.dev/auth/callback` to Redirect URLs.
 
-PR #50 open (draft) on branch `claude/gallery-theme-selector-kbku1n`. Both API (`03ca50ce`) and web (`40215104`) deployed live. **Needs merge.**
+## ✅ DONE 2026-07-15 — Gallery Theme Selector wired end-to-end (PR #50, merged to main)
 
-## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
+Branding picker (חגיגי / מינימל / שלי) saves to `events.gallery_theme`. API returns the field. Gallery renders three distinct experiences: festive (filter chips + hero), minimal (editorial grid + badge), personal (3-col squares).
+
+## 🔄 IN PROGRESS — Statistics & Analytics wired to real data (PR in progress)
+
+`GET /admin/statistics` API endpoint added. Stats page (`/admin/statistics`) now fetches: total events, AI-processed photos, face embeddings, total guests, top events table. No fake hardcoded numbers — all live from DB.
+
+## ⏭️ NEXT — Phase 2: Messaging Center (screen 6/18)
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):
 - `/admin/qr-management` sidebar link: done (AdminShell navItems includes `ניהול QR`)

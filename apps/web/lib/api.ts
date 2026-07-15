@@ -239,6 +239,26 @@ export type ProcessingStatusResponse = {
   face_embeddings: number;
 };
 
+export type StatisticsResponse = {
+  events_total: number;
+  photos_ai_done: number;
+  face_embeddings: number;
+  guests_total: number;
+  top_events: Array<{
+    id: string;
+    name: string;
+    date: string | null;
+    photos: number;
+    guests: number;
+  }>;
+};
+
+export function getStatistics(accessToken: string): Promise<ApiResult<StatisticsResponse>> {
+  return request<StatisticsResponse>("/admin/statistics", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function getProcessingStatus(accessToken: string): Promise<ApiResult<ProcessingStatusResponse>> {
   return request<ProcessingStatusResponse>("/admin/processing-status", {
     headers: { Authorization: `Bearer ${accessToken}` },
