@@ -68,12 +68,25 @@ export default function PhotoEditorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [busy, setBusy] = useState<null | "save" | "share">(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+
+  type EditState = { values: Record<SliderKey, number>; rotation: number; autoOptimizeOn: boolean };
+  function loadEditState(token: string, photoId: string): EditState | null {
+    try {
+      const raw = localStorage.getItem(`oura_edit_${token}_${photoId}`);
+      return raw ? (JSON.parse(raw) as EditState) : null;
+    } catch { return null; }
+  }
+  function saveEditState(token: string, photoId: string, state: EditState) {
+    try { localStorage.setItem(`oura_edit_${token}_${photoId}`, JSON.stringify(state)); } catch {}
+  }
 
   useEffect(() => {
     let cancelled = false;
     async function run() {
       const session = loadGuestSession();
       if (!session) { router.replace("/gallery-entry"); return; }
+      setGuestToken(session.token);
       const photoId = new URLSearchParams(window.location.search).get("photo");
       const result = await getGallery(session.token);
       if (cancelled) return;
@@ -98,6 +111,8 @@ export default function PhotoEditorPage() {
         const idx = all.findIndex((p) => p.id === photoId);
         if (idx >= 0) {
           setLightboxIndex(idx);
+          const saved = loadEditState(session.token, all[idx].id);
+          if (saved) { setValues(saved.values); setAutoOptimizeOn(saved.autoOptimizeOn); setRotation(saved.rotation); }
           document.body.style.overflow = "hidden";
         }
       }
@@ -120,6 +135,11 @@ export default function PhotoEditorPage() {
   const photos = load.status === "ready" ? load.photos : [];
   const currentPhoto = lightboxIndex !== null ? photos[lightboxIndex] ?? null : null;
 
+  useEffect(() => {
+    if (!guestToken || !currentPhoto) return;
+    saveEditState(guestToken, currentPhoto.id, { values, rotation, autoOptimizeOn });
+  }, [values, rotation, autoOptimizeOn, currentPhoto, guestToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const compositeBranding: CompositeBranding | null = useMemo(() => {
     if (load.status !== "ready") return null;
     const b = load.branding;
@@ -138,10 +158,12 @@ export default function PhotoEditorPage() {
   function openLightbox(index: number) {
     setLightboxIndex(index);
     setSidebarOpen(false);
-    setValues(NEUTRAL_VALUES);
-    setAutoOptimizeOn(false);
+    const photo = photos[index];
+    const saved = guestToken && photo ? loadEditState(guestToken, photo.id) : null;
+    setValues(saved?.values ?? NEUTRAL_VALUES);
+    setAutoOptimizeOn(saved?.autoOptimizeOn ?? false);
     setCropMode(false);
-    setRotation(0);
+    setRotation(saved?.rotation ?? 0);
     document.body.style.overflow = "hidden";
   }
 
@@ -155,10 +177,12 @@ export default function PhotoEditorPage() {
     if (!photos.length || lightboxIndex === null) return;
     const next = (lightboxIndex + dir + photos.length) % photos.length;
     setLightboxIndex(next);
-    setValues(NEUTRAL_VALUES);
-    setAutoOptimizeOn(false);
+    const photo = photos[next];
+    const saved = guestToken && photo ? loadEditState(guestToken, photo.id) : null;
+    setValues(saved?.values ?? NEUTRAL_VALUES);
+    setAutoOptimizeOn(saved?.autoOptimizeOn ?? false);
     setCropMode(false);
-    setRotation(0);
+    setRotation(saved?.rotation ?? 0);
   }
 
   function handleSliderChange(key: SliderKey, raw: string) {
