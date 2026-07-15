@@ -3,7 +3,7 @@
 // upload response — this runs asynchronously, independent of it.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from './index';
-import { embed } from './pipeline/embedClient';
+import { embedWithRetry } from './pipeline/embedClient';
 import { assignPersonId } from './pipeline/cluster';
 
 export type PhotoEmbedMessage = {
@@ -28,7 +28,7 @@ export async function handleQueue(
       if (!object) throw new Error('r2_object_missing');
       const bytes = await object.arrayBuffer();
 
-      const faces = await embed(bytes, {
+      const faces = await embedWithRetry(bytes, {
         EMBED_SERVICE_URL: env.EMBED_SERVICE_URL,
         EMBED_SERVICE_TOKEN: env.EMBED_SERVICE_TOKEN,
       });

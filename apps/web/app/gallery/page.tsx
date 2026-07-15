@@ -450,39 +450,70 @@ export default function GalleryPage() {
           </div>
         </div>
 
-        {/* Filters — theme-aware. Festive shows event-type category chips.
-            Personal/minimal show the standard all/mine toggle. */}
+        {/* Filters — theme-aware. Festive shows event-type category chips +
+            a "mine" pill when face-matched photos exist. Personal/minimal
+            show the standard all/mine toggle. */}
         {galleryTheme === "festive" ? (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {FESTIVE_CATEGORIES.map((cat) => (
-              <button
-                key={cat.key}
-                type="button"
-                onClick={() => setFestiveCategory(cat.key)}
-                className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-                  festiveCategory === cat.key
-                    ? "bg-primary font-bold text-on-primary shadow-md"
-                    : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-            {shownPhotos.length > 0 && (
-              <button
-                type="button"
-                onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                className={`ms-auto shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                  selectMode
-                    ? "bg-primary text-on-primary"
-                    : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
-                }`}
-              >
-                <span className="material-symbols-outlined text-base">
-                  {selectMode ? "close" : "check_circle"}
-                </span>
-                {selectMode ? "ביטול" : "בחירה"}
-              </button>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {FESTIVE_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => setFestiveCategory(cat.key)}
+                  className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
+                    festiveCategory === cat.key
+                      ? "bg-primary font-bold text-on-primary shadow-md"
+                      : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+              {shownPhotos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
+                  className={`ms-auto shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
+                    selectMode
+                      ? "bg-primary text-on-primary"
+                      : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {selectMode ? "close" : "check_circle"}
+                  </span>
+                  {selectMode ? "ביטול" : "בחירה"}
+                </button>
+              )}
+            </div>
+            {/* "mine" toggle — only visible when face-matched photos exist */}
+            {personalPhotos.length > 0 && (
+              <div className="flex gap-2">
+                {([
+                  { key: "all" as const, label: "כל התמונות", count: generalPhotos.length },
+                  { key: "mine" as const, label: "התמונות שלי", count: personalPhotos.length },
+                ]).map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFilter(f.key)}
+                    className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm transition-all ${
+                      filter === f.key
+                        ? "bg-primary font-bold text-on-primary shadow-md"
+                        : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
+                    }`}
+                  >
+                    {f.label}
+                    <span
+                      dir="ltr"
+                      className={`rounded-full px-1.5 text-xs ${filter === f.key ? "bg-black/15" : "bg-white/5"}`}
+                    >
+                      {f.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         ) : (
