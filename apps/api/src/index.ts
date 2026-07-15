@@ -299,26 +299,32 @@ app.get('/gallery/:token', async (c) => {
     // section is now UNBLOCKED, not that it is populated.)
     const { data: matchRows } = await db
       .from('face_embeddings')
-      .select('photo_id, photos!inner(storage_key)')
+      .select('photo_id, match_similarity, photos!inner(storage_key)')
       .eq('event_id', payload.event_id)
       .eq('guest_id', guest.id);
 
-    const seen = new Set<string>();
-    const matched: { id: string; storage_key: string; url: string }[] = [];
+    const seen = new Map<string, number | null>(); // photo_id → best similarity
+    const matchedMap = new Map<string, { id: string; storage_key: string; url: string; match_similarity: number | null }>();
     for (const row of (matchRows ?? []) as Array<{
       photo_id: string;
+      match_similarity: number | null;
       photos: { storage_key: string } | { storage_key: string }[] | null;
     }>) {
-      if (seen.has(row.photo_id)) continue;
-      seen.add(row.photo_id);
       const ph = Array.isArray(row.photos) ? row.photos[0] : row.photos;
       if (!ph) continue;
-      matched.push({
-        id: row.photo_id,
-        storage_key: ph.storage_key,
-        url: photoUrlStub(c, ph.storage_key),
-      });
+      const prev = seen.get(row.photo_id);
+      const sim = row.match_similarity ?? null;
+      if (prev === undefined || (sim !== null && (prev === null || sim > prev))) {
+        seen.set(row.photo_id, sim);
+        matchedMap.set(row.photo_id, {
+          id: row.photo_id,
+          storage_key: ph.storage_key,
+          url: photoUrlStub(c, ph.storage_key),
+          match_similarity: sim,
+        });
+      }
     }
+    const matched = Array.from(matchedMap.values());
 
     personal_gallery = {
       consent_required: false,
@@ -501,15 +507,28 @@ app.post('/guests/:token/selfie', async (c) => {
     return c.json({ matched: false });
   }
 
+  // Build a person_id → best similarity map so we can store it on the link.
+  const similarityByPerson = new Map<string, number>();
+  for (const row of ((candidates ?? []) as { person_id: string | null; distance: number }[])) {
+    if (!row.person_id) continue;
+    const sim = Number((1 - row.distance).toFixed(4));
+    const prev = similarityByPerson.get(row.person_id) ?? 0;
+    if (sim > prev) similarityByPerson.set(row.person_id, sim);
+  }
+
   // Link every plausible cluster (mitigates ingestion-time over-splitting), but
   // never overwrite a DIFFERENT guest's already-established link.
-  const { error: linkErr } = await db
-    .from('face_embeddings')
-    .update({ guest_id: guest.id })
-    .eq('event_id', payload.event_id)
-    .in('person_id', matchedPersonIds)
-    .or(`guest_id.is.null,guest_id.eq.${guest.id}`);
-  if (linkErr) return c.json({ error: 'match_link_failed' }, 500);
+  // Update one person_id at a time so we can store the per-cluster similarity.
+  for (const pid of matchedPersonIds) {
+    const sim = similarityByPerson.get(pid) ?? null;
+    const { error: linkErr } = await db
+      .from('face_embeddings')
+      .update({ guest_id: guest.id, match_similarity: sim })
+      .eq('event_id', payload.event_id)
+      .eq('person_id', pid)
+      .or(`guest_id.is.null,guest_id.eq.${guest.id}`);
+    if (linkErr) return c.json({ error: 'match_link_failed' }, 500);
+  }
 
   return c.json({ matched: true, clusters_linked: matchedPersonIds.length });
 });

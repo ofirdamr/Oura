@@ -14,6 +14,7 @@ export type GuestPhoto = {
   storage_key: string;
   url: string;
   status?: string;
+  match_similarity?: number | null;
 };
 
 export type PersonalGallery =
