@@ -2,11 +2,15 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
-## ✅ DONE 2026-07-14 — Dashboard fidelity: 3 stat cards + AI widget + tip card (PR #45, deployed)
+## ✅ DONE 2026-07-15 — Gallery AI chip, confidence badges, event subtitle (PR #46, merged to main)
 
-`/admin` dashboard now matches `dashboard_desktop_1/2/3` design 1:1. Added: "ביקורי אורחים השבוע" stat card (real `guests` count last 7 days), AI processing mini-widget (derives face-detection % from `photos.embed_status`, shows pending count, links to full AI panel), tip card (static Highlights tip, links to `/admin/ai-optimization`). Layout: 3-col stat grid + explicit `grid-column` placement for AI (col 1) + events (cols 2-3). `oura-web` version `1d264901`. **PR #45** (`claude/mvp-feature-prioritization-bzq2zj`, draft, open). CI green. **Blind spot:** sandbox browser can't reach the live Worker + password is randomized — use https://oura-web.oura-events.workers.dev/forgot-password to set a new password, then verify at https://oura-web.oura-events.workers.dev/admin.
+PR #46 (`claude/gallery-confidence-badges-wa9qcw`) merged to main (squash, sha `fa393cc6`). Migration `0006_match_similarity.sql` applied by founder. Gallery now shows: AI chip, event name subtitle, per-photo match-confidence badges. Live: https://oura-web.oura-events.workers.dev/gallery
 
-**Open PRs:** #45 (dashboard fidelity, this session), #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict). PRs #28/#33/#38 confirmed merged.
+## ⏭️ NEXT MISSION — Photo Editor (design exists, wire it)
+
+**Photo Editor design is in the Stitch export** — `design/screens/oura_final_production_photo_editor_desktop/` and `photo_editor_mobile/`. The top-level view shows a photo-selection grid; editing controls (filters, adjustments, save/share) appear once the guest taps into a specific photo. The current `apps/web/app/photo-editor/page.tsx` has local React state but is not fully wired to the design. **Founder instruction:** implement from the existing Stitch design screens, wire the edit button in the gallery viewer → `/photo-editor?photo=<id>`, connect to the bottom nav "עריכה" tab. Do NOT freehand — the design exists.
+
+**Open PRs:** #45 (dashboard fidelity, draft, open — needs merge), #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict).
 
 ## ✅ DONE 2026-07-14 — /admin/ai-optimization wired to real data (PR #42, deployed + merged)
 
