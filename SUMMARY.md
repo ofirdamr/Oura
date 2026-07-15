@@ -2,6 +2,12 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ✅ DONE 2026-07-14 — Dashboard fidelity: 3 stat cards + AI widget + tip card (PR #45, deployed)
+
+`/admin` dashboard now matches `dashboard_desktop_1/2/3` design 1:1. Added: "ביקורי אורחים השבוע" stat card (real `guests` count last 7 days), AI processing mini-widget (derives face-detection % from `photos.embed_status`, shows pending count, links to full AI panel), tip card (static Highlights tip, links to `/admin/ai-optimization`). Layout: 3-col stat grid + explicit `grid-column` placement for AI (col 1) + events (cols 2-3). `oura-web` version `1d264901`. **PR #45** (`claude/mvp-feature-prioritization-bzq2zj`, draft, open). CI green. **Blind spot:** sandbox browser can't reach the live Worker + password is randomized — use https://oura-web.oura-events.workers.dev/forgot-password to set a new password, then verify at https://oura-web.oura-events.workers.dev/admin.
+
+**Open PRs:** #45 (dashboard fidelity, this session), #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict). PRs #28/#33/#38 confirmed merged.
+
 ## ✅ DONE 2026-07-14 — /admin/ai-optimization wired to real data (PR #42, deployed + merged)
 
 `GET /admin/processing-status` (photographer Bearer auth) added to `oura-api`. Returns real stats: total/done/processing/pending/failed counts, last 17 photo statuses, face_embeddings count. `/admin/ai-optimization` polls every 10s and shows live queue tiles + metrics. Verified: API returns 17 photos (15 done, 1 processing, 1 failed) and 0 face_embeddings (face-embeddings counter is correct — the 286 embedded rows are associated with the photographer's real events). oura-api version `5e2b4bdb`, oura-web version `8a63c910`. PR #42 merged. Live (auth-gated): https://oura-web.oura-events.workers.dev/admin/ai-optimization
