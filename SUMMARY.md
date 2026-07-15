@@ -55,7 +55,20 @@ All three layers wired:
   - Minimal: editorial grid (2-col header row + 3-col body), STORY COLLECTION badge, photo count
   - Personal (שלי): existing 3-col square grid, unchanged
 
-PR #50 open (draft) on branch `claude/gallery-theme-selector-kbku1n`. Both API (`03ca50ce`) and web (`40215104`) deployed live. **Needs merge.**
+PR #50 merged to main.
+
+## ✅ DONE 2026-07-15 — Auth callback loop fix (PR #51, merged to main)
+
+Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
+
+## ✅ DONE 2026-07-15 — Face recognition fixes (PR in progress)
+
+Three compounding bugs fixed:
+- **Queue consumer** was calling `embed()` (no retry) instead of `embedWithRetry()` — fragile against Cloud Run cold starts.
+- **DB constraint** only allowed `'festive'|'minimal'`, silently blocking save of `'personal'` theme (introduced by PR #50) — fixed by migration 0007.
+- **Festive gallery** had no "mine" filter UI — guests couldn't view their face-matched photos after a selfie. Added "כל התמונות / התמונות שלי" toggle row (visible only when personal photos exist).
+
+**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase. Go to https://supabase.com/dashboard/project/your-project/sql/new and paste the contents of `supabase/migrations/0007_gallery_theme_personal.sql`.
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
