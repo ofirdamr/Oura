@@ -61,6 +61,16 @@ PR #50 merged to main.
 
 Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
 
+## ✅ DONE 2026-07-15 — Gallery zero-match UX fixes (PR #54, open — ready to merge)
+
+When face-matching returns 0 personal photos: subtitle now says "מחפשים אותך ב-N תמונות" instead of "מצאנו 0 תמונות שלך" (which contradicted the "עדיין מחפשים" card). Buttons now say "שמירת כל התמונות" / "שיתוף כל התמונות" instead of "שלי" when no matches.
+
+## 🐛 LIVE BUG — Face matching returns 0 results for founder's selfie
+
+Founder scanned QR, completed consent + selfie, gallery shows 0 matched photos. The "התמונות שלי" toggle is correctly hidden (code is fine). Root cause: embedding pipeline not matching the selfie to event photos on demo event WED-2024. Needs investigation: Cloud Run `oura-embed` logs, Supabase `face_embeddings` table (does founder's guest row have an embedding?), queue consumer completion.
+
+**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase — https://supabase.com/dashboard → SQL editor → paste `supabase/migrations/0007_gallery_theme_personal.sql`
+
 ## ✅ DONE 2026-07-15 — Face recognition fixes (PR in progress)
 
 Three compounding bugs fixed:
