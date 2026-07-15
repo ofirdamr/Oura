@@ -1,5 +1,8 @@
 # Progress Log
 
+### 2026-07-15
+- Personal gallery content gaps: migration 0006 (match_similarity float4 on face_embeddings — founder applied via Supabase Studio), selfie endpoint stores per-cluster similarity, gallery route returns it per photo, GuestPhoto type updated, gallery UI adds event name subtitle + AI chip + per-photo confidence badges. oura-api 4525ca77, oura-web 7751c092. PR #46 merged.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 

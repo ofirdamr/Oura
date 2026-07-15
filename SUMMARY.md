@@ -2,6 +2,12 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
+## ✅ DONE 2026-07-15 — Personal gallery content gaps (PR #46, merged + deployed)
+
+Migration 0006 adds `match_similarity float4` to `face_embeddings` (founder applied via Supabase Studio). Selfie endpoint now stores per-cluster cosine similarity at link time. Gallery route returns `match_similarity` per photo. `GuestPhoto` type updated. Gallery UI: event name subtitle, "זיהוי פנים AI" chip, per-photo confidence badges ("התאמה מעולה/טובה/חלקית" at ≥0.7/0.5/below). `oura-api` version `4525ca77`, `oura-web` version `7751c092`. Live: https://oura-web.oura-events.workers.dev/gallery
+
+**Open PRs:** #45 (dashboard fidelity, draft — should be merged), #16 (doc trim, 5-file conflict), #4 (universal-framework trim, 1-file conflict), #7 (MISTAKES.md corrections, 1-file conflict).
+
 ## ✅ DONE 2026-07-14 — Dashboard fidelity: 3 stat cards + AI widget + tip card (PR #45, deployed)
 
 `/admin` dashboard now matches `dashboard_desktop_1/2/3` design 1:1. Added: "ביקורי אורחים השבוע" stat card (real `guests` count last 7 days), AI processing mini-widget (derives face-detection % from `photos.embed_status`, shows pending count, links to full AI panel), tip card (static Highlights tip, links to `/admin/ai-optimization`). Layout: 3-col stat grid + explicit `grid-column` placement for AI (col 1) + events (cols 2-3). `oura-web` version `1d264901`. **PR #45** (`claude/mvp-feature-prioritization-bzq2zj`, draft, open). CI green. **Blind spot:** sandbox browser can't reach the live Worker + password is randomized — use https://oura-web.oura-events.workers.dev/forgot-password to set a new password, then verify at https://oura-web.oura-events.workers.dev/admin.
