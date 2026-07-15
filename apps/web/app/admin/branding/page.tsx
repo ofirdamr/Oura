@@ -35,6 +35,14 @@ type FrameKey = (typeof FRAME_STYLES)[number]["key"];
 
 const FRAME_KEYS = FRAME_STYLES.map((f) => f.key) as readonly string[];
 
+type GalleryTheme = "festive" | "minimal" | "personal";
+
+const GALLERY_THEMES: { key: GalleryTheme; label: string; icon: string; desc: string }[] = [
+  { key: "festive", label: "חגיגי", icon: "celebration", desc: "חם ורגשי, מושלם לחתונות ואירועים גדולים" },
+  { key: "minimal", label: "מינימל", icon: "grid_view", desc: "נקי ועיצובי, מתאים לצלמים פרופסיונליים" },
+  { key: "personal", label: "שלי", icon: "person", desc: "אישי ומותאם, מדגיש את התמונות של כל אורח" },
+];
+
 // Lets the photographer preview their frame/logo/watermark against a few
 // different photo moods (a bright outdoor shot, a dark reception shot, etc.)
 // since a frame that looks great on one photo can look wrong on another.
@@ -63,6 +71,7 @@ function BrandingSettingsPageInner() {
   const eventId = searchParams.get("event_id");
 
   const [frame, setFrame] = useState<FrameKey>("crystal");
+  const [galleryTheme, setGalleryTheme] = useState<GalleryTheme>("festive");
   const [accentColor, setAccentColor] = useState("#FF8A75");
   const [autoWatermark, setAutoWatermark] = useState(true);
   // Studio name — the mobile (branding_settings_mobile_3) design surfaces this
@@ -115,6 +124,10 @@ function BrandingSettingsPageInner() {
       }
 
       setEventName(typeof data.name === "string" ? data.name : null);
+
+      if (data.gallery_theme === "minimal" || data.gallery_theme === "personal") {
+        setGalleryTheme(data.gallery_theme);
+      }
 
       const branding = (data.branding ?? {}) as Record<string, unknown>;
       setExistingBranding(branding);
@@ -209,7 +222,7 @@ function BrandingSettingsPageInner() {
 
     const { error } = await supabase
       .from("events")
-      .update({ branding: nextBranding })
+      .update({ branding: nextBranding, gallery_theme: galleryTheme })
       .eq("id", eventId);
 
     if (error) {
@@ -607,6 +620,36 @@ function BrandingSettingsPageInner() {
 
           <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
             <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
+              <span className="material-symbols-outlined text-base">palette</span>
+              ערכת נושא לגלריה
+            </h2>
+            <div className="grid grid-cols-3 gap-3">
+              {GALLERY_THEMES.map((theme) => (
+                <button
+                  key={theme.key}
+                  type="button"
+                  onClick={() => setGalleryTheme(theme.key)}
+                  className={`flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all ${
+                    galleryTheme === theme.key ? "border-primary bg-primary/5" : "border-outline-variant/30 hover:border-outline-variant"
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-2xl ${galleryTheme === theme.key ? "text-primary" : "text-on-surface-variant"}`}
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    {theme.icon}
+                  </span>
+                  <span className={`text-xs font-bold ${galleryTheme === theme.key ? "text-primary" : "text-on-surface"}`}>
+                    {theme.label}
+                  </span>
+                  <span className="text-[10px] leading-tight text-on-surface-variant">{theme.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
+            <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
               <span className="material-symbols-outlined text-base">auto_awesome</span>
               זהות המותג
             </h2>
@@ -761,6 +804,33 @@ function BrandingSettingsPageInner() {
             </span>
             <span className="text-sm font-bold text-primary">שינוי</span>
           </label>
+        </div>
+
+        {/* Gallery theme picker (mobile) */}
+        <div>
+          <h2 className="mb-2 text-start text-sm font-bold text-on-surface">ערכת נושא לגלריה</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {GALLERY_THEMES.map((theme) => (
+              <button
+                key={theme.key}
+                type="button"
+                onClick={() => setGalleryTheme(theme.key)}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-3 text-center transition-all ${
+                  galleryTheme === theme.key ? "border-primary bg-primary/5" : "border-outline-variant/40"
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-xl ${galleryTheme === theme.key ? "text-primary" : "text-on-surface-variant"}`}
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  {theme.icon}
+                </span>
+                <span className={`text-xs font-bold ${galleryTheme === theme.key ? "text-primary" : "text-on-surface"}`}>
+                  {theme.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Save / Cancel */}

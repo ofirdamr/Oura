@@ -239,13 +239,14 @@ app.get('/gallery/:token', async (c) => {
   // display-safe branding keys are surfaced (no secrets live in this jsonb).
   const { data: eventRow } = await db
     .from('events')
-    .select('name, branding')
+    .select('name, branding, gallery_theme')
     .eq('id', payload.event_id)
     .maybeSingle();
   const rawBranding = (eventRow?.branding ?? {}) as Record<string, unknown>;
   const str = (v: unknown) => (typeof v === 'string' && v ? v : null);
   const event = {
     name: str(eventRow?.name),
+    gallery_theme: str(eventRow?.gallery_theme) ?? 'festive',
     branding: {
       event_title: str(rawBranding.event_title),
       share_caption: str(rawBranding.share_caption),
