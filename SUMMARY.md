@@ -2,11 +2,15 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail (endpoints, schema, auth, deployment) and `PROGRESS.md` for history if you need it. This file is a snapshot — it gets rewritten, not appended.**
 
-## ✅ DONE 2026-07-14 — Dashboard fidelity: 3 stat cards + AI widget + tip card (PR #45, deployed)
+## ✅ DONE 2026-07-15 — Photo Editor edit persistence (PR #47, deployed)
 
-`/admin` dashboard now matches `dashboard_desktop_1/2/3` design 1:1. Added: "ביקורי אורחים השבוע" stat card (real `guests` count last 7 days), AI processing mini-widget (derives face-detection % from `photos.embed_status`, shows pending count, links to full AI panel), tip card (static Highlights tip, links to `/admin/ai-optimization`). Layout: 3-col stat grid + explicit `grid-column` placement for AI (col 1) + events (cols 2-3). `oura-web` version `1d264901`. **PR #45** (`claude/mvp-feature-prioritization-bzq2zj`, draft, open). CI green. **Blind spot:** sandbox browser can't reach the live Worker + password is randomized — use https://oura-web.oura-events.workers.dev/forgot-password to set a new password, then verify at https://oura-web.oura-events.workers.dev/admin.
+When a guest adjusts a photo (brightness, contrast, rotation, etc.) in the Photo Editor, those adjustments now persist — if they close the editor and come back, their settings are restored. Stored in browser localStorage per guest + photo. Build clean, deployed `oura-web` version `822deec7`. **PR #47** (`claude/post-merge-next-mission-mm984p`, draft, open — being watched). Live: https://oura-web.oura-events.workers.dev/photo-editor
 
-**Open PRs:** #45 (dashboard fidelity, this session), #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict). PRs #28/#33/#38 confirmed merged.
+## ✅ DONE 2026-07-15 — PR #45 merged (dashboard fidelity)
+
+Dashboard 3 stat cards + AI widget + tip card, PR #45 merged to main.
+
+**Open PRs:** #47 (photo editor persistence, this session — watching), #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict).
 
 ## ✅ DONE 2026-07-14 — /admin/ai-optimization wired to real data (PR #42, deployed + merged)
 
