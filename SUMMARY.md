@@ -45,14 +45,19 @@ A photographer can: sign up → log in → create an event → brand it (real R2
 
 **Demo event:** code `WED-2024`, 17 real wedding photos. Entry: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
-## ⏭️ NEXT MVP MISSION — Gallery Theme Selector (Festive / Minimal / Personal)
+## ✅ DONE 2026-07-15 — Gallery Theme Selector wired end-to-end (PR #50, deployed)
 
-`gallery_theme` column exists on `events` table and defaults to `'festive'`, but nothing reads it to change the guest experience. Three gaps to close:
-1. **Branding page**: add a gallery theme picker (שלי / חגיגי / מינימל) that saves to `events.gallery_theme`
-2. **API** (`GET /gallery/:token`): add `gallery_theme` to the `event` object in the response (currently only selects `name, branding`)
-3. **Gallery page**: read `gallery_theme` and render the correct experience — festive has warm amber accent + event-type filters (חופה/מסיבה/קבלת פנים), minimal has a cleaner grid layout
+All three layers wired:
+- **Branding page**: "ערכת נושא לגלריה" picker (חגיגי / מינימל / שלי) saves to `events.gallery_theme`. Desktop + mobile layouts both have the picker.
+- **API** `GET /gallery/:token`: now selects + returns `gallery_theme` in the event object.
+- **Gallery page**: renders three distinct experiences:
+  - Festive: 2-col grid, event-type filter chips (כל התמונות/חופה/קבלת פנים/מסיבה), mobile hero image
+  - Minimal: editorial grid (2-col header row + 3-col body), STORY COLLECTION badge, photo count
+  - Personal (שלי): existing 3-col square grid, unchanged
 
-Design references: `design/screens/oura_final_production_festive_gallery_desktop_1..3`, `festive_gallery_mobile_1..2`, `minimal_gallery_desktop`, `minimal_gallery_mobile`. This is Opus-level (design-to-code + wiring across 3 layers).
+PR #50 open (draft) on branch `claude/gallery-theme-selector-kbku1n`. Both API (`03ca50ce`) and web (`40215104`) deployed live. **Needs merge.**
+
+## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):
 - `/admin/qr-management` sidebar link: done (AdminShell navItems includes `ניהול QR`)

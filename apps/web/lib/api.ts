@@ -36,6 +36,7 @@ export type EventBranding = {
 
 export type GalleryEvent = {
   name: string | null;
+  gallery_theme: string;
   branding: EventBranding;
 };
 

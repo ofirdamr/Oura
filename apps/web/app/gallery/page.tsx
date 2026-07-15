@@ -101,9 +101,17 @@ function PhotoTile({
   );
 }
 
+const FESTIVE_CATEGORIES = [
+  { key: "all", label: "כל התמונות" },
+  { key: "ceremony", label: "חופה" },
+  { key: "reception", label: "קבלת פנים" },
+  { key: "party", label: "מסיבה" },
+] as const;
+
 export default function GalleryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "mine">("all");
+  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "reception" | "party">("all");
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
@@ -258,6 +266,8 @@ export default function GalleryPage() {
   const activeFilter = filter === "mine" && personalPhotos.length > 0 ? "mine" : "all";
   const shownPhotos = activeFilter === "mine" ? personalPhotos : generalPhotos;
 
+  const galleryTheme = data.event?.gallery_theme ?? "festive";
+
   return (
     <div className="min-h-screen pb-24">
       {/* Header per design: notifications + profile (start side), brand, back.
@@ -302,6 +312,28 @@ export default function GalleryPage() {
           </button>
         </div>
       </header>
+
+      {/* Festive mobile hero: first photo full-bleed with date + event name overlay */}
+      {galleryTheme === "festive" && generalPhotos.length > 0 && (
+        <div className="relative h-56 w-full overflow-hidden sm:hidden">
+          <Image
+            src={generalPhotos[0].url}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute bottom-4 start-4 end-4">
+            {data.event?.name && (
+              <h2 className="text-xl font-bold text-white drop-shadow-lg">
+                {data.event.name}
+              </h2>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-lg space-y-6 px-4 py-6">
         <section className="space-y-2">
@@ -418,69 +450,164 @@ export default function GalleryPage() {
           </div>
         </div>
 
-        {/* Filters + a Select entry. Real "all" vs "my photos" filter (live
-            data, shown only when there's a personal set). "בחר" enters
-            multi-select so a guest can grab just the few photos they want. */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex gap-2">
-            {personalPhotos.length > 0 &&
-              ([
-                { key: "all" as const, label: "כל התמונות", count: generalPhotos.length },
-                { key: "mine" as const, label: "התמונות שלי", count: personalPhotos.length },
-              ]).map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setFilter(f.key)}
-                  className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm transition-all ${
-                    filter === f.key
-                      ? "bg-primary font-bold text-on-primary shadow-md"
-                      : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
-                  }`}
-                >
-                  {f.label}
-                  <span
-                    dir="ltr"
-                    className={`rounded-full px-1.5 text-xs ${filter === f.key ? "bg-black/15" : "bg-white/5"}`}
-                  >
-                    {f.count}
-                  </span>
-                </button>
-              ))}
+        {/* Filters — theme-aware. Festive shows event-type category chips.
+            Personal/minimal show the standard all/mine toggle. */}
+        {galleryTheme === "festive" ? (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {FESTIVE_CATEGORIES.map((cat) => (
+              <button
+                key={cat.key}
+                type="button"
+                onClick={() => setFestiveCategory(cat.key)}
+                className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
+                  festiveCategory === cat.key
+                    ? "bg-primary font-bold text-on-primary shadow-md"
+                    : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+            {shownPhotos.length > 0 && (
+              <button
+                type="button"
+                onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
+                className={`ms-auto shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
+                  selectMode
+                    ? "bg-primary text-on-primary"
+                    : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base">
+                  {selectMode ? "close" : "check_circle"}
+                </span>
+                {selectMode ? "ביטול" : "בחירה"}
+              </button>
+            )}
           </div>
-          {shownPhotos.length > 0 && (
-            <button
-              type="button"
-              onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                selectMode
-                  ? "bg-primary text-on-primary"
-                  : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">
-                {selectMode ? "close" : "check_circle"}
-              </span>
-              {selectMode ? "ביטול" : "בחירה"}
-            </button>
-          )}
-        </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2">
+              {personalPhotos.length > 0 &&
+                ([
+                  { key: "all" as const, label: "כל התמונות", count: generalPhotos.length },
+                  { key: "mine" as const, label: "התמונות שלי", count: personalPhotos.length },
+                ]).map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFilter(f.key)}
+                    className={`flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm transition-all ${
+                      filter === f.key
+                        ? "bg-primary font-bold text-on-primary shadow-md"
+                        : "border border-white/5 bg-surface-container font-medium text-on-surface-variant hover:bg-white/10"
+                    }`}
+                  >
+                    {f.label}
+                    <span
+                      dir="ltr"
+                      className={`rounded-full px-1.5 text-xs ${filter === f.key ? "bg-black/15" : "bg-white/5"}`}
+                    >
+                      {f.count}
+                    </span>
+                  </button>
+                ))}
+            </div>
+            {shownPhotos.length > 0 && (
+              <button
+                type="button"
+                onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
+                  selectMode
+                    ? "bg-primary text-on-primary"
+                    : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base">
+                  {selectMode ? "close" : "check_circle"}
+                </span>
+                {selectMode ? "ביטול" : "בחירה"}
+              </button>
+            )}
+          </div>
+        )}
 
         <section className="space-y-3 pb-8">
           {shownPhotos.length > 0 ? (
-            <div className="grid grid-cols-3 gap-1.5">
-              {shownPhotos.map((photo, i) => (
-                <PhotoTile
-                  key={photo.id}
-                  photo={photo}
-                  matched={matchedIds.has(photo.id)}
-                  selectMode={selectMode}
-                  selected={selected.has(photo.id)}
-                  onOpen={() => setViewer({ list: shownPhotos, index: i })}
-                  onToggleSelect={() => toggleSelect(photo.id)}
-                />
-              ))}
-            </div>
+            galleryTheme === "festive" ? (
+              /* Festive: 2-col grid, slightly larger tiles, warm look */
+              <div className="grid grid-cols-2 gap-2">
+                {shownPhotos.map((photo, i) => (
+                  <PhotoTile
+                    key={photo.id}
+                    photo={photo}
+                    matched={matchedIds.has(photo.id)}
+                    selectMode={selectMode}
+                    selected={selected.has(photo.id)}
+                    onOpen={() => setViewer({ list: shownPhotos, index: i })}
+                    onToggleSelect={() => toggleSelect(photo.id)}
+                  />
+                ))}
+              </div>
+            ) : galleryTheme === "minimal" ? (
+              /* Minimal: editorial grid — first photo spans 2 cols, then 3-col */
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {shownPhotos.slice(0, 2).map((photo, i) => (
+                    <PhotoTile
+                      key={photo.id}
+                      photo={photo}
+                      matched={matchedIds.has(photo.id)}
+                      selectMode={selectMode}
+                      selected={selected.has(photo.id)}
+                      onOpen={() => setViewer({ list: shownPhotos, index: i })}
+                      onToggleSelect={() => toggleSelect(photo.id)}
+                    />
+                  ))}
+                </div>
+                {shownPhotos.length > 2 && (
+                  <div className="relative">
+                    <div className="grid grid-cols-3 gap-2">
+                      {shownPhotos.slice(2).map((photo, i) => (
+                        <PhotoTile
+                          key={photo.id}
+                          photo={photo}
+                          matched={matchedIds.has(photo.id)}
+                          selectMode={selectMode}
+                          selected={selected.has(photo.id)}
+                          onOpen={() => setViewer({ list: shownPhotos, index: i + 2 })}
+                          onToggleSelect={() => toggleSelect(photo.id)}
+                        />
+                      ))}
+                    </div>
+                    {/* STORY COLLECTION badge on the editorial row */}
+                    <div className="absolute end-0 top-0 rounded-bl-xl rounded-tr-xl bg-surface-container-high px-2.5 py-1">
+                      <span className="font-display text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+                        Story Collection
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <p className="text-center text-xs text-on-surface-variant">
+                  <span dir="ltr">{`מציג ${shownPhotos.length} מתוך ${generalPhotos.length} צילומים`}</span>
+                </p>
+              </div>
+            ) : (
+              /* Personal (שלי): standard 3-col square grid */
+              <div className="grid grid-cols-3 gap-1.5">
+                {shownPhotos.map((photo, i) => (
+                  <PhotoTile
+                    key={photo.id}
+                    photo={photo}
+                    matched={matchedIds.has(photo.id)}
+                    selectMode={selectMode}
+                    selected={selected.has(photo.id)}
+                    onOpen={() => setViewer({ list: shownPhotos, index: i })}
+                    onToggleSelect={() => toggleSelect(photo.id)}
+                  />
+                ))}
+              </div>
+            )
           ) : (
             <p className="rounded-xl border border-white/5 bg-surface-container/60 p-4 text-center text-sm text-on-surface-variant">
               {filter === "mine"
