@@ -61,14 +61,38 @@ PR #50 merged to main.
 
 Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
 
-## ✅ DONE 2026-07-15 — Face recognition fixes (PR in progress)
+## 🔴 OPEN BUG — Founder selfie on WED-2024 → gallery shows 0 matched photos (root cause NOT yet found)
 
-Three compounding bugs fixed:
-- **Queue consumer** was calling `embed()` (no retry) instead of `embedWithRetry()` — fragile against Cloud Run cold starts.
-- **DB constraint** only allowed `'festive'|'minimal'`, silently blocking save of `'personal'` theme (introduced by PR #50) — fixed by migration 0007.
-- **Festive gallery** had no "mine" filter UI — guests couldn't view their face-matched photos after a selfie. Added "כל התמונות / התמונות שלי" toggle row (visible only when personal photos exist).
+This bug has survived **8 face-recognition PRs** (#1, #2, #11, #24, #25, #26, #27, #46, #53). Each session found a *real* bug and fixed it, but the founder's live symptom — do selfie, gallery shows 0 — persists. **Root cause is still unconfirmed.** Next session (Opus) is a THINKING/root-cause mission, not another quick patch.
 
-**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase. Go to https://supabase.com/dashboard/project/your-project/sql/new and paste the contents of `supabase/migrations/0007_gallery_theme_personal.sql`.
+### Full PR history (data-collection done 2026-07-15)
+- **#1** built the pipeline. Next: WED-2024's 17 photos predated Stage 2 → never embedded.
+- **#2** added `/admin/backfill-embeddings`, fixed unbounded fetch (25s timeout). 15/17 embedded. Next: broke again next day.
+- **#11** found retention cron `.delete()`d shared `face_embeddings` → changed to `.update({guest_id:null})`. Next: fix never reached prod (broken CLOUDFLARE_API_TOKEN deploy).
+- **#24** added `/admin/embed-status`, lowered threshold 0.42→0.35 (blind guess, no selfie in hand). Next: still 0.
+- **#25** found the deploy had been silently failing for days (leading-space token). First safe cron went live.
+- **#26** `/admin/match-test`: photo→photo matching proven healthy. Concluded failure is selfie-specific.
+- **#27** ran founder's real selfie via `/admin/selfie-test`: **face detected 0.82, best match 0.58, 11 true faces 0.42–0.58, stranger 0.31**. Declared "selfie matches, solved." Added DB delete-guard (migration 0005). **BUT never verified the real end-to-end guest gallery actually returns photos.**
+- **#46** added `match_similarity` badges (migration 0006) — built ON TOP of matching working.
+- **#53** fixed queue consumer `embed()`→`embedWithRetry()`, DB constraint `'personal'` (migration 0007), festive "mine" filter. **Latest.** Founder: still 0.
+
+### The gap (where the next session must look)
+`/admin/selfie-test` proves the diagnostic path matches at 0.58. The REAL guest path (`POST /guests/:token/selfie` → stamp `guest_id` onto matched rows → `GET /gallery/:token` filters personal photos) is a DIFFERENT code path and was never verified end-to-end. **The core question: what happens between the real selfie POST returning and the gallery rendering — where does the 0 come from?** Suspects to check first: (a) does the founder's guest row actually get `guest_id` stamped onto `face_embeddings` after a real selfie (vs. the zero-retention diagnostic which stamps nothing)? (b) migrations 0005/0006/0007 — were they ever actually applied to live Supabase? (c) does `GET /gallery/:token` join/filter personal photos correctly?
+
+### "NEVER DO AGAIN" (from this history)
+1. Never declare face-match "solved" from a diagnostic endpoint — verify the REAL guest selfie→gallery path shows photos.
+2. Never lower the threshold without the actual selfie measured.
+3. Never call a fix "live" without confirming the deploy actually reached prod.
+4. Never backfill without confirming queue-consumer retry (cold start = permanent `failed`).
+5. Never guest-scope a `.delete()` on `face_embeddings` (shared index).
+6. Never add a DB enum value without updating its CHECK constraint same commit.
+7. Never build match-dependent features (badges/filter/subtitle) before the 0-match root cause is found.
+
+### ACTION REQUIRED (founder) — migrations possibly never applied
+Confirm/apply in live Supabase (paste at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new):
+`0005_face_embeddings_delete_guard.sql`, `0006_match_similarity.sql`, `0007_gallery_theme_personal.sql`. **If these never ran, that alone could explain the 0.**
+
+**Open PRs:** #54 (draft — gallery zero-match subtitle/button copy fix, no conflicts, safe to merge), #52 (Statistics), #16/#4/#7 (stale doc conflicts).
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
