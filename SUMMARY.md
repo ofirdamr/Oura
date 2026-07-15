@@ -2,7 +2,7 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
-## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, deployed)
+## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, merged to main)
 
 Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` Stitch screens are now wired:
 - Guest name in headline: "הגלריה האישית של {name}" (falls back to "הגלריה האישית שלך" when no name stored)
@@ -10,7 +10,7 @@ Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` S
 - Per-photo match badge: numeric "96% ✓" (top-start corner, RTL) replacing the old text label
 
 API change: `resolveGuest` now selects `display_name`; `GET /gallery/:token` returns `guest_display_name`.
-Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. **PR #48** (`claude/next-mvp-mission-ftbaja`, draft, open). Live: https://oura-web.oura-events.workers.dev/gallery
+Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 merged to main. Live: https://oura-web.oura-events.workers.dev/gallery
 
 ## ✅ DONE 2026-07-15 — Photo Editor edit persistence (PR #47, deployed + merged)
 
@@ -20,7 +20,7 @@ Guest photo adjustments (brightness, contrast, rotation, etc.) now persist per g
 
 Dashboard 3 stat cards + AI widget + tip card. PR #45 merged to main.
 
-**Open PRs:** #48 (personal gallery content — this session, watching), #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict), #7 (MISTAKES.md corrections, 1-file conflict).
+**Open PRs:** #16 (doc trim, conflicts in 5 files), #4 (universal-framework trim, 1-file conflict), #7 (MISTAKES.md corrections, 1-file conflict).
 
 ## ✅ DONE 2026-07-14 — /admin/ai-optimization wired to real data (PR #42, deployed + merged)
 
@@ -45,14 +45,19 @@ A photographer can: sign up → log in → create an event → brand it (real R2
 
 **Demo event:** code `WED-2024`, 17 real wedding photos. Entry: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
-## ⏭️ NEXT SESSION — next MVP missions in PRD order
+## ⏭️ NEXT MVP MISSION — Gallery Theme Selector (Festive / Minimal / Personal)
 
-1. **Merge PR #48** (personal gallery content — code deployed, typecheck clean, no CI). Then the personal gallery screen is fully faithful to the Stitch design.
-2. **Navigation gaps** (from `docs/ARCHITECTURE.md` §6b known gaps):
-   - `/admin/qr-management` has no sidebar link — unreachable from the nav after create/brand flow
-   - 3 dead admin sidebar links: `ארכיון אירועים`, `לקוחות VIP`, `ניתוח נתונים` (Phase 2 — decide: hide or stub)
-   - Guest Landing Page `/join` is unwired (`/` redirects to `/gallery-entry`, bypassing it)
-3. **Demo-readiness / first-run empty state** — a brand-new photographer account has no events/photos so the app looks empty when shown to prospects. Options: seed a sample event on signup, or polish empty states.
+`gallery_theme` column exists on `events` table and defaults to `'festive'`, but nothing reads it to change the guest experience. Three gaps to close:
+1. **Branding page**: add a gallery theme picker (שלי / חגיגי / מינימל) that saves to `events.gallery_theme`
+2. **API** (`GET /gallery/:token`): add `gallery_theme` to the `event` object in the response (currently only selects `name, branding`)
+3. **Gallery page**: read `gallery_theme` and render the correct experience — festive has warm amber accent + event-type filters (חופה/מסיבה/קבלת פנים), minimal has a cleaner grid layout
+
+Design references: `design/screens/oura_final_production_festive_gallery_desktop_1..3`, `festive_gallery_mobile_1..2`, `minimal_gallery_desktop`, `minimal_gallery_mobile`. This is Opus-level (design-to-code + wiring across 3 layers).
+
+**Navigation gaps — RESOLVED** (as of PR #43, merged to main):
+- `/admin/qr-management` sidebar link: done (AdminShell navItems includes `ניהול QR`)
+- Event-detail "view QR" link: done (`/admin/qr-management?event_id=…` already in event-detail page)
+- Dead sidebar items (`ארכיון אירועים`, `לקוחות VIP`): render as non-clickable Phase 2 placeholders — intentional
 4. **Resolve conflicted PRs #16, #4, #7** in a dedicated trim session (doc-only, but stale).
 
 **Founder standing directive:** follow PRD order, don't jump to prints/gifts. You (PM/assistant) pick the next mission — don't ask the founder to choose. Every "done" ships with the clickable live link.
