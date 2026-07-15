@@ -377,3 +377,10 @@ Wired three design gaps confirmed missing from `personal_gallery_desktop/mobile`
 
 API: `resolveGuest` now selects `display_name`; `GET /gallery/:token` returns `guest_display_name`.
 Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch `claude/next-mvp-mission-ftbaja`.
+
+## 2026-07-15 — Gallery Theme Selector (PR #50)
+- API: `GET /gallery/:token` now selects + returns `gallery_theme` from events row
+- Branding page: added "ערכת נושא לגלריה" 3-option picker (חגיגי/מינימל/שלי); saves to `events.gallery_theme` column; desktop + mobile layouts both updated
+- lib/api.ts: added `gallery_theme: string` to `GalleryEvent` type
+- Gallery page: theme-conditional rendering — festive (2-col, event-type chips, mobile hero), minimal (editorial grid, STORY COLLECTION badge), personal (unchanged 3-col)
+- Both oura-api and oura-web deployed live
