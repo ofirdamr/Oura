@@ -33,11 +33,9 @@ const STUDIO_NAME = "Photo Santos";
 // Uniform square tiles — a clean, premium, scannable grid (like Apple Photos /
 // Instagram), NOT a random-height collage. The old deterministic aspect variety
 // looked like a broken masonry layout and served no purpose.
-function confidenceLabel(sim: number | null | undefined): string | null {
+function confidencePct(sim: number | null | undefined): string | null {
   if (sim == null) return null;
-  if (sim >= 0.7) return "התאמה מעולה";
-  if (sim >= 0.5) return "התאמה טובה";
-  return "התאמה חלקית";
+  return `${Math.round(sim * 100)}%`;
 }
 
 function PhotoTile({
@@ -55,7 +53,7 @@ function PhotoTile({
   onOpen: () => void;
   onToggleSelect: () => void;
 }) {
-  const confLabel = matched ? confidenceLabel(photo.match_similarity) : null;
+  const pct = matched ? confidencePct(photo.match_similarity) : null;
   return (
     <button
       type="button"
@@ -75,21 +73,15 @@ function PhotoTile({
           selectMode && selected ? "scale-95" : ""
         }`}
       />
-      {matched && !selectMode && (
-        <div className="absolute end-1.5 top-1.5 flex flex-col items-end gap-1">
-          <div className="flex items-center justify-center rounded-full bg-black/60 p-1 backdrop-blur-md">
-            <span
-              className="material-symbols-outlined text-primary"
-              style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
-            >
-              verified
-            </span>
-          </div>
-          {confLabel && (
-            <span className="rounded-full bg-black/70 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary backdrop-blur-md">
-              {confLabel}
-            </span>
-          )}
+      {matched && !selectMode && pct && (
+        <div className="absolute start-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-black/65 px-1.5 py-0.5 backdrop-blur-md">
+          <span dir="ltr" className="text-[11px] font-bold leading-none text-primary">{pct}</span>
+          <span
+            className="material-symbols-outlined text-primary"
+            style={{ fontSize: "11px", fontVariationSettings: "'FILL' 1" }}
+          >
+            verified
+          </span>
         </div>
       )}
       {selectMode && (
@@ -313,27 +305,43 @@ export default function GalleryPage() {
 
       <main className="mx-auto max-w-lg space-y-6 px-4 py-6">
         <section className="space-y-2">
-          <h1 className="text-2xl font-bold text-on-surface md:text-3xl">
-            הגלריה האישית שלך
-          </h1>
-          {data?.event?.name && (
-            <p className="text-sm font-medium text-on-surface-variant">
-              {data.event.name}
-            </p>
+          {data.guest_display_name ? (
+            <>
+              <h1 className="text-2xl font-bold text-on-surface md:text-3xl">
+                הגלריה האישית של {data.guest_display_name}
+              </h1>
+            </>
+          ) : (
+            <h1 className="text-2xl font-bold text-on-surface md:text-3xl">
+              הגלריה האישית שלך
+            </h1>
           )}
           <p className="text-base leading-relaxed text-on-surface-variant">
-            מצאנו{" "}
-            <span
-              className="font-bold text-primary"
-              style={{ unicodeBidi: "isolate" }}
-            >
-              {personalPhotos.length}
-            </span>{" "}
-            תמונות שלך מתוך{" "}
-            <span className="font-bold" style={{ unicodeBidi: "isolate" }}>
-              {generalPhotos.length}
-            </span>{" "}
-            תמונות באירוע.
+            {personalPhotos.length > 0 ? (
+              <>
+                הבינה המלאכותית שלנו זיהתה{" "}
+                <span className="font-bold text-primary" style={{ unicodeBidi: "isolate" }}>
+                  {personalPhotos.length} רגעים מושלמים
+                </span>{" "}
+                מתוך{" "}
+                <span className="font-bold" style={{ unicodeBidi: "isolate" }}>
+                  {generalPhotos.length}
+                </span>{" "}
+                תמונות{data.event?.name ? ` באירוע "${data.event.name}"` : " באירוע"}
+              </>
+            ) : (
+              <>
+                מצאנו{" "}
+                <span className="font-bold text-primary" style={{ unicodeBidi: "isolate" }}>
+                  {personalPhotos.length}
+                </span>{" "}
+                תמונות שלך מתוך{" "}
+                <span className="font-bold" style={{ unicodeBidi: "isolate" }}>
+                  {generalPhotos.length}
+                </span>{" "}
+                תמונות{data.event?.name ? ` באירוע "${data.event.name}"` : " באירוע"}.
+              </>
+            )}
           </p>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1">
             <span

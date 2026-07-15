@@ -176,7 +176,7 @@ async function resolveGuest(
   token: string,
   secret: string,
 ): Promise<
-  | { ok: true; payload: GuestTokenPayload; guest: { id: string; event_id: string } }
+  | { ok: true; payload: GuestTokenPayload; guest: { id: string; event_id: string; display_name: string | null } }
   | { ok: false; status: 401; error: 'invalid_token' | 'token_expired' }
   | { ok: false; status: 404; error: 'guest_not_found' }
 > {
@@ -186,7 +186,7 @@ async function resolveGuest(
   const token_hash = await tokenHash(token);
   const { data: guest } = await db
     .from('guests')
-    .select('id, event_id, token_expires_at')
+    .select('id, event_id, token_expires_at, display_name')
     .eq('event_id', payload.event_id)
     .eq('token_hash', token_hash)
     .maybeSingle();
@@ -200,7 +200,7 @@ async function resolveGuest(
   if (new Date(guest.token_expires_at).getTime() <= Date.now()) {
     return { ok: false, status: 401, error: 'token_expired' };
   }
-  return { ok: true, payload, guest: { id: guest.id, event_id: guest.event_id } };
+  return { ok: true, payload, guest: { id: guest.id, event_id: guest.event_id, display_name: guest.display_name ?? null } };
 }
 
 // ---------------------------------------------------------------------------
@@ -336,6 +336,7 @@ app.get('/gallery/:token', async (c) => {
   return c.json({
     event_id: payload.event_id,
     guest_id: guest.id,
+    guest_display_name: guest.display_name,
     event,
     photos,
     personal_gallery,

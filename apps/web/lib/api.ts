@@ -42,6 +42,7 @@ export type GalleryEvent = {
 export type GalleryResponse = {
   event_id: string;
   guest_id: string;
+  guest_display_name?: string | null;
   event?: GalleryEvent;
   photos: GuestPhoto[];
   personal_gallery: PersonalGallery;
