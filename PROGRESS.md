@@ -398,3 +398,6 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 - **Fix:** migration `0008_guest_photo_matches.sql` (many-to-many join table) + selfie route upserts one row per matched photo + gallery reads the join table + retention cron deletes the guest's join rows. `face_embeddings.guest_id` now vestigial. API `tsc --noEmit` clean. docs/ARCHITECTURE.md updated (§3, §4, §4a — the "future hardening" it already prescribed is now done).
 - **Also verified:** cross-photo matching works well (up to 9 photos from one selfie); threshold 0.35 is fine — not a threshold problem.
 - **Pending founder (no sandbox access):** apply migration 0008 at Supabase SQL editor + `wrangler deploy` apps/api. Then test https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
+
+## 2026-07-16 — Password reset Resend debug
+Pushed RESEND_API_KEY to Cloudflare Worker. Confirmed generateLink works. Added debug output to Worker — Resend returns 403: test sender `onboarding@resend.dev` can only send to `ouraforphotographers@gmail.com`. Sending to that address returns `{"ok":true}` but email not arriving either — Resend account may need domain verification or the API key used is the "Onboarding" key (read-only/test). Next: verify a domain at resend.com/domains and change `from` to use it, OR switch to the "Oura" API key and confirm it has send permissions.
