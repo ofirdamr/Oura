@@ -170,12 +170,24 @@ Key tables (see the migration files for full column lists/constraints):
   upload/visibility lifecycle gating the general gallery — must never be
   coupled to face-processing state).
 - **`face_embeddings`** — `pgvector(512)`, HNSW cosine index, `person_id`
-  (cluster id, assigned by `apps/api/src/pipeline/cluster.ts`) + `guest_id`
-  (nullable link, set by `POST /guests/:token/selfie` once a guest's selfie
-  matches a cluster). **Still unpopulated on the live DB** — the pipeline code
-  exists (queue consumer, embedding service) but the embedding service hasn't
-  been deployed to a real host yet, so no photo has actually been embedded
-  live.
+  (cluster id, assigned by `apps/api/src/pipeline/cluster.ts`). This is the
+  **shared, photo-derived** search index (one row per face detected in an event
+  photo); it carries NO guest link. Live and populated (e.g. `WED-2024` has 286
+  rows across 17 photos). The `guest_id` / `match_similarity` columns still exist
+  (migrations 0003/0006, append-only) but are **vestigial as of migration 0008** —
+  the guest↔photo link moved to `guest_photo_matches` (below). Nothing reads or
+  writes `face_embeddings.guest_id` anymore.
+- **`guest_photo_matches`** (migration 0008) — the guest↔photo match link, a
+  proper **many-to-many** join table: `(guest_id, photo_id)` PK, `event_id`,
+  `match_similarity float4`, `created_at`. Written by `POST /guests/:token/selfie`
+  (one row per photo a guest's selfie matched), read by `GET /gallery/:token`'s
+  personal branch, and deleted per-guest by the retention cron. **This replaced the
+  single-owner `face_embeddings.guest_id` stamp**, which caused the "selfie → 0
+  מתוך 17" bug: because a match is many-to-many (the same person routinely creates
+  more than one guest session — re-scan, new device, incognito, lost session), the
+  single-owner column let the first session claim a cluster and every later session
+  matched but got 0 photos. RLS enabled, no policies (service-role-only, like the
+  rest of the guest tables).
 - **`biometric_consents`** — one row per guest who has consented.
   `retention_expires_at`: as of migration 0003, defaults to `consented_at +
   30 days` (a decided value — the founder received an informal draft legal
@@ -193,9 +205,9 @@ auth — they're the guest path, gated only by the opaque token.
 |---|---|
 | `GET /health` | Liveness + binding/secret presence check (never leaks values) |
 | `POST /events/:event_id/guests` | Issues a fresh opaque guest token for an event. Generates `guest_id` server-side, stores only `SHA-256(token)`. |
-| `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent. `face_embeddings` is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. Also returns `event: { name, branding: { event_title, share_caption, logo_key, frame, primary_color, auto_watermark } }` (guest-safe display keys only) so the client can composite the photographer frame/logo/title onto downloaded/shared photos and pre-fill a marketing share caption. |
+| `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent — the post-consent `photos` come from `guest_photo_matches` filtered by this `guest_id` (migration 0008), so each guest sees exactly the photos its own selfie linked. Face-match data is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. Also returns `event: { name, branding: { event_title, share_caption, logo_key, frame, primary_color, auto_watermark } }` (guest-safe display keys only) so the client can composite the photographer frame/logo/title onto downloaded/shared photos and pre-fill a marketing share caption. |
 | `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). Body **requires** `{ guardian_confirmed: true }` (400s otherwise, migration 0003) — `retention_expires_at` is now set by a DB trigger, not left NULL. |
-| `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, and links `guest_id` onto every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD`. **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting link (an update to existing rows). Returns `{matched:false}` (not an error) when nothing clears the threshold. |
+| `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, resolves every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD` to the photos those clusters appear in, and upserts a `(guest_id, photo_id, match_similarity)` row per photo into `guest_photo_matches` (migration 0008). **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting join rows. Returns `{matched:false, photos_linked:0}` (not an error) when nothing clears the threshold, else `{matched:true, photos_linked:N}`. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. Sends `Access-Control-Allow-Origin: *` (media is already public; CORS is needed so a photo can be used as a WebGL texture on the gift-reveal 3D card — the web app and API are different Worker origins). |
 | `GET /events/by-code/:code` | Resolves a human event code (e.g. `WED-2024`) to an `event_id`. Powers manual code entry and `?code=` QR deeplinks. |
 | `POST /admin/backfill-embeddings` | Operator-only. Body `{ event_id?: string, force?: boolean }`. Re-enqueues every photo not yet `embed_status:'done'` (or ALL of them when `force:true`) into `face-embed-queue`. Gated by a dedicated `ADMIN_BACKFILL_TOKEN` bearer secret, not photographer auth — exists because photos ingested before Stage 2's enqueue-on-upload existed (e.g. the hand-seeded `WED-2024` set) never got embedded and had no other path to catch up. On `force`, clears each photo's existing faces first — via the `admin_clear_faces_for_photos()` RPC (migration 0005), falling back to a direct delete only when that RPC isn't present yet. |
@@ -231,23 +243,23 @@ in this pass).
   results, not just the single nearest, to compensate for ingestion-time
   over-splitting.
 - **Retention enforcement**: a daily Cloudflare Cron Trigger (`0 3 * * *`,
-  `apps/api/src/scheduledCleanup.ts`) **un-links** (sets `guest_id = null`) the
-  `face_embeddings` rows of guests whose `retention_expires_at` has passed. It
-  MUST NEVER `.delete()` a `face_embeddings` row — those rows are the shared,
-  photo-derived search index, not the guest's biometric data (the selfie is
-  zero-retention and never stored). Deleting them (the pre-2026-07-09 bug) tore
-  the match index out from under the whole event the moment any one guest's
-  30 days elapsed, silently breaking face-matching until a manual re-embed —
-  see `MISTAKES.md` 2026-07-09. Retention forgets the guest↔cluster *link*;
-  the index survives for the life of the photos. The ONLY legitimate deletes of
-  `face_embeddings` are the `on delete cascade` from deleting a photo/event.
-  **Future hardening (not yet done):** the guest↔cluster link should live in its
-  own table (e.g. `guest_matches(guest_id, event_id, person_id)`) so a shared
-  index row is never stamped with guest identity at all; retention would then
-  delete link rows, and the `face_embeddings` `guest_id` column could be
-  dropped. If legal ever requires purging the photo-derived templates
-  themselves, scope that to the event/photo lifecycle (all of an event's
-  embeddings at once), never to one guest's consent clock.
+  `apps/api/src/scheduledCleanup.ts`) **deletes** the expired guests'
+  `guest_photo_matches` rows (migration 0008) — the guest↔photo link is now a
+  join row, guest-specific and safe to delete. It MUST NEVER `.delete()` a
+  `face_embeddings` row — those rows are the shared, photo-derived search index,
+  not the guest's biometric data (the selfie is zero-retention and never stored).
+  Deleting them (the pre-2026-07-09 bug) tore the match index out from under the
+  whole event the moment any one guest's 30 days elapsed, silently breaking
+  face-matching until a manual re-embed — see `MISTAKES.md` 2026-07-09. Retention
+  forgets the guest↔photo *link*; the index survives for the life of the photos.
+  The ONLY legitimate deletes of `face_embeddings` are the `on delete cascade`
+  from deleting a photo/event. **This "future hardening" is now DONE (migration
+  0008):** the guest↔photo link lives in its own `guest_photo_matches` table, so
+  a shared index row is never stamped with guest identity; this also fixed the
+  many-to-many "0 מתוך 17" bug (a shared cluster can now carry any number of guest
+  links). If legal ever requires purging the photo-derived templates themselves,
+  scope that to the event/photo lifecycle (all of an event's embeddings at once),
+  never to one guest's consent clock.
 - **Embedding service**: `packages/processing-pipeline` (self-hosted
   InsightFace/ArcFace, never a per-call managed API per CLAUDE.md), deployed
   to **Cloud Run** (project `ouraforphotographers`, region `us-central1`,
