@@ -298,11 +298,12 @@ app.get('/gallery/:token', async (c) => {
     // (No real matches yet — the face-embed pipeline isn't live — so this is
     // empty until face_embeddings.guest_id links exist. The point is that the
     // section is now UNBLOCKED, not that it is populated.)
-    const { data: matchRows } = await db
+    const { data: matchRows, error: matchErr } = await db
       .from('face_embeddings')
       .select('photo_id, match_similarity, photos!inner(storage_key)')
       .eq('event_id', payload.event_id)
       .eq('guest_id', guest.id);
+    if (matchErr) console.error('personal gallery query failed', matchErr);
 
     const seen = new Map<string, number | null>(); // photo_id → best similarity
     const matchedMap = new Map<string, { id: string; storage_key: string; url: string; match_similarity: number | null }>();
@@ -520,16 +521,34 @@ app.post('/guests/:token/selfie', async (c) => {
 
   // Link every plausible cluster (mitigates ingestion-time over-splitting), but
   // never overwrite a DIFFERENT guest's already-established link.
-  // Update one person_id at a time so we can store the per-cluster similarity.
+  // Two-step: stamp guest_id first (critical path — must never be blocked by an
+  // optional column like match_similarity), then store similarity separately
+  // (best-effort — a missing column or transient error here must not unlink the guest).
   for (const pid of matchedPersonIds) {
-    const sim = similarityByPerson.get(pid) ?? null;
     const { error: linkErr } = await db
       .from('face_embeddings')
-      .update({ guest_id: guest.id, match_similarity: sim })
+      .update({ guest_id: guest.id })
       .eq('event_id', payload.event_id)
       .eq('person_id', pid)
       .or(`guest_id.is.null,guest_id.eq.${guest.id}`);
-    if (linkErr) return c.json({ error: 'match_link_failed' }, 500);
+    if (linkErr) {
+      console.error('guest_id stamp failed for person', pid, linkErr);
+      return c.json({ error: 'match_link_failed' }, 500);
+    }
+
+    // Best-effort: store similarity score for the gallery confidence badge.
+    // If migration 0006 (match_similarity column) is not yet applied, this will
+    // fail — that is acceptable; the guest_id link above already went through.
+    const sim = similarityByPerson.get(pid) ?? null;
+    if (sim !== null) {
+      const { error: simErr } = await db
+        .from('face_embeddings')
+        .update({ match_similarity: sim })
+        .eq('event_id', payload.event_id)
+        .eq('person_id', pid)
+        .eq('guest_id', guest.id);
+      if (simErr) console.error('match_similarity store failed for person', pid, simErr);
+    }
   }
 
   return c.json({ matched: true, clusters_linked: matchedPersonIds.length });
