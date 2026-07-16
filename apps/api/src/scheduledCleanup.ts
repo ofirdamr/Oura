@@ -11,13 +11,14 @@
 // guest_id LINK stamped onto those shared rows when a match happens — never the
 // embedding vector itself.
 //
-// This job therefore UN-LINKS (nulls guest_id) on expiry; it must NEVER delete
-// face_embeddings rows. Deleting them (the original bug) tore the shared match
-// index out from under everyone the moment any single guest's 30 days elapsed,
-// silently killing face-matching for the whole event until a manual re-embed —
-// the "it worked, then disappeared, again" report. Nulling forgets the guest's
-// biometric association (what retention is actually for) while leaving the
-// photo-derived index intact, so matching keeps working forever.
+// This job therefore FORGETS the guest<->photo match links on expiry (deletes the
+// guest's rows in the guest_photo_matches join table, migration 0008); it must
+// NEVER delete face_embeddings rows. Deleting those (the original bug) tore the
+// shared match index out from under everyone the moment any single guest's 30 days
+// elapsed, silently killing face-matching for the whole event until a manual
+// re-embed — the "it worked, then disappeared, again" report. Forgetting only the
+// join rows drops the guest's biometric association (what retention is actually
+// for) while leaving the photo-derived index intact, so matching keeps working forever.
 //
 // Idempotent by construction: re-running against already-unlinked rows is a
 // no-op. biometric_consents rows are kept (they hold no vector, only
@@ -44,11 +45,15 @@ export async function handleScheduled(
   const guestIds = (expired ?? []).map((row) => row.guest_id);
   if (guestIds.length === 0) return;
 
-  // Un-link only — forget the guest<->cluster association. NEVER .delete() here:
-  // these rows are the shared photo-face index, not the guest's biometric data.
-  const { error: unlinkErr } = await db
-    .from('face_embeddings')
-    .update({ guest_id: null })
+  // Forget the guest<->photo match links. Since migration 0008 these live in the
+  // guest_photo_matches join table — one row per (guest, photo), guest-specific and
+  // retention-bound — so deleting this guest's rows is the correct "forget the
+  // biometric association" with no shared data at stake. The shared face_embeddings
+  // index is NEVER touched here (migration 0005 guard): deleting from the join table
+  // leaves every photo's face vectors intact, so matching keeps working forever.
+  const { error: forgetErr } = await db
+    .from('guest_photo_matches')
+    .delete()
     .in('guest_id', guestIds);
-  if (unlinkErr) console.error('retention cleanup unlink failed', unlinkErr);
+  if (forgetErr) console.error('retention cleanup forget failed', forgetErr);
 }

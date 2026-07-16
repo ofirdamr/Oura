@@ -65,25 +65,21 @@ Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
 
 When face-matching returns 0 personal photos: subtitle now says "מחפשים אותך ב-N תמונות" instead of "מצאנו 0 תמונות שלך" (which contradicted the "עדיין מחפשים" card). Buttons now say "שמירת כל התמונות" / "שיתוף כל התמונות" instead of "שלי" when no matches.
 
-## ✅ DONE 2026-07-16 — Root-cause fix: selfie→gallery 0-match bug (PR #55, merged)
+## ✅ ROOT CAUSE FOUND + FIXED — selfie→gallery 0-match bug (branch `claude/selfie-gallery-match-debug-sodiv7`, PR pending founder deploy)
 
-**Root cause identified and fixed.** Migration 0006 (`match_similarity float4` column on `face_embeddings`) was shipped in code on 2026-07-15 but never applied to live Supabase. Without it, the selfie UPDATE failed silently, guest_id was never stamped, gallery returned 0 photos.
+**The REAL root cause (token was a red herring — it's synced now, embed works).** Proven live on WED-2024: a fresh guest whose selfie matches an already-claimed face cluster gets `matched:true` but **0 gallery photos**. Why: the guest↔photo link was a **single-owner** stamp (`face_embeddings.guest_id`), but the match is **many-to-many** — the same person makes multiple guest sessions (re-scan, new device, incognito, lost session). The selfie UPDATE was guarded with `or(guest_id.is.null, guest_id.eq.self)`, so once the FIRST session claimed a cluster, every LATER session matched but updated 0 rows → its gallery (filtered by its own guest_id) showed 0. Founder's repeated incognito tests each = a new guest_id; the first claimed the clusters, the rest got "0 מתוך 17".
 
-- Migration 0006 applied by founder (confirmed — column exists).
-- Code fix (PR #55, Worker version `95e16ceb`): `guest_id` stamp is now a separate first UPDATE (hard failure), `match_similarity` is best-effort (non-blocking).
-- PR #55 merged.
+**Fix (migration 0008 + code):** new many-to-many `guest_photo_matches (guest_id, photo_id, event_id, match_similarity)` join table. Selfie upserts one row per matched photo; gallery reads from it filtered by guest_id; retention cron deletes the guest's join rows. `face_embeddings.guest_id` is now vestigial. API typecheck clean. This is exactly the "future hardening" `docs/ARCHITECTURE.md` §4a already prescribed.
 
-## 🔴 BLOCKING — EMBED_SERVICE_TOKEN mismatch (selfie still returns 0 after migration fix)
+**Verified live:** backend match path works end-to-end (submitting a real event face as a selfie → matched + appears in that guest's gallery, up to 9 cross-photo matches; threshold 0.35 is fine). The single-owner collision is the sole remaining defect and this fix removes it.
 
-Cloud Run embed service returns **401** to every selfie request because the Cloudflare Worker's `EMBED_SERVICE_TOKEN` secret value does NOT match Cloud Run's `EMBED_SERVICE_TOKEN` env var. Worker receives 401 → returns 502 → frontend silently skips to gallery → 0 matches.
+**ACTION REQUIRED (founder — 2 steps, no sandbox access to either):**
+1. Apply migration 0008: paste `supabase/migrations/0008_guest_photo_matches.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
+2. Deploy the Worker: `cd apps/api && npx wrangler deploy`
 
-**ACTION REQUIRED (founder — must do manually, no GCP API access from sandbox):**
-Option A: Go to https://console.cloud.google.com/run/detail/us-central1/oura-embed/revisions?project=ouraforphotographers → find current `EMBED_SERVICE_TOKEN` value → run `npx wrangler secret put EMBED_SERVICE_TOKEN` from `apps/api/` and enter that value.
-Option B: Generate new token (`openssl rand -hex 32`), set it on Cloud Run (Edit & Deploy new revision) AND in Worker (`npx wrangler secret put EMBED_SERVICE_TOKEN`).
+**TEST after both:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 (each fresh incognito selfie now gets its own matches — no more "first one wins").
 
-**ACTION REQUIRED (founder):** Apply migration 0007 — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
-
-**TEST after token fix:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
+**Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 

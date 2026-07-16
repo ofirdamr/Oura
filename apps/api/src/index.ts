@@ -294,37 +294,30 @@ app.get('/gallery/:token', async (c) => {
     // Pre-consent: signal the frontend to show the consent-gate screen. No face data.
     personal_gallery = { consent_required: true };
   } else {
-    // Consented: face-matching is permitted. Return this guest's matched photos.
-    // (No real matches yet — the face-embed pipeline isn't live — so this is
-    // empty until face_embeddings.guest_id links exist. The point is that the
-    // section is now UNBLOCKED, not that it is populated.)
+    // Consented: face-matching is permitted. Return this guest's matched photos,
+    // read from the many-to-many guest_photo_matches join table (migration 0008).
+    // One row per (guest, photo), so this guest sees exactly the photos its own
+    // selfie linked — independent of any other guest that matched the same clusters.
     const { data: matchRows, error: matchErr } = await db
-      .from('face_embeddings')
-      .select('photo_id, match_similarity, photos!inner(storage_key)')
-      .eq('event_id', payload.event_id)
+      .from('guest_photo_matches')
+      .select('photo_id, match_similarity, photos!inner(storage_key, status)')
       .eq('guest_id', guest.id);
     if (matchErr) console.error('personal gallery query failed', matchErr);
 
-    const seen = new Map<string, number | null>(); // photo_id → best similarity
     const matchedMap = new Map<string, { id: string; storage_key: string; url: string; match_similarity: number | null }>();
     for (const row of (matchRows ?? []) as Array<{
       photo_id: string;
       match_similarity: number | null;
-      photos: { storage_key: string } | { storage_key: string }[] | null;
+      photos: { storage_key: string; status: string } | { storage_key: string; status: string }[] | null;
     }>) {
       const ph = Array.isArray(row.photos) ? row.photos[0] : row.photos;
-      if (!ph) continue;
-      const prev = seen.get(row.photo_id);
-      const sim = row.match_similarity ?? null;
-      if (prev === undefined || (sim !== null && (prev === null || sim > prev))) {
-        seen.set(row.photo_id, sim);
-        matchedMap.set(row.photo_id, {
-          id: row.photo_id,
-          storage_key: ph.storage_key,
-          url: photoUrlStub(c, ph.storage_key),
-          match_similarity: sim,
-        });
-      }
+      if (!ph || ph.status === 'culled') continue; // parity with the general gallery
+      matchedMap.set(row.photo_id, {
+        id: row.photo_id,
+        storage_key: ph.storage_key,
+        url: photoUrlStub(c, ph.storage_key),
+        match_similarity: row.match_similarity ?? null,
+      });
     }
     const matched = Array.from(matchedMap.values());
 
@@ -519,39 +512,54 @@ app.post('/guests/:token/selfie', async (c) => {
     if (sim > prev) similarityByPerson.set(row.person_id, sim);
   }
 
-  // Link every plausible cluster (mitigates ingestion-time over-splitting), but
-  // never overwrite a DIFFERENT guest's already-established link.
-  // Two-step: stamp guest_id first (critical path — must never be blocked by an
-  // optional column like match_similarity), then store similarity separately
-  // (best-effort — a missing column or transient error here must not unlink the guest).
-  for (const pid of matchedPersonIds) {
-    const { error: linkErr } = await db
-      .from('face_embeddings')
-      .update({ guest_id: guest.id })
-      .eq('event_id', payload.event_id)
-      .eq('person_id', pid)
-      .or(`guest_id.is.null,guest_id.eq.${guest.id}`);
-    if (linkErr) {
-      console.error('guest_id stamp failed for person', pid, linkErr);
-      return c.json({ error: 'match_link_failed' }, 500);
-    }
+  // Resolve every plausible cluster (mitigates ingestion-time over-splitting) to
+  // the actual PHOTOS those clusters appear in, then record a per-(guest, photo)
+  // match. This is a MANY-TO-MANY link (migration 0008): many guest sessions can
+  // legitimately match the same person cluster — the same person re-scanning the
+  // QR, a new device, an incognito window, a lost session, or a look-alike — so
+  // the link can NOT live as a single owner column on the shared face index. That
+  // let the first guest session "claim" a cluster and every later session silently
+  // matched but got 0 photos (the "0 מתוך 17" bug). A join row per (guest, photo)
+  // has no such collision: each session gets its own rows.
+  const { data: clusterPhotos, error: cpErr } = await db
+    .from('face_embeddings')
+    .select('photo_id, person_id')
+    .eq('event_id', payload.event_id)
+    .in('person_id', matchedPersonIds);
+  if (cpErr) {
+    console.error('cluster→photo resolve failed', cpErr);
+    return c.json({ error: 'match_link_failed' }, 500);
+  }
 
-    // Best-effort: store similarity score for the gallery confidence badge.
-    // If migration 0006 (match_similarity column) is not yet applied, this will
-    // fail — that is acceptable; the guest_id link above already went through.
-    const sim = similarityByPerson.get(pid) ?? null;
-    if (sim !== null) {
-      const { error: simErr } = await db
-        .from('face_embeddings')
-        .update({ match_similarity: sim })
-        .eq('event_id', payload.event_id)
-        .eq('person_id', pid)
-        .eq('guest_id', guest.id);
-      if (simErr) console.error('match_similarity store failed for person', pid, simErr);
+  // photo_id → best similarity across all of this guest's matched clusters in it.
+  const simByPhoto = new Map<string, number | null>();
+  for (const row of ((clusterPhotos ?? []) as { photo_id: string; person_id: string | null }[])) {
+    if (!row.person_id) continue;
+    const sim = similarityByPerson.get(row.person_id) ?? null;
+    const prev = simByPhoto.get(row.photo_id);
+    if (prev === undefined || (sim !== null && (prev === null || sim > prev))) {
+      simByPhoto.set(row.photo_id, sim);
     }
   }
 
-  return c.json({ matched: true, clusters_linked: matchedPersonIds.length });
+  const linkRows = Array.from(simByPhoto.entries()).map(([photo_id, sim]) => ({
+    guest_id: guest.id,
+    event_id: payload.event_id,
+    photo_id,
+    match_similarity: sim,
+  }));
+
+  if (linkRows.length > 0) {
+    const { error: upErr } = await db
+      .from('guest_photo_matches')
+      .upsert(linkRows, { onConflict: 'guest_id,photo_id' });
+    if (upErr) {
+      console.error('guest_photo_matches upsert failed', upErr);
+      return c.json({ error: 'match_link_failed' }, 500);
+    }
+  }
+
+  return c.json({ matched: linkRows.length > 0, photos_linked: linkRows.length });
 });
 
 // ---------------------------------------------------------------------------
