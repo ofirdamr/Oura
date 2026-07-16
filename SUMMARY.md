@@ -106,7 +106,7 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
-**ONE STEP REMAINING (founder):** Set the Resend API key as a Worker secret. Founder has a Resend account (`ouraforphotographers`) with an "Onboarding" key. They need to paste the key value in chat so I can run `wrangler secret put RESEND_API_KEY`. Until then the endpoint returns ok silently but sends no email (Resend key is blank).
+**ONE STEP REMAINING (founder — in progress):** Add `RESEND_API_KEY` to the Claude Code environment variables (secure, not chat) — founder is doing this. Once set, next session runs `wrangler secret put RESEND_API_KEY` to push it to the Worker, verifies the full reset-password flow, and merges PR #61.
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.
