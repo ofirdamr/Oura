@@ -73,13 +73,19 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 - Code fix (PR #55, Worker version `95e16ceb`): `guest_id` stamp is now a separate first UPDATE (hard failure), `match_similarity` is best-effort (non-blocking).
 - PR #55 merged.
 
-## 🔴 BLOCKING — EMBED_SERVICE_TOKEN mismatch (selfie still returns 0 after migration fix)
+## ✅ RESOLVED 2026-07-16 — EMBED_SERVICE_TOKEN mismatch fixed
 
-Cloud Run embed service returns **401** to every selfie request because the Cloudflare Worker's `EMBED_SERVICE_TOKEN` secret value does NOT match Cloud Run's `EMBED_SERVICE_TOKEN` env var. Worker receives 401 → returns 502 → frontend silently skips to gallery → 0 matches.
+The Worker's `EMBED_SERVICE_TOKEN` secret and Cloud Run's `EMBED_SERVICE_TOKEN` env var now hold the **same value**, so the embed service accepts the Worker's requests again (was: 401 → 502 → 0 matches).
 
-**PROGRESS (2026-07-16 session):** The **Worker side is now settable by the assistant** — the `CLOUDFLARE_API_TOKEN` in the sandbox env is valid, so the Worker `EMBED_SERVICE_TOKEN` secret can be set/reset via the Cloudflare API without the founder. The **GCP side is the only real blocker**: the sandbox's `CLOUDSDK_AUTH_ACCESS_TOKEN` is a placeholder Google rejects (confirmed 401 from run.googleapis.com), and Cloud Shell will NOT authorize inside a phone browser (403 on accounts.google.com — founder is iPhone-only, no computer).
+How it was done this session:
+- Worker secret set via Cloudflare API (sandbox `CLOUDFLARE_API_TOKEN` is valid).
+- Cloud Run env var updated via the Cloud Run Admin API, authenticated with a **temporary `temp-fix` service-account key** the founder created (his personal `ofirdamr@gmail.com` lacked project permissions; the project is owned by `ouraforphotographers@gmail.com` — that account had to be used). Cloud Shell would not authorize in a phone browser, which is why the service-account-key route was used instead.
+- New Cloud Run revision `oura-embed-00003-pz6` is live. Verified at the service boundary: wrong token → 401, correct token → 400 (auth passed, only missing image body). Token value intentionally NOT committed to the repo.
 
-**CLEANEST REMAINING PATH (Cloud Run = source of truth):** Founder sets/reads Cloud Run's `EMBED_SERVICE_TOKEN` to a known value (via the **Google Cloud iOS app** Cloud Shell, which authorizes correctly unlike the mobile browser: `gcloud run services update oura-embed --region us-central1 --project ouraforphotographers --update-env-vars EMBED_SERVICE_TOKEN=<value>`), tells the assistant that value, and the assistant sets the Worker secret to match via Cloudflare API. Do NOT commit the token value to the repo.
+**FOLLOW-UPS:**
+- **Founder must DELETE the temporary `temp-fix` service account** (it holds Owner) once the selfie is confirmed working — it's a standing security risk: https://console.cloud.google.com/iam-admin/serviceaccounts?project=ouraforphotographers
+- **Final end-to-end check still owed:** a real selfie at https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 should now return matched photos.
+- Migration 0007 (`supabase/migrations/0007_gallery_theme_personal.sql`) still to be applied at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new (separate from this fix).
 
 **ACTION REQUIRED (founder):** Apply migration 0007 — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
 
