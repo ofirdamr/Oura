@@ -57,6 +57,10 @@ All three layers wired:
 
 PR #50 merged to main.
 
+## ✅ DONE 2026-07-16 — /admin 500 fix: Supabase env vars now injected at build time (PR #60, merged)
+
+`NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` were not set at build time → middleware 500'd on every `/admin/*` route. Added `apps/web/scripts/deploy.js` that auto-maps `SUPABASE_URL`/`ANON_KEY` → `NEXT_PUBLIC_SUPABASE_*` and trims Cloudflare cred whitespace before running the opennext build. `/admin/dashboard` and `/admin/events` now load correctly for logged-in photographers. Live: https://oura-web.oura-events.workers.dev/admin/dashboard
+
 ## ✅ DONE 2026-07-15 — Auth callback loop fix (PR #51, merged to main)
 
 Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.

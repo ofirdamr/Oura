@@ -1,5 +1,8 @@
 # Progress Log
 
+### 2026-07-16
+- fix(web): NEXT_PUBLIC_SUPABASE_URL/ANON_KEY were never set at build time → middleware threw on every /admin/* route → HTTP 500. Added `apps/web/scripts/deploy.js` wrapper that auto-maps SUPABASE_* → NEXT_PUBLIC_SUPABASE_* and trims Cloudflare cred whitespace before spawning opennextjs-cloudflare build + deploy. Deployed (worker `dded9ef8`), /admin routes now return 307 (redirect to /login). PR #60 merged to main.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
