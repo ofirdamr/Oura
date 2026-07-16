@@ -73,9 +73,11 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Verified live:** backend match path works end-to-end (submitting a real event face as a selfie → matched + appears in that guest's gallery, up to 9 cross-photo matches; threshold 0.35 is fine). The single-owner collision is the sole remaining defect and this fix removes it.
 
-**ACTION REQUIRED (founder — 2 steps, no sandbox access to either):**
-1. Apply migration 0008: paste `supabase/migrations/0008_guest_photo_matches.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
-2. Deploy the Worker: `cd apps/api && npx wrangler deploy`
+**Worker DEPLOYED this session** (version `ea58ade8`) — the sandbox HAS Cloudflare deploy creds (`CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`, but BOTH have stray whitespace — `tr -d '[:space:]'` them before `wrangler deploy` or you get code 6111/7003). So future API deploys can be done from the session; no founder terminal needed. New code is live but INERT until migration 0008 is applied (gallery personal query returns empty, selfie upsert 500s → frontend proceeds — no regression, still "0 matches" until then).
+
+**ACTION REQUIRED (founder — clicks only, sandbox canNOT apply DDL: only SERVICE_ROLE_KEY present, no Supabase management/access token, PostgREST can't run DDL):**
+1. Apply migration 0007: paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new → Run
+2. Apply migration 0008: paste `supabase/migrations/0008_guest_photo_matches.sql` at the same page → Run
 
 **TEST after both:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 (each fresh incognito selfie now gets its own matches — no more "first one wins").
 
