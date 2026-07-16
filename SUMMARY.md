@@ -77,9 +77,9 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 Cloud Run embed service returns **401** to every selfie request because the Cloudflare Worker's `EMBED_SERVICE_TOKEN` secret value does NOT match Cloud Run's `EMBED_SERVICE_TOKEN` env var. Worker receives 401 → returns 502 → frontend silently skips to gallery → 0 matches.
 
-**ACTION REQUIRED (founder — must do manually, no GCP API access from sandbox):**
-Option A: Go to https://console.cloud.google.com/run/detail/us-central1/oura-embed/revisions?project=ouraforphotographers → find current `EMBED_SERVICE_TOKEN` value → run `npx wrangler secret put EMBED_SERVICE_TOKEN` from `apps/api/` and enter that value.
-Option B: Generate new token (`openssl rand -hex 32`), set it on Cloud Run (Edit & Deploy new revision) AND in Worker (`npx wrangler secret put EMBED_SERVICE_TOKEN`).
+**PROGRESS (2026-07-16 session):** The **Worker side is now settable by the assistant** — the `CLOUDFLARE_API_TOKEN` in the sandbox env is valid, so the Worker `EMBED_SERVICE_TOKEN` secret can be set/reset via the Cloudflare API without the founder. The **GCP side is the only real blocker**: the sandbox's `CLOUDSDK_AUTH_ACCESS_TOKEN` is a placeholder Google rejects (confirmed 401 from run.googleapis.com), and Cloud Shell will NOT authorize inside a phone browser (403 on accounts.google.com — founder is iPhone-only, no computer).
+
+**CLEANEST REMAINING PATH (Cloud Run = source of truth):** Founder sets/reads Cloud Run's `EMBED_SERVICE_TOKEN` to a known value (via the **Google Cloud iOS app** Cloud Shell, which authorizes correctly unlike the mobile browser: `gcloud run services update oura-embed --region us-central1 --project ouraforphotographers --update-env-vars EMBED_SERVICE_TOKEN=<value>`), tells the assistant that value, and the assistant sets the Worker secret to match via Cloudflare API. Do NOT commit the token value to the repo.
 
 **ACTION REQUIRED (founder):** Apply migration 0007 — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
 
