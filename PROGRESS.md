@@ -398,3 +398,9 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 - **Fix:** migration `0008_guest_photo_matches.sql` (many-to-many join table) + selfie route upserts one row per matched photo + gallery reads the join table + retention cron deletes the guest's join rows. `face_embeddings.guest_id` now vestigial. API `tsc --noEmit` clean. docs/ARCHITECTURE.md updated (§3, §4, §4a — the "future hardening" it already prescribed is now done).
 - **Also verified:** cross-photo matching works well (up to 9 photos from one selfie); threshold 0.35 is fine — not a threshold problem.
 - **Pending founder (no sandbox access):** apply migration 0008 at Supabase SQL editor + `wrangler deploy` apps/api. Then test https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
+
+## 2026-07-16 — selfie 0-match fix SHIPPED + live-verified; two new gallery bugs opened
+- PR #57 merged (squash, main 8529dfe): many-to-many guest_photo_matches (migration 0008). Migrations 0007+0008 applied by founder; oura-api deployed from session (v ea58ade8, via CLOUDFLARE_API_TOKEN — note stray whitespace on all sandbox creds, tr -d before use).
+- Founder confirmed matching works ("10 recognized"). Live REST read (service role): guest_photo_matches has 20 rows across different guests (proves many-to-many), retention_expires_at all +30 days, zero expired — a next-day disappearance is not possible from the cron now.
+- New (frontend, festive theme): personal gallery shows ALL photos not the matched subset; category chips are dead buttons. Handed to next session.
+- Founder distrusts "fixed" (regressed several times historically); 24h auto re-check could not be scheduled (MCP create_trigger failed). Next session should prove persistence over a real day if he reports regression.

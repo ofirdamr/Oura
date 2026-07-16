@@ -2,6 +2,14 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-16 — selfie→gallery 0-match FIXED (PR #57 merged, live)
+Root cause: guest↔photo link was single-owner (`face_embeddings.guest_id`) but the match is many-to-many (same person → many sessions: re-scan/new device/incognito). First session claimed a cluster; later sessions matched but got 0 photos. Fix: many-to-many `guest_photo_matches` join table (migration 0008). Migrations 0007+0008 applied by founder; Worker deployed (v `ea58ade8`); PR #57 merged. Verified live: 20 match rows from different guests coexist; retention correct (30 days, none expired). Live: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
+Deploy note: sandbox HAS Cloudflare creds (`CLOUDFLARE_API_TOKEN`/`ACCOUNT_ID`) AND Supabase `SERVICE_ROLE_KEY` — but ALL have stray whitespace (`tr -d '[:space:]'` before use). `wrangler deploy` works from session; service-role can READ live DB via REST (`SUPABASE_URL` already ends in `/rest/v1`), but canNOT run DDL (founder pastes migrations).
+
+## 🔜 OPEN NEXT MISSIONS
+1. **Festive-gallery display bugs** (`apps/web/app/gallery/page.tsx`, festive theme, WED-2024): (a) shows ALL event photos instead of the guest's matched set — should render `personal_gallery.photos` (API returns the correct subset); (b) event-type filter chips (כל התמונות/חופה/קבלת פנים/מסיבה) are static, no click handlers — wire them to filter. Load hebrew-rtl-best-practices; verify with a real Playwright screenshot on live.
+2. **Persistence re-verify (founder distrust — "works then gone next day")**: could NOT auto-schedule a 24h check (MCP tool failed). Prime suspect if it regresses: daily 3am cron `apps/api/src/scheduledCleanup.ts` + `biometric_consents.retention_expires_at`. Do NOT declare fixed without proving over a real day.
+
 ## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, merged to main)
 
 Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` Stitch screens are now wired:
