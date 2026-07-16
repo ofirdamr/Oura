@@ -8,8 +8,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { OuraLogo } from "@/components/brand/OuraLogo";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -28,9 +28,10 @@ export default function ForgotPasswordPage() {
     }
 
     setPending(true);
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: trimmedEmail }),
     });
     setPending(false);
     setSent(true);
