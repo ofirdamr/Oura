@@ -398,3 +398,11 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 - **Fix:** migration `0008_guest_photo_matches.sql` (many-to-many join table) + selfie route upserts one row per matched photo + gallery reads the join table + retention cron deletes the guest's join rows. `face_embeddings.guest_id` now vestigial. API `tsc --noEmit` clean. docs/ARCHITECTURE.md updated (§3, §4, §4a — the "future hardening" it already prescribed is now done).
 - **Also verified:** cross-photo matching works well (up to 9 photos from one selfie); threshold 0.35 is fine — not a threshold problem.
 - **Pending founder (no sandbox access):** apply migration 0008 at Supabase SQL editor + `wrangler deploy` apps/api. Then test https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
+
+## 2026-07-16 — Password reset email debug (branch claude/resend-domain-verification-9oig7s, PR #62)
+
+- RESEND_API_KEY secret confirmed set on Worker.
+- Root cause not yet confirmed — Resend was silently swallowing errors (returning ok:true even on failure).
+- Added proper Resend error surfacing: endpoint now returns `{ok:false, resend_error:...}` on Resend failure.
+- FROM_EMAIL env var added so domain address can be set without redeploy.
+- Deployed. Next step: founder triggers forgot-password flow and reads the resend_error in the response.
