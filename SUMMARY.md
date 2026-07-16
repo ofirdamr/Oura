@@ -65,17 +65,25 @@ Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
 
 When face-matching returns 0 personal photos: subtitle now says "מחפשים אותך ב-N תמונות" instead of "מצאנו 0 תמונות שלך" (which contradicted the "עדיין מחפשים" card). Buttons now say "שמירת כל התמונות" / "שיתוף כל התמונות" instead of "שלי" when no matches.
 
-## ✅ DONE 2026-07-16 — Root-cause fix: selfie→gallery 0-match bug (PR #55, deployed)
+## ✅ DONE 2026-07-16 — Root-cause fix: selfie→gallery 0-match bug (PR #55, merged)
 
-**Root cause identified and fixed.** Migration 0006 (`match_similarity float4` column on `face_embeddings`) was shipped in code on 2026-07-15 but never applied to live Supabase — no ACTION REQUIRED was ever written. Without it, the selfie UPDATE failed silently, guest_id was never stamped, gallery returned 0 photos.
+**Root cause identified and fixed.** Migration 0006 (`match_similarity float4` column on `face_embeddings`) was shipped in code on 2026-07-15 but never applied to live Supabase. Without it, the selfie UPDATE failed silently, guest_id was never stamped, gallery returned 0 photos.
 
-- Migration 0006 applied by founder (confirmed via Supabase REST — column exists).
-- Code fix (PR #55, Worker version `95e16ceb`): `guest_id` stamp is now a separate first UPDATE (hard failure), `match_similarity` is a best-effort second UPDATE (non-blocking). A future schema lag can't block the critical link.
-- PR #55 draft, CI green. **Merge when ready.**
+- Migration 0006 applied by founder (confirmed — column exists).
+- Code fix (PR #55, Worker version `95e16ceb`): `guest_id` stamp is now a separate first UPDATE (hard failure), `match_similarity` is best-effort (non-blocking).
+- PR #55 merged.
 
-**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
+## 🔴 BLOCKING — EMBED_SERVICE_TOKEN mismatch (selfie still returns 0 after migration fix)
 
-**TEST:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 — do a real selfie, your photos should now appear.
+Cloud Run embed service returns **401** to every selfie request because the Cloudflare Worker's `EMBED_SERVICE_TOKEN` secret value does NOT match Cloud Run's `EMBED_SERVICE_TOKEN` env var. Worker receives 401 → returns 502 → frontend silently skips to gallery → 0 matches.
+
+**ACTION REQUIRED (founder — must do manually, no GCP API access from sandbox):**
+Option A: Go to https://console.cloud.google.com/run/detail/us-central1/oura-embed/revisions?project=ouraforphotographers → find current `EMBED_SERVICE_TOKEN` value → run `npx wrangler secret put EMBED_SERVICE_TOKEN` from `apps/api/` and enter that value.
+Option B: Generate new token (`openssl rand -hex 32`), set it on Cloud Run (Edit & Deploy new revision) AND in Worker (`npx wrangler secret put EMBED_SERVICE_TOKEN`).
+
+**ACTION REQUIRED (founder):** Apply migration 0007 — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
+
+**TEST after token fix:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
