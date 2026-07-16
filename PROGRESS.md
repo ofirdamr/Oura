@@ -406,3 +406,4 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 - Added proper Resend error surfacing: endpoint now returns `{ok:false, resend_error:...}` on Resend failure.
 - FROM_EMAIL env var added so domain address can be set without redeploy.
 - Deployed. Next step: founder triggers forgot-password flow and reads the resend_error in the response.
+- Root cause confirmed: onboarding@resend.dev silently drops to non-account-owner emails. Next: swap to Brevo SMTP (free, no domain).
