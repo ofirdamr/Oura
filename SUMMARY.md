@@ -83,9 +83,19 @@ How it was done this session:
 - New Cloud Run revision `oura-embed-00003-pz6` is live. Verified at the service boundary: wrong token → 401, correct token → 400 (auth passed, only missing image body). Token value intentionally NOT committed to the repo.
 
 **FOLLOW-UPS:**
-- **Founder must DELETE the temporary `temp-fix` service account** (it holds Owner) once the selfie is confirmed working — it's a standing security risk: https://console.cloud.google.com/iam-admin/serviceaccounts?project=ouraforphotographers
-- **Final end-to-end check still owed:** a real selfie at https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 should now return matched photos.
+- **Founder must DELETE the temporary `temp-fix` service account** (it holds Owner) — standing security risk: https://console.cloud.google.com/iam-admin/serviceaccounts?project=ouraforphotographers
 - Migration 0007 (`supabase/migrations/0007_gallery_theme_personal.sql`) still to be applied at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new (separate from this fix).
+
+## 🔴 STILL BLOCKING 2026-07-16 — selfie STILL returns 0 matches AFTER token sync
+
+Token sync did NOT fully fix the guest→gallery 0-match bug. A **fresh incognito selfie** at WED-2024 still shows "מצאנו 0 תמונות שלך מתוך 17". The token was necessary but not sufficient — a deeper bug remains in the **selfie→match step**.
+
+**Confirmed via direct Supabase queries this session (service-role key is in sandbox env, `SUPABASE_URL` already includes `/rest/v1/`):**
+- Event `WED-2024` id = `3c5e60a0-ac85-4682-9be4-427bc04af0a5`, has **17 photos**.
+- `face_embeddings` table has **286 rows** (photo faces, `guest_id = null`) — so **the photos ARE embedded**; matching has data to match against. The missing piece is on the selfie/guest side.
+- Embed service (`https://oura-embed-pckryn2pxq-uc.a.run.app`) now ACCEPTS the synced token: wrong token → 401, correct token `3fd5…` → 400 (auth passed).
+
+**NEXT MISSION (fresh session):** Debug the selfie→match path. Check: (1) does a guest selfie create a `face_embeddings` row with `guest_id` set (or is the selfie embedding stored at all)? (2) is the Worker's call to the embed service succeeding end-to-end now (check Worker logs / `wrangler tail`), or failing for a NEW reason past auth? (3) is the pgvector similarity match query running and is its threshold too strict? (4) is `guest_id` getting stamped onto matched photo embeddings (PR #55 logic)? Start from the Worker selfie endpoint in `apps/api` and trace to the pgvector query.
 
 **ACTION REQUIRED (founder):** Apply migration 0007 — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
 
