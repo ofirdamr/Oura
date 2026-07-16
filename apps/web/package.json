@@ -8,10 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "predeploy": "node scripts/check-deploy-env.js",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "preupload": "node scripts/check-deploy-env.js",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "deploy": "node scripts/deploy.js",
+    "upload": "node scripts/deploy.js",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
