@@ -65,20 +65,25 @@ Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
 
 When face-matching returns 0 personal photos: subtitle now says "מחפשים אותך ב-N תמונות" instead of "מצאנו 0 תמונות שלך" (which contradicted the "עדיין מחפשים" card). Buttons now say "שמירת כל התמונות" / "שיתוף כל התמונות" instead of "שלי" when no matches.
 
-## 🐛 LIVE BUG — Face matching returns 0 results for founder's selfie
+## ✅ DONE 2026-07-16 — Root-cause fix: selfie→gallery 0-match bug (PR #55, merged)
 
-Founder scanned QR, completed consent + selfie, gallery shows 0 matched photos. The "התמונות שלי" toggle is correctly hidden (code is fine). Root cause: embedding pipeline not matching the selfie to event photos on demo event WED-2024. Needs investigation: Cloud Run `oura-embed` logs, Supabase `face_embeddings` table (does founder's guest row have an embedding?), queue consumer completion.
+**Root cause identified and fixed.** Migration 0006 (`match_similarity float4` column on `face_embeddings`) was shipped in code on 2026-07-15 but never applied to live Supabase. Without it, the selfie UPDATE failed silently, guest_id was never stamped, gallery returned 0 photos.
 
-**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase — https://supabase.com/dashboard → SQL editor → paste `supabase/migrations/0007_gallery_theme_personal.sql`
+- Migration 0006 applied by founder (confirmed — column exists).
+- Code fix (PR #55, Worker version `95e16ceb`): `guest_id` stamp is now a separate first UPDATE (hard failure), `match_similarity` is best-effort (non-blocking).
+- PR #55 merged.
 
-## ✅ DONE 2026-07-15 — Face recognition fixes (PR in progress)
+## 🔴 BLOCKING — EMBED_SERVICE_TOKEN mismatch (selfie still returns 0 after migration fix)
 
-Three compounding bugs fixed:
-- **Queue consumer** was calling `embed()` (no retry) instead of `embedWithRetry()` — fragile against Cloud Run cold starts.
-- **DB constraint** only allowed `'festive'|'minimal'`, silently blocking save of `'personal'` theme (introduced by PR #50) — fixed by migration 0007.
-- **Festive gallery** had no "mine" filter UI — guests couldn't view their face-matched photos after a selfie. Added "כל התמונות / התמונות שלי" toggle row (visible only when personal photos exist).
+Cloud Run embed service returns **401** to every selfie request because the Cloudflare Worker's `EMBED_SERVICE_TOKEN` secret value does NOT match Cloud Run's `EMBED_SERVICE_TOKEN` env var. Worker receives 401 → returns 502 → frontend silently skips to gallery → 0 matches.
 
-**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase. Go to https://supabase.com/dashboard/project/your-project/sql/new and paste the contents of `supabase/migrations/0007_gallery_theme_personal.sql`.
+**ACTION REQUIRED (founder — must do manually, no GCP API access from sandbox):**
+Option A: Go to https://console.cloud.google.com/run/detail/us-central1/oura-embed/revisions?project=ouraforphotographers → find current `EMBED_SERVICE_TOKEN` value → run `npx wrangler secret put EMBED_SERVICE_TOKEN` from `apps/api/` and enter that value.
+Option B: Generate new token (`openssl rand -hex 32`), set it on Cloud Run (Edit & Deploy new revision) AND in Worker (`npx wrangler secret put EMBED_SERVICE_TOKEN`).
+
+**ACTION REQUIRED (founder):** Apply migration 0007 — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
+
+**TEST after token fix:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
