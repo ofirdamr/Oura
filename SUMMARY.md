@@ -105,7 +105,9 @@ Deliberately not real yet: `/join`/`/festive-gallery`/`/minimal-gallery` (static
 
 ## Known Supabase Auth gap
 
-Reset email sends from Supabase's shared sender, not "Oura." Needs custom SMTP + a real transactional email provider + a domain the founder controls. **Waiting on founder to register a domain and pick a name.** Recommended path: Cloudflare Registrar + Resend free tier.
+Reset email sends from Supabase's shared sender, not "Oura." May land in spam (subject: "Reset your password", from Supabase). Needs custom SMTP + a real transactional email provider + a domain the founder controls. **Waiting on founder to register a domain and pick a name.** Recommended path: Cloudflare Registrar + Resend free tier.
+
+**⚠️ Founder login blocker (2026-07-16):** Founder can't log in — password unknown. Workaround: https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/auth/users → find ofirdamr@gmail.com → ⋯ → "Send password recovery" (check spam) or "Change password" to set directly. Next session should confirm this is resolved before any photographer-dashboard work.
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.
