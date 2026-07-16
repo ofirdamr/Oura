@@ -106,7 +106,15 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
-**ONE STEP REMAINING (founder — in progress):** Add `RESEND_API_KEY` to the Claude Code environment variables (secure, not chat) — founder is doing this. Once set, next session runs `wrangler secret put RESEND_API_KEY` to push it to the Worker, verifies the full reset-password flow, and merges PR #61.
+## ✅ DONE 2026-07-16 — Custom password reset email via Resend (PR #61, merged to main)
+
+Supabase's built-in email was confirmed broken (no emails sent). Built a custom `POST /auth/forgot-password` Worker endpoint: generates the Supabase recovery link server-side via `auth.admin.generateLink()`, sends it via Resend's direct API — bypassing Supabase email entirely. Frontend `/forgot-password` page updated to call this endpoint. PR #61 merged.
+
+**ONE REMAINING STEP (founder — do before testing):** Set `RESEND_API_KEY` as a Worker secret. Add it to the Claude Code environment, then the next session runs:
+```
+cd /home/user/Oura/apps/api && echo "$RESEND_API_KEY" | npx wrangler secret put RESEND_API_KEY
+```
+Until this secret is set, the endpoint returns ok silently but sends no email.
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.
