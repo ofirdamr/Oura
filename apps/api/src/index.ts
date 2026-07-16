@@ -1183,8 +1183,7 @@ app.post('/auth/forgot-password', async (c) => {
 
   const resetLink = linkData.properties.action_link;
 
-  // Send via Resend direct API (not SMTP — fully reliable, no Supabase email involved).
-  await fetch('https://api.resend.com/emails', {
+  const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
@@ -1211,6 +1210,12 @@ app.post('/auth/forgot-password', async (c) => {
       `,
     }),
   });
+
+  if (!resendRes.ok) {
+    const resendErr = await resendRes.json().catch(() => ({ status: resendRes.status }));
+    console.error('Resend error:', JSON.stringify(resendErr));
+    return c.json({ ok: false, resend_error: resendErr }, 500);
+  }
 
   return c.json({ ok: true });
 });
