@@ -99,9 +99,14 @@ Real end-to-end: entire guest path (Stage 2 face-matching live), entire photogra
 
 Deliberately not real yet: `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or unused), Premium Prints/Checkout/Order Confirmation (Phase 2), Statistics/Messaging/Notifications/Reports (Phase 2).
 
-## Known Supabase Auth gap
+## Password reset email — custom flow wired (awaiting Resend API key secret)
 
-Reset email sends from Supabase's shared sender, not "Oura." Needs custom SMTP + a real transactional email provider + a domain the founder controls. **Waiting on founder to register a domain and pick a name.** Recommended path: Cloudflare Registrar + Resend free tier.
+Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow was built that bypasses Supabase email entirely:
+- New `POST /auth/forgot-password` endpoint on the Worker: calls `supabase.auth.admin.generateLink({ type: 'recovery' })` server-side, then sends the link via Resend's direct API (not SMTP).
+- `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
+- Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
+
+**ONE STEP REMAINING (founder — in progress):** Add `RESEND_API_KEY` to the Claude Code environment variables (secure, not chat) — founder is doing this. Once set, next session runs `wrangler secret put RESEND_API_KEY` to push it to the Worker, verifies the full reset-password flow, and merges PR #61.
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.

@@ -31,6 +31,8 @@ export type Env = {
   // Bearer secret gating /admin/backfill-embeddings — an operator action, not
   // a photographer-dashboard feature, so it isn't behind requireEventOwner.
   ADMIN_BACKFILL_TOKEN: string;
+  // Resend API key for transactional email (password reset). Set via wrangler secret.
+  RESEND_API_KEY: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -1140,6 +1142,74 @@ app.get('/admin/processing-status', async (c) => {
   }));
 
   return c.json({ stats, recent, face_embeddings: (faces as unknown as { count?: number } | null)?.count ?? 0 });
+});
+
+// POST /auth/forgot-password
+//   Public endpoint. Takes { email } body, generates a Supabase recovery link
+//   server-side (no email sent by Supabase), then sends it via Resend's direct
+//   API — bypassing Supabase's unreliable shared SMTP entirely.
+//   Always returns 200 with the same body regardless of whether the email
+//   exists, to avoid leaking account existence (same pattern as requireEventOwner).
+app.post('/auth/forgot-password', async (c) => {
+  let email = '';
+  try {
+    const body = await c.req.json<{ email?: string }>();
+    email = (body?.email ?? '').trim().toLowerCase();
+  } catch {
+    return c.json({ ok: true }); // malformed body — silent
+  }
+
+  if (!email) return c.json({ ok: true });
+
+  const db = supa(c.env);
+
+  // Generate a recovery link without sending email. Admin-only Supabase method.
+  const { data: linkData, error: linkErr } = await db.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: {
+      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password',
+    },
+  });
+
+  // If the email doesn't exist in Supabase, generateLink returns an error.
+  // Silently return ok so the caller can't enumerate accounts.
+  if (linkErr || !linkData?.properties?.action_link) {
+    return c.json({ ok: true });
+  }
+
+  const resetLink = linkData.properties.action_link;
+
+  // Send via Resend direct API (not SMTP — fully reliable, no Supabase email involved).
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'Oura <onboarding@resend.dev>',
+      to: [email],
+      subject: 'איפוס סיסמה - Oura',
+      html: `
+        <div dir="rtl" style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0a0a0a;color:#f5f5f5;border-radius:16px;">
+          <h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Oura</h1>
+          <h2 style="font-size:18px;font-weight:600;margin-bottom:16px;color:#ff8a75;">איפוס סיסמה</h2>
+          <p style="color:#aaa;line-height:1.6;margin-bottom:24px;">
+            קיבלנו בקשה לאיפוס הסיסמה של חשבונך. לחצו על הכפתור למטה כדי לבחור סיסמה חדשה.
+          </p>
+          <a href="${resetLink}" style="display:inline-block;background:#ff8a75;color:#fff;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-size:16px;">
+            איפוס סיסמה
+          </a>
+          <p style="color:#666;font-size:12px;margin-top:24px;">
+            הקישור תקף ל-24 שעות. אם לא ביקשתם לאפס את הסיסמה, ניתן להתעלם מהודעה זו.
+          </p>
+        </div>
+      `,
+    }),
+  });
+
+  return c.json({ ok: true });
 });
 
 app.get('/events/by-code/:code', async (c) => {
