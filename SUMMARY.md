@@ -65,20 +65,17 @@ Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.
 
 When face-matching returns 0 personal photos: subtitle now says "מחפשים אותך ב-N תמונות" instead of "מצאנו 0 תמונות שלך" (which contradicted the "עדיין מחפשים" card). Buttons now say "שמירת כל התמונות" / "שיתוף כל התמונות" instead of "שלי" when no matches.
 
-## 🐛 LIVE BUG — Face matching returns 0 results for founder's selfie
+## ✅ DONE 2026-07-16 — Root-cause fix: selfie→gallery 0-match bug (PR #55, deployed)
 
-Founder scanned QR, completed consent + selfie, gallery shows 0 matched photos. The "התמונות שלי" toggle is correctly hidden (code is fine). Root cause: embedding pipeline not matching the selfie to event photos on demo event WED-2024. Needs investigation: Cloud Run `oura-embed` logs, Supabase `face_embeddings` table (does founder's guest row have an embedding?), queue consumer completion.
+**Root cause identified and fixed.** Migration 0006 (`match_similarity float4` column on `face_embeddings`) was shipped in code on 2026-07-15 but never applied to live Supabase — no ACTION REQUIRED was ever written. Without it, the selfie UPDATE failed silently, guest_id was never stamped, gallery returned 0 photos.
 
-**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase — https://supabase.com/dashboard → SQL editor → paste `supabase/migrations/0007_gallery_theme_personal.sql`
+- Migration 0006 applied by founder (confirmed via Supabase REST — column exists).
+- Code fix (PR #55, Worker version `95e16ceb`): `guest_id` stamp is now a separate first UPDATE (hard failure), `match_similarity` is a best-effort second UPDATE (non-blocking). A future schema lag can't block the critical link.
+- PR #55 draft, CI green. **Merge when ready.**
 
-## ✅ DONE 2026-07-15 — Face recognition fixes (PR in progress)
+**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase — paste `supabase/migrations/0007_gallery_theme_personal.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
 
-Three compounding bugs fixed:
-- **Queue consumer** was calling `embed()` (no retry) instead of `embedWithRetry()` — fragile against Cloud Run cold starts.
-- **DB constraint** only allowed `'festive'|'minimal'`, silently blocking save of `'personal'` theme (introduced by PR #50) — fixed by migration 0007.
-- **Festive gallery** had no "mine" filter UI — guests couldn't view their face-matched photos after a selfie. Added "כל התמונות / התמונות שלי" toggle row (visible only when personal photos exist).
-
-**ACTION REQUIRED (founder):** Apply migration 0007 to live Supabase. Go to https://supabase.com/dashboard/project/your-project/sql/new and paste the contents of `supabase/migrations/0007_gallery_theme_personal.sql`.
+**TEST:** https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 — do a real selfie, your photos should now appear.
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 

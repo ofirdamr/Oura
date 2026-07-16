@@ -384,3 +384,10 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 - lib/api.ts: added `gallery_theme: string` to `GalleryEvent` type
 - Gallery page: theme-conditional rendering — festive (2-col, event-type chips, mobile hero), minimal (editorial grid, STORY COLLECTION badge), personal (unchanged 3-col)
 - Both oura-api and oura-web deployed live
+
+## 2026-07-16 — Root-cause fix: selfie→gallery 0-match bug (PR #55, deployed)
+- **Root cause found:** migration 0006 (`match_similarity` column on `face_embeddings`) was shipped in code (commit 3b07cc0, 2026-07-15) but never flagged as ACTION REQUIRED. Without the column, the selfie UPDATE failed silently → guest_id never stamped → gallery returned 0 photos. Gallery GET also selected `match_similarity` → failed on the read side too.
+- **DB fix:** founder applied migration 0006 live (column confirmed present via Supabase REST).
+- **Code fix (PR #55, deployed as version 95e16ceb):** split the combined UPDATE into two steps — `guest_id` first (hard failure), `match_similarity` second (best-effort, non-blocking). A future schema lag can no longer block the critical link. Added error logging on gallery matchRows query so failures surface in Worker logs instead of returning empty silently.
+- PR #54 (gallery zero-match copy) already merged by founder.
+- **Still outstanding:** migration 0007 (`personal` gallery_theme constraint) not yet applied. PR #55 draft, CI green, ready to merge.
