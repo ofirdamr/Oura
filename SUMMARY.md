@@ -57,6 +57,16 @@ All three layers wired:
 
 PR #50 merged to main.
 
+## ✅ DONE 2026-07-16 — Festive gallery photo fix + filter chips (PR #59, merged)
+
+- Festive theme now shows guest's personal matched photos (not all event photos)
+- Filter chips (כל התמונות/חופה/קבלת פנים/מסיבה) are wired — clicking changes active state and filters photos
+- Full MVP acceptance walk passed. Deployed `10cb402d`.
+
+## ⚠️ KNOWN PRE-EXISTING ISSUE — Admin dashboard 500
+
+`/admin/dashboard` and `/admin/events` return HTTP 500 because `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are not baked into the build at deploy time. This predates the current fixes — the middleware throws because it can't init the Supabase client. Next deploy touching admin routes must set these env vars in the build environment first.
+
 ## ✅ DONE 2026-07-15 — Auth callback loop fix (PR #51, merged to main)
 
 Fixed infinite redirect loop on `/auth/callback` route. PR #51 merged.

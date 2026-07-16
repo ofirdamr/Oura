@@ -1,5 +1,10 @@
 # Progress Log
 
+### 2026-07-16
+- Fixed festive gallery: was showing all 17 event photos, now shows only guest's personal matched photos (`festivePhotos` derived from `personalPhotos`). PR #59, commit `ef4cb02`, deployed `10cb402d`. QA confirmed in live bundle.
+- Wired festive filter chips (כל התמונות/חופה/קבלת פנים/מסיבה): `festiveCategory` state now actually filters displayed photos. Chips show active highlight on click. `GuestPhoto` type extended with `category?: string | null` for future category data.
+- Full MVP acceptance walk: guest flow PASS, both bug fixes PASS. Pre-existing: admin dashboard 500 (NEXT_PUBLIC_SUPABASE_URL/ANON_KEY missing from build env — needs to be set before next admin-facing deploy). PR #59 merged.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
