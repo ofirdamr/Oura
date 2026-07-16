@@ -106,15 +106,20 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
-## ✅ DONE 2026-07-16 — Custom password reset email via Resend (PR #61, merged to main)
+## ✅ DONE 2026-07-16 — Password reset email migrated Resend → Brevo (branch `claude/resend-to-brevo-migration-4gj7vi`, PR #62)
 
-Supabase's built-in email was confirmed broken (no emails sent). Built a custom `POST /auth/forgot-password` Worker endpoint: generates the Supabase recovery link server-side via `auth.admin.generateLink()`, sends it via Resend's direct API — bypassing Supabase email entirely. Frontend `/forgot-password` page updated to call this endpoint. PR #61 merged.
+Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner (and no custom domain is allowed). Swapped the `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no domain purchase. Same server-side flow otherwise: `auth.admin.generateLink()` builds the recovery link, Brevo emails it. Env: `RESEND_API_KEY` → `BREVO_API_KEY` (+ optional `BREVO_SENDER_EMAIL`, defaults to the founder's validated sender). API typecheck clean.
 
-**ONE REMAINING STEP (founder — do before testing):** Set `RESEND_API_KEY` as a Worker secret. Add it to the Claude Code environment, then the next session runs:
+**REMAINING STEPS (founder):**
+1. In Brevo (https://app.brevo.com), validate a sender address (use `ofirdamr@gmail.com`, or set `BREVO_SENDER_EMAIL` to whatever you validate) and copy the transactional **API key** (SMTP & API → API Keys).
+2. Once the key is in the Claude Code environment, the next session runs:
 ```
-cd /home/user/Oura/apps/api && echo "$RESEND_API_KEY" | npx wrangler secret put RESEND_API_KEY
+cd /home/user/Oura/apps/api && echo "$BREVO_API_KEY" | npx wrangler secret put BREVO_API_KEY
 ```
-Until this secret is set, the endpoint returns ok silently but sends no email.
+Until this secret is set, the endpoint returns ok silently but sends no email. (The old `RESEND_API_KEY` Worker secret is now unused and can be deleted with `npx wrangler secret delete RESEND_API_KEY`.)
+
+### Earlier (superseded): custom reset email via Resend (PR #61, merged)
+Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.

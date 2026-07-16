@@ -31,8 +31,13 @@ export type Env = {
   // Bearer secret gating /admin/backfill-embeddings — an operator action, not
   // a photographer-dashboard feature, so it isn't behind requireEventOwner.
   ADMIN_BACKFILL_TOKEN: string;
-  // Resend API key for transactional email (password reset). Set via wrangler secret.
-  RESEND_API_KEY: string;
+  // Brevo (Sendinblue) transactional-email API key for password-reset email.
+  // Set via wrangler secret. Brevo delivers to any inbox with no custom domain —
+  // Resend's shared onboarding@resend.dev only delivered to the account owner.
+  BREVO_API_KEY: string;
+  // Verified Brevo sender address (validated once in the Brevo dashboard).
+  // Optional — falls back to the founder's validated sender when unset.
+  BREVO_SENDER_EMAIL?: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -1146,8 +1151,11 @@ app.get('/admin/processing-status', async (c) => {
 
 // POST /auth/forgot-password
 //   Public endpoint. Takes { email } body, generates a Supabase recovery link
-//   server-side (no email sent by Supabase), then sends it via Resend's direct
-//   API — bypassing Supabase's unreliable shared SMTP entirely.
+//   server-side (no email sent by Supabase), then sends it via Brevo's
+//   transactional-email API — bypassing Supabase's unreliable shared SMTP
+//   entirely. Brevo (unlike Resend's shared onboarding@resend.dev, which only
+//   delivered to the Resend account owner) delivers to any inbox with no
+//   custom domain required.
 //   Always returns 200 with the same body regardless of whether the email
 //   exists, to avoid leaking account existence (same pattern as requireEventOwner).
 app.post('/auth/forgot-password', async (c) => {
@@ -1180,18 +1188,21 @@ app.post('/auth/forgot-password', async (c) => {
 
   const resetLink = linkData.properties.action_link;
 
-  // Send via Resend direct API (not SMTP — fully reliable, no Supabase email involved).
-  await fetch('https://api.resend.com/emails', {
+  // Send via Brevo's transactional-email API (delivers to any inbox, no custom
+  // domain needed — the reason we moved off Resend's owner-only shared sender).
+  const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
+  await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
+      'api-key': c.env.BREVO_API_KEY,
       'Content-Type': 'application/json',
+      'accept': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Oura <onboarding@resend.dev>',
-      to: [email],
+      sender: { name: 'Oura', email: senderEmail },
+      to: [{ email }],
       subject: 'איפוס סיסמה - Oura',
-      html: `
+      htmlContent: `
         <div dir="rtl" style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0a0a0a;color:#f5f5f5;border-radius:16px;">
           <h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Oura</h1>
           <h2 style="font-size:18px;font-weight:600;margin-bottom:16px;color:#ff8a75;">איפוס סיסמה</h2>

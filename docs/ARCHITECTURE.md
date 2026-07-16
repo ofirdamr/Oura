@@ -332,7 +332,11 @@ two and enumerate event ids.
 **Auth pages (no middleware, obviously):** `/login`, `/signup`,
 `/forgot-password`, `/reset-password` — designed fresh (no Stitch source
 existed), matching the `/consent` screen's dark-luxury card visual language.
-`/forgot-password` calls Supabase Auth's `resetPasswordForEmail`;
+`/forgot-password` calls the Worker's `POST /auth/forgot-password`, which
+generates the Supabase recovery link server-side via
+`auth.admin.generateLink()` and emails it through Brevo's transactional API
+(bypassing Supabase's unreliable shared SMTP; Brevo delivers to any inbox
+with no custom domain, unlike the old Resend shared sender).
 `/reset-password` is where the emailed link lands — the browser client
 auto-detects the recovery session from the URL, then `updateUser({password})`
 sets the new one. Closes the "no password reset" known gap (§8).
@@ -513,6 +517,12 @@ anywhere real — will need to be re-set/confirmed once it is).
 `ADMIN_BACKFILL_TOKEN` (gates `POST /admin/backfill-embeddings`, see §4 —
 write-only like every other Wrangler secret; re-set via `wrangler secret put`
 if it needs to be used again and the value has been lost).
+`BREVO_API_KEY` (Brevo/Sendinblue transactional-email API key powering
+`POST /auth/forgot-password`; replaced the old `RESEND_API_KEY` — Resend's
+shared `onboarding@resend.dev` only delivered to the Resend account owner,
+Brevo delivers to any inbox with no custom domain). Optional companion
+non-secret `BREVO_SENDER_EMAIL` overrides the validated sender address
+(defaults to the founder's validated Brevo sender when unset).
 
 **`apps/api` (R2 binding, `wrangler.toml`):** `MEDIA` → bucket `ouramedia`.
 
