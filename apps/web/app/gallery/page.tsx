@@ -266,6 +266,11 @@ export default function GalleryPage() {
   const activeFilter = filter === "mine" && personalPhotos.length > 0 ? "mine" : "all";
   const shownPhotos = activeFilter === "mine" ? personalPhotos : generalPhotos;
 
+  const festivePhotos =
+    festiveCategory === "all"
+      ? personalPhotos
+      : personalPhotos.filter((p) => p.category === festiveCategory);
+
   const galleryTheme = data.event?.gallery_theme ?? "festive";
 
   return (
@@ -470,7 +475,7 @@ export default function GalleryPage() {
                   {cat.label}
                 </button>
               ))}
-              {shownPhotos.length > 0 && (
+              {festivePhotos.length > 0 && (
                 <button
                   type="button"
                   onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
@@ -566,16 +571,16 @@ export default function GalleryPage() {
         <section className="space-y-3 pb-8">
           {shownPhotos.length > 0 ? (
             galleryTheme === "festive" ? (
-              /* Festive: 2-col grid, slightly larger tiles, warm look */
+              /* Festive: 2-col grid of matched personal photos, filtered by festiveCategory */
               <div className="grid grid-cols-2 gap-2">
-                {shownPhotos.map((photo, i) => (
+                {festivePhotos.map((photo, i) => (
                   <PhotoTile
                     key={photo.id}
                     photo={photo}
                     matched={matchedIds.has(photo.id)}
                     selectMode={selectMode}
                     selected={selected.has(photo.id)}
-                    onOpen={() => setViewer({ list: shownPhotos, index: i })}
+                    onOpen={() => setViewer({ list: festivePhotos, index: i })}
                     onToggleSelect={() => toggleSelect(photo.id)}
                   />
                 ))}
