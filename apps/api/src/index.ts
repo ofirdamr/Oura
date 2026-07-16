@@ -33,6 +33,9 @@ export type Env = {
   ADMIN_BACKFILL_TOKEN: string;
   // Resend API key for transactional email (password reset). Set via wrangler secret.
   RESEND_API_KEY: string;
+  // Verified sending address, e.g. "Oura <noreply@yourdomain.com>". Falls back to
+  // Resend's shared test address (only reaches the Resend account owner's inbox).
+  FROM_EMAIL?: string;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -1188,7 +1191,7 @@ app.post('/auth/forgot-password', async (c) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Oura <onboarding@resend.dev>',
+      from: c.env.FROM_EMAIL ?? 'Oura <onboarding@resend.dev>',
       to: [email],
       subject: 'איפוס סיסמה - Oura',
       html: `
