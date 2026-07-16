@@ -99,7 +99,11 @@ Real end-to-end: entire guest path (Stage 2 face-matching live), entire photogra
 
 Deliberately not real yet: `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or unused), Premium Prints/Checkout/Order Confirmation (Phase 2), Statistics/Messaging/Notifications/Reports (Phase 2).
 
-## Password reset email — RESEND ERROR NOT YET KNOWN (branch claude/resend-domain-verification-9oig7s, PR #62 open)
+## Password reset email — BLOCKED ON DOMAIN (branch claude/resend-domain-verification-9oig7s, PR #62 open)
+
+**Root cause confirmed:** Resend's shared `onboarding@resend.dev` domain silently drops emails to any address that isn't the Resend account owner's email. No logs appear. HTTP 200 is returned but nothing is delivered.
+**Only fix:** add a verified sending domain to the `ouraforphotographers` Resend account at https://resend.com/domains, then set `FROM_EMAIL` Worker secret to `"Oura <noreply@YOURDOMAIN>"`.
+**Code is ready:** `FROM_EMAIL` env var already wired in Worker — no redeploy needed once secret is set.
 
 RESEND_API_KEY secret is set. The endpoint now returns the exact Resend error when sending fails.
 **Next step:** founder goes to https://oura-web.oura-events.workers.dev/forgot-password, enters email, reads the `resend_error` field in the API response (browser DevTools → Network tab → /auth/forgot-password). That error tells us exactly what Resend rejects.
