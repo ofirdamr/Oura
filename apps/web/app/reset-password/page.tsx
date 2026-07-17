@@ -1,12 +1,15 @@
 "use client";
 
 // Photographer self-service password reset, step 2: the link from the reset
-// email lands here. The Supabase browser client auto-detects the recovery
-// session from the URL (hash tokens or a PKCE `code` param, depending on the
-// project's auth flow type) on init - we don't parse the URL ourselves, we
-// just wait for either an existing session or the PASSWORD_RECOVERY event
-// before showing the "set new password" form. No session after a short wait
-// means the link is invalid/expired.
+// email lands here carrying `?token_hash=...&type=recovery`. We redeem that
+// one-time token by calling `verifyOtp()` in client JS on mount - crucially
+// NOT by emailing Supabase's /auth/v1/verify GET link, which any email-client
+// or Brevo link-scanner prefetch would consume before the user ever taps it
+// (that was the "This page couldn't load" bug). A plain GET on this page
+// consumes nothing; only the browser executing this JS spends the token, so it
+// survives prefetch. Legacy links (hash tokens / PKCE code the client
+// auto-detects) still work via the getSession + onAuthStateChange fallback.
+// No session after a short wait means the link is invalid/expired.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -35,11 +38,28 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // Covers the case where the session/event was already established before
-    // this listener attached.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true);
-    });
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+
+    if (tokenHash && type === "recovery") {
+      // Redeem the one-time recovery token here, in the browser, only when the
+      // real user opens the page - this is what makes the flow resilient to
+      // email-scanner link prefetch (a plain GET never reaches this code).
+      supabase.auth
+        .verifyOtp({ type: "recovery", token_hash: tokenHash })
+        .then(({ error: verifyError }) => {
+          if (verifyError) setLinkInvalid(true);
+          else setReady(true);
+        });
+    } else {
+      // Legacy links: covers the case where the session/event was already
+      // established from URL hash tokens / a PKCE code before this listener
+      // attached.
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setReady(true);
+      });
+    }
 
     const timeout = setTimeout(() => {
       setReady((current) => {

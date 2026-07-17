@@ -333,13 +333,23 @@ two and enumerate event ids.
 `/forgot-password`, `/reset-password` — designed fresh (no Stitch source
 existed), matching the `/consent` screen's dark-luxury card visual language.
 `/forgot-password` calls the Worker's `POST /auth/forgot-password`, which
-generates the Supabase recovery link server-side via
+generates the Supabase recovery token server-side via
 `auth.admin.generateLink()` and emails it through Brevo's transactional API
 (bypassing Supabase's unreliable shared SMTP; Brevo delivers to any inbox
-with no custom domain, unlike the old Resend shared sender).
-`/reset-password` is where the emailed link lands — the browser client
-auto-detects the recovery session from the URL, then `updateUser({password})`
-sets the new one. Closes the "no password reset" known gap (§8).
+with no custom domain, unlike the old Resend shared sender). **The email
+carries a link to our own `/reset-password?token_hash=…&type=recovery`
+page — NOT Supabase's `action_link` (the `/auth/v1/verify` GET URL).** The
+`action_link` is a one-time GET that Supabase consumes on the *first*
+request to hit it, and email-client / Brevo link scanners prefetch it before
+the user taps → token already spent → "This page couldn't load". Our page is
+a plain 200 HTML page (a GET consumes nothing); the token is only redeemed by
+`verifyOtp({type:'recovery', token_hash})` running in client JS on mount,
+which plain-GET scanners never execute — so the token survives prefetch.
+`/reset-password` reads `token_hash`/`type` from the URL and calls
+`verifyOtp` to establish the `PASSWORD_RECOVERY` session, then
+`updateUser({password})` sets the new one (legacy hash-token / PKCE `code`
+links still work via the `getSession` + `onAuthStateChange` fallback). Closes
+the "no password reset" known gap (§8) and the prefetch-invalidation bug.
 
 `create-event` → `branding` → `qr-management` are threaded together via a
 `?event_id=` query param (not a separate studio-profile table — `branding`

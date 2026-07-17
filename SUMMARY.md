@@ -2,6 +2,14 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-17 — Password-reset link resilient to email prefetch (branch `claude/oura-reset-link-prefetch-mpmt5y`, PR pending)
+
+Bug: tapping the reset link showed "This page couldn't load". Cause: the email carried Supabase's `action_link` (`/auth/v1/verify` GET URL), a one-time link that Supabase consumes on the FIRST request — email-client/Brevo scanners prefetch it before the user taps, so the token was already spent.
+
+Fix: the email now carries a link to our own `/reset-password?token_hash=…&type=recovery` page (a plain 200 HTML page — a GET consumes nothing). The one-time token is only redeemed by `verifyOtp()` running in client JS on mount, which plain-GET scanners never execute → token survives prefetch. Legacy hash/PKCE links still work via the existing fallback. Both workers deployed (API `2f7c4d71`, web `adb64369`).
+
+**Verified:** typecheck clean (both), page GET with `token_hash` returns 200 without touching Supabase (prefetch-safe), real reset email sent to founder. **Sandbox blind spot:** the agent proxy blocks Supabase GoTrue (`/auth/v1/*` → PGRST125) AND blocks the headless browser (ERR_CONNECTION_RESET), so full token *redemption* can't be exercised in-sandbox — it works on a real device/production. **Founder final check:** open the reset email just sent, tap the button, set a new password → should land on the form, not the error.
+
 ## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, merged to main)
 
 Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` Stitch screens are now wired:

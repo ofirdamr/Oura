@@ -1182,11 +1182,22 @@ app.post('/auth/forgot-password', async (c) => {
 
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
-  if (linkErr || !linkData?.properties?.action_link) {
+  if (linkErr || !linkData?.properties?.hashed_token) {
     return c.json({ ok: true });
   }
 
-  const resetLink = linkData.properties.action_link;
+  // Do NOT email Supabase's `action_link` (the /auth/v1/verify GET URL): it
+  // consumes the one-time recovery token on the FIRST request that hits it,
+  // and email-client/Brevo link scanners prefetch it before the user taps →
+  // the token is already spent → "This page couldn't load" on real click.
+  // Instead email a link to OUR /reset-password page carrying `token_hash`.
+  // That page is a plain 200 HTML page (nothing consumed on GET); the token is
+  // only redeemed by `verifyOtp()` running in client JS, which plain-GET
+  // scanners never execute — so the token survives prefetch.
+  const tokenHash = linkData.properties.hashed_token;
+  const resetLink =
+    'https://oura-web.oura-events.workers.dev/reset-password' +
+    `?token_hash=${encodeURIComponent(tokenHash)}&type=recovery`;
 
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).

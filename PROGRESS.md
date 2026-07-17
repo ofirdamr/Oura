@@ -1,5 +1,8 @@
 # Progress Log
 
+### 2026-07-17
+- Fixed password-reset link dying on tap ("This page couldn't load"). Root cause: `POST /auth/forgot-password` emailed Supabase's `action_link` (one-time `/auth/v1/verify` GET), which email-client/Brevo link scanners prefetch and consume before the user taps. Switched to emailing our own `/reset-password?token_hash=…&type=recovery` page (plain 200 HTML, consumes nothing on GET); the token is redeemed only by `verifyOtp()` in client JS on mount, which plain-GET scanners don't run → survives prefetch. Legacy hash/PKCE links kept via fallback. Files: `apps/api/src/index.ts` (link build), `apps/web/app/reset-password/page.tsx` (verifyOtp on mount), `docs/ARCHITECTURE.md`. Typecheck clean both. Deployed oura-api `2f7c4d71`, oura-web `adb64369`. Verified page GET w/ token_hash = 200 (no Supabase hit) + real email sent to founder. Blind spot: sandbox proxy blocks GoTrue (`/auth/v1`→PGRST125) and headless chromium (ERR_CONNECTION_RESET), so token redemption only fully exercisable on a real device. Branch `claude/oura-reset-link-prefetch-mpmt5y`.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
