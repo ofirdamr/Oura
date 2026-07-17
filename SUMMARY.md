@@ -118,13 +118,7 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 
 Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner (and no custom domain is allowed). Swapped the `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no domain purchase. Same server-side flow otherwise: `auth.admin.generateLink()` builds the recovery link, Brevo emails it. Env: `RESEND_API_KEY` → `BREVO_API_KEY` (+ optional `BREVO_SENDER_EMAIL`, defaults to the founder's validated sender). API typecheck clean.
 
-**REMAINING STEPS (founder):**
-1. In Brevo (https://app.brevo.com), validate a sender address (use `ofirdamr@gmail.com`, or set `BREVO_SENDER_EMAIL` to whatever you validate) and copy the transactional **API key** (SMTP & API → API Keys).
-2. Once the key is in the Claude Code environment, the next session runs:
-```
-cd /home/user/Oura/apps/api && echo "$BREVO_API_KEY" | npx wrangler secret put BREVO_API_KEY
-```
-Until this secret is set, the endpoint returns ok silently but sends no email. (The old `RESEND_API_KEY` Worker secret is now unused and can be deleted with `npx wrangler secret delete RESEND_API_KEY`.)
+**RESOLVED 2026-07-17:** `BREVO_API_KEY` was never set on the Worker — that's why no reset email ever arrived (endpoint returns ok silently but sent nothing). The key was present in the session env, so this session ran `wrangler secret put BREVO_API_KEY` on `oura-api`. Verified: a direct Brevo send returned HTTP 201 + messageId, sender `ofirdamr@gmail.com` accepted. Emails now actually deliver (check spam — Brevo-relayed mail from a gmail.com sender can land there). The old `RESEND_API_KEY` Worker secret is now unused and can be deleted with `npx wrangler secret delete RESEND_API_KEY`.
 
 ### Earlier (superseded): custom reset email via Resend (PR #61, merged)
 Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
