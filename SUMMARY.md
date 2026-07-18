@@ -2,6 +2,18 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-18 — Password reset Safari/iOS "Invalid path" bug fixed (PR #73, merged + deployed)
+
+**Root cause:** `/reset-password` page created two Supabase client instances — one in `useEffect` (with `detectSessionInUrl:false`) and a second in `handleConfirm` (without it). On Safari/iOS these two clients conflict over cookies; the second client's `initialize()` interfered with `verifyOtp`, throwing "Invalid path specified in request URL" exactly when the user tapped the confirm-gate button. Token was always valid — the error was client-side.
+
+**Fix:** single `useMemo`-stabilised client shared across the whole page. Typecheck clean. Deployed `ffc5951a` → merged PR #73 to main.
+
+**Verified:** Brevo redirect preserves the token_hash intact (confirmed via curl); `verifyOtp` with that token returns a full session (direct REST test). Live: https://oura-web.oura-events.workers.dev/login → "שכחתם סיסמה?".
+
+**Note for founder:** Gmail may still catch the email as spam once. Tapping "Not spam" once trains Gmail to deliver future ones to inbox.
+
+---
+
 ## 2026-07-18 — Brevo click-tracking burns reset-password token (branch `claude/brevo-click-tracking-disable-1hd7h1`, commit `074253f`, PR #71 open draft, NOT YET DEPLOYED)
 
 **Open PRs, current status:**
