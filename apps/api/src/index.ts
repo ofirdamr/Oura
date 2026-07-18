@@ -1187,11 +1187,15 @@ app.post('/auth/forgot-password', async (c) => {
   }
 
   const resetLink = linkData.properties.action_link;
+  if (!resetLink) {
+    console.error('Reset link is null/undefined', { linkData });
+    return c.json({ ok: true });
+  }
 
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).
   const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
-  await fetch('https://api.brevo.com/v3/smtp/email', {
+  const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'api-key': c.env.BREVO_API_KEY,
@@ -1219,6 +1223,9 @@ app.post('/auth/forgot-password', async (c) => {
       `,
     }),
   });
+  if (!brevoRes.ok) {
+    console.error('Brevo API error', { status: brevoRes.status, email });
+  }
 
   return c.json({ ok: true });
 });
