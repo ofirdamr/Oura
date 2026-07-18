@@ -99,27 +99,35 @@ Real end-to-end: entire guest path (Stage 2 face-matching live), entire photogra
 
 Deliberately not real yet: `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or unused), Premium Prints/Checkout/Order Confirmation (Phase 2), Statistics/Messaging/Notifications/Reports (Phase 2).
 
-## Password reset email — custom flow wired (awaiting Resend API key secret)
+## 🔧 IN PROGRESS 2026-07-18 — Password reset link: emails arrive, but link shows "invalid/expired" (PR #67, diagnostic)
 
-Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow was built that bypasses Supabase email entirely:
-- New `POST /auth/forgot-password` endpoint on the Worker: calls `supabase.auth.admin.generateLink({ type: 'recovery' })` server-side, then sends the link via Resend's direct API (not SMTP).
-- `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
-- Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
+Brevo email delivery is working correctly (emails arrive). Problem: when user clicks the reset link, they land on `/reset-password` but the page immediately shows "הקישור אינו תקף או שפג תוקפו" (link invalid/expired) after 4 seconds, instead of the password-reset form.
+
+**Root cause identified:** Session tokens are not reaching the browser. Supabase's verify endpoint redirects to `https://oura-web.oura-events.workers.dev/reset-password`, but the URL hash containing the PASSWORD_RECOVERY session tokens (`#access_token=...&type=recovery`) is missing or being lost. The `/reset-password` page's browser client waits 4 seconds for a PASSWORD_RECOVERY event that never arrives, then shows "invalid."
+
+**Why it's happening:**
+- Supabase's `auth.admin.generateLink()` correctly generates the recovery link + token (verified via diagnostic endpoint)
+- The redirect URL is correctly whitelisted in Supabase dashboard (checked 2026-07-18, already present)
+- The `/reset-password` page is correctly configured to receive tokens via URL hash
+
+**Likely causes to investigate next session:**
+1. Supabase not including tokens in the redirect URL (check Supabase's auth flow config — PKCE vs. implicit flow)
+2. Redirect happening via 302/303 without hash (browser losing URL fragment)
+3. Session cookie not being set, tokens not in hash → browser client has nothing to work with
+4. Issue specific to cross-domain redirect (Supabase domain → Oura domain)
+
+**Diagnostic tools added (PR #67, deployed):**
+- `POST /auth/forgot-password-debug` endpoint returns full `generateLink()` response for testing
+- Console logging added to capture generateLink response in Worker logs
+
+**For next session:** reproduce the flow end-to-end (click a live reset link), inspect browser DevTools → Network tab → check the redirect chain and URL parameters. The answer is in what Supabase is actually sending vs. what the page expects.
+
+### Earlier: custom reset email via Resend (PR #61, merged)
+Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
 
 ## ✅ DONE 2026-07-18 — Password reset email flow live end-to-end (PR #65, deployed)
 
-Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner. Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no custom domain required. Same server-side flow: `auth.admin.generateLink()` builds the recovery link, Brevo emails it via the newly-set API key.
-
-**End-to-end flow verified (2026-07-18):**
-- ✅ Frontend `/forgot-password`: accessible, accepts email, shows success message
-- ✅ API `POST /auth/forgot-password`: deployed, returns HTTP 200, generates Supabase recovery link
-- ✅ **Email sending via Brevo:** `BREVO_API_KEY` secret now set in Cloudflare Worker — emails will arrive from Brevo's domain
-- ✅ Frontend `/reset-password`: ready to handle Supabase PASSWORD_RECOVERY session, allows password reset
-
-**Live flow:** photographer visits https://oura-web.oura-events.workers.dev/forgot-password → enters email → recovery link sent via Brevo → clicks link in email → lands at https://oura-web.oura-events.workers.dev/reset-password → Supabase auto-detects PASSWORD_RECOVERY session → form appears → photographer sets new password → redirects to login.
-
-### Earlier (superseded): custom reset email via Resend (PR #61, merged)
-Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
+Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API. Email delivery verified working.
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.
