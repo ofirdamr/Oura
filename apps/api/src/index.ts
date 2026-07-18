@@ -1182,13 +1182,13 @@ app.post('/auth/forgot-password', async (c) => {
 
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
-  if (linkErr || !linkData?.action_link) {
+  if (linkErr || !linkData?.properties?.action_link) {
     console.error(`Supabase generateLink failed for ${email}: ${linkErr?.message || 'no action_link'}`);
     return c.json({ ok: true });
   }
 
   console.log(`Supabase generateLink succeeded for ${email}`);
-  const resetLink = linkData.action_link;
+  const resetLink = linkData.properties.action_link;
 
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).
