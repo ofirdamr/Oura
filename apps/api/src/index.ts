@@ -1172,12 +1172,12 @@ app.post('/auth/forgot-password', async (c) => {
   const db = supa(c.env);
 
   // Generate a recovery link without sending email. Admin-only Supabase method.
+  // Omit redirectTo: Supabase will land the user at /auth/callback with tokens
+  // in the URL hash (#access_token=...). The callback handles session setup;
+  // the frontend's /reset-password page then extracts tokens from the URL.
   const { data: linkData, error: linkErr } = await db.auth.admin.generateLink({
     type: 'recovery',
     email,
-    options: {
-      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password',
-    },
   });
 
   // If the email doesn't exist in Supabase, generateLink returns an error.
