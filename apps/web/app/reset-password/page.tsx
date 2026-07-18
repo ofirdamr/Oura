@@ -29,7 +29,7 @@
 // On failure we surface the REAL reason (expired / already used / invalid),
 // derived from the actual verifyOtp/setSession error — not a blanket "invalid".
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
@@ -55,6 +55,14 @@ function reasonFor(raw: string | undefined): string {
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  // Single shared client for the whole page — avoids two-instance cookie conflicts
+  // that cause "Invalid path specified in request URL" on Safari/iOS when handleConfirm
+  // creates a second client while the useEffect's client is still alive.
+  // detectSessionInUrl:false stops the PKCE client from rejecting the implicit hash tokens.
+  const supabase = useMemo(
+    () => createSupabaseBrowserClient({ detectSessionInUrl: false }),
+    [],
+  );
   const [ready, setReady] = useState(false);
   // token_hash link detected — show the confirm gate (redeem only on tap).
   const [awaitingConfirm, setAwaitingConfirm] = useState(false);
@@ -68,10 +76,6 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    // detectSessionInUrl:false — stop the PKCE client from choking on the
-    // legacy implicit recovery hash (see the file header + supabaseClient.ts).
-    // We establish the session ourselves below.
-    const supabase = createSupabaseBrowserClient({ detectSessionInUrl: false });
     let active = true;
 
     const {
@@ -152,7 +156,7 @@ export default function ResetPasswordPage() {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, []);
+  }, [supabase]);
 
   // Redeem the one-time token_hash — fired only by the real user's tap, which is
   // what makes the link immune to email-scanner / Brevo-tracker prefetch.
@@ -169,7 +173,6 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const supabase = createSupabaseBrowserClient();
     const { error: otpErr } = await supabase.auth.verifyOtp({
       type: (otpType as "recovery") || "recovery",
       token_hash: tokenHash,
@@ -203,7 +206,6 @@ export default function ResetPasswordPage() {
     }
 
     setPending(true);
-    const supabase = createSupabaseBrowserClient();
     const { error: updateError } = await supabase.auth.updateUser({
       password,
     });
