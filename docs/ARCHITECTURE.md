@@ -337,9 +337,19 @@ generates the Supabase recovery link server-side via
 `auth.admin.generateLink()` and emails it through Brevo's transactional API
 (bypassing Supabase's unreliable shared SMTP; Brevo delivers to any inbox
 with no custom domain, unlike the old Resend shared sender).
-`/reset-password` is where the emailed link lands — the browser client
-auto-detects the recovery session from the URL, then `updateUser({password})`
-sets the new one. Closes the "no password reset" known gap (§8).
+`/reset-password` is where the emailed link lands. The server-generated
+recovery link verifies to **implicit-flow tokens in the URL hash**
+(`#access_token=…&refresh_token=…&type=recovery`), but the browser client
+(`@supabase/ssr` `createBrowserClient`) is hard-wired to `flowType: 'pkce'`,
+whose automatic `detectSessionInUrl` **rejects** an implicit hash ("Not a valid
+PKCE flow url") and never creates a session — this silently broke every reset
+("link invalid") until 2026-07-18. The page therefore creates its client with
+`detectSessionInUrl: false` and establishes the session itself: it parses the
+hash tokens and calls `setSession({access_token, refresh_token})`, then strips
+the tokens from the URL, then `updateUser({password})` sets the new password.
+`createSupabaseBrowserClient(authOverrides?)` takes the override; all other
+callers keep the default PKCE auto-detection. Closes the "no password reset"
+known gap (§8).
 
 `create-event` → `branding` → `qr-management` are threaded together via a
 `?event_id=` query param (not a separate studio-profile table — `branding`
