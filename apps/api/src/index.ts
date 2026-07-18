@@ -1183,9 +1183,13 @@ app.post('/auth/forgot-password', async (c) => {
 
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
-  if (linkErr || !linkData?.properties?.action_link) {
-    console.error(`Supabase generateLink failed for ${email}: ${linkErr?.message || 'no action_link'}`);
-    return c.json({ ok: true });
+  if (linkErr) {
+    console.error(`Supabase generateLink ERROR for ${email}:`, JSON.stringify(linkErr));
+    return c.json({ ok: true, _debug: `generateLink error: ${linkErr.message}` });
+  }
+  if (!linkData?.properties?.action_link) {
+    console.error(`Supabase generateLink NO LINK for ${email}. Data:`, JSON.stringify(linkData));
+    return c.json({ ok: true, _debug: 'no action_link in response' });
   }
 
   console.log(`Supabase generateLink succeeded for ${email}`);
@@ -1224,11 +1228,13 @@ app.post('/auth/forgot-password', async (c) => {
         `,
       }),
     });
+    console.log(`Brevo response status: ${brevoRes.status}`);
     if (!brevoRes.ok) {
       const brevoErr = await brevoRes.text();
       console.error(`Brevo email failed for ${email}: ${brevoRes.status} ${brevoErr}`);
     } else {
-      console.log(`Brevo email sent successfully to ${email}`);
+      const brevoData = await brevoRes.json();
+      console.log(`✅ Brevo email sent to ${email}: messageId=${brevoData.messageId}`);
     }
   } catch (err) {
     console.error(`Brevo email error for ${email}:`, err);
