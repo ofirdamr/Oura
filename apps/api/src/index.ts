@@ -1180,9 +1180,13 @@ app.post('/auth/forgot-password', async (c) => {
     },
   });
 
+  // Log the full response for diagnosis
+  console.log('generateLink response:', { linkErr, linkData, properties: linkData?.properties });
+
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
   if (linkErr || !linkData?.properties?.action_link) {
+    console.log('generateLink failed or no action_link:', { linkErr, hasData: !!linkData, hasProperties: !!linkData?.properties, hasActionLink: !!linkData?.properties?.action_link });
     return c.json({ ok: true });
   }
 
