@@ -106,17 +106,31 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
-## ✅ DONE 2026-07-18 — Password reset email flow live end-to-end (PR #65, deployed)
+## 🔧 IN PROGRESS — Password reset email flow debugging (branch `claude/password-reset-link-null-x90vq5`)
 
-Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner. Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no custom domain required. Same server-side flow: `auth.admin.generateLink()` builds the recovery link, Brevo emails it via the newly-set API key.
+**Issue:** Brevo ✅ sending email successfully, but reset button `href="null"` (link missing).
 
-**End-to-end flow verified (2026-07-18):**
-- ✅ Frontend `/forgot-password`: accessible, accepts email, shows success message
-- ✅ API `POST /auth/forgot-password`: deployed, returns HTTP 200, generates Supabase recovery link
-- ✅ **Email sending via Brevo:** `BREVO_API_KEY` secret now set in Cloudflare Worker — emails will arrive from Brevo's domain
-- ✅ Frontend `/reset-password`: ready to handle Supabase PASSWORD_RECOVERY session, allows password reset
+**Root cause investigation:**
+- `POST /auth/forgot-password` calls `auth.admin.generateLink({ type: 'recovery' })` ✅
+- Brevo API sends email ✅
+- But email contains `href="null"` instead of actual recovery URL
 
-**Live flow:** photographer visits https://oura-web.oura-events.workers.dev/forgot-password → enters email → recovery link sent via Brevo → clicks link in email → lands at https://oura-web.oura-events.workers.dev/reset-password → Supabase auto-detects PASSWORD_RECOVERY session → form appears → photographer sets new password → redirects to login.
+**Hypothesis:** Supabase's `generateLink()` response is returning `action_link` as `null` or the string `"null"`, not a valid URL.
+
+**Fix deployed to branch (not yet to Cloudflare Worker):**
+- Added detailed logging to capture full Supabase response structure
+- Made action_link validation explicit: must be non-empty string, not null/"null"/undefined
+- Will catch if Supabase API format changed or action_link is being nullified
+
+**NEXT STEPS (founder):**
+1. Deploy logging fix to Cloudflare Worker: `wrangler deploy` from `/apps/api`
+2. Submit forgot-password form at https://oura-web.oura-events.workers.dev/forgot-password with test email
+3. Check Cloudflare Worker logs for `generateLink response` output
+4. Share logs with debug session so action_link structure can be diagnosed
+5. Once root cause identified, apply fix (likely a response-format change or a null validation gate)
+
+**Branch:** https://github.com/ofirdamr/Oura/compare/main...claude/password-reset-link-null-x90vq5
+**Earlier (superseded): custom reset email via Resend (PR #61, merged)** — the Brevo migration fixed the "only delivers to account owner" issue.
 
 ### Earlier (superseded): custom reset email via Resend (PR #61, merged)
 Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
