@@ -273,7 +273,7 @@ app.get('/gallery/:token', async (c) => {
   // General event gallery — no consent needed. Exclude culled and AI-rejected photos.
   const { data: photoRows, error: photosErr } = await db
     .from('photos')
-    .select('id, storage_key, status, category')
+    .select('id, storage_key, status')
     .eq('event_id', payload.event_id)
     .neq('status', 'culled')
     .eq('ai_rejected', false)
