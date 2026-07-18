@@ -2,6 +2,20 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-18 — Password reset ACTUALLY fixed — wrong Supabase URL in every build (deployed 09c7c907)
+
+**The real root cause (present from day 1):** `deploy.js` mapped `SUPABASE_URL` (which ends in `/rest/v1/`) directly into `NEXT_PUBLIC_SUPABASE_URL`. Every build baked in `https://voxxhvywzaizyputjqkm.supabase.co/rest/v1/` as the browser Supabase URL. The browser client then called `/rest/v1/auth/v1/verify` (PostgREST) instead of `/auth/v1/verify` (GoTrue) — PostgREST returned `PGRST125 "Invalid path specified in request URL"` on every `verifyOtp` call. This broke password reset on every device, always.
+
+**Fix:** `apps/web/scripts/deploy.js` now strips `/rest/v1/` suffix before setting `NEXT_PUBLIC_SUPABASE_URL`. New build chunk verified to contain bare `https://voxxhvywzaizyputjqkm.supabase.co`. Deployed version `09c7c907`.
+
+**Also fixed this session (PR #73, merged):** two Supabase client instances on the reset-password page caused a secondary Safari/iOS cookie conflict — consolidated to one `useMemo`-stabilised client.
+
+**Full chain resolved:** (1) Resend only delivered to account owner → switched to Brevo. (2) Brevo click-tracking burned single-use token → confirm gate. (3) Wrong URL → fixed in deploy script. Password reset is now genuinely end-to-end fixed.
+
+Live: https://oura-web.oura-events.workers.dev/forgot-password
+
+---
+
 ## ✅ DONE 2026-07-18 — Password reset Safari/iOS "Invalid path" bug fixed (PR #73, merged + deployed)
 
 **Root cause:** `/reset-password` page created two Supabase client instances — one in `useEffect` (with `detectSessionInUrl:false`) and a second in `handleConfirm` (without it). On Safari/iOS these two clients conflict over cookies; the second client's `initialize()` interfered with `verifyOtp`, throwing "Invalid path specified in request URL" exactly when the user tapped the confirm-gate button. Token was always valid — the error was client-side.
