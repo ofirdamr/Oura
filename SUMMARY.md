@@ -2,6 +2,12 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## 🔴 ACTIVE ISSUE 2026-07-18 — Password-reset email link is null
+
+✅ Email is arriving (Brevo integration working)  
+❌ Reset button href="null" (Supabase generateLink.properties.action_link is null)  
+🔧 **Next:** Debug why Supabase recovery link is null. Pushed logging fix to `claude/password-reset-email-test-xf6vk7` branch. Check Cloudflare Worker logs for linkData structure. May need to verify Supabase auth client setup or check if generateLink response format changed.
+
 ## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, merged to main)
 
 Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` Stitch screens are now wired:
