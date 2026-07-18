@@ -1182,16 +1182,19 @@ app.post('/auth/forgot-password', async (c) => {
 
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
-  if (linkErr || !linkData?.properties?.action_link) {
+  if (linkErr || !linkData?.action_link) {
+    console.error(`Supabase generateLink failed for ${email}: ${linkErr?.message || 'no action_link'}`);
     return c.json({ ok: true });
   }
 
-  const resetLink = linkData.properties.action_link;
+  console.log(`Supabase generateLink succeeded for ${email}`);
+  const resetLink = linkData.action_link;
 
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).
   const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
   try {
+    console.log(`Sending Brevo email to ${email}, API key present: ${!!c.env.BREVO_API_KEY}`);
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -1223,6 +1226,8 @@ app.post('/auth/forgot-password', async (c) => {
     if (!brevoRes.ok) {
       const brevoErr = await brevoRes.text();
       console.error(`Brevo email failed for ${email}: ${brevoRes.status} ${brevoErr}`);
+    } else {
+      console.log(`Brevo email sent successfully to ${email}`);
     }
   } catch (err) {
     console.error(`Brevo email error for ${email}:`, err);
