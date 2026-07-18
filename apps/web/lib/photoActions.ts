@@ -23,7 +23,22 @@ function toFiles(items: ShareItem[]): File[] {
   return items.map((it) => new File([it.blob], it.filename, { type: it.blob.type || "image/jpeg" }));
 }
 
+function isMobile(): boolean {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+// On mobile without Web Share v2: open the image in a new tab so the user
+// can long-press → "Save to Photos" / "Save to Gallery" — the universal
+// mobile browser gesture for saving to the camera roll.
+// On desktop: trigger an anchor download (the correct desktop behavior).
 function anchorDownload(items: ShareItem[]) {
+  if (isMobile() && items.length === 1) {
+    const url = URL.createObjectURL(items[0].blob);
+    window.open(url, "_blank");
+    // Keep alive long enough for the user to save the image.
+    setTimeout(() => URL.revokeObjectURL(url), 120_000);
+    return;
+  }
   for (const it of items) {
     const url = URL.createObjectURL(it.blob);
     const a = document.createElement("a");
