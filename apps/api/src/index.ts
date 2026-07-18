@@ -1165,11 +1165,13 @@ app.get('/admin/processing-status', async (c) => {
 //   prefetch that URL the moment the mail is delivered, spending the token before
 //   the human ever taps — so the real click always landed on an already-consumed
 //   token and showed "link invalid". Instead we email a link to OUR OWN
-//   `/reset-password?token_hash=…&type=recovery` page: it's a plain 200 HTML page
-//   (a GET consumes nothing), and the one-time token is redeemed only by
-//   `verifyOtp({ type:'recovery', token_hash })` running in client JS on mount,
-//   which plain-GET scanners never execute — so the token survives prefetch and
-//   is spent only when the real user opens the page.
+//   `/reset-password?token_hash=…&type=recovery` page. Brevo's click-tracking
+//   still wraps this link (`…/tr/cl/…`) and pre-scans the destination — and Brevo
+//   provides no way to disable that for transactional email — so the page itself
+//   is built to be immune to it: it does NOT redeem the one-time token on load.
+//   It shows a confirm gate and redeems `verifyOtp({type:'recovery',token_hash})`
+//   only on the real user's button tap, which no prefetch/pre-scan performs — so
+//   the token survives every scan and is spent only by the human.
 app.post('/auth/forgot-password', async (c) => {
   let email = '';
   try {

@@ -5,16 +5,24 @@
 //
 // PRIMARY path (token_hash): the Worker emails a link to THIS page carrying a
 // one-time `?token_hash=…&type=recovery`. We redeem it client-side with
-// `verifyOtp({ type:'recovery', token_hash })` on mount, which establishes a
-// PASSWORD_RECOVERY session. This is the fix for the "Gmail burned the token"
-// bug: emailing Supabase's raw /auth/v1/verify `action_link` let email-client
-// link scanners prefetch (GET) the one-time URL and spend the token before the
-// user tapped. A plain GET of THIS page consumes nothing — the token is only
-// redeemed by the verifyOtp JS a scanner never runs. (See the Worker's
-// /auth/forgot-password header for the sending side.)
+// `verifyOtp({ type:'recovery', token_hash })` — but ONLY when the real person
+// taps the "המשך" button, never automatically on mount.
+//
+// Why a manual tap and not on-mount: the one-time token is spent by verifyOtp.
+// Email link-scanners prefetch the link the moment the mail is delivered, and
+// Brevo's own click-tracking (`…/tr/cl/…` wrapper) pre-scans the destination —
+// both of which can RENDER this page and run its JS, which would spend the token
+// before the human ever arrives (fresh token → `otp_expired` on the real click).
+// Brevo offers no way to turn that tracking off for transactional email, so we
+// make the page immune to it instead: a scanner loads the page but never taps a
+// button, so the token survives every prefetch/pre-scan and is redeemed only by
+// the real user's tap. (See the Worker's /auth/forgot-password header for the
+// sending side.)
 //
 // LEGACY fallback (implicit hash): older links land with implicit-flow tokens
-// in the URL hash (#access_token=…&refresh_token=…). The @supabase/ssr browser
+// in the URL hash (#access_token=…&refresh_token=…). Those are already-issued
+// session tokens (not a one-time OTP that a prefetch can burn), so we still
+// establish the session automatically on mount. The @supabase/ssr browser
 // client is hard-wired to flowType 'pkce' and its auto detectSessionInUrl
 // REJECTS an implicit hash, so we disable it and call setSession() ourselves.
 //
@@ -27,9 +35,30 @@ import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { OuraLogo } from "@/components/brand/OuraLogo";
 
+// Map a raw Supabase auth error to the real, human Hebrew reason — so the page
+// tells the user WHY (expired / already used / invalid) instead of a blanket
+// "link invalid". Module-scoped so both the mount effect and the confirm handler
+// can use it.
+function reasonFor(raw: string | undefined): string {
+  const msg = (raw ?? "").toLowerCase();
+  if (msg.includes("expired")) {
+    return "פג תוקף הקישור. הקישור תקף ל-24 שעות. בקשו קישור חדש.";
+  }
+  if (msg.includes("already") || msg.includes("used") || msg.includes("consumed")) {
+    return "הקישור כבר נוצל. כל קישור איפוס תקף לשימוש חד-פעמי בלבד. בקשו קישור חדש.";
+  }
+  if (msg) {
+    return `לא הצלחנו לאמת את הקישור (${raw}). בקשו קישור חדש.`;
+  }
+  return "הקישור אינו תקף או שפג תוקפו. בקשו קישור חדש.";
+}
+
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  // token_hash link detected — show the confirm gate (redeem only on tap).
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   // null = still verifying; string = link failed, with the REAL reason to show.
   const [linkError, setLinkError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
@@ -53,53 +82,23 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // Map a raw Supabase auth error to the real, human Hebrew reason — so the
-    // page tells the user WHY (expired / already used / invalid) instead of a
-    // blanket "link invalid".
-    function reasonFor(raw: string | undefined): string {
-      const msg = (raw ?? "").toLowerCase();
-      if (msg.includes("expired")) {
-        return "פג תוקף הקישור. הקישור תקף ל-24 שעות. בקשו קישור חדש.";
-      }
-      if (
-        msg.includes("already") ||
-        msg.includes("used") ||
-        msg.includes("consumed")
-      ) {
-        return "הקישור כבר נוצל. כל קישור איפוס תקף לשימוש חד-פעמי בלבד. בקשו קישור חדש.";
-      }
-      if (msg) {
-        return `לא הצלחנו לאמת את הקישור (${raw}). בקשו קישור חדש.`;
-      }
-      return "הקישור אינו תקף או שפג תוקפו. בקשו קישור חדש.";
-    }
-
     async function establishSession() {
       const url = new URL(window.location.href);
 
-      // PRIMARY path: our own token_hash link. Redeem the one-time token with
-      // verifyOtp — this is what survives email-scanner prefetch (see header).
+      // PRIMARY path: our own token_hash link. Do NOT redeem here — a scanner
+      // prefetch/pre-scan runs this JS and would burn the one-time token. Show
+      // the confirm gate; the token is redeemed only when the real user taps
+      // (see handleConfirm + the file header).
       const tokenHash = url.searchParams.get("token_hash");
-      const otpType = url.searchParams.get("type"); // "recovery"
       if (tokenHash) {
-        const { error: otpErr } = await supabase.auth.verifyOtp({
-          type: (otpType as "recovery") || "recovery",
-          token_hash: tokenHash,
-        });
-        if (!active) return;
-        if (!otpErr) {
-          setReady(true);
-          // Strip the token from the URL so a refresh / copied link can't reuse
-          // or leak the recovery session.
-          window.history.replaceState(null, "", window.location.pathname);
-          return;
-        }
-        setLinkError(reasonFor(otpErr.message));
+        if (active) setAwaitingConfirm(true);
         return;
       }
 
       // LEGACY fallback: implicit tokens in the URL hash. Set the session
-      // directly (bypasses the PKCE detectSessionInUrl rejection).
+      // directly (bypasses the PKCE detectSessionInUrl rejection). These are
+      // already-issued session tokens, not a one-time OTP, so auto-establishing
+      // on mount is safe from prefetch burn.
       const hash = window.location.hash.slice(1);
       const params = new URLSearchParams(hash);
       const accessToken = params.get("access_token");
@@ -139,7 +138,11 @@ export default function ResetPasswordPage() {
 
     const timeout = setTimeout(() => {
       setReady((current) => {
-        if (!current) setLinkError((e) => e ?? reasonFor(undefined));
+        // Only fail if we're neither verified NOR waiting on the confirm tap.
+        setAwaitingConfirm((waiting) => {
+          if (!current && !waiting) setLinkError((e) => e ?? reasonFor(undefined));
+          return waiting;
+        });
         return current;
       });
     }, 4000);
@@ -150,6 +153,41 @@ export default function ResetPasswordPage() {
       clearTimeout(timeout);
     };
   }, []);
+
+  // Redeem the one-time token_hash — fired only by the real user's tap, which is
+  // what makes the link immune to email-scanner / Brevo-tracker prefetch.
+  async function handleConfirm() {
+    setConfirming(true);
+    const url = new URL(window.location.href);
+    const tokenHash = url.searchParams.get("token_hash");
+    const otpType = url.searchParams.get("type"); // "recovery"
+
+    if (!tokenHash) {
+      setConfirming(false);
+      setAwaitingConfirm(false);
+      setLinkError(reasonFor(undefined));
+      return;
+    }
+
+    const supabase = createSupabaseBrowserClient();
+    const { error: otpErr } = await supabase.auth.verifyOtp({
+      type: (otpType as "recovery") || "recovery",
+      token_hash: tokenHash,
+    });
+    setConfirming(false);
+
+    if (otpErr) {
+      setAwaitingConfirm(false);
+      setLinkError(reasonFor(otpErr.message));
+      return;
+    }
+
+    setAwaitingConfirm(false);
+    setReady(true);
+    // Strip the token from the URL so a refresh / copied link can't reuse or
+    // leak the recovery session.
+    window.history.replaceState(null, "", window.location.pathname);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -258,6 +296,26 @@ export default function ResetPasswordPage() {
               עדכון סיסמה
             </button>
           </form>
+        ) : awaitingConfirm ? (
+          <div className="space-y-4">
+            <p className="text-center text-on-surface-variant">
+              כדי להגן על חשבונכם, לחצו על הכפתור כדי לאמת את הקישור ולהמשיך
+              לבחירת סיסמה חדשה.
+            </p>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={confirming}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70"
+            >
+              {confirming && (
+                <span className="material-symbols-outlined animate-spin">
+                  progress_activity
+                </span>
+              )}
+              המשך לאיפוס הסיסמה
+            </button>
+          </div>
         ) : linkError ? (
           <>
             <p className="text-center text-on-surface">{linkError}</p>
