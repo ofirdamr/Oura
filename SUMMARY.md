@@ -121,6 +121,20 @@ Resend's shared `onboarding@resend.dev` silently dropped every email to any addr
 ### Earlier (superseded): custom reset email via Resend (PR #61, merged)
 Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
 
+## ⏳ IN PROGRESS — Password reset email link diagnosis (PR #66, branch `claude/password-reset-link-null-x90vq5`)
+
+**Status as of 2026-07-18:** Brevo email delivery confirmed ✅, but link in email is invalid/expired ✗ (error: "הקישור אינו חקף או שפג חזוקפי").
+
+**What's live:**
+- `/forgot-password` page sends correctly
+- `POST /auth/forgot-password` endpoint deploys and returns HTTP 200
+- Brevo `BREVO_API_KEY` secret is set in Cloudflare Worker
+- Logging deployed to oura-api Worker to capture full Supabase `generateLink()` response
+
+**Next step:** Founder enables Cloudflare Worker Logs (pencil icon in Observability), runs password reset test, provides log entry showing Supabase's `generateLink()` response. Once we see what Supabase returned for `action_link` field, it's a 1-2 line patch to `/apps/api/src/index.ts` response handler, redeploy, test, merge PR #66.
+
+**Blocker:** Cloudflare Worker Logs section showed "Disabled" — now enabling. Awaiting log entry from founder.
+
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials. Use throwaway accounts for auth testing.
 - Media binaries: R2 only, never Supabase storage.
