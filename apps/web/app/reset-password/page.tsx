@@ -3,20 +3,23 @@
 // Photographer self-service password reset, step 2: the link from the reset
 // email lands here.
 //
-// The recovery link is generated server-side by the Worker via
-// `auth.admin.generateLink({ type: 'recovery' })`. Supabase's /verify endpoint
-// redirects here with IMPLICIT-flow tokens in the URL hash
-// (#access_token=...&refresh_token=...&type=recovery). But our browser client
-// (@supabase/ssr createBrowserClient) is hard-wired to `flowType: 'pkce'`, and
-// its automatic detectSessionInUrl REJECTS an implicit hash with
-// "Not a valid PKCE flow url" — so no session is ever created and the page used
-// to show "link invalid" for every real reset link. That was the long-standing
-// reset-never-works bug.
+// PRIMARY path (token_hash): the Worker emails a link to THIS page carrying a
+// one-time `?token_hash=…&type=recovery`. We redeem it client-side with
+// `verifyOtp({ type:'recovery', token_hash })` on mount, which establishes a
+// PASSWORD_RECOVERY session. This is the fix for the "Gmail burned the token"
+// bug: emailing Supabase's raw /auth/v1/verify `action_link` let email-client
+// link scanners prefetch (GET) the one-time URL and spend the token before the
+// user tapped. A plain GET of THIS page consumes nothing — the token is only
+// redeemed by the verifyOtp JS a scanner never runs. (See the Worker's
+// /auth/forgot-password header for the sending side.)
 //
-// Fix: parse the implicit hash ourselves and establish the session explicitly
-// with setSession(), which is flow-type agnostic. We keep the
-// onAuthStateChange/getSession paths as fallbacks (already-established session).
-// No session after a short wait means the link is genuinely invalid/expired.
+// LEGACY fallback (implicit hash): older links land with implicit-flow tokens
+// in the URL hash (#access_token=…&refresh_token=…). The @supabase/ssr browser
+// client is hard-wired to flowType 'pkce' and its auto detectSessionInUrl
+// REJECTS an implicit hash, so we disable it and call setSession() ourselves.
+//
+// On failure we surface the REAL reason (expired / already used / invalid),
+// derived from the actual verifyOtp/setSession error — not a blanket "invalid".
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,7 +30,8 @@ import { OuraLogo } from "@/components/brand/OuraLogo";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [linkInvalid, setLinkInvalid] = useState(false);
+  // null = still verifying; string = link failed, with the REAL reason to show.
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -36,8 +40,8 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     // detectSessionInUrl:false — stop the PKCE client from choking on the
-    // implicit recovery hash (see the file header + supabaseClient.ts). We
-    // establish the session ourselves below.
+    // legacy implicit recovery hash (see the file header + supabaseClient.ts).
+    // We establish the session ourselves below.
     const supabase = createSupabaseBrowserClient({ detectSessionInUrl: false });
     let active = true;
 
@@ -49,12 +53,54 @@ export default function ResetPasswordPage() {
       }
     });
 
+    // Map a raw Supabase auth error to the real, human Hebrew reason — so the
+    // page tells the user WHY (expired / already used / invalid) instead of a
+    // blanket "link invalid".
+    function reasonFor(raw: string | undefined): string {
+      const msg = (raw ?? "").toLowerCase();
+      if (msg.includes("expired")) {
+        return "פג תוקף הקישור. הקישור תקף ל-24 שעות. בקשו קישור חדש.";
+      }
+      if (
+        msg.includes("already") ||
+        msg.includes("used") ||
+        msg.includes("consumed")
+      ) {
+        return "הקישור כבר נוצל. כל קישור איפוס תקף לשימוש חד-פעמי בלבד. בקשו קישור חדש.";
+      }
+      if (msg) {
+        return `לא הצלחנו לאמת את הקישור (${raw}). בקשו קישור חדש.`;
+      }
+      return "הקישור אינו תקף או שפג תוקפו. בקשו קישור חדש.";
+    }
+
     async function establishSession() {
-      // Primary path: the recovery link's implicit tokens live in the URL hash.
-      // Parse them and set the session directly (bypasses the PKCE-flow
-      // detectSessionInUrl rejection described in the file header).
-      const hash =
-        typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+      const url = new URL(window.location.href);
+
+      // PRIMARY path: our own token_hash link. Redeem the one-time token with
+      // verifyOtp — this is what survives email-scanner prefetch (see header).
+      const tokenHash = url.searchParams.get("token_hash");
+      const otpType = url.searchParams.get("type"); // "recovery"
+      if (tokenHash) {
+        const { error: otpErr } = await supabase.auth.verifyOtp({
+          type: (otpType as "recovery") || "recovery",
+          token_hash: tokenHash,
+        });
+        if (!active) return;
+        if (!otpErr) {
+          setReady(true);
+          // Strip the token from the URL so a refresh / copied link can't reuse
+          // or leak the recovery session.
+          window.history.replaceState(null, "", window.location.pathname);
+          return;
+        }
+        setLinkError(reasonFor(otpErr.message));
+        return;
+      }
+
+      // LEGACY fallback: implicit tokens in the URL hash. Set the session
+      // directly (bypasses the PKCE detectSessionInUrl rejection).
+      const hash = window.location.hash.slice(1);
       const params = new URLSearchParams(hash);
       const accessToken = params.get("access_token");
       const refreshToken = params.get("refresh_token");
@@ -67,26 +113,33 @@ export default function ResetPasswordPage() {
         if (!active) return;
         if (!setErr) {
           setReady(true);
-          // Strip the tokens from the URL so a refresh or copied link can't
-          // leak the recovery session.
           window.history.replaceState(null, "", window.location.pathname);
           return;
         }
+        setLinkError(reasonFor(setErr.message));
+        return;
       }
 
-      // Fallback: a session may already be established (link consumed in this
-      // tab, or a future native-implicit Supabase config).
+      // Last resort: a session may already be established (link consumed in
+      // this tab). Otherwise the link carried no usable token at all.
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (active && session) setReady(true);
+      if (!active) return;
+      if (session) {
+        setReady(true);
+        return;
+      }
+      // No token_hash, no hash tokens, no session — give the safety-net timeout
+      // below a chance (onAuthStateChange may still fire), then fail with the
+      // generic reason.
     }
 
     void establishSession();
 
     const timeout = setTimeout(() => {
       setReady((current) => {
-        if (!current) setLinkInvalid(true);
+        if (!current) setLinkError((e) => e ?? reasonFor(undefined));
         return current;
       });
     }, 4000);
@@ -142,27 +195,11 @@ export default function ResetPasswordPage() {
       </section>
 
       <div className="relative z-10 w-full space-y-4 rounded-2xl border border-white/5 bg-surface-container/60 p-6 shadow-2xl backdrop-blur-md">
-        {linkInvalid ? (
-          <>
-            <p className="text-center text-on-surface">
-              הקישור אינו תקף או שפג תוקפו.
-            </p>
-            <Link
-              href="/forgot-password"
-              className="block text-center font-medium text-primary underline underline-offset-4 transition-colors hover:opacity-80"
-            >
-              בקשת קישור חדש
-            </Link>
-          </>
-        ) : done ? (
+        {done ? (
           <p className="text-center text-on-surface">
             הסיסמה עודכנה בהצלחה. מעבירים אתכם ללוח הבקרה...
           </p>
-        ) : !ready ? (
-          <p className="text-center text-on-surface-variant">
-            מאמתים את הקישור...
-          </p>
-        ) : (
+        ) : ready ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label
@@ -221,6 +258,20 @@ export default function ResetPasswordPage() {
               עדכון סיסמה
             </button>
           </form>
+        ) : linkError ? (
+          <>
+            <p className="text-center text-on-surface">{linkError}</p>
+            <Link
+              href="/forgot-password"
+              className="block text-center font-medium text-primary underline underline-offset-4 transition-colors hover:opacity-80"
+            >
+              בקשת קישור חדש
+            </Link>
+          </>
+        ) : (
+          <p className="text-center text-on-surface-variant">
+            מאמתים את הקישור...
+          </p>
         )}
       </div>
     </main>

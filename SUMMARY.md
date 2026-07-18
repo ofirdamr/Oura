@@ -2,6 +2,23 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## 2026-07-18 — Password-reset token-burning fix (branch `claude/password-reset-token-burning-f329ym`, deployed, PR open) — ⚠️ ONE BLOCKER LEFT
+
+**What's fixed & deployed (oura-api `766c0b3c`, oura-web `8d01a0cb`):**
+- API `/auth/forgot-password` now emails a link to OUR page `…/reset-password?token_hash=…&type=recovery` (built from `generateLink().properties.hashed_token`), NOT Supabase's raw `action_link`. Adds `console.error` on Brevo send failure (was silently swallowed).
+- `/reset-password` page: primary path reads `token_hash` and redeems it with `verifyOtp({type:'recovery',token_hash})` on mount; legacy implicit-hash `setSession` kept as fallback; now surfaces the REAL reason (expired / already-used / invalid) instead of a blanket "link invalid".
+
+**Proven for real this session (curl against real Supabase/Brevo/Mailsac, throwaway accounts, all deleted):**
+- token_hash mechanism redeems to a recovery session ✅ (isolated generateLink→verify).
+- Our page is INERT on a plain GET — token SURVIVES a scanner-style prefetch ✅ (the core of the fix).
+- Real Brevo email delivers to any inbox; the delivered link resolves to our token_hash page ✅.
+- **Also fixed:** the Worker's `BREVO_API_KEY` secret was stale (this was PR #68's "emails not arriving"); reset it to the working key — emails now deliver.
+
+**⚠️ REMAINING BLOCKER (next mission):** Brevo's own **click-tracking** wraps the button link as `r.oura.mail.yardendamri.co.il/tr/cl/…` and pre-scans the destination, which BURNS the single-use token before the user clicks (fresh token → `otp_expired` on first redeem via the email path, but SURVIVES when Brevo tracking is not in the path). Same bug class as Gmail, moved to Brevo's tracker. **Fix = disable Brevo click-tracking for this transactional email** (Brevo dashboard account/tracking setting, or a per-send tracking-off param if the API supports it) so the raw token_hash link is delivered untouched.
+
+**Blind spot (disclosed):** headless-browser screenshots of the live page could NOT be captured — the egress proxy resets ALL browser TLS (proven against example.com), so no visual pixel proof of the page render this session. curl reaches everything, which is how the flow above was proven.
+
+
 ## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, merged to main)
 
 Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` Stitch screens are now wired:
