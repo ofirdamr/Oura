@@ -1,5 +1,10 @@
 # Progress Log
 
+### 2026-07-18 (session — Brevo click-tracking token burn)
+- Investigated remaining blocker from the prior password-reset session: Brevo's click-tracking wraps the reset link and pre-scans it, burning the single-use `token_hash` before the guest clicks. Researched Brevo's own docs directly: confirmed there is NO per-send API flag and NO dashboard setting to disable transactional click-tracking (only "anonymous tracking," which still wraps/pre-scans). Asked the founder via AskUserQuestion; he chose the code-side fix over chasing a nonexistent Brevo setting.
+- Fix: `apps/web/app/reset-password/page.tsx` no longer calls `verifyOtp` on mount for the `token_hash` path — it renders a confirm gate and redeems only on user tap, so a tracker's pre-scan GET can no longer burn the token. Updated the `/auth/forgot-password` header comment in `apps/api/src/index.ts` to match (comment-only, no route/schema change). `tsc --noEmit` clean.
+- Committed to branch `claude/brevo-click-tracking-disable-1hd7h1` (based on/includes PR #70's commit), pushed, opened **PR #71** (draft) against main. NOT yet deployed or e2e-verified — deploy, mailsac+curl e2e proof, and a localhost Playwright screenshot of the confirm gate are the next session's mission (see SUMMARY.md). PR #70 is superseded by #71 and should be closed once #71 merges.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
