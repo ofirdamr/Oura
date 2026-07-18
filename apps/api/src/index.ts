@@ -1176,7 +1176,7 @@ app.post('/auth/forgot-password', async (c) => {
     type: 'recovery',
     email,
     options: {
-      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password',
+      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password?type=recovery',
     },
   });
 
