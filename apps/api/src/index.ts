@@ -1197,14 +1197,16 @@ app.post('/auth/forgot-password', async (c) => {
 
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).
-  const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
+  const senderEmail = (c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com').trim();
   try {
-    const apiKeyStart = c.env.BREVO_API_KEY?.substring(0, 10) || 'MISSING';
+    // Trim whitespace from API key — secrets set via wrangler may have trailing newlines
+    const brevoApiKey = (c.env.BREVO_API_KEY || '').trim();
+    const apiKeyStart = brevoApiKey?.substring(0, 10) || 'MISSING';
     console.log(`Sending Brevo email to ${email}, API key: ${apiKeyStart}...`);
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        'api-key': c.env.BREVO_API_KEY,
+        'api-key': brevoApiKey,
         'Content-Type': 'application/json',
         'accept': 'application/json',
       },
