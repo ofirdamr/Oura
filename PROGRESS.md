@@ -1,5 +1,10 @@
 # Progress Log
 
+### 2026-07-18 (email auth session)
+- PR #64 (reset-link prefetch fix) already deployed. BREVO_API_KEY set on oura-api Worker.
+- Both NS records added to Cloudflare for mail.yardendamri.co.il (ns1/ns2.sendinblue.com). Brevo showing mismatch warning on NS record 1 order — unresolved, blocking authentication.
+- Next: fix NS record order in Cloudflare so ns1.sendinblue.com is the first NS record, then re-verify in Brevo, then set BREVO_SENDER_EMAIL secret.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
