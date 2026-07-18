@@ -120,7 +120,30 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
-## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
+## ⏭️ NEXT MISSION — Wire photo-editor page to Stitch design (READY TO BUILD)
+
+**What to do:** Replace `apps/web/app/photo-editor/page.tsx` with a 1:1 wire of the Stitch designs now saved in the repo.
+
+**Design source (both saved in repo):**
+- Mobile: `design/screens/oura_final_production_photo_editor_mobile/code.html` (Stitch HTML export)
+- Desktop: `design/screens/oura_final_production_photo_editor_desktop/code.html` (Stitch HTML export)
+- Mobile screenshot in the gallery: `design/screens/oura_final_production_photo_editor_mobile/screen.png`
+
+**Design summary:**
+- **Mobile:** Scroll page — header (→ back arrow, "עריכת תמונה" centered, Oura logo end-side), photo preview with PHOTO SANTOS watermark, 4 sliders (בהירות/ניגודיות/רוויה/חשיפה each 0), 2 toggles (אופטימיזציה ON, מסגרת OFF), fixed bottom bar (שמור primary red, שתף outline)
+- **Desktop:** Two-panel — photo canvas fills left, sidebar right with "התאמות" section (4 sliders) + "כלים נוספים" section (מסגרת לבנה toggle OFF, אופטימיזציה אוטומטית toggle ON) + שמור תמונה/שתף at sidebar bottom
+- Sliders adjust real CSS filter (brightness/contrast/saturation/exposure) on the live photo preview
+- Photo is loaded from `?photo=<id>` query param (already wired in current page)
+- Save button calls the existing save action; Share calls share action
+- No CDN scripts — Tailwind must be the bundled npm dep, fonts must be self-hosted Rubik/Hanken Grotesk from next/font
+
+**What NOT to do:** Do not redesign anything. Do not add features not in the Stitch HTML. Wire only.
+
+**Also broken (same next session):** Gallery photo selection was disrupted — tapping a photo opens lightbox instead of entering select mode. This regression needs investigation. Check `apps/web/app/gallery/page.tsx` line 60: `onClick={selectMode ? onToggleSelect : onOpen}` — the select-mode toggle button and the per-tile behavior need to be confirmed working end-to-end.
+
+**Pending layout revert (PR #75 open):** The save/share buttons in gallery were moved to a fixed bottom strip — NOT in the Stitch design. Branch `claude/oura-mvp-layout-revert-6vqml5` was created from main but no commits yet. This revert must happen: restore buttons to in-page scroll position per the design, keep the chip label fixes (ריקודים/מנה עיקרית) and mobile save fallback.
+
+## ⏭️ OLDER NEXT MISSION — (to be decided per PRD order)
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):
 - `/admin/qr-management` sidebar link: done (AdminShell navItems includes `ניהול QR`)

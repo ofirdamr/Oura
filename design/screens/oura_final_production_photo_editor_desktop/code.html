@@ -2,472 +2,456 @@
 
 <html class="dark" dir="rtl" lang="he"><head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Oura | גלריית אירוע - Photo Santos</title>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Oura - עריכת תמונה</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Manrope:wght@600;700&amp;family=Rubik:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "error-container": "#93000a",
+                "surface-container-lowest": "#0c0f0f",
+                "secondary": "#c6c6c9",
+                "on-surface-variant": "#dcc0bb",
+                "on-error": "#690005",
+                "primary-container": "#ff8a75",
+                "on-primary": "#601308",
+                "primary-fixed": "#ffdad4",
+                "on-primary-fixed-variant": "#7f291c",
+                "surface": "#121414",
+                "primary-fixed-dim": "#ffb4a6",
+                "on-primary-fixed": "#3f0300",
+                "surface-bright": "#38393a",
+                "surface-container": "#1e2020",
+                "inverse-surface": "#e2e2e2",
+                "inverse-primary": "#9f4030",
+                "tertiary": "#c4c6cb",
+                "on-secondary-fixed-variant": "#454749",
+                "tertiary-fixed": "#e1e2e7",
+                "secondary-fixed": "#e2e2e5",
+                "on-secondary": "#2f3133",
+                "on-secondary-fixed": "#1a1c1e",
+                "tertiary-fixed-dim": "#c4c6cb",
+                "on-background": "#e2e2e2",
+                "outline-variant": "#56423e",
+                "tertiary-container": "#a9abb0",
+                "outline": "#a48b87",
+                "surface-variant": "#333535",
+                "background": "#121414",
+                "on-tertiary-fixed-variant": "#44474b",
+                "primary": "#ffb4a6",
+                "on-tertiary-container": "#3d4044",
+                "on-tertiary-fixed": "#191c20",
+                "on-surface": "#e2e2e2",
+                "on-error-container": "#ffdad6",
+                "on-primary-container": "#752215",
+                "secondary-container": "#454749",
+                "on-secondary-container": "#b4b5b7",
+                "inverse-on-surface": "#2f3131",
+                "secondary-fixed-dim": "#c6c6c9",
+                "surface-tint": "#ffb4a6",
+                "surface-container-high": "#282a2b",
+                "surface-container-highest": "#333535",
+                "surface-dim": "#121414"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "unit": "8px",
+                "stack-md": "24px",
+                "container-padding-desktop": "40px",
+                "stack-lg": "48px",
+                "gutter": "16px",
+                "container-padding-mobile": "20px",
+                "stack-sm": "8px"
+            },
+            "fontFamily": {
+                "label-sm": ["JetBrains Mono", "monospace"],
+                "display-lg": ["Manrope", "sans-serif"],
+                "headline-lg": ["Manrope", "sans-serif"],
+                "body-md": ["Inter", "sans-serif"],
+                "headline-lg-mobile": ["Manrope", "sans-serif"],
+                "body-lg": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+                "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
 <style>
         body {
-            font-family: 'Rubik', sans-serif;
-            scroll-behavior: smooth;
+            background-color: #121414;
+            color: #e2e2e2;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
 
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        .latin-brand {
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .festive-frame {
+        /* Lightbox Backdrop Animation */
+        #lightbox {
+            animation: backdropFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes backdropFadeIn {
+            from { 
+                background-color: rgba(5, 5, 5, 0);
+                backdrop-filter: blur(0px);
+            }
+            to { 
+                background-color: rgba(5, 5, 5, 0.8);
+                backdrop-filter: blur(16px);
+            }
+        }
+
+        /* Lightbox Content Animation */
+        #lightbox-content {
+            animation: contentScaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes contentScaleIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Sidebar Slide In Animation - RTL adjusted: slide from left because sidebar is on right in LTR, but in RTL it stays on the 'end' side which is the right side of the screen */
+        #edit-sidebar {
+            animation: sidebarSlideIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes sidebarSlideIn {
+            from { 
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Staggered items */
+        .stagger-item {
+            opacity: 0;
+            animation: itemReveal 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes itemReveal {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stagger-item:nth-child(1) { animation-delay: 0.2s; }
+        .stagger-item:nth-child(2) { animation-delay: 0.3s; }
+        .stagger-item:nth-child(3) { animation-delay: 0.4s; }
+        .stagger-item:nth-child(4) { animation-delay: 0.5s; }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            background: #333535;
+            border-radius: 1px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #ffb4a6;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 15px rgba(255, 180, 166, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.3);
+            background: #ffdad4;
+        }
+
+        .switch-toggle {
             position: relative;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
         }
 
-        .festive-frame::before {
-            content: '';
+        .switch-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
-            transform: rotate(45deg);
-            transition: 0.6s;
-            pointer-events: none;
-            z-index: 5;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333535;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 20px;
         }
 
-        .photo-container:hover .festive-frame {
-            transform: translateY(-6px);
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.08);
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #e2e2e2;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
         }
 
-        .photo-container:hover .festive-frame::before {
-            left: 100%;
+        input:checked + .slider {
+            background-color: #ffb4a6;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .photo-frame {
+            position: relative;
+            padding: 1px;
+            background: #1e2020;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .watermark {
-            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-            letter-spacing: 1.5px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.3em;
+            font-size: 9px;
+            font-weight: 500;
+            opacity: 0.8;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        .glass-overlay {
-            background: rgba(15, 14, 13, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+        [dir="rtl"] input[type="range"] {
+            direction: ltr;
         }
 
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-
-        .gold-shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 4s infinite;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "on-tertiary-fixed": "#241a00",
-                        "surface-container-low": "#1d1b19",
-                        "error": "#ffb4ab",
-                        "secondary-fixed-dim": "#e7bdb1",
-                        "primary": "#ffb4a5",
-                        "secondary": "#e7bdb1",
-                        "on-surface-variant": "#ddc0ba",
-                        "on-primary-fixed-variant": "#ffdad3",
-                        "on-error-container": "#ffdad6",
-                        "primary-fixed": "#ffdad3",
-                        "on-surface": "#f5f0ec",
-                        "inverse-primary": "#9f402d",
-                        "tertiary-fixed": "#ffe088",
-                        "tertiary-container": "#cca72f",
-                        "surface-dim": "#151311",
-                        "primary-container": "#e2725b",
-                        "outline-variant": "#56423e",
-                        "on-primary-container": "#5a0d02",
-                        "secondary-container": "#5d4037",
-                        "tertiary": "#e9c349",
-                        "tertiary-fixed-dim": "#e9c349",
-                        "on-secondary": "#442a22",
-                        "inverse-on-surface": "#1d1b19",
-                        "surface-bright": "#3c3836",
-                        "background": "#0f0e0d",
-                        "primary-fixed-dim": "#ffb4a5",
-                        "on-tertiary-container": "#4e3d00",
-                        "surface-container-highest": "#3a3432",
-                        "on-primary-fixed": "#3e0500",
-                        "surface-variant": "#56423e",
-                        "surface-tint": "#ffb4a5",
-                        "on-primary": "#5e170a",
-                        "surface-container-lowest": "#0a0908",
-                        "on-tertiary": "#3c2f00",
-                        "on-tertiary-fixed-variant": "#574500",
-                        "surface-container-high": "#2e2927",
-                        "surface-container": "#24211f",
-                        "secondary-fixed": "#ffdbd0",
-                        "on-secondary-container": "#fed3c7",
-                        "on-error": "#690005",
-                        "on-secondary-fixed-variant": "#5d4037",
-                        "on-secondary-fixed": "#2c160e",
-                        "error-container": "#93000a",
-                        "on-background": "#f5f0ec",
-                        "outline": "#a08c88",
-                        "surface": "#151311",
-                        "inverse-surface": "#f5f0ec"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "margin-desktop": "32px",
-                        "base": "4px",
-                        "xs": "4px",
-                        "lg": "24px",
-                        "margin-mobile": "16px",
-                        "xl": "32px",
-                        "md": "16px",
-                        "gutter": "16px",
-                        "sm": "8px",
-                        "xxl": "48px"
-                    },
-                    "fontFamily": {
-                        "title-lg": ["Rubik"],
-                        "body-md": ["Rubik"],
-                        "headline-lg-mobile": ["Rubik"],
-                        "label-sm": ["Rubik"],
-                        "display-lg": ["Rubik"],
-                        "label-lg": ["Rubik"],
-                        "headline-lg": ["Rubik"],
-                        "body-lg": ["Rubik"]
-                    },
-                    "fontSize": {
-                        "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
-                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "600"}],
-                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
-                        "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}],
-                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
-                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "600"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}]
-                    }
-                }
+        @media (min-width: 1024px) {
+            .desktop-sidebar {
+                width: 400px;
+                border-left: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .photo-canvas {
+                height: calc(100vh - 64px);
             }
         }
-    </script>
+    </style>
 </head>
-<body class="bg-background text-on-surface transition-colors duration-300 overflow-x-hidden">
-<!-- TopNavBar -->
-<header class="bg-surface/90 backdrop-blur-lg fixed top-0 w-full h-16 z-50 border-b border-outline-variant flex flex-row-reverse justify-between items-center px-margin-desktop">
-<div class="flex items-center gap-4 flex-row-reverse">
-<div class="h-10 w-auto flex items-center">
-<img alt="Oura Logo" class="h-9 w-auto object-contain rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
-<span class="mr-3 font-display-lg text-2xl font-bold text-primary">Oura</span>
-</div>
-<nav class="hidden md:flex flex-row-reverse gap-8 mr-10">
-<a class="font-title-lg text-primary border-b-2 border-primary pb-1" href="#">גלריה</a>
-<a class="font-title-lg text-on-surface-variant hover:text-primary transition-colors" href="#">אירועים</a>
-<a class="font-title-lg text-on-surface-variant hover:text-primary transition-colors" href="#">הגדרות</a>
-</nav>
-</div>
-<div class="flex items-center gap-6 flex-row-reverse">
-<button class="bg-primary text-on-primary px-7 py-2.5 rounded-full font-label-lg transition-all hover:scale-105 active:opacity-80">העלאת תמונות</button>
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors text-2xl">notifications</span>
-<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border-2 border-outline-variant shadow-inner">
-<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMTM6i37hO-j7JWwFOkv-u8cHje_C-CmcAcuAq4zEujYBjvmKeVczC3lc4IsdI1XfoY8zEX3DqKiAIa5hMZOnj_ItS29QrD7NYm0UakMIPoNFqzUkH0tIZsLOItBVsoCk5-kpK-UyKpTstQrNYxXKYTHQTC-UInTOuOkOdV2ajJHtfyoKAfxwzP3kQgf7cSUo1qvdHHbAfG6L6VmlnvIAYVu3NedY-wjtSm0FX7Ob01mh2ZCQBme8fidkFAi8ymYgYIzNWyChVGJKf"/>
+<body class="flex flex-col min-h-screen bg-background overflow-hidden">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-white/5 h-16 flex items-center justify-between px-container-padding-mobile lg:px-10">
+<div class="flex items-center gap-4">
+<img alt="Oura Logo" class="h-8 w-auto active:scale-95 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuICCKrxDy0T2GyQ6W3XqsLSW27KUPmH9DXjLS-RN8WufGxp-f_2Wk7yeDDgDObKjAlalTTs3pATOm0KrKadL0CF8bJdbC4aCOnoz-EcEHuslpm2NvKp_-gtW_Pt71HvsyzSSSsu9oSFuSldQifxYnnJFH6lNOelE8RIalNV_xko4W48WXaACP20uUUDFLF4WAfj_FwyymnHEDc0BjCJnmgBuVFHQPu22V_9c5MJ8ln5iu99-o0emREzIC158ZexFiy5hG5pAq8TFR"/>
+<div class="hidden lg:flex items-center gap-6 ml-8">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-medium text-sm" href="#">גלריה</a>
+<a class="text-on-surface font-medium text-sm border-b-2 border-primary pb-1" href="#">עריכה</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-medium text-sm" href="#">הגדרות</a>
 </div>
 </div>
+<h1 class="font-headline-lg-mobile text-[20px] lg:text-[24px] font-semibold text-on-surface lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+            עריכת תמונה
+        </h1>
+<div class="flex items-center gap-2">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-90 p-2">
+<span class="material-symbols-outlined text-2xl">undo</span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors active:scale-90 p-2">
+<span class="material-symbols-outlined text-2xl">arrow_forward</span>
+</button>
 </div>
 </header>
-<!-- Main Content Canvas -->
-<main class="pt-28 pb-32 px-margin-mobile md:px-margin-desktop min-h-screen relative w-full max-w-full">
-<!-- Hero Section -->
-<section class="w-full mx-auto mb-16 relative z-10 text-center md:text-right">
-<div class="inline-block px-5 py-1.5 rounded-full border border-tertiary text-tertiary font-label-lg mb-6 bg-tertiary/10">חתונה של נועה וגיא • 12.10.2023</div>
-<h2 class="font-display-lg text-4xl md:text-display-lg mb-6 text-on-surface leading-tight">רגעים של אושר בלתי נשכח</h2>
-<p class="font-body-lg text-lg text-on-surface-variant max-w-2xl md:mr-0 mr-auto leading-relaxed">גלריית האורחים הרשמית של Oura. מוזמנים להוריד ולשתף את הרגעים היפים ביותר מהערב המיוחד שלנו, בעיבוד אמנותי של Photo Santos.</p>
-</section>
-<!-- Bento Photo Grid -->
-<section class="w-full mx-auto grid grid-cols-2 md:grid-cols-4 gap-gutter relative z-10">
-<!-- Featured Photo (Large) -->
-<div class="col-span-2 row-span-2 photo-container group cursor-pointer" onclick="openLightbox(0)">
-<div class="festive-frame h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="חתונה יוקרתית" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5-Onq8DnVcaT1l3IWq_mOQO5G3NK0GqtFB4mY9tj7qZSFYWJRmHnpo-DLzYcAoumz1oabqlcgAkIQL9iqAZlk8Y-6ZB2t65J_LpprY60ujS_pmVJY79LGZZzZKlwI3PUfzXAaLOJQxDD3R44RVBNDPTejuam1JKk7WJ6F6U3bfg7bOF38NnepcGIWpfdh2WtM3ECAYuuD_bjiUm82N8v_ZO4y5WdDQjeTaVUlevZxTDO5cj2AZwNNWZF7T3LMYJ0TYpjTTuNipW3i"/>
-<div class="absolute inset-0 flex flex-col justify-between p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-<div class="flex justify-between items-start flex-row-reverse">
-<div class="w-14 h-14 glass-overlay rounded-xl flex items-center justify-center border border-white/20 shadow-xl" title="צילום">
-<span class="material-symbols-outlined text-tertiary text-4xl" style="font-variation-settings: 'FILL' 1;">camera</span>
-</div>
-<div class="flex gap-3">
-<span class="material-symbols-outlined text-white/80 cursor-pointer hover:text-error transition-colors text-2xl" title="הוספה למועדפים">favorite</span>
-<button class="w-10 h-10 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors" title="שיתוף">
-<span class="material-symbols-outlined text-xl">share</span>
-</button>
-</div>
-</div>
-<div class="text-right">
-<p class="watermark text-white font-display-lg text-2xl font-bold tracking-widest uppercase">PHOTO SANTOS</p>
-<p class="text-white/60 font-label-sm mt-1">Cinematography &amp; Fine Art</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Standard Grid Items -->
-<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(1)">
-<div class="festive-frame h-64 md:h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="שולחן ערוך" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBj0W4WnAU7wdFrWuriTND90CuvLm7Ug6inTNEzcZ7LZ3la4s7Rv8bYvsfF-8J-X70HuPU00ZldJxWoxqud33CmWD_8xx-jYr7f6pnIoyh9PdvF5F1n26II_J_yRGoM__DrM4cxrnEKrV4qCxrb0D3hrsEtuwqn6yUs6N4qY8okT9ej3-moqpRjbl1EHarB9CPF5BvF9DY_V_FB9TeBNBgI7MQ74uv5GTClPYeUxL1CcswNRHkp1pEndbVUVSjo1DH1mdblXQIxLfHT"/>
-<div class="absolute bottom-4 right-4 text-right">
-<button class="mb-3 w-9 h-9 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors opacity-0 group-hover:opacity-100" title="שיתוף">
-<span class="material-symbols-outlined text-base">share</span>
-</button>
-<p class="watermark text-white/90 font-bold text-[10px] tracking-widest uppercase">PHOTO SANTOS</p>
-</div>
-</div>
-</div>
-</div>
-<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(2)">
-<div class="festive-frame h-64 md:h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="רחבת ריקודים" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkJlPrGvqLsKyHDlRaQTgstnieRbfIz4-x4cr_43qpBDNDIMtKqP-yvy46PZftDj967k6zDPd19NKH9YJQNDnC4ZoXMQSGBxcNriyjtf7To522b_j_2GF4j8V-cdysuF3LdXotmRFaJyBaqEAVsv5D1ymCIILSSqeYgfguVztEKno-wjZ-X6MnNTnmIid1mVuP5APx_mk5sPxFqxFb_JJB8ZNKbusFxVN6bfzKd9Hnc3AbmQ1bkUDCv_dLl_K8SsLackLPR0Ur9WbF"/>
-<div class="absolute bottom-4 right-4 text-right">
-<button class="mb-3 w-9 h-9 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors opacity-0 group-hover:opacity-100" title="שיתוף">
-<span class="material-symbols-outlined text-base">share</span>
-</button>
-<p class="watermark text-white/90 font-bold text-[10px] tracking-widest uppercase">PHOTO SANTOS</p>
-</div>
-</div>
-</div>
-</div>
-<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(3)">
-<div class="festive-frame h-64 md:h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="דיוקן" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyKraUptQpkoDnYk4qdbtHFYI1fj9mM4O5N0WsEZQqzQLpt8a6TBEJb5b-4U_hDsRxQAiKnapYwrDvXwwl1LshuIOlPe3SgBjlS1sE-BeQ09GvC7oRWqbBcKfQ_H9XKnIyRARSGXBoeXZiBRbPKl0EANADTAxckzDafeLzLVB2u2l6xceJMkpqde1Qu7lBH-q10ZqNmzH6w_ZbwGo7CWVBhgNckvW3Au5E-Nte2baR7U6W-qlXYYB3yepS9PQM-k2HR9kyHv0f8inz"/>
-<div class="absolute bottom-4 right-4 text-right">
-<button class="mb-3 w-9 h-9 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors opacity-0 group-hover:opacity-100" title="שיתוף">
-<span class="material-symbols-outlined text-base">share</span>
-</button>
-<p class="watermark text-white/90 font-bold text-[10px] tracking-widest uppercase">PHOTO SANTOS</p>
-</div>
-</div>
-</div>
-</div>
-<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(4)">
-<div class="festive-frame h-64 md:h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="אביזרים" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBixvlkTDh6cEMldisyNIkkwWZRD5oEnwo3L2RdGFBQNMZ2mzAqmMZDZ6ji18NMNSgDu9UsjFw431RS_YvBHnqMZW30TTFvlxFc87snNVXRCKdhu_M0jXV_TQMU0oEct9pJSJpXZAkDMI7L0DkMFoBNqT_nkaC2kHMKSSJktqeqWdeFJMgx1fUWjE5tgz0YijSy4bnr0_KZZKWyuNgFeyHQ111KJgVDFjPX20m-BnCvFlV0EibhDrR7NvfWpD4MGUmCglMq7eBx06BF"/>
-<div class="absolute bottom-4 right-4 text-right">
-<button class="mb-3 w-9 h-9 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors opacity-0 group-hover:opacity-100" title="שיתוף">
-<span class="material-symbols-outlined text-base">share</span>
-</button>
-<p class="watermark text-white/90 font-bold text-[10px] tracking-widest uppercase">PHOTO SANTOS</p>
-</div>
-</div>
-</div>
-</div>
-<!-- Tall Photo -->
-<div class="col-span-1 md:row-span-2 photo-container group cursor-pointer" onclick="openLightbox(5)">
-<div class="festive-frame h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="זוג בשקיעה" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD916kVScZTEUUeJXyfi0bjT8_udrmk0dy5yMVtVJLsI6ns-i4xP82qNM1ZRWcquLMuT5Txugef4OhJiReX7w9WyNBrDxprLQisbe_hKSwhg0h7ZuQnXlvKhlFPLQXzKsxW3hycNk236HXl-DcbXYy1v-8LF3lQK41aOZOvHWC09ukQGpzKVId9Kpm_YojuJ_Dbnj1Xg_bbqHlg6afQl8_m1guPMcAendcW1nopUYmtqyh3iQjfs-FSvK1fTXLOrArtV9CIfxLdbN3k"/>
-<div class="absolute bottom-6 right-6 text-right">
-<button class="mb-4 w-10 h-10 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors opacity-0 group-hover:opacity-100" title="שיתוף">
-<span class="material-symbols-outlined text-base">share</span>
-</button>
-<p class="watermark text-white font-bold text-xs tracking-widest uppercase">PHOTO SANTOS</p>
-</div>
-</div>
-</div>
-</div>
-<div class="col-span-1 photo-container group cursor-pointer" onclick="openLightbox(6)">
-<div class="festive-frame h-64 md:h-full">
-<div class="relative overflow-hidden w-full h-full">
-<img alt="שמפניה" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmKRFjjxptzu34h4UbrTWp8vAkeJsy-8UQoiZagu-ghOlSAG1iPNKgo5wnXu6ybzsi6cWmh7hSqYE74AYm8Lw4Bd0MLv0iuu9XBpmIXi-zu3Hk-I5N28R-73YLQSy_4oadZk4GR_z4dSK6zjIRKJ8AH7EdMbfQ0XmnkrACigeWOZGpID_FbTmc_fTEOqJfdzrJgrw2fUqUk0ErrC9QKZSST8Fgw_ZtvowUnYSdXa6UFuy8ij44lrM15p_izEJ76aLTpL--wZIxK0KG"/>
-<div class="absolute bottom-4 right-4 text-right">
-<button class="mb-3 w-9 h-9 glass-overlay rounded-lg flex items-center justify-center border border-white/10 text-white hover:text-primary transition-colors opacity-0 group-hover:opacity-100" title="שיתוף">
-<span class="material-symbols-outlined text-base">share</span>
-</button>
-<p class="watermark text-white/90 font-bold text-[10px] tracking-widest uppercase">PHOTO SANTOS</p>
-</div>
+<!-- Lightbox Container -->
+<div class="flex flex-col lg:flex-row-reverse mt-16 flex-1 overflow-hidden bg-[#050505]/80" id="lightbox">
+<!-- Right Panel: Photo Preview (Lightbox Content) -->
+<main class="flex-1 overflow-y-auto lg:overflow-hidden p-container-padding-mobile lg:p-10 flex items-center justify-center photo-canvas" id="lightbox-content">
+<section class="w-full max-w-2xl lg:max-w-4xl mx-auto h-full flex items-center justify-center">
+<div class="photo-frame rounded-sm overflow-hidden w-full aspect-square lg:aspect-auto lg:max-h-full">
+<div class="relative h-full flex items-center justify-center bg-[#0a0a0a]">
+<img alt="Editor Preview" class="w-full h-full object-contain" id="main-preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0cIvjypebzO7Vd1fSfndVKYfVY4toD3KjhtvIRSJaKBwVk2_QC9whjm_nkiXFFrZpOjGcfpMAM1i8rwC2ODtWNd6xeT4zZxCDO3wVzFS4bq73LnA5HxJWxanbhFyHieVJJZOiK0OZyPAt9BgRr2dIhTXnQP_yj6wnd6xf3ETu-huZdtSPFzMawwhW8DUiXxXBznoCRPL5XPDTMTaVDbvKB5jlwuU98szxJsg9uScEGPBY9gukz0iS48ZralAJbAJ0afVf8HGQZ79f"/>
+<!-- Watermark -->
+<div class="absolute bottom-6 left-6 flex flex-col items-start select-none z-10">
+<span class="watermark uppercase latin-brand">PHOTO SANTOS</span>
+<div class="w-14 h-[1px] bg-white/30 mt-1.5"></div>
 </div>
 </div>
 </div>
 </section>
-<!-- Load More FAB -->
-<button class="fixed bottom-24 md:bottom-12 left-1/2 -translate-x-1/2 z-40 bg-tertiary text-on-tertiary-fixed px-10 py-4 rounded-full shadow-2xl flex items-center gap-3 font-bold transition-all hover:scale-105 hover:bg-tertiary/90 active:scale-95 group">
-<span class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">expand_more</span>
-        צפה בתמונות נוספות
-    </button>
 </main>
-<!-- BottomNavBar (Mobile Only) -->
-<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-3 px-4 bg-surface/90 backdrop-blur-xl border-t border-outline-variant shadow-2xl">
-<a class="flex flex-col items-center text-primary" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
-<span class="font-label-sm text-xs mt-1">בית</span>
-</a>
-<a class="flex flex-col items-center text-on-surface-variant" href="#">
-<span class="material-symbols-outlined">grid_view</span>
-<span class="font-label-sm text-xs mt-1">גלריה</span>
-</a>
-<a class="flex flex-col items-center text-on-surface-variant" href="#">
-<span class="material-symbols-outlined">share</span>
-<span class="font-label-sm text-xs mt-1">שיתוף</span>
-</a>
-<a class="flex flex-col items-center text-on-surface-variant" href="#">
-<span class="material-symbols-outlined">person</span>
-<span class="font-label-sm text-xs mt-1">פרופיל</span>
-</a>
-</nav>
-<!-- Expanded Photo Lightbox -->
-<div class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 md:p-12 glass-overlay" id="lightbox">
-<button class="absolute top-8 left-8 text-white/80 bg-white/10 hover:bg-white/20 hover:text-white p-3 rounded-full transition-all z-[110]" onclick="closeLightbox()" title="סגירה">
-<span class="material-symbols-outlined text-3xl">close</span>
-</button>
-<div class="relative w-full max-w-6xl h-full flex items-center justify-center">
-<!-- Navigation Buttons -->
-<button class="absolute left-4 z-[110] text-white/40 hover:text-white transition-all scale-150" title="הקודם">
-<span class="material-symbols-outlined text-5xl">chevron_left</span>
-</button>
-<button class="absolute right-4 z-[110] text-white/40 hover:text-white transition-all scale-150" title="הבא">
-<span class="material-symbols-outlined text-5xl">chevron_right</span>
-</button>
-<!-- Expanded Image with Ultra Frame -->
-<div class="festive-frame max-h-[85vh] w-auto inline-block relative shadow-[0_0_100px_rgba(0,0,0,0.8)] border-white/20">
-<div class="relative h-full overflow-hidden rounded-sm">
-<img class="max-h-[75vh] w-auto object-contain block" id="lightbox-img" src=""/>
-<!-- Integrated Photographer Branding -->
-<div class="absolute bottom-0 left-0 right-0 p-10 flex flex-row-reverse justify-between items-end bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-<div class="text-right text-white">
-<p class="font-display-lg text-3xl font-extrabold tracking-[0.2em] watermark mb-2 uppercase">PHOTO SANTOS</p>
-<div class="flex flex-row-reverse items-center gap-3 text-white/60">
-<img alt="Oura Small Logo" class="h-6 w-auto grayscale brightness-200 opacity-70" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB6XpN7Fi3wWs96j5r9YJkdquYx_qYmOQkDjPWcci7pFQ_39S7Apb_ibpp7cdKwwmdtw2js8ojIG7jgfVRr6CzwHMZx7Ll3wUXjrbpoArSwkmPbP7aphgdsk_P81HUXJ2w1lORpyUQAKmQDslrLyL6LBN7ccUIqitkNk1g8YXZvO5GraxftaKZWiDJhmijYqVZbB-U66EmiKClxQh0RFsPW_54G7h8uGIucROIKRDUvUQ_LML-K1nR0vlmyr6ChRZo5N2ytyBB7cdS"/>
-<span class="font-label-sm text-sm font-light">מופעל על ידי Oura - צלם האירוע הרשמי</span>
+<!-- Left Panel: Sidebar Editing Tools -->
+<aside class="desktop-sidebar bg-surface-container flex flex-col h-full lg:border-l lg:border-white/5 z-20" id="edit-sidebar">
+<div class="flex-1 overflow-y-auto p-container-padding-mobile lg:p-8 space-y-10">
+<!-- Adjustment Sliders -->
+<section class="space-y-8">
+<h3 class="text-on-surface-variant text-xs uppercase tracking-widest font-semibold border-b border-white/5 pb-2 stagger-item">התאמות</h3>
+<div class="space-y-7">
+<!-- Brightness -->
+<div class="space-y-3 stagger-item">
+<div class="flex justify-between items-center px-1">
+<span class="font-body-md text-on-surface-variant text-sm font-medium">בהירות</span>
+<span class="font-label-sm text-primary text-xs">0</span>
+</div>
+<input max="100" min="-100" type="range" value="0"/>
+</div>
+<!-- Contrast -->
+<div class="space-y-3 stagger-item">
+<div class="flex justify-between items-center px-1">
+<span class="font-body-md text-on-surface-variant text-sm font-medium">ניגודיות</span>
+<span class="font-label-sm text-primary text-xs">0</span>
+</div>
+<input max="100" min="-100" type="range" value="0"/>
+</div>
+<!-- Saturation -->
+<div class="space-y-3 stagger-item">
+<div class="flex justify-between items-center px-1">
+<span class="font-body-md text-on-surface-variant text-sm font-medium">רוויה</span>
+<span class="font-label-sm text-primary text-xs">0</span>
+</div>
+<input max="100" min="-100" type="range" value="0"/>
+</div>
+<!-- Exposure -->
+<div class="space-y-3 stagger-item">
+<div class="flex justify-between items-center px-1">
+<span class="font-body-md text-on-surface-variant text-sm font-medium">חשיפה</span>
+<span class="font-label-sm text-primary text-xs">0</span>
+</div>
+<input max="100" min="-100" type="range" value="0"/>
 </div>
 </div>
-<div class="flex gap-5">
-<button class="bg-primary hover:bg-primary/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20 shadow-lg transition-all flex items-center gap-3 text-on-primary font-bold" onclick="document.getElementById('edit-sidebar').classList.toggle('-translate-x-full')">
-<span class="material-symbols-outlined text-xl">edit</span>
-<span class="font-label-sm hidden md:block">עריכה מקצועית</span>
-</button>
-<button class="bg-white/5 hover:bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition-all group" title="הורדה">
-<span class="material-symbols-outlined text-white group-hover:scale-110">download</span>
-</button>
-<button class="bg-white/5 hover:bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition-all group" title="שיתוף">
-<span class="material-symbols-outlined text-white group-hover:scale-110">share</span>
-</button>
+</section>
+<!-- Settings Toggles -->
+<section class="space-y-6">
+<h3 class="text-on-surface-variant text-xs uppercase tracking-widest font-semibold border-b border-white/5 pb-2 stagger-item">כלים נוספים</h3>
+<div class="grid grid-cols-1 gap-4">
+<div class="bg-white/5 rounded-lg p-4 flex items-center justify-between border border-white/5 stagger-item">
+<span class="font-body-md text-on-surface text-sm">מסגרת לבנה</span>
+<label class="switch-toggle">
+<input id="frame-toggle" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="bg-white/5 rounded-lg p-4 flex items-center justify-between border border-white/5 stagger-item">
+<span class="font-body-md text-on-surface text-sm">אופטימיזציה אוטומטית</span>
+<label class="switch-toggle">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
 </div>
 </div>
+</section>
+</div>
+<!-- Sidebar Bottom Actions -->
+<div class="p-container-padding-mobile lg:p-8 bg-surface-container-high border-t border-white/5 hidden lg:block stagger-item">
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary text-on-primary font-semibold py-4 rounded-lg font-body-lg active:scale-[0.98] transition-all shadow-xl shadow-primary/20 hover:bg-primary/90">
+                    שמור תמונה
+                </button>
+<button class="w-full border border-primary/40 text-primary font-medium py-3.5 rounded-lg font-body-lg active:scale-[0.98] transition-all bg-transparent hover:bg-primary/5">
+                    שתף
+                </button>
 </div>
 </div>
+</aside>
 </div>
-<!-- Image Edit Sidebar -->
-<div class="absolute left-0 top-0 bottom-0 w-80 bg-surface-dim/98 backdrop-blur-2xl border-r border-white/5 p-8 flex flex-col gap-10 z-[120] transform -translate-x-full transition-transform duration-500 shadow-2xl" id="edit-sidebar">
-<div class="flex items-center justify-between">
-<h3 class="text-white font-title-lg text-xl font-bold">כלי עריכה</h3>
-<span class="material-symbols-outlined text-white/40 cursor-pointer hover:text-white p-2 hover:bg-white/5 rounded-lg transition-all" onclick="document.getElementById('edit-sidebar').classList.add('-translate-x-full')">close</span>
-</div>
-<div class="space-y-8">
-<div class="space-y-4">
-<div class="flex justify-between text-white/80 text-sm font-medium">
-<span>בהירות</span>
-<span class="text-primary">65%</span>
-</div>
-<input class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="65"/>
-</div>
-<div class="space-y-4">
-<div class="flex justify-between text-white/80 text-sm font-medium">
-<span>ניגודיות</span>
-<span class="text-primary">45%</span>
-</div>
-<input class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="45"/>
-</div>
-<div class="space-y-4">
-<div class="flex justify-between text-white/80 text-sm font-medium">
-<span>רוויה</span>
-<span class="text-primary">55%</span>
-</div>
-<input class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="55"/>
-</div>
-</div>
-<div class="mt-auto space-y-4">
-<button class="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg active:scale-95">
-<span class="material-symbols-outlined">magic_button</span>
-                אופטימיזציה אוטומטית
+<!-- Mobile Bottom Action Area (Visible only on mobile) -->
+<footer class="lg:hidden fixed bottom-0 w-full z-50 bg-background/95 backdrop-blur-md border-t border-white/5 pb-safe px-container-padding-mobile pt-4 pb-6">
+<div class="flex flex-col gap-3 max-w-md mx-auto">
+<button class="w-full bg-primary text-on-primary font-semibold py-4 rounded-lg font-body-lg active:scale-[0.98] transition-all shadow-xl shadow-primary/10">
+                שמור
             </button>
-<button class="w-full py-4 rounded-2xl border border-white/10 text-white/80 font-medium flex items-center justify-center gap-3 hover:bg-white/5 transition-all">
-<span class="material-symbols-outlined">frame_person</span>
-                הוספת מסגרת Photo Santos
+<button class="w-full border border-primary text-primary font-medium py-3.5 rounded-lg font-body-lg active:scale-[0.98] transition-all bg-transparent">
+                שתף
             </button>
 </div>
-</div>
-</div>
+</footer>
+<!-- Scripts -->
 <script>
-    function openLightbox(index) {
-        const images = [
-            "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1600",
-            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1600",
-            "https://images.unsplash.com/photo-1519225495810-751783d9a21b?auto=format&fit=crop&q=80&w=1600",
-            "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1600",
-            "https://images.unsplash.com/photo-1522673607200-164883212c2f?auto=format&fit=crop&q=80&w=1600",
-            "https://images.unsplash.com/photo-1541250848049-b4f71413cc30?auto=format&fit=crop&q=80&w=1600",
-            "https://images.unsplash.com/photo-1530103043960-ef38714abb15?auto=format&fit=crop&q=80&w=1600"
-        ];
-        const lb = document.getElementById('lightbox');
-        const img = document.getElementById('lightbox-img');
-        img.src = images[index];
-        lb.classList.remove('hidden');
-        lb.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
+        // Adjustments Logic
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const valueDisplay = e.target.parentElement.querySelector('.text-primary');
+                if(valueDisplay) {
+                    valueDisplay.textContent = e.target.value;
+                }
+                
+                const img = document.getElementById('main-preview');
+                const sliders = document.querySelectorAll('input[type="range"]');
+                const brightness = sliders[0].value;
+                const contrast = sliders[1].value;
+                const saturation = sliders[2].value;
+                const exposure = sliders[3].value; 
+                
+                const totalBrightness = 100 + parseInt(brightness) + (parseInt(exposure) * 0.5);
+                
+                img.style.filter = `
+                    brightness(${totalBrightness}%) 
+                    contrast(${100 + parseInt(contrast)}%) 
+                    saturate(${100 + parseInt(saturation)}%)
+                `;
+            });
+        });
 
-    function closeLightbox() {
-        const lb = document.getElementById('lightbox');
-        lb.classList.add('hidden');
-        lb.classList.remove('flex');
-        document.getElementById('edit-sidebar').classList.add('-translate-x-full');
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close lightbox on click outside the frame
-    document.getElementById('lightbox').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeLightbox();
-    });
-
-    // Navigation scroll logic
-    let lastScrollTop = 0;
-    const header = document.querySelector('header');
-    window.addEventListener('scroll', () => {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            header.style.transform = 'translateY(-100%)';
-            header.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-        } else {
-            header.style.transform = 'translateY(0)';
-        }
-        lastScrollTop = scrollTop;
-    });
-</script>
+        // Frame toggle logic
+        const frameToggle = document.getElementById('frame-toggle');
+        frameToggle.addEventListener('change', (e) => {
+            const frame = document.querySelector('.photo-frame');
+            const watermark = document.querySelector('.watermark');
+            if(e.target.checked) {
+                frame.style.padding = '24px';
+                frame.style.backgroundColor = '#ffffff';
+                frame.style.borderColor = 'transparent';
+                watermark.style.color = '#000000';
+                watermark.style.opacity = '1';
+                watermark.style.textShadow = 'none';
+            } else {
+                frame.style.padding = '1px';
+                frame.style.backgroundColor = '#1e2020';
+                frame.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                watermark.style.color = '#ffffff';
+                watermark.style.opacity = '0.8';
+                watermark.style.textShadow = '0 2px 4px rgba(0,0,0,0.5)';
+            }
+        });
+    </script>
 </body></html>
