@@ -83,23 +83,27 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
-## ✅ DONE 2026-07-18 — Password reset email delivery end-to-end (PR #68, deployed)
+## 🔴 BLOCKED 2026-07-18 — Password reset: Brevo email delivery broken (CLOUDFLARE creds had whitespace)
 
-**Root cause:** SUPABASE_URL had `/rest/v1/` suffix, breaking `generateLink()` call. Supabase JS client appends that automatically — double-appending caused silent failure.
+**Root causes found and PARTIALLY fixed:**
+1. ✅ SUPABASE_URL had `/rest/v1/` suffix — FIXED earlier (PR #68)
+2. ✅ CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID had leading spaces — **FIXED** (code now trims at deploy time)
+3. ✅ BREVO_API_KEY and BREVO_SENDER_EMAIL now trimmed in Worker endpoint (deployed version `56e2cd13`)
 
-**Fixed:**
-- Corrected SUPABASE_URL secret: `https://voxxhvywzaizyputjqkm.supabase.co` (no `/rest/v1/`)
-- BREVO_API_KEY secret set in Cloudflare Worker
-- Error logging added to `/auth/forgot-password` endpoint
-- Worker redeployed (version `a38049e9`)
+**What was deployed (commit 7edff2c):**
+- Worker endpoint `/auth/forgot-password` now trims whitespace from `BREVO_API_KEY` and `BREVO_SENDER_EMAIL` before sending to Brevo API
+- Deploy script auto-trims `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` before wrangler deploy
+- Worker version `56e2cd13` deployed successfully
 
-**Verified end-to-end:** 
-- Tested POST /auth/forgot-password with ofirdamr@gmail.com
-- Endpoint returns `{ ok: true }` 
-- Brevo API key is valid (confirmed with direct API call)
-- Live: https://oura-web.oura-events.workers.dev/forgot-password
+**What still needs testing (founder only):**
+1. Go to https://oura-web.oura-events.workers.dev/forgot-password
+2. Enter any test photographer email (not ofirdamr@gmail.com)
+3. Click "איפוס סיסמה"
+4. Check inbox for reset email from Brevo
+5. If email arrives: click reset link → enter new password → verify can log in with new password
+6. **If email does NOT arrive:** Brevo API key is likely still invalid in Cloudflare secrets (re-check via dashboard that BREVO_API_KEY is set correctly with no whitespace)
 
-**Next:** founder tests forgot-password form → check inbox for reset link.
+**Cannot verify from sandbox:** No email delivery access; Cloudflare Worker console logs not accessible. Code is correct, but email delivery depends on founder verifying Brevo secrets in Cloudflare dashboard and testing inbox.
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 

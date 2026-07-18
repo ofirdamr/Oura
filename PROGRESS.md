@@ -1,5 +1,8 @@
 # Progress Log
 
+### 2026-07-18 (session — context continuation)
+- **Brevo API whitespace fix deployed:** Found root cause of silent email failures — `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` environment variables had leading spaces, causing wrangler deploy to fail with opaque error (code 6111/7003). Fixed by trimming whitespace at deploy time. Also added whitespace trim to Worker endpoint for `BREVO_API_KEY` and `BREVO_SENDER_EMAIL` before sending to Brevo API (defensive, in case secret has trailing newlines). Commit `7edff2c`, Worker version `56e2cd13` deployed. **Status:** Code fix deployed; email delivery still untested (no sandbox email access). Founder must verify: https://oura-web.oura-events.workers.dev/forgot-password → test email → confirm Brevo sends reset link.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
