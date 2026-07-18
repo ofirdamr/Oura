@@ -1,12 +1,22 @@
 "use client";
 
 // Photographer self-service password reset, step 2: the link from the reset
-// email lands here. The Supabase browser client auto-detects the recovery
-// session from the URL (hash tokens or a PKCE `code` param, depending on the
-// project's auth flow type) on init - we don't parse the URL ourselves, we
-// just wait for either an existing session or the PASSWORD_RECOVERY event
-// before showing the "set new password" form. No session after a short wait
-// means the link is invalid/expired.
+// email lands here.
+//
+// The recovery link is generated server-side by the Worker via
+// `auth.admin.generateLink({ type: 'recovery' })`. Supabase's /verify endpoint
+// redirects here with IMPLICIT-flow tokens in the URL hash
+// (#access_token=...&refresh_token=...&type=recovery). But our browser client
+// (@supabase/ssr createBrowserClient) is hard-wired to `flowType: 'pkce'`, and
+// its automatic detectSessionInUrl REJECTS an implicit hash with
+// "Not a valid PKCE flow url" — so no session is ever created and the page used
+// to show "link invalid" for every real reset link. That was the long-standing
+// reset-never-works bug.
+//
+// Fix: parse the implicit hash ourselves and establish the session explicitly
+// with setSession(), which is flow-type agnostic. We keep the
+// onAuthStateChange/getSession paths as fallbacks (already-established session).
+// No session after a short wait means the link is genuinely invalid/expired.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -25,7 +35,11 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
+    // detectSessionInUrl:false — stop the PKCE client from choking on the
+    // implicit recovery hash (see the file header + supabaseClient.ts). We
+    // establish the session ourselves below.
+    const supabase = createSupabaseBrowserClient({ detectSessionInUrl: false });
+    let active = true;
 
     const {
       data: { subscription },
@@ -35,11 +49,40 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // Covers the case where the session/event was already established before
-    // this listener attached.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setReady(true);
-    });
+    async function establishSession() {
+      // Primary path: the recovery link's implicit tokens live in the URL hash.
+      // Parse them and set the session directly (bypasses the PKCE-flow
+      // detectSessionInUrl rejection described in the file header).
+      const hash =
+        typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        const { error: setErr } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (!active) return;
+        if (!setErr) {
+          setReady(true);
+          // Strip the tokens from the URL so a refresh or copied link can't
+          // leak the recovery session.
+          window.history.replaceState(null, "", window.location.pathname);
+          return;
+        }
+      }
+
+      // Fallback: a session may already be established (link consumed in this
+      // tab, or a future native-implicit Supabase config).
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (active && session) setReady(true);
+    }
+
+    void establishSession();
 
     const timeout = setTimeout(() => {
       setReady((current) => {
@@ -49,6 +92,7 @@ export default function ResetPasswordPage() {
     }, 4000);
 
     return () => {
+      active = false;
       subscription.unsubscribe();
       clearTimeout(timeout);
     };

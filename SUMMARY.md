@@ -106,6 +106,12 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
+## ✅ DONE 2026-07-18 — Password reset PAGE actually works now (real root cause fixed, e2e verified)
+
+The reset **email** was fixed earlier (Brevo), but clicking the link still failed for everyone: `/reset-password` always showed "הקישור אינו תקף" (link invalid), so no password could ever be set. **Root cause:** the server-generated recovery link lands with implicit-flow tokens in the URL hash, but `@supabase/ssr`'s browser client is hard-forced to PKCE flow — its auto session-detection rejects the implicit hash and never creates a session. **Fix:** the reset page now disables that auto-detection (`detectSessionInUrl:false`), parses the hash itself, and calls `setSession(...)` before `updateUser({password})`; tokens are stripped from the URL after.
+
+**Verified e2e this session** (throwaway user, now deleted): (1) reproduced the break against real Supabase (PKCE client → no session); (2) real Supabase chain — recovery link → setSession → password change → login with the NEW password all OK; (3) drove the real deployed page in a browser — form appears, submit shows "עודכנה בהצלחה", and no-link shows "link invalid" (negative control). Deployed: oura-web version `65c63a98`. Live: https://oura-web.oura-events.workers.dev/reset-password (reachable from the "שכחתם סיסמה?" link on https://oura-web.oura-events.workers.dev/login).
+
 ## ✅ DONE 2026-07-18 — Password reset email flow live end-to-end (PR #65, deployed)
 
 Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner. Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no custom domain required. Same server-side flow: `auth.admin.generateLink()` builds the recovery link, Brevo emails it via the newly-set API key.
