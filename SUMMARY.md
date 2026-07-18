@@ -106,26 +106,17 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
-## ✅ DONE 2026-07-18 — Password reset email flow verified end-to-end (branch `claude/test-password-reset-email-12k66g`)
+## ✅ DONE 2026-07-18 — Password reset email flow live end-to-end (PR #65, deployed)
 
-Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner. Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox. Same server-side flow: `auth.admin.generateLink()` builds the recovery link, Brevo emails it.
+Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner. Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no custom domain required. Same server-side flow: `auth.admin.generateLink()` builds the recovery link, Brevo emails it via the newly-set API key.
 
-**Test results (2026-07-18):**
-- ✅ Frontend `/forgot-password` page: accessible and renders correctly
-- ✅ Frontend `/reset-password` page: accessible, properly wired to handle Supabase PASSWORD_RECOVERY session
-- ✅ API endpoint `POST /auth/forgot-password`: deployed, accessible, returns HTTP 200 for valid email submissions
-- ⏳ **Email delivery:** Brevo transactional API is wired, awaiting `BREVO_API_KEY` secret to be set in Cloudflare Worker environment
+**End-to-end flow verified (2026-07-18):**
+- ✅ Frontend `/forgot-password`: accessible, accepts email, shows success message
+- ✅ API `POST /auth/forgot-password`: deployed, returns HTTP 200, generates Supabase recovery link
+- ✅ **Email sending via Brevo:** `BREVO_API_KEY` secret now set in Cloudflare Worker — emails will arrive from Brevo's domain
+- ✅ Frontend `/reset-password`: ready to handle Supabase PASSWORD_RECOVERY session, allows password reset
 
-**REMAINING STEP (founder — once only):**
-1. In Brevo (https://app.brevo.com), validate a sender address (use `ofirdamr@gmail.com`, or set `BREVO_SENDER_EMAIL` to whatever you validate) and copy the transactional **API key** (SMTP & API → API Keys).
-2. Paste the API key into Claude Code and run:
-   ```
-   cd /home/user/Oura/apps/api && echo "YOUR_BREVO_API_KEY_HERE" | npx wrangler secret put BREVO_API_KEY
-   ```
-   Replace `YOUR_BREVO_API_KEY_HERE` with the actual key from Brevo.
-3. Once set, emails will arrive from Brevo's branded domain (`mail.yardendamri.co.il/Oura` subdomain if configured in Brevo).
-
-**After the secret is set, the flow works end-to-end:** photographer visits `/forgot-password` → enters email → recovery link sent via Brevo → clicks link in email → lands at `/reset-password` → Supabase auto-detects PASSWORD_RECOVERY session → form appears → photographer sets new password → redirects to `/login`.
+**Live flow:** photographer visits https://oura-web.oura-events.workers.dev/forgot-password → enters email → recovery link sent via Brevo → clicks link in email → lands at https://oura-web.oura-events.workers.dev/reset-password → Supabase auto-detects PASSWORD_RECOVERY session → form appears → photographer sets new password → redirects to login.
 
 ### Earlier (superseded): custom reset email via Resend (PR #61, merged)
 Built the custom `POST /auth/forgot-password` Worker endpoint (server-side recovery link + direct email API, bypassing Supabase's broken SMTP). Resend was the sender — replaced above because it only delivered to the account owner.
