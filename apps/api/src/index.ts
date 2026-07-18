@@ -1172,11 +1172,12 @@ app.post('/auth/forgot-password', async (c) => {
   const db = supa(c.env);
 
   // Generate a recovery link without sending email. Admin-only Supabase method.
+  // Set redirectTo without query params - Supabase appends token/error in hash fragment.
   const { data: linkData, error: linkErr } = await db.auth.admin.generateLink({
     type: 'recovery',
     email,
     options: {
-      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password?type=recovery',
+      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password',
     },
   });
 
