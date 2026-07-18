@@ -1191,34 +1191,42 @@ app.post('/auth/forgot-password', async (c) => {
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).
   const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
-  await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'api-key': c.env.BREVO_API_KEY,
-      'Content-Type': 'application/json',
-      'accept': 'application/json',
-    },
-    body: JSON.stringify({
-      sender: { name: 'Oura', email: senderEmail },
-      to: [{ email }],
-      subject: 'איפוס סיסמה - Oura',
-      htmlContent: `
-        <div dir="rtl" style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0a0a0a;color:#f5f5f5;border-radius:16px;">
-          <h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Oura</h1>
-          <h2 style="font-size:18px;font-weight:600;margin-bottom:16px;color:#ff8a75;">איפוס סיסמה</h2>
-          <p style="color:#aaa;line-height:1.6;margin-bottom:24px;">
-            קיבלנו בקשה לאיפוס הסיסמה של חשבונך. לחצו על הכפתור למטה כדי לבחור סיסמה חדשה.
-          </p>
-          <a href="${resetLink}" style="display:inline-block;background:#ff8a75;color:#fff;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-size:16px;">
-            איפוס סיסמה
-          </a>
-          <p style="color:#666;font-size:12px;margin-top:24px;">
-            הקישור תקף ל-24 שעות. אם לא ביקשתם לאפס את הסיסמה, ניתן להתעלם מהודעה זו.
-          </p>
-        </div>
-      `,
-    }),
-  });
+  try {
+    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': c.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: 'Oura', email: senderEmail },
+        to: [{ email }],
+        subject: 'איפוס סיסמה - Oura',
+        htmlContent: `
+          <div dir="rtl" style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#0a0a0a;color:#f5f5f5;border-radius:16px;">
+            <h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Oura</h1>
+            <h2 style="font-size:18px;font-weight:600;margin-bottom:16px;color:#ff8a75;">איפוס סיסמה</h2>
+            <p style="color:#aaa;line-height:1.6;margin-bottom:24px;">
+              קיבלנו בקשה לאיפוס הסיסמה של חשבונך. לחצו על הכפתור למטה כדי לבחור סיסמה חדשה.
+            </p>
+            <a href="${resetLink}" style="display:inline-block;background:#ff8a75;color:#fff;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-size:16px;">
+              איפוס סיסמה
+            </a>
+            <p style="color:#666;font-size:12px;margin-top:24px;">
+              הקישור תקף ל-24 שעות. אם לא ביקשתם לאפס את הסיסמה, ניתן להתעלם מהודעה זו.
+            </p>
+          </div>
+        `,
+      }),
+    });
+    if (!brevoRes.ok) {
+      const brevoErr = await brevoRes.text();
+      console.error(`Brevo email failed for ${email}: ${brevoRes.status} ${brevoErr}`);
+    }
+  } catch (err) {
+    console.error(`Brevo email error for ${email}:`, err);
+  }
 
   return c.json({ ok: true });
 });
