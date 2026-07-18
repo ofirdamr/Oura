@@ -8,9 +8,13 @@ const { execSync } = require("child_process");
 
 const trim = (v) => (v || "").trim();
 
-// Map SUPABASE_* → NEXT_PUBLIC_SUPABASE_* if the NEXT_PUBLIC_ variant is absent
+// Map SUPABASE_* → NEXT_PUBLIC_SUPABASE_* if the NEXT_PUBLIC_ variant is absent.
+// Strip /rest/v1 suffix: SUPABASE_URL points at the PostgREST base, but the
+// browser Supabase client needs the bare project URL so it can reach GoTrue
+// at /auth/v1 — otherwise verifyOtp calls /rest/v1/auth/v1/verify (PostgREST)
+// and gets "Invalid path specified in request URL" (PGRST125).
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  process.env.NEXT_PUBLIC_SUPABASE_URL = trim(process.env.SUPABASE_URL);
+  process.env.NEXT_PUBLIC_SUPABASE_URL = trim(process.env.SUPABASE_URL).replace(/\/rest\/v1\/?$/, "");
 }
 if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = trim(process.env.SUPABASE_ANON_KEY);
