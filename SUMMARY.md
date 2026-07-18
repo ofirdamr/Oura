@@ -106,6 +106,14 @@ Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow
 - `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
 - Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
 
+## ⚠️ BLOCKER — Password reset email links arriving but invalid/expired (branch claude/password-reset-link-diagnosis-whw5df)
+
+Brevo sends reset emails successfully, but clicking the link gives "invalid" or "expired" error. Root cause unknown: Supabase's `auth.admin.generateLink()` may be returning null `action_link` or a malformed URL.
+
+**Diagnostic logging added:** `POST /auth/forgot-password` route now logs the full `generateLink()` response. Commit: `Add diagnostic logging for password-reset generateLink response`. Code change deployed.
+
+**Next step:** trigger password reset → capture log from Cloudflare Workers logs → show exact response → fix will be 1–2 lines.
+
 ## ✅ DONE 2026-07-18 — Password reset email flow live end-to-end (PR #65, deployed)
 
 Resend's shared `onboarding@resend.dev` silently dropped every email to any address that wasn't the Resend account owner. Migrated `POST /auth/forgot-password` Worker endpoint to Brevo's transactional-email API (`https://api.brevo.com/v3/smtp/email`), which delivers to any inbox with no custom domain required. Same server-side flow: `auth.admin.generateLink()` builds the recovery link, Brevo emails it via the newly-set API key.
