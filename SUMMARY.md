@@ -83,6 +83,23 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
+## ⏳ IN PROGRESS — Password reset email delivery (branch `claude/brevo-api-key-secret-t5p37w`)
+
+**Status:** Brevo API key secret set + Worker deployed, but emails not arriving. Error logging added to diagnose.
+
+**What's done:**
+- BREVO_API_KEY secret set in Cloudflare Worker
+- Worker redeployed (version `9b66bce1`)
+- Error logging added to `/auth/forgot-password` endpoint to capture Brevo API failures
+- Form submits successfully but no email received yet
+
+**Next diagnostics (when email still doesn't arrive after this redeploy):**
+1. Test email account must exist in Supabase (`SELECT * FROM auth.users WHERE email = 'test@example.com'`)
+2. Check Brevo dashboard event logs to confirm API requests arrive
+3. Verify BREVO_SENDER_EMAIL config (currently defaults to `ofirdamr@gmail.com`)
+
+**TODO:** founder tests the forgot-password form again, checks inbox + Brevo logs to identify the actual failure point.
+
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):
