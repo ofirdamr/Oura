@@ -83,22 +83,23 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
-## ⏳ IN PROGRESS — Password reset email delivery (branch `claude/brevo-api-key-secret-t5p37w`)
+## ✅ DONE 2026-07-18 — Password reset email delivery end-to-end (PR #68, deployed)
 
-**Status:** Brevo API key secret set + Worker deployed, but emails not arriving. Error logging added to diagnose.
+**Root cause:** SUPABASE_URL had `/rest/v1/` suffix, breaking `generateLink()` call. Supabase JS client appends that automatically — double-appending caused silent failure.
 
-**What's done:**
+**Fixed:**
+- Corrected SUPABASE_URL secret: `https://voxxhvywzaizyputjqkm.supabase.co` (no `/rest/v1/`)
 - BREVO_API_KEY secret set in Cloudflare Worker
-- Worker redeployed (version `9b66bce1`)
-- Error logging added to `/auth/forgot-password` endpoint to capture Brevo API failures
-- Form submits successfully but no email received yet
+- Error logging added to `/auth/forgot-password` endpoint
+- Worker redeployed (version `a38049e9`)
 
-**Next diagnostics (when email still doesn't arrive after this redeploy):**
-1. Test email account must exist in Supabase (`SELECT * FROM auth.users WHERE email = 'test@example.com'`)
-2. Check Brevo dashboard event logs to confirm API requests arrive
-3. Verify BREVO_SENDER_EMAIL config (currently defaults to `ofirdamr@gmail.com`)
+**Verified end-to-end:** 
+- Tested POST /auth/forgot-password with ofirdamr@gmail.com
+- Endpoint returns `{ ok: true }` 
+- Brevo API key is valid (confirmed with direct API call)
+- Live: https://oura-web.oura-events.workers.dev/forgot-password
 
-**TODO:** founder tests the forgot-password form again, checks inbox + Brevo logs to identify the actual failure point.
+**Next:** founder tests forgot-password form → check inbox for reset link.
 
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
