@@ -337,19 +337,34 @@ generates the Supabase recovery link server-side via
 `auth.admin.generateLink()` and emails it through Brevo's transactional API
 (bypassing Supabase's unreliable shared SMTP; Brevo delivers to any inbox
 with no custom domain, unlike the old Resend shared sender).
-`/reset-password` is where the emailed link lands. The server-generated
-recovery link verifies to **implicit-flow tokens in the URL hash**
-(`#access_token=…&refresh_token=…&type=recovery`), but the browser client
-(`@supabase/ssr` `createBrowserClient`) is hard-wired to `flowType: 'pkce'`,
-whose automatic `detectSessionInUrl` **rejects** an implicit hash ("Not a valid
-PKCE flow url") and never creates a session — this silently broke every reset
-("link invalid") until 2026-07-18. The page therefore creates its client with
-`detectSessionInUrl: false` and establishes the session itself: it parses the
-hash tokens and calls `setSession({access_token, refresh_token})`, then strips
-the tokens from the URL, then `updateUser({password})` sets the new password.
-`createSupabaseBrowserClient(authOverrides?)` takes the override; all other
-callers keep the default PKCE auto-detection. Closes the "no password reset"
-known gap (§8).
+`/reset-password` is where the emailed link lands. **Final working flow
+(as of 2026-07-18, commit `09c7c907`):**
+
+1. User clicks the emailed link → lands at `/reset-password?token_hash=…&type=recovery`.
+2. Page shows a confirm gate ("המשך לאיפוס הסיסמה") — **no `verifyOtp` on mount.**
+   This is intentional: Brevo's click-tracking pre-scans the link on delivery
+   (a server-side GET), which would burn a one-time token if the page redeemed
+   it automatically. A prefetch GET cannot simulate a tap, so delaying the
+   redeem to a user gesture is what makes the token survive the pre-scan.
+3. User taps the button → `verifyOtp({type:'recovery', token_hash})` runs →
+   Supabase returns a `PASSWORD_RECOVERY` session → `updateUser({password})`
+   sets the new password.
+
+Legacy implicit-hash links (`#access_token=…&type=recovery`) still auto-establish
+on mount via `setSession()` — the confirm gate is only on the `token_hash` path.
+
+**Known env-var gotcha (`NEXT_PUBLIC_SUPABASE_URL` must be the bare project URL):**
+`apps/web/deploy.js` previously passed the Worker-side `SUPABASE_URL` (which ends
+in `/rest/v1/`, the PostgREST base) as `NEXT_PUBLIC_SUPABASE_URL`. The browser
+Supabase client uses that value as its GoTrue base
+(`${NEXT_PUBLIC_SUPABASE_URL}/auth/v1/…`), so every browser-side auth call
+(including `verifyOtp`) hit PostgREST instead of GoTrue and returned
+`PGRST125 "Invalid path specified in request URL"`. `deploy.js` now strips
+the `/rest/v1/` suffix automatically. **Verify after any deploy:**
+`grep -r 'NEXT_PUBLIC_SUPABASE_URL' apps/web/.open-next/assets` — the value
+must NOT contain `/rest/v1/`. If it does, the whole browser auth stack is broken.
+
+Closes the "no password reset" known gap (§8).
 
 `create-event` → `branding` → `qr-management` are threaded together via a
 `?event_id=` query param (not a separate studio-profile table — `branding`
