@@ -1180,6 +1180,8 @@ app.post('/auth/forgot-password', async (c) => {
     },
   });
 
+  console.log('generateLink response:', JSON.stringify({ linkErr, linkData: linkData?.properties }, null, 2));
+
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
   if (linkErr || !linkData?.properties?.action_link) {
@@ -1240,6 +1242,37 @@ app.get('/events/by-code/:code', async (c) => {
 });
 
 app.get('/', (c) => c.text('oura-api'));
+
+// Diagnostic endpoint for testing password reset flow (remove once debugging is done).
+app.post('/auth/forgot-password-debug', async (c) => {
+  let email = '';
+  try {
+    const body = await c.req.json<{ email?: string }>();
+    email = (body?.email ?? '').trim().toLowerCase();
+  } catch {
+    return c.json({ error: 'invalid_body' }, 400);
+  }
+
+  if (!email) return c.json({ error: 'missing_email' }, 400);
+
+  const db = supa(c.env);
+
+  const { data: linkData, error: linkErr } = await db.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: {
+      redirectTo: 'https://oura-web.oura-events.workers.dev/reset-password',
+    },
+  });
+
+  // Return the full response for diagnostics
+  return c.json({
+    email,
+    generateLink_error: linkErr,
+    generateLink_data: linkData,
+    has_action_link: !!linkData?.properties?.action_link,
+  });
+});
 
 // Cloudflare Queues (queue) and Cron Triggers (scheduled) require handlers on
 // the same default export as fetch — a bare Hono app (`export default app`)
