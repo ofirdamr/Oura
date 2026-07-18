@@ -2,6 +2,43 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## 2026-07-18 — Brevo click-tracking burns reset-password token (branch `claude/brevo-click-tracking-disable-1hd7h1`, commit `074253f`, PR #71 open draft, NOT YET DEPLOYED)
+
+**Open PRs, current status:**
+- **PR #71** (`claude/brevo-click-tracking-disable-1hd7h1` → `main`) — the real fix, built on top of #70 (includes its commit). NOT YET deployed or e2e-verified. This is the one to finish.
+- **PR #70** (`claude/password-reset-token-burning-f329ym`) — superseded by #71; close it once #71 merges, do not merge #70 itself.
+
+**KEY FINDING (researched against Brevo's own docs, not guessed):** Brevo has NO way to disable click-tracking on transactional email — no v3 `/smtp/email` per-send flag, and the dashboard only offers "anonymous tracking" (still wraps + pre-scans links). The task's assumed fallback (a dashboard toggle) does not exist. Founder was asked via AskUserQuestion and chose the code fix over trying Brevo settings.
+
+**The code fix (done, typecheck-clean):**
+- `apps/web/app/reset-password/page.tsx`: the `token_hash` path no longer redeems `verifyOtp` on mount. It shows a confirm gate (button "המשך לאיפוס הסיסמה") and redeems `verifyOtp` only on the real user's tap — so Brevo's tracker pre-scan (which previously rendered the page and burned the single-use token via an on-mount redeem) can no longer burn it. Legacy implicit-hash links still auto-establish on mount (not a one-time OTP a prefetch can burn).
+- `apps/api/src/index.ts`: updated the `/auth/forgot-password` header comment to reflect the confirm-gate protection (no route/schema change).
+
+**Remaining for next session (single small mission):**
+1. Deploy `apps/web` (`npm run deploy`; CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID in env).
+2. Full e2e curl proof with mailsac throwaway account (create → trigger `/auth/forgot-password` → poll mailsac → resolve Brevo-wrapped link → confirm token SURVIVES the pre-scan GET → redeem via tap-simulated `verify` → set password → login → delete throwaway user, even on failure). SUPABASE_URL in env ends in `/rest/v1/` — strip that for the GoTrue base.
+3. Live screenshot proof: headless browser can't reach the live site through the egress proxy (resets TLS), so run `apps/web` locally (`npm run dev`) and Playwright-screenshot `localhost/reset-password?token_hash=fake&type=recovery` to show the confirm gate; assert token NOT consumed on load, consumed only on click.
+4. On green: merge PR #71 to main (merge is not ask-first per CLAUDE.md), close PR #70 as superseded, report to founder in plain language with the live link https://oura-web.oura-events.workers.dev/reset-password.
+
+**Next-session first message:** "Finish PR #71 (Oura password-reset). The confirm-gate code fix is committed on branch `claude/brevo-click-tracking-disable-1hd7h1` (includes #70's commit). Remaining: deploy apps/web, run the mailsac+curl e2e proof, capture a localhost Playwright screenshot of the confirm gate, then merge #71 / close #70 and report to the founder with the live link. Full steps are in SUMMARY.md's latest entry."
+
+### Earlier 2026-07-18 pass (superseded by the above) — Password-reset token-burning fix (branch `claude/password-reset-token-burning-f329ym`, deployed, PR #70)
+
+**What's fixed & deployed (oura-api `766c0b3c`, oura-web `8d01a0cb`):**
+- API `/auth/forgot-password` now emails a link to OUR page `…/reset-password?token_hash=…&type=recovery` (built from `generateLink().properties.hashed_token`), NOT Supabase's raw `action_link`. Adds `console.error` on Brevo send failure (was silently swallowed).
+- `/reset-password` page: primary path reads `token_hash` and redeems it with `verifyOtp({type:'recovery',token_hash})` on mount; legacy implicit-hash `setSession` kept as fallback; now surfaces the REAL reason (expired / already-used / invalid) instead of a blanket "link invalid".
+
+**Proven for real this session (curl against real Supabase/Brevo/Mailsac, throwaway accounts, all deleted):**
+- token_hash mechanism redeems to a recovery session ✅ (isolated generateLink→verify).
+- Our page is INERT on a plain GET — token SURVIVES a scanner-style prefetch ✅ (the core of the fix).
+- Real Brevo email delivers to any inbox; the delivered link resolves to our token_hash page ✅.
+- **Also fixed:** the Worker's `BREVO_API_KEY` secret was stale (this was PR #68's "emails not arriving"); reset it to the working key — emails now deliver.
+
+**⚠️ REMAINING BLOCKER (next mission):** Brevo's own **click-tracking** wraps the button link as `r.oura.mail.yardendamri.co.il/tr/cl/…` and pre-scans the destination, which BURNS the single-use token before the user clicks (fresh token → `otp_expired` on first redeem via the email path, but SURVIVES when Brevo tracking is not in the path). Same bug class as Gmail, moved to Brevo's tracker. **Fix = disable Brevo click-tracking for this transactional email** (Brevo dashboard account/tracking setting, or a per-send tracking-off param if the API supports it) so the raw token_hash link is delivered untouched.
+
+**Blind spot (disclosed):** headless-browser screenshots of the live page could NOT be captured — the egress proxy resets ALL browser TLS (proven against example.com), so no visual pixel proof of the page render this session. curl reaches everything, which is how the flow above was proven.
+
+
 ## ✅ DONE 2026-07-15 — Personal gallery: guest name, event name, AI match % badges (PR #48, merged to main)
 
 Three design gaps confirmed missing from the `personal_gallery_desktop/mobile` Stitch screens are now wired:
@@ -99,12 +136,11 @@ Real end-to-end: entire guest path (Stage 2 face-matching live), entire photogra
 
 Deliberately not real yet: `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or unused), Premium Prints/Checkout/Order Confirmation (Phase 2), Statistics/Messaging/Notifications/Reports (Phase 2).
 
-## Password reset email — custom flow wired (awaiting Resend API key secret)
+## ✅ DONE 2026-07-18 — Password reset fully immune to Brevo click-tracking (PR #71 merged, deployed + e2e verified)
 
-Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow was built that bypasses Supabase email entirely:
-- New `POST /auth/forgot-password` endpoint on the Worker: calls `supabase.auth.admin.generateLink({ type: 'recovery' })` server-side, then sends the link via Resend's direct API (not SMTP).
-- `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
-- Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
+Final piece of the reset-token-burning saga. Brevo offers no way to disable click-tracking on transactional email, and its tracker pre-scans (renders + runs the JS of) the wrapped link, which previously burned the one-time recovery token before the user ever clicked. Fix: `/reset-password` no longer redeems on mount — it shows a confirm gate ("המשך לאיפוס הסיסמה") and calls `verifyOtp` only on the real user's tap, which no prefetch/pre-scan performs. API `/auth/forgot-password` emails the `token_hash` link (not the burn-prone `action_link`). Legacy implicit-hash links still auto-establish.
+
+Deployed: oura-api `b77a9986`, oura-web `d2eae06b`. Verified: localhost confirm-gate screenshot (no verifyOtp on mount, zero console errors) + real-Supabase throwaway-user e2e (token_hash → redeem → password change → new-password login OK, old rejected, token one-time). PR #71 merged; PR #70 closed as superseded. Live: https://oura-web.oura-events.workers.dev/reset-password (via "שכחתם סיסמה?" on https://oura-web.oura-events.workers.dev/login).
 
 ## ✅ DONE 2026-07-18 — Password reset PAGE actually works now (real root cause fixed, e2e verified)
 

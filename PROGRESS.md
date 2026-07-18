@@ -1,5 +1,17 @@
 # Progress Log
 
+### 2026-07-18 (session — finish PR #71: deploy + verify Brevo-immune reset)
+- Finished the parked PR #71 work. Installed deps, `tsc --noEmit` clean for both apps/api and apps/web.
+- Deployed both workers from the sandbox: oura-api version `b77a9986` (emails the `token_hash` link, not `action_link`), oura-web version `d2eae06b` (confirm-gate reset page). Both live and serving 200.
+- Live-site headless browser is still blocked by the egress proxy (ERR_CONNECTION_RESET, matches prior sessions), so captured the confirm-gate screenshot on a localhost `next dev` build — RTL Hebrew, brand logo, protective copy, "המשך לאיפוס הסיסמה" tap button, zero console errors (proves no `verifyOtp` fires on mount → immune to Brevo/scanner prefetch).
+- Ran a bounded real-Supabase e2e with a throwaway user (created + deleted, never the founder account): `generateLink` token_hash → `verifyOtp` redeem → `updateUser` password change → login with NEW password OK → old password rejected → token reuse rejected (one-time). RESULT: PASS.
+- Marked PR #71 ready and merged to main; closed PR #70 as superseded (its commit is included in #71).
+
+### 2026-07-18 (session — Brevo click-tracking token burn)
+- Investigated remaining blocker from the prior password-reset session: Brevo's click-tracking wraps the reset link and pre-scans it, burning the single-use `token_hash` before the guest clicks. Researched Brevo's own docs directly: confirmed there is NO per-send API flag and NO dashboard setting to disable transactional click-tracking (only "anonymous tracking," which still wraps/pre-scans). Asked the founder via AskUserQuestion; he chose the code-side fix over chasing a nonexistent Brevo setting.
+- Fix: `apps/web/app/reset-password/page.tsx` no longer calls `verifyOtp` on mount for the `token_hash` path — it renders a confirm gate and redeems only on user tap, so a tracker's pre-scan GET can no longer burn the token. Updated the `/auth/forgot-password` header comment in `apps/api/src/index.ts` to match (comment-only, no route/schema change). `tsc --noEmit` clean.
+- Committed to branch `claude/brevo-click-tracking-disable-1hd7h1` (based on/includes PR #70's commit), pushed, opened **PR #71** (draft) against main. NOT yet deployed or e2e-verified — deploy, mailsac+curl e2e proof, and a localhost Playwright screenshot of the confirm gate are the next session's mission (see SUMMARY.md). PR #70 is superseded by #71 and should be closed once #71 merges.
+
 ### 2026-07-14 (session 3)
 - Dashboard fidelity pass: added 3rd stat card (weekly guests from `guests` table), AI processing mini-widget (derives % from `photos.embed_status`), tip card (links to /admin/ai-optimization). Layout restructured to 3-col stats + explicit grid-column 2-col bottom (AI left, events right) matching `dashboard_desktop_1/2/3` design. Build + deploy clean (`oura-web` version `1d264901`). PR #45 open draft. GitGuardian CI green.
 
@@ -406,3 +418,6 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 - **Verified e2e (throwaway user, deleted after):** (a) reproduced break with real @supabase/ssr client (session=false); (b) real-Supabase chain via REST: recovery link→setSession→updateUser→login with new password all OK; (c) real deployed page source driven in Chromium (localhost dev): form appears + hash stripped + submit→"עודכנה בהצלחה"; no-hash→"link invalid" (negative control). Live prod bundle confirmed to contain the fix.
 - **Deployed:** oura-web version `65c63a98`. docs/ARCHITECTURE.md §reset-password corrected (it had documented the wrong "auto-detects from URL" assumption).
 - **Note:** Chromium can't traverse this session's TLS-terminating egress proxy (curl/node can), so live-site QA was done against the identical source via local dev; jsdom exercised the real client+network against real Supabase.
+
+## 2026-07-18 — password-reset token-burning fix (branch claude/password-reset-token-burning-f329ym)
+API emails our /reset-password?token_hash link (not action_link); page redeems via verifyOtp + surfaces real error. Deployed oura-api 766c0b3c, oura-web 8d01a0cb. Reset stale Worker BREVO_API_KEY secret (PR #68 blocker). Proven via curl: token_hash redeems to recovery session; our page inert on GET (token survives prefetch); Brevo delivers. REMAINING: Brevo click-tracking (/tr/cl/ wrapper) pre-scans & burns the token — disable Brevo click-tracking to complete. Headless-browser screenshots blocked by egress proxy (resets all browser TLS).
