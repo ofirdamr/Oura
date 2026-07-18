@@ -1199,7 +1199,8 @@ app.post('/auth/forgot-password', async (c) => {
   // domain needed — the reason we moved off Resend's owner-only shared sender).
   const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
   try {
-    console.log(`Sending Brevo email to ${email}, API key present: ${!!c.env.BREVO_API_KEY}`);
+    const apiKeyStart = c.env.BREVO_API_KEY?.substring(0, 10) || 'MISSING';
+    console.log(`Sending Brevo email to ${email}, API key: ${apiKeyStart}...`);
     const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
