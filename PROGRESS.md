@@ -1,5 +1,12 @@
 # Progress Log
 
+### 2026-07-18 (session — finish PR #71: deploy + verify Brevo-immune reset)
+- Finished the parked PR #71 work. Installed deps, `tsc --noEmit` clean for both apps/api and apps/web.
+- Deployed both workers from the sandbox: oura-api version `b77a9986` (emails the `token_hash` link, not `action_link`), oura-web version `d2eae06b` (confirm-gate reset page). Both live and serving 200.
+- Live-site headless browser is still blocked by the egress proxy (ERR_CONNECTION_RESET, matches prior sessions), so captured the confirm-gate screenshot on a localhost `next dev` build — RTL Hebrew, brand logo, protective copy, "המשך לאיפוס הסיסמה" tap button, zero console errors (proves no `verifyOtp` fires on mount → immune to Brevo/scanner prefetch).
+- Ran a bounded real-Supabase e2e with a throwaway user (created + deleted, never the founder account): `generateLink` token_hash → `verifyOtp` redeem → `updateUser` password change → login with NEW password OK → old password rejected → token reuse rejected (one-time). RESULT: PASS.
+- Marked PR #71 ready and merged to main; closed PR #70 as superseded (its commit is included in #71).
+
 ### 2026-07-18 (session — Brevo click-tracking token burn)
 - Investigated remaining blocker from the prior password-reset session: Brevo's click-tracking wraps the reset link and pre-scans it, burning the single-use `token_hash` before the guest clicks. Researched Brevo's own docs directly: confirmed there is NO per-send API flag and NO dashboard setting to disable transactional click-tracking (only "anonymous tracking," which still wraps/pre-scans). Asked the founder via AskUserQuestion; he chose the code-side fix over chasing a nonexistent Brevo setting.
 - Fix: `apps/web/app/reset-password/page.tsx` no longer calls `verifyOtp` on mount for the `token_hash` path — it renders a confirm gate and redeems only on user tap, so a tracker's pre-scan GET can no longer burn the token. Updated the `/auth/forgot-password` header comment in `apps/api/src/index.ts` to match (comment-only, no route/schema change). `tsc --noEmit` clean.

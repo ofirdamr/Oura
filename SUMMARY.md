@@ -136,12 +136,11 @@ Real end-to-end: entire guest path (Stage 2 face-matching live), entire photogra
 
 Deliberately not real yet: `/join`/`/festive-gallery`/`/minimal-gallery` (static UI, superseded or unused), Premium Prints/Checkout/Order Confirmation (Phase 2), Statistics/Messaging/Notifications/Reports (Phase 2).
 
-## Password reset email — custom flow wired (awaiting Resend API key secret)
+## ✅ DONE 2026-07-18 — Password reset fully immune to Brevo click-tracking (PR #71 merged, deployed + e2e verified)
 
-Supabase's shared SMTP was confirmed broken (emails never arrive). A custom flow was built that bypasses Supabase email entirely:
-- New `POST /auth/forgot-password` endpoint on the Worker: calls `supabase.auth.admin.generateLink({ type: 'recovery' })` server-side, then sends the link via Resend's direct API (not SMTP).
-- `/forgot-password` page updated to call this endpoint instead of `supabase.auth.resetPasswordForEmail`.
-- Both deployed (API version `28d4ffb3`, web version `fe429b4e`).
+Final piece of the reset-token-burning saga. Brevo offers no way to disable click-tracking on transactional email, and its tracker pre-scans (renders + runs the JS of) the wrapped link, which previously burned the one-time recovery token before the user ever clicked. Fix: `/reset-password` no longer redeems on mount — it shows a confirm gate ("המשך לאיפוס הסיסמה") and calls `verifyOtp` only on the real user's tap, which no prefetch/pre-scan performs. API `/auth/forgot-password` emails the `token_hash` link (not the burn-prone `action_link`). Legacy implicit-hash links still auto-establish.
+
+Deployed: oura-api `b77a9986`, oura-web `d2eae06b`. Verified: localhost confirm-gate screenshot (no verifyOtp on mount, zero console errors) + real-Supabase throwaway-user e2e (token_hash → redeem → password change → new-password login OK, old rejected, token one-time). PR #71 merged; PR #70 closed as superseded. Live: https://oura-web.oura-events.workers.dev/reset-password (via "שכחתם סיסמה?" on https://oura-web.oura-events.workers.dev/login).
 
 ## ✅ DONE 2026-07-18 — Password reset PAGE actually works now (real root cause fixed, e2e verified)
 
