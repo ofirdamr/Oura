@@ -21,6 +21,7 @@ import type { GuestPhoto } from "@/lib/api";
 import { compositeBrandedPhoto, downloadFileName, type CompositeBranding } from "@/lib/watermark";
 import { BrandedFrame } from "@/components/guest/BrandedFrame";
 import { savePhotos, sharePhotos } from "@/lib/photoActions";
+import { FormatPickerSheet } from "@/components/guest/FormatPickerSheet";
 
 const MAX_ZOOM = 4;
 const DISMISS_PX = 130;
@@ -52,6 +53,7 @@ export function PhotoViewer({
   const [zoom, setZoom] = useState<Zoom>(NOZOOM);
   const [animating, setAnimating] = useState(false);
   const [busy, setBusy] = useState<null | "save" | "share">(null);
+  const [formatSheet, setFormatSheet] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
 
@@ -294,14 +296,12 @@ export function PhotoViewer({
           )}
           <button
             type="button"
-            onClick={handleShare}
+            onClick={() => setFormatSheet(true)}
             disabled={busy !== null}
             aria-label="שיתוף התמונה"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20 disabled:opacity-50"
           >
-            <span className={`material-symbols-outlined ${busy === "share" ? "animate-spin" : ""}`}>
-              {busy === "share" ? "progress_activity" : "ios_share"}
-            </span>
+            <span className="material-symbols-outlined">ios_share</span>
           </button>
           <button
             type="button"
@@ -391,6 +391,26 @@ export function PhotoViewer({
         <div className="pointer-events-none absolute inset-x-0 bottom-24 z-30 mx-auto w-fit rounded-full bg-white/15 px-4 py-2 text-sm text-white backdrop-blur-md">
           {toast}
         </div>
+      )}
+
+      {formatSheet && !isVideo(photo) && (
+        <FormatPickerSheet
+          photoId={photo.id}
+          onClose={() => setFormatSheet(false)}
+          onExported={async (objectUrl, _format) => {
+            try {
+              const res = await fetch(objectUrl);
+              const blob = await res.blob();
+              URL.revokeObjectURL(objectUrl);
+              const caption =
+                shareCaption ?? (branding.eventTitle ? `${branding.eventTitle} · ${branding.studioName}` : branding.studioName);
+              const shareRes = await sharePhotos([{ blob, filename: downloadFileName(photo.id, branding.studioName) }], caption);
+              if (shareRes === "downloaded") flash("התמונה נשמרה");
+            } catch {
+              flash("השיתוף נכשל. נסו שוב.");
+            }
+          }}
+        />
       )}
     </div>
   );
