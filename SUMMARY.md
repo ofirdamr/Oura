@@ -2,6 +2,21 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-19 — LLaVA photo category labeling fixed (PR #82, deployed)
+
+Three silent bugs caused ALL photos to get wrong/null categories:
+1. Wrong model ID (`@cf/llava-1.5-7b-hf` → `@cf/llava-hf/llava-1.5-7b-hf`)
+2. Wrong response field (`result.response` → `result.description`)
+3. `ring` substring matched "during"/"gathering"/"wearing" — fixed with word-boundary regex
+Backfill now re-runs ALL photos (not just NULL) so wrong legacy labels are corrected.
+All 17 WED-2024 photos re-labeled: `updated: 17, skipped: 0`. Deployed oura-api `48349f47`.
+PR #82 open draft on `claude/llava-photo-categorization-2ajpm0`. Merge when ready.
+
+**Open PRs:**
+- **PR #82** — LLaVA fix, deployed, ready to merge
+- **PR #80** — category backfill endpoint (superseded by #82 which includes the fix; can close)
+- **PR #77** — full AI pipeline + multi-select, needs migration 0009 + deploy
+
 ## 🔄 IN PROGRESS 2026-07-19 — Category backfill endpoint (PR #80, open draft)
 
 **Branch:** `claude/oura-category-backfill-sjtb40`
