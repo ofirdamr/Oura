@@ -6,6 +6,16 @@
 - Added `GET /photos/:id/social-export` Worker route (guest token auth, R2 Tier 3 only, proxies to /social-frame)
 - Deployed oura-api `28dfa8ac`. PR #93 open draft. Python Cloud Run redeploy pending (founder action).
 - Watching PR #93 (trig_01SqruaKwFeRNF4AdXDX9WRa fires in ~1hr for check-in)
+
+### 2026-07-19 — PRD §10.2 client-side upload engine (PR #92, merged)
+- `jszip` + `browser-image-compression` added to apps/web
+- Event upload page: drag-and-drop ZIP/JPEG/PNG, in-browser extraction (memory-safe, sequential entries), silent compression (≤1 MB, Web Worker), 5-parallel upload pool with exponential backoff (2s/4s/8s, 3 retries)
+- Single unified "מייעל ומעלה נכסים בצורה בטוחה..." progress bar replaces per-file list
+- Deployed oura-web `c1cedcca`; PR #92 merged
+
+### 2026-07-19 (session — format picker bottom sheet)
+- Created `FormatPickerSheet` component matching Stitch design (3 formats: מקורי / פיד 4:5 / סטורי 9:16)
+- Wired into `PhotoViewer` share button → calls `/photos/:id/social-export?format=…&token=…`
 - PR #85 open (draft) on branch `claude/format-picker-bottom-sheet-a5gjq5`
 
 ### 2026-07-19 (session — PR merges + full AI pipeline deploy)
