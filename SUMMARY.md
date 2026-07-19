@@ -17,7 +17,17 @@ PR #82 open draft on `claude/llava-photo-categorization-2ajpm0`. Merge when read
 - **PR #80** — category backfill endpoint (superseded by #82 which includes the fix; can close)
 - **PR #77** — full AI pipeline + multi-select, needs migration 0009 + deploy
 
-## ⚠️ ACTION REQUIRED — Apply migration 0009 to activate gallery chips
+## ✅ DONE 2026-07-19 — AI category classification fixed (all PRs merged, deployed)
+
+- PR #82 merged (LLaVA fix), PR #80 + #77 already merged by founder
+- Migration 0009 applied by founder (category/ai_rejected/rejection_reason columns live)
+- Backfill run: all 17 WED-2024 photos correctly labeled as **ceremony**
+- LLaVA prompt now asks for visual description (not a single word), parser uses scoring not catch-all
+- Category definitions for Israeli weddings: ceremony=חופה, reception=קבלת פנים (cocktail/waiters/mingling), dancing=ריקודים, party=seated dinner/tables
+- Live: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 — festive chips filter by real DB categories
+- API version: 83040c3d, Web version: f44ab3fd
+
+## ⚠️ ACTION REQUIRED — Apply migration 0009 to activate gallery chips (DONE — already applied)
 
 The AI pipeline code is deployed (apps/api `2fef59a1`, apps/web `f44ab3fd`). The gallery category filter chips will work once migration 0009 is applied in Supabase:
 
