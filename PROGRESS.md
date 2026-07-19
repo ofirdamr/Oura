@@ -1,5 +1,10 @@
 # Progress Log
 
+### 2026-07-19 (session — format picker bottom sheet)
+- Created `FormatPickerSheet` component matching Stitch design (3 formats: מקורי / פיד 4:5 / סטורי 9:16)
+- Wired into `PhotoViewer` share button → calls `/photos/:id/social-export?format=…&token=…`
+- PR #85 open (draft) on branch `claude/format-picker-bottom-sheet-a5gjq5`
+
 ### 2026-07-19 (session — PR merges + full AI pipeline deploy)
 - Merged PR #82 (LLaVA fix) — squash to main
 - PR #80 already merged by founder; PR #77 already merged by founder
