@@ -19,6 +19,16 @@ bucket_name = "ouramedia"
 [ai]
 binding = "AI"
 
+# Native rate limiter gating POST /auth/forgot-password. Config-only (no KV
+# namespace, no migration). Cloudflare currently supports a 10s or 60s window;
+# 3 requests / 60s per key throttles the reset-email abuse without blocking a
+# real user's occasional retry. Keyed per-email AND per-IP in index.ts.
+[[unsafe.bindings]]
+name = "RESET_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 3, period = 60 }
+
 # Stage 2 face-embedding queue: photo uploads enqueue here, the Worker's own
 # `queue()` handler (src/queueConsumer.ts) consumes it. Created via
 # `npx wrangler queues create face-embed-queue` / `face-embed-queue-dlq`.
