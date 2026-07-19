@@ -40,6 +40,10 @@ export type Env = {
   BREVO_SENDER_EMAIL?: string;
   // Cloudflare Workers AI — photo category classification and quality checks.
   AI: Ai;
+  // Cloudflare native rate limiter gating POST /auth/forgot-password so the
+  // public endpoint can't be used to email-bomb an account (5-6 reset emails
+  // to the founder in one hour, 2026-07-19). Config lives in wrangler.toml.
+  RESET_RATE_LIMITER: { limit: (opts: { key: string }) => Promise<{ success: boolean }> };
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -1246,6 +1250,17 @@ app.post('/auth/forgot-password', async (c) => {
   }
 
   if (!email) return c.json({ ok: true });
+
+  // Rate-limit to stop abuse of this public endpoint (anyone could POST the
+  // founder's email repeatedly and email-bomb their inbox). Throttle on both
+  // the target email and the caller IP. On limit, return the same silent 200 —
+  // no email sent, no signal to the abuser.
+  const clientIp = c.req.header('cf-connecting-ip') ?? 'unknown';
+  const [emailOk, ipOk] = await Promise.all([
+    c.env.RESET_RATE_LIMITER.limit({ key: `reset:email:${email}` }),
+    c.env.RESET_RATE_LIMITER.limit({ key: `reset:ip:${clientIp}` }),
+  ]);
+  if (!emailOk.success || !ipOk.success) return c.json({ ok: true });
 
   const db = supa(c.env);
 
