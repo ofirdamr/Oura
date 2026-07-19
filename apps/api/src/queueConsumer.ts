@@ -7,8 +7,10 @@
 //   2. Closed-eye / low-quality detection (detection_score heuristic)
 //   3. Duplicate detection (cosine similarity against existing cluster embeddings)
 //   4. Category auto-labeling via Cloudflare Workers AI (LLaVA vision model)
-//   5. Persist results: face_embeddings rows + update photos columns
+//   5. Multi-tier R2 asset generation (desktop/mobile/share/thumb) via photon WASM
+//   6. Persist results: face_embeddings rows + update photos columns
 import type { SupabaseClient } from '@supabase/supabase-js';
+import * as Photon from '@cf-wasm/photon/workerd';
 import type { Env } from './index';
 import { embedWithRetry } from './pipeline/embedClient';
 import { assignPersonId } from './pipeline/cluster';
@@ -83,6 +85,63 @@ async function isDuplicate(
   return false;
 }
 
+// ── Tier definitions ─────────────────────────────────────────────────────────
+// Each uploaded original is processed into 4 derivative JPEG sizes using the
+// @cf-wasm/photon WASM library (CF Workers-compatible, no native binaries).
+// The original is kept as-is; its key is already stored in photos.storage_key.
+const TIERS = [
+  { name: 'desktop', maxWidth: 2560 },
+  { name: 'mobile',  maxWidth: 1200 },
+  { name: 'share',   maxWidth: 1080 },
+  { name: 'thumb',   maxWidth: 400  },
+] as const;
+
+type StorageKeys = {
+  original: string;
+  desktop: string;
+  mobile: string;
+  share: string;
+  thumb: string;
+};
+
+async function generateTiers(
+  bytes: ArrayBuffer,
+  env: Env,
+  event_id: string,
+  photo_id: string,
+  original_key: string,
+): Promise<StorageKeys> {
+  const storage_keys: Record<string, string> = { original: original_key };
+  const srcImg = Photon.PhotonImage.new_from_byteslice(new Uint8Array(bytes));
+  const srcW = srcImg.get_width();
+  const srcH = srcImg.get_height();
+
+  for (const tier of TIERS) {
+    const key = `events/${event_id}/${tier.name}/${photo_id}.jpg`;
+    let target: InstanceType<typeof Photon.PhotonImage>;
+    let owned = false;
+    if (srcW > tier.maxWidth) {
+      const tH = Math.round((srcH * tier.maxWidth) / srcW);
+      target = Photon.resize(srcImg, tier.maxWidth, tH, Photon.SamplingFilter.Lanczos3);
+      owned = true;
+    } else {
+      target = srcImg;
+    }
+    const outBytes = target.get_bytes_jpeg(85);
+    await env.MEDIA.put(key, outBytes, {
+      httpMetadata: {
+        contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000, immutable',
+      },
+    });
+    if (owned) target.free();
+    storage_keys[tier.name] = key;
+  }
+
+  srcImg.free();
+  return storage_keys as StorageKeys;
+}
+
 export async function handleQueue(
   batch: MessageBatch<PhotoEmbedMessage>,
   env: Env,
@@ -147,12 +206,24 @@ export async function handleQueue(
       // ── Category classification via Workers AI ────────────────────────────
       const category = await classifyCategory(env.AI, bytes);
 
+      // ── Multi-tier asset generation ───────────────────────────────────────
+      // Generates desktop/mobile/share/thumb derivatives in R2. Best-effort:
+      // a tier-gen failure does NOT fail the whole pipeline — the gallery falls
+      // back to the original key. storage_keys stays null if this errors out.
+      let storage_keys: StorageKeys | null = null;
+      try {
+        storage_keys = await generateTiers(bytes, env, event_id, photo_id, storage_key);
+      } catch (tierErr) {
+        console.error('tier generation failed for photo', photo_id, tierErr);
+      }
+
       // ── Persist all pipeline results ──────────────────────────────────────
       await db.from('photos').update({
         embed_status: 'done',
         ai_rejected,
         rejection_reason: ai_rejected ? rejection_reason : null,
         category,
+        ...(storage_keys ? { storage_keys } : {}),
       }).eq('id', photo_id);
 
       message.ack();

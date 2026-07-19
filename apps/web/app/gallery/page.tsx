@@ -123,6 +123,8 @@ export default function GalleryPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   // Header controls open real panels (notifications / profile).
   const [sheet, setSheet] = useState<"none" | "notifications" | "profile">("none");
+  // Format picker: which photo is pending format selection (null = closed).
+  const [formatPicker, setFormatPicker] = useState<{ photo: GuestPhoto; mode: "download" | "share" } | null>(null);
 
   const branding: CompositeBranding = useMemo(() => {
     const b = data?.event?.branding;
@@ -160,14 +162,15 @@ export default function GalleryPage() {
   // Composite a whole set into branded JPEGs, then hand them to the phone in ONE
   // action: save-all lands in Photos (share sheet → "Save N Images"), share-all
   // opens the sheet with a friendly caption. Never a folder of Files, never a
-  // raw URL.
+  // raw URL. Uses share_url (1080px) when available to reduce bandwidth.
   async function bulkAction(mode: "download" | "share", list: GuestPhoto[]) {
     if (bulk || list.length === 0) return;
     setBulk({ mode, done: 0, total: list.length });
     const items: { blob: Blob; filename: string }[] = [];
     for (let i = 0; i < list.length; i++) {
       try {
-        const blob = await compositeBrandedPhoto(list[i].url, branding);
+        const srcUrl = list[i].share_url ?? list[i].url;
+        const blob = await compositeBrandedPhoto(srcUrl, branding);
         items.push({ blob, filename: downloadFileName(list[i].id, branding.studioName) });
       } catch {
         // Skip a photo that fails to composite rather than aborting the batch.
@@ -177,6 +180,32 @@ export default function GalleryPage() {
     if (mode === "download") await savePhotos(items);
     else await sharePhotos(items, shareCaption);
     setBulk(null);
+  }
+
+  // Single-photo social export: fetches the processed format from the API,
+  // composites branding on top, then opens the share sheet.
+  async function singleExport(photo: GuestPhoto, format: "story" | "feed" | "square" | "original", mode: "download" | "share") {
+    const session = loadGuestSession();
+    if (!session) return;
+    setBulk({ mode, done: 0, total: 1 });
+    try {
+      const exportUrl = `${API_BASE_URL}/photos/${photo.id}/social-export?format=${format}&token=${session.token}`;
+      const resp = await fetch(exportUrl);
+      if (!resp.ok) throw new Error('export_failed');
+      const blob = await resp.blob();
+      const item = { blob, filename: downloadFileName(photo.id, branding.studioName) };
+      if (mode === "download") await savePhotos([item]);
+      else await sharePhotos([item], shareCaption);
+    } catch {
+      // Fall back to share_url if export endpoint fails
+      const srcUrl = photo.share_url ?? photo.url;
+      const blob = await compositeBrandedPhoto(srcUrl, branding);
+      const item = { blob, filename: downloadFileName(photo.id, branding.studioName) };
+      if (mode === "download") await savePhotos([item]);
+      else await sharePhotos([item], shareCaption);
+    }
+    setBulk(null);
+    setFormatPicker(null);
   }
 
   useEffect(() => {
@@ -393,7 +422,13 @@ export default function GalleryPage() {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => bulkAction("download", targetSet)}
+                onClick={() => {
+                  if (targetSet.length === 1) {
+                    setFormatPicker({ photo: targetSet[0], mode: "download" });
+                  } else {
+                    bulkAction("download", targetSet);
+                  }
+                }}
                 disabled={bulk !== null || noPhotos}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-bold text-on-primary shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
               >
@@ -410,7 +445,13 @@ export default function GalleryPage() {
               </button>
               <button
                 type="button"
-                onClick={() => bulkAction("share", targetSet)}
+                onClick={() => {
+                  if (targetSet.length === 1) {
+                    setFormatPicker({ photo: targetSet[0], mode: "share" });
+                  } else {
+                    bulkAction("share", targetSet);
+                  }
+                }}
                 disabled={bulk !== null || noPhotos}
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/40 py-3 font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-60"
               >
@@ -748,6 +789,53 @@ export default function GalleryPage() {
                 {bulk?.mode === "download" ? "progress_activity" : "download"}
               </span>
               שמור
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Social Format Picker — bottom sheet before single-photo share/save */}
+      {formatPicker && (
+        <div
+          className="fixed inset-0 z-[140] flex items-end justify-center bg-black/70 backdrop-blur-sm"
+          onClick={() => setFormatPicker(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl border-t border-white/10 bg-surface-container p-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
+            <h2 className="mb-1 text-center text-lg font-bold text-on-surface">בחרי פורמט</h2>
+            <p className="mb-5 text-center text-sm text-on-surface-variant">
+              {formatPicker.mode === "share" ? "שיתוף" : "הורדה"} בפורמט מותאם
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { format: "story", label: "סטורי", sub: "9:16 עם רקע", icon: "smartphone" },
+                { format: "feed",  label: "פיד",   sub: "4:5 פורטרט",  icon: "crop_portrait" },
+                { format: "original", label: "מקורי", sub: "יחס מקורי", icon: "photo_size_select_large" },
+              ] as const).map(({ format, label, sub, icon }) => (
+                <button
+                  key={format}
+                  type="button"
+                  onClick={() => singleExport(formatPicker.photo, format, formatPicker.mode)}
+                  disabled={bulk !== null}
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-surface-container-high px-3 py-4 text-center transition-all active:scale-[0.97] active:bg-white/10 disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: "28px", fontVariationSettings: "'FILL' 1" }}>
+                    {bulk !== null ? "progress_activity" : icon}
+                  </span>
+                  <span className="text-sm font-bold text-on-surface">{label}</span>
+                  <span className="text-xs text-on-surface-variant">{sub}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormatPicker(null)}
+              className="mt-4 w-full rounded-2xl py-3 text-sm text-on-surface-variant transition-colors active:bg-white/5"
+            >
+              ביטול
             </button>
           </div>
         </div>

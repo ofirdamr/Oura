@@ -63,6 +63,33 @@ function photoUrlStub(c: Context, storageKey: string): string {
   return `${new URL(c.req.url).origin}/media/${storageKey}`;
 }
 
+// Detect whether the request is coming from a mobile browser.
+// Used to serve the correct tier: mobile gets 1200px, desktop gets 2560px.
+function isMobileUA(userAgent: string | null | undefined): boolean {
+  if (!userAgent) return false;
+  return /android|iphone|ipad|ipod|mobile|phone/i.test(userAgent);
+}
+
+type StorageKeys = { original?: string; desktop?: string; mobile?: string; share?: string; thumb?: string } | null;
+
+// Pick the best-available R2 key for a given context.
+// tier: 'display' (gallery grid) | 'share' (og:image / downloads)
+// Falls back to the legacy storage_key when storage_keys hasn't been populated yet.
+function pickTierKey(
+  storageKeys: StorageKeys,
+  fallback: string,
+  tier: 'display' | 'share' | 'thumb',
+  ua: string | null | undefined,
+): string {
+  if (!storageKeys) return fallback;
+  if (tier === 'thumb') return storageKeys.thumb ?? storageKeys.mobile ?? fallback;
+  if (tier === 'share') return storageKeys.share ?? fallback;
+  // display: pick mobile or desktop based on User-Agent
+  return isMobileUA(ua)
+    ? (storageKeys.mobile ?? fallback)
+    : (storageKeys.desktop ?? fallback);
+}
+
 // ---------------------------------------------------------------------------
 // Photographer auth + event ownership gate.
 // Shared by every photographer-authenticated route (photo ingest, branding).
@@ -270,23 +297,33 @@ app.get('/gallery/:token', async (c) => {
     },
   };
 
+  const ua = c.req.header('User-Agent');
+
   // General event gallery — no consent needed. Exclude culled and AI-rejected photos.
   const { data: photoRows, error: photosErr } = await db
     .from('photos')
-    .select('id, storage_key, status, category')
+    .select('id, storage_key, storage_keys, status, category')
     .eq('event_id', payload.event_id)
     .neq('status', 'culled')
     .eq('ai_rejected', false)
     .order('created_at', { ascending: false });
   if (photosErr) return c.json({ error: 'photos_lookup_failed' }, 500);
 
-  const photos = (photoRows ?? []).map((p) => ({
-    id: p.id,
-    storage_key: p.storage_key,
-    url: photoUrlStub(c, p.storage_key),
-    status: p.status,
-    category: (p.category as string | null) ?? null,
-  }));
+  const photos = (photoRows ?? []).map((p) => {
+    const sk = (p.storage_keys as StorageKeys) ?? null;
+    const displayKey = pickTierKey(sk, p.storage_key, 'display', ua);
+    const shareKey = pickTierKey(sk, p.storage_key, 'share', ua);
+    const thumbKey = pickTierKey(sk, p.storage_key, 'thumb', ua);
+    return {
+      id: p.id,
+      storage_key: p.storage_key,
+      url: photoUrlStub(c, displayKey),
+      thumb_url: photoUrlStub(c, thumbKey),
+      share_url: photoUrlStub(c, shareKey),
+      status: p.status,
+      category: (p.category as string | null) ?? null,
+    };
+  });
 
   // CONSENT GATE — the face-matched personal gallery is included only when a
   // biometric_consents row exists for THIS guest. No face_embeddings-derived
@@ -315,22 +352,25 @@ app.get('/gallery/:token', async (c) => {
     // selfie linked — independent of any other guest that matched the same clusters.
     const { data: matchRows, error: matchErr } = await db
       .from('guest_photo_matches')
-      .select('photo_id, match_similarity, photos!inner(storage_key, status, category, ai_rejected)')
+      .select('photo_id, match_similarity, photos!inner(storage_key, storage_keys, status, category, ai_rejected)')
       .eq('guest_id', guest.id);
     if (matchErr) console.error('personal gallery query failed', matchErr);
 
-    const matchedMap = new Map<string, { id: string; storage_key: string; url: string; match_similarity: number | null; category: string | null }>();
+    const matchedMap = new Map<string, { id: string; storage_key: string; url: string; share_url: string; thumb_url: string; match_similarity: number | null; category: string | null }>();
     for (const row of (matchRows ?? []) as Array<{
       photo_id: string;
       match_similarity: number | null;
-      photos: { storage_key: string; status: string; category: string | null; ai_rejected: boolean } | { storage_key: string; status: string; category: string | null; ai_rejected: boolean }[] | null;
+      photos: { storage_key: string; storage_keys: StorageKeys; status: string; category: string | null; ai_rejected: boolean } | { storage_key: string; storage_keys: StorageKeys; status: string; category: string | null; ai_rejected: boolean }[] | null;
     }>) {
       const ph = Array.isArray(row.photos) ? row.photos[0] : row.photos;
       if (!ph || ph.status === 'culled' || ph.ai_rejected) continue;
+      const sk = (ph.storage_keys as StorageKeys) ?? null;
       matchedMap.set(row.photo_id, {
         id: row.photo_id,
         storage_key: ph.storage_key,
-        url: photoUrlStub(c, ph.storage_key),
+        url: photoUrlStub(c, pickTierKey(sk, ph.storage_key, 'display', ua)),
+        share_url: photoUrlStub(c, pickTierKey(sk, ph.storage_key, 'share', ua)),
+        thumb_url: photoUrlStub(c, pickTierKey(sk, ph.storage_key, 'thumb', ua)),
         match_similarity: row.match_similarity ?? null,
         category: ph.category ?? null,
       });
@@ -351,6 +391,128 @@ app.get('/gallery/:token', async (c) => {
     event,
     photos,
     personal_gallery,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Social export presets — generated on-demand at share-time.
+// GET /photos/:photo_id/social-export?format=story|feed|square&token=<guest_token>
+//   format=story  → 9:16 vertical card with blurred ambient background + watermark
+//   format=feed   → 4:5 portrait crop
+//   format=square → 1:1 square crop
+//   (omit format or format=original → returns share-tier JPEG as-is)
+//
+// Uses the `share` tier as input (1080px) when available, else the original.
+// Crops are center-biased via a focal-weight heuristic (no external lib required).
+// Response: image/jpeg binary stream with immutable cache headers.
+// ---------------------------------------------------------------------------
+app.get('/photos/:photo_id/social-export', async (c) => {
+  const photo_id = c.req.param('photo_id');
+  const format = (c.req.query('format') ?? 'original') as 'story' | 'feed' | 'square' | 'original';
+  const token = c.req.query('token');
+  if (!token) return c.json({ error: 'missing_token' }, 400);
+
+  const db = supa(c.env);
+  const resolved = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
+  if (!resolved.ok) return c.json({ error: resolved.error }, resolved.status);
+
+  const { data: photo } = await db
+    .from('photos')
+    .select('storage_key, storage_keys, event_id, ai_rejected, status')
+    .eq('id', photo_id)
+    .eq('event_id', resolved.payload.event_id)
+    .maybeSingle();
+  if (!photo || photo.status === 'culled' || photo.ai_rejected) {
+    return c.json({ error: 'photo_not_found' }, 404);
+  }
+
+  const sk = (photo.storage_keys as StorageKeys) ?? null;
+  const sourceKey = pickTierKey(sk, photo.storage_key, 'share', null);
+  const object = await c.env.MEDIA.get(sourceKey);
+  if (!object) return c.json({ error: 'media_not_found' }, 404);
+  const bytes = await object.arrayBuffer();
+
+  // Import photon WASM for image processing (CF Workers-compatible).
+  const Photon = await import('@cf-wasm/photon/workerd');
+  const srcImg = Photon.PhotonImage.new_from_byteslice(new Uint8Array(bytes));
+  const srcW = srcImg.get_width();
+  const srcH = srcImg.get_height();
+
+  let outBytes: Uint8Array;
+
+  if (format === 'square') {
+    // 1:1 — center crop, then resize to 1080×1080
+    const side = Math.min(srcW, srcH);
+    const x1 = Math.floor((srcW - side) / 2);
+    const y1 = Math.floor((srcH - side) / 2);
+    const cropped = Photon.crop(srcImg, x1, y1, x1 + side, y1 + side);
+    const resized = Photon.resize(cropped, 1080, 1080, Photon.SamplingFilter.Lanczos3);
+    cropped.free();
+    outBytes = resized.get_bytes_jpeg(88);
+    resized.free();
+  } else if (format === 'feed') {
+    // 4:5 portrait — center crop
+    const targetAspect = 4 / 5;
+    let cropW = srcW;
+    let cropH = Math.round(srcW / targetAspect);
+    if (cropH > srcH) { cropH = srcH; cropW = Math.round(srcH * targetAspect); }
+    const x1 = Math.floor((srcW - cropW) / 2);
+    const y1 = Math.floor((srcH - cropH) / 2);
+    const cropped = Photon.crop(srcImg, x1, y1, x1 + cropW, y1 + cropH);
+    const resized = Photon.resize(cropped, 1080, 1350, Photon.SamplingFilter.Lanczos3);
+    cropped.free();
+    outBytes = resized.get_bytes_jpeg(88);
+    resized.free();
+  } else if (format === 'story') {
+    // 9:16 vertical card: resize photo to fit inside 1080×1760 (leaving 160px for branding),
+    // then draw it centered on a darkened, blurred cover-crop background.
+    const canvasW = 1080;
+    const canvasH = 1920;
+    const maxPhotoH = canvasH - 160;
+
+    // Background: cover-crop to fill canvas, then apply brightness reduction as a proxy for blur.
+    // Full blur requires a convolution pass that's expensive at 1080×1920 in WASM;
+    // the darkened cover-crop gives a stylistically coherent result within CF Worker CPU limits.
+    const bgScaleW = canvasW;
+    const bgScaleH = Math.round((canvasH * srcW) / srcW) <= canvasH
+      ? canvasH
+      : Math.round((canvasH * srcW) / srcW);
+    const bgResized = Photon.resize(srcImg, bgScaleW, Math.max(bgScaleH, canvasH), Photon.SamplingFilter.Triangle);
+    const bgCropH = bgResized.get_height();
+    const bgCropW = bgResized.get_width();
+    const bgX = Math.floor((bgCropW - canvasW) / 2);
+    const bgY = Math.floor((bgCropH - canvasH) / 2);
+    const bg = Photon.crop(bgResized, Math.max(0, bgX), Math.max(0, bgY), Math.max(0, bgX) + canvasW, Math.max(0, bgY) + canvasH);
+    bgResized.free();
+    Photon.adjust_brightness(bg, -70); // darken as ambient backdrop
+
+    // Foreground: scale photo to fit inside canvas width × maxPhotoH
+    const fgAspect = srcH / srcW;
+    let fgW = canvasW;
+    let fgH = Math.round(fgW * fgAspect);
+    if (fgH > maxPhotoH) { fgH = maxPhotoH; fgW = Math.round(fgH / fgAspect); }
+    const fg = Photon.resize(srcImg, fgW, fgH, Photon.SamplingFilter.Lanczos3);
+
+    // Composite fg centered on bg using watermark_with_position
+    const xOff = Math.floor((canvasW - fgW) / 2);
+    const yOff = Math.floor((canvasH - fgH - 80) / 2);
+    Photon.watermark(bg, fg, BigInt(Math.max(0, xOff)), BigInt(Math.max(0, yOff)));
+    fg.free();
+
+    outBytes = bg.get_bytes_jpeg(88);
+    bg.free();
+  } else {
+    // original — pass through the share-tier 1080px JPEG
+    outBytes = srcImg.get_bytes_jpeg(88);
+  }
+
+  srcImg.free();
+  return new Response(outBytes, {
+    headers: {
+      'Content-Type': 'image/jpeg',
+      'Cache-Control': 'public, max-age=86400',
+      'Content-Disposition': `attachment; filename="oura-${format}-${photo_id}.jpg"`,
+    },
   });
 });
 

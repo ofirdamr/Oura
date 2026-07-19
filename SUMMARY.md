@@ -2,7 +2,7 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
-## ⏭️ NEXT MISSION — Multi-Tier Media Pipeline + Smart Framing Engine (2026-07-19, not started)
+## 🔄 IN PROGRESS — Multi-Tier Media Pipeline + Smart Framing Engine (branch: claude/new-session-q0ztzv)
 
 Two spec documents uploaded by founder this session define the next build:
 
@@ -29,8 +29,21 @@ High-Res Original: presigned R2 URL, only for print/album/explicit download flow
 
 **Open question (founder already answered implicitly via spec):** pipeline runs in CF queue consumer (sharp is lightweight enough for CF Worker limits).
 
-**First message for next session:**
-"Start the Multi-Tier Media Pipeline mission on branch `claude/new-session-q0ztzv`. Two specs define what to build — full detail in SUMMARY.md top section. Build order: (1) DB migration adding `storage_keys JSONB` to photos, (2) update CF queue consumer in `packages/processing-pipeline` to generate 5 tiers with sharp + write storage_keys, (3) update `GET /gallery/:token` API to serve correct tier by User-Agent, (4) update og:image to use share tier, (5) add Social Export Preset generation (1:1/4:5/9:16 with smartcrop + canvas wrapper) triggered at share-time, (6) add format picker UI to the share flow. Start with the DB migration + pipeline worker — that's the critical path."
+**What's built (all on branch `claude/new-session-q0ztzv`, NOT yet deployed):**
+1. ✅ Migration `0010_storage_keys.sql` — adds `storage_keys JSONB` to photos
+2. ✅ Queue consumer (`apps/api/src/queueConsumer.ts`) — generates 4 derivative tiers (desktop/mobile/share/thumb) using `@cf-wasm/photon` WASM after each upload; stores keys in `storage_keys` JSONB
+3. ✅ `GET /gallery/:token` — selects `storage_keys`; serves mobile tier on mobile UA, desktop on desktop; returns `url`, `share_url`, `thumb_url` per photo
+4. ✅ Social export endpoint `GET /photos/:photo_id/social-export?format=story|feed|square|original&token=...` — on-demand generation: 9:16 canvas, 4:5 crop, 1:1 crop
+5. ✅ Format picker UI in gallery — bottom sheet appears before single-photo share/save, 3 format tiles (סטורי/פיד/מקורי)
+6. ✅ `GuestPhoto` type updated with `thumb_url` and `share_url` fields
+7. ✅ Bulk share now uses `share_url` (1080px) instead of full-res `url`
+8. ✅ `docs/ARCHITECTURE.md` updated
+
+**To deploy:**
+1. Apply migration 0010: paste `supabase/migrations/0010_storage_keys.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new → Run
+2. Deploy `apps/api` (`wrangler deploy` from `apps/api/`) — new queue consumer + social export endpoint + gallery tier serving
+3. Deploy `apps/web` — format picker UI
+4. Merge PR once deployed and verified
 
 ## ✅ DONE 2026-07-19 — LLaVA photo category labeling fixed (PR #82, deployed)
 

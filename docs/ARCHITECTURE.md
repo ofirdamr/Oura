@@ -162,13 +162,16 @@ Key tables (see the migration files for full column lists/constraints):
   `token_expires_at` (migration 0004): defaults to `created_at + 90 days`,
   a plain column (not re-derived from the token payload) so an individual
   guest's access can be shortened/extended later without reissuing tokens.
-- **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
-  bytes, content_type, phash, captured_at, created_at, embed_status
-  ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
-  `storage_key` is the only pointer to R2. `embed_status` is pipeline-only
+- **`photos`** — `id, event_id, storage_key (R2 key), storage_keys (JSONB,
+  migration 0010), status, width, height, bytes, content_type, phash,
+  captured_at, created_at, embed_status ('pending'|'processing'|'done'|'failed',
+  migration 0003), category, ai_rejected, rejection_reason (migration 0009)`.
+  No binary data — `storage_key` is the legacy single-key pointer to R2.
+  `storage_keys` is the multi-tier JSONB added in migration 0010:
+  `{ original, desktop, mobile, share, thumb }` — all R2 keys. Null until the
+  queue consumer's tier-generation step runs. `embed_status` is pipeline-only
   observability/retry state, deliberately separate from `status` (the
-  upload/visibility lifecycle gating the general gallery — must never be
-  coupled to face-processing state).
+  upload/visibility lifecycle gating the general gallery).
 - **`face_embeddings`** — `pgvector(512)`, HNSW cosine index, `person_id`
   (cluster id, assigned by `apps/api/src/pipeline/cluster.ts`). This is the
   **shared, photo-derived** search index (one row per face detected in an event
@@ -205,7 +208,8 @@ auth — they're the guest path, gated only by the opaque token.
 |---|---|
 | `GET /health` | Liveness + binding/secret presence check (never leaks values) |
 | `POST /events/:event_id/guests` | Issues a fresh opaque guest token for an event. Generates `guest_id` server-side, stores only `SHA-256(token)`. |
-| `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent with **zero** face-data read, or `{consent_required:false, photos}` post-consent — the post-consent `photos` come from `guest_photo_matches` filtered by this `guest_id` (migration 0008), so each guest sees exactly the photos its own selfie linked. Face-match data is only ever queried in the consented branch — this is the CLAUDE.md consent-gate guardrail, enforced in code, not just in the UI. Also returns `event: { name, branding: { event_title, share_caption, logo_key, frame, primary_color, auto_watermark } }` (guest-safe display keys only) so the client can composite the photographer frame/logo/title onto downloaded/shared photos and pre-fill a marketing share caption. |
+| `GET /gallery/:token` | Verifies token, returns general event photos (always) + `personal_gallery` — `{consent_required:true}` pre-consent or `{consent_required:false, photos}` post-consent. Each photo object includes `url` (tier-selected by User-Agent: mobile→1200px, desktop→2560px), `share_url` (1080px JPEG for sharing/og:image), `thumb_url` (400px for grid tiles), plus `storage_key`, `category`, `status`. Falls back to legacy `storage_key` when `storage_keys` JSONB not yet populated. Face-match data read only in consented branch (CLAUDE.md guardrail). Also returns event branding for client-side compositing. |
+| `GET /photos/:photo_id/social-export?format=story\|feed\|square\|original&token=<guest_token>` | On-demand social export. Verifies guest token + photo ownership, fetches the `share` tier (1080px) from R2, processes with @cf-wasm/photon WASM: `story`=9:16 vertical card with darkened ambient background; `feed`=4:5 center crop; `square`=1:1 center crop; `original`=pass-through. Returns image/jpeg binary. |
 | `POST /consent/:token` | Records biometric consent. Idempotent (`unique(guest_id)`, returns `already:true` on repeat). Body **requires** `{ guardian_confirmed: true }` (400s otherwise, migration 0003) — `retention_expires_at` is now set by a DB trigger, not left NULL. |
 | `POST /guests/:token/selfie` | **Stage 2.** Multipart `file` field (a selfie). Code-enforced consent gate (403 `consent_required` without a `biometric_consents` row — same guardrail philosophy as `/gallery`). Embeds the image via the self-hosted service, ANN-searches `face_embeddings` in-event via `match_faces`, resolves every matched `person_id` cluster above `GUEST_MATCH_THRESHOLD` to the photos those clusters appear in, and upserts a `(guest_id, photo_id, match_similarity)` row per photo into `guest_photo_matches` (migration 0008). **Zero-retention by design: the selfie and its embedding are never persisted anywhere** — only the resulting join rows. Returns `{matched:false, photos_linked:0}` (not an error) when nothing clears the threshold, else `{matched:true, photos_linked:N}`. |
 | `GET /media/*` | Streams an R2 object by key (catch-all path, not a named param, so embedded `/` in keys survive). `Cache-Control: immutable` since keys are content-addressed per upload. Sends `Access-Control-Allow-Origin: *` (media is already public; CORS is needed so a photo can be used as a WebGL texture on the gift-reveal 3D card — the web app and API are different Worker origins). |

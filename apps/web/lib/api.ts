@@ -13,6 +13,10 @@ export type GuestPhoto = {
   id: string;
   storage_key: string;
   url: string;
+  /** 400px thumbnail — use for grid tiles to reduce bandwidth */
+  thumb_url?: string;
+  /** 1080px JPEG — use for share/og:image */
+  share_url?: string;
   status?: string;
   match_similarity?: number | null;
   category?: string | null;
