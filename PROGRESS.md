@@ -1,5 +1,9 @@
 # Progress Log
 
+### 2026-07-19 (session — PR #91 merged)
+- Merged PR #91 (`claude/oura-sprint-2-photo-upload-w2pzjx`) — Stage 2 original-upload endpoint squash to main (f8bb2e21)
+- Migration 0010 already applied in Supabase (confirmed by founder prior session)
+
 ### 2026-07-19 (session — format picker bottom sheet)
 - Created `FormatPickerSheet` component matching Stitch design (3 formats: מקורי / פיד 4:5 / סטורי 9:16)
 - Wired into `PhotoViewer` share button → calls `/photos/:id/social-export?format=…&token=…`

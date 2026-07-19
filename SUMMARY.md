@@ -2,6 +2,10 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-19 — Stage 2 original-upload endpoint (PR #91, merged)
+
+`PUT /events/:event_id/photos/:photo_id/original` — photographers can sync full high-res originals from studio after the event. Raw binary → R2 under `events/<id>/original/`, sets `photos.is_original_uploaded = true`. Idempotent. Auth-gated (photographer JWT + event ownership). Migration 0010 (`is_original_uploaded` column + partial index) already applied in Supabase. Squash merged to main (`f8bb2e21`).
+
 ## ✅ DONE 2026-07-19 — LLaVA photo category labeling fixed (PR #82, deployed)
 
 Three silent bugs caused ALL photos to get wrong/null categories:
