@@ -41,27 +41,52 @@ function confidencePct(sim: number | null | undefined): string | null {
 function PhotoTile({
   photo,
   matched,
+  selected,
+  onTap,
   onOpen,
 }: {
   photo: GuestPhoto;
   matched?: boolean;
+  selected: boolean;
+  onTap: () => void;
   onOpen: () => void;
 }) {
   const pct = matched ? confidencePct(photo.match_similarity) : null;
   return (
     <button
       type="button"
-      onClick={onOpen}
-      aria-label="פתיחת התמונה במסך מלא"
-      className="group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97]"
+      onClick={onTap}
+      aria-label={selected ? "בטל בחירת תמונה" : "בחר תמונה"}
+      className={`group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97] ${selected ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}`}
     >
       <Image
         src={photo.url}
         alt=""
         fill
         sizes="(min-width: 512px) 170px, 33vw"
-        className="object-cover transition-transform duration-300 group-hover:scale-105"
+        className={`object-cover transition-all duration-300 group-hover:scale-105 ${selected ? "brightness-75" : ""}`}
       />
+      {/* Select checkmark overlay */}
+      {selected ? (
+        <div className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg">
+          <span className="material-symbols-outlined text-on-primary" style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}>
+            check
+          </span>
+        </div>
+      ) : (
+        <div className="absolute end-1.5 top-1.5 h-6 w-6 rounded-full border-2 border-white/60 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100" />
+      )}
+      {/* Expand button — opens full-screen viewer; only visible on hover when not selected */}
+      {!selected && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onOpen(); }}
+          aria-label="פתיחת התמונה במסך מלא"
+          className="absolute bottom-1.5 end-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 backdrop-blur-sm"
+        >
+          <span className="material-symbols-outlined text-white" style={{ fontSize: "13px" }}>open_in_full</span>
+        </button>
+      )}
       {matched && pct && (
         <div className="absolute start-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-black/65 px-1.5 py-0.5 backdrop-blur-md">
           <span dir="ltr" className="text-[11px] font-bold leading-none text-primary">{pct}</span>
@@ -94,6 +119,8 @@ export default function GalleryPage() {
   // Which photo list + index the full-screen viewer is showing (null = closed).
   const [viewer, setViewer] = useState<{ list: GuestPhoto[]; index: number } | null>(null);
   const [bulk, setBulk] = useState<{ mode: "download" | "share"; done: number; total: number } | null>(null);
+  // Multi-select: set of selected photo IDs. Empty = no selection mode.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   // Header controls open real panels (notifications / profile).
   const [sheet, setSheet] = useState<"none" | "notifications" | "profile">("none");
 
@@ -120,6 +147,15 @@ export default function GalleryPage() {
       ? `חוגגים ב${title}! 📸 הצילומים באדיבות ${STUDIO_NAME}`
       : `📸 הצילומים באדיבות ${STUDIO_NAME}`;
   }, [data]);
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   // Composite a whole set into branded JPEGs, then hand them to the phone in ONE
   // action: save-all lands in Photos (share sheet → "Save N Images"), share-all
@@ -505,6 +541,8 @@ export default function GalleryPage() {
                     key={photo.id}
                     photo={photo}
                     matched={matchedIds.has(photo.id)}
+                    selected={selectedIds.has(photo.id)}
+                    onTap={() => toggleSelect(photo.id)}
                     onOpen={() => setViewer({ list: festivePhotos, index: i })}
                   />
                 ))}
@@ -518,6 +556,8 @@ export default function GalleryPage() {
                       key={photo.id}
                       photo={photo}
                       matched={matchedIds.has(photo.id)}
+                      selected={selectedIds.has(photo.id)}
+                      onTap={() => toggleSelect(photo.id)}
                       onOpen={() => setViewer({ list: shownPhotos, index: i })}
                     />
                   ))}
@@ -530,6 +570,8 @@ export default function GalleryPage() {
                           key={photo.id}
                           photo={photo}
                           matched={matchedIds.has(photo.id)}
+                          selected={selectedIds.has(photo.id)}
+                          onTap={() => toggleSelect(photo.id)}
                           onOpen={() => setViewer({ list: shownPhotos, index: i + 2 })}
                         />
                       ))}
@@ -554,6 +596,8 @@ export default function GalleryPage() {
                     key={photo.id}
                     photo={photo}
                     matched={matchedIds.has(photo.id)}
+                    selected={selectedIds.has(photo.id)}
+                    onTap={() => toggleSelect(photo.id)}
                     onOpen={() => setViewer({ list: shownPhotos, index: i })}
                   />
                 ))}
@@ -660,6 +704,51 @@ export default function GalleryPage() {
           shareCaption={shareCaption}
           onClose={() => setViewer(null)}
         />
+      )}
+
+      {/* Floating multi-select action bar — appears when ≥1 photo is selected */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-20 start-4 end-4 z-[110] mx-auto max-w-lg">
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-surface-container/95 px-4 py-3 shadow-2xl backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-sm text-on-surface-variant transition-colors hover:bg-white/5"
+              aria-label="בטל בחירה"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>close</span>
+            </button>
+            <span className="flex-1 text-sm font-bold text-on-surface" style={{ unicodeBidi: "isolate" }}>
+              {selectedIds.size} נבחרו
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const selected = shownPhotos.filter((p) => selectedIds.has(p.id));
+                bulkAction("share", selected);
+              }}
+              disabled={bulk !== null}
+              className="flex items-center gap-1.5 rounded-xl border border-outline-variant/40 px-3 py-2 text-sm font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-60"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>ios_share</span>
+              שתף
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const selected = shownPhotos.filter((p) => selectedIds.has(p.id));
+                bulkAction("download", selected);
+              }}
+              disabled={bulk !== null}
+              className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-sm font-bold text-on-primary shadow-md transition-all active:scale-[0.98] disabled:opacity-60"
+            >
+              <span className={`material-symbols-outlined ${bulk?.mode === "download" ? "animate-spin" : ""}`} style={{ fontSize: "16px" }}>
+                {bulk?.mode === "download" ? "progress_activity" : "download"}
+              </span>
+              שמור
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
