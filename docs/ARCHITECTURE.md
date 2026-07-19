@@ -163,7 +163,8 @@ Key tables (see the migration files for full column lists/constraints):
   a plain column (not re-derived from the token payload) so an individual
   guest's access can be shortened/extended later without reissuing tokens.
 - **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
-  bytes, content_type, phash, captured_at, created_at, embed_status
+  bytes, content_type, phash, captured_at, created_at, embed_status,
+  is_original_uploaded (boolean, default false — migration 0010)
   ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
   `storage_key` is the only pointer to R2. `embed_status` is pipeline-only
   observability/retry state, deliberately separate from `status` (the
@@ -292,6 +293,7 @@ photographer-facing is direct-to-Supabase from the browser (§2).
 | `POST /events/:event_id/photos` | Multipart photo upload. Requires `Authorization: Bearer <supabase access token>` + event ownership. Writes to R2 (`events/<event_id>/orig/<uuid>.<ext>`), inserts a `photos` row (`status:'ready'` — no processing pipeline exists yet). |
 | `POST /events/:event_id/branding/logo` | Multipart logo upload. Same auth. Content-addressed key per upload (`events/<event_id>/branding/logo-<uuid>.<ext>` — NOT a fixed filename; `/media/*` caches every key for a year as immutable, so a fixed key would keep serving the old bytes after a re-upload). Read-modify-writes `events.branding` jsonb, merging `logo_key` without clobbering sibling keys, then best-effort deletes the previous logo's R2 object. |
 | `DELETE /events/:event_id/photos/:photo_id` | Deletes a photo: DB row first (so the gallery stops showing it immediately), then best-effort R2 object delete (a failed R2 delete doesn't fail the request — an orphaned R2 object is a harmless storage-cost leak, not a correctness bug). |
+| `PUT /events/:event_id/photos/:photo_id/original` | Stage 2 high-res original sync (PRD §10.1). Raw body = full-resolution binary. Writes to R2 under `events/<event_id>/original/<photo_id>` and sets `photos.is_original_uploaded = true`. Idempotent — a second PUT safely overwrites. Gated by photographer JWT + event ownership. Response: `{ id, event_id, original_key }`. Migration 0010 adds the `is_original_uploaded` column + pending-sync index. |
 
 **Shared auth helper:** `requireEventOwner(c, db, event_id)` in
 `apps/api/src/index.ts` — extracts the Bearer token, validates via
