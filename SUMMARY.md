@@ -2,10 +2,10 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
-## 2026-07-19 — Photo editor Stitch wire + gallery tap/action-bar fix (PR #76, open draft)
+## ✅ DONE 2026-07-19 — Photo editor Stitch wire + gallery tap/action-bar fix (PR #76, merged + deployed)
 
-**Branch:** `claude/photo-editor-stitch-wire-1xm5wf`  
-**PR:** #76 (draft, NOT yet merged)
+**Branch:** `claude/photo-editor-stitch-wire-1xm5wf` → merged to main  
+**PR:** #76 merged (squash commit `7ef7289f`), deployed oura-web version `364649a2`
 
 **What's in this PR:**
 1. `apps/web/app/photo-editor/page.tsx` — full rewrite to match Stitch design exports:
