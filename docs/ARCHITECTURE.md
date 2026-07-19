@@ -337,6 +337,13 @@ generates the Supabase recovery link server-side via
 `auth.admin.generateLink()` and emails it through Brevo's transactional API
 (bypassing Supabase's unreliable shared SMTP; Brevo delivers to any inbox
 with no custom domain, unlike the old Resend shared sender).
+**Rate-limited (2026-07-19):** the endpoint is public, so it is throttled by
+the Cloudflare native rate limiter `RESET_RATE_LIMITER` (`[[unsafe.bindings]]`
+in `wrangler.toml`, `3 req / 60s`), keyed on **both** the target email and the
+caller IP. On limit it returns the same silent `200 {ok:true}` (no email sent,
+no enumeration signal). Added after a bot hit the endpoint ~5-6× in one hour,
+email-bombing the founder's inbox with reset mails (no account compromise — a
+reset link is only redeemable from the target's own inbox).
 `/reset-password` is where the emailed link lands. **Final working flow
 (as of 2026-07-18, commit `09c7c907`):**
 
