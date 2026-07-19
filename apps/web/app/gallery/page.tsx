@@ -106,13 +106,14 @@ const FESTIVE_CATEGORIES = [
   { key: "all", label: "כל התמונות" },
   { key: "ceremony", label: "חופה" },
   { key: "reception", label: "קבלת פנים" },
+  { key: "dancing", label: "ריקודים" },
   { key: "party", label: "מסיבה" },
 ] as const;
 
 export default function GalleryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "mine">("all");
-  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "reception" | "party">("all");
+  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "reception" | "dancing" | "party">("all");
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
