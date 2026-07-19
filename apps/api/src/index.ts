@@ -946,19 +946,17 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   let skipped = 0;
   for (const photo of photos as { id: string; storage_key: string }[]) {
     try {
-      // Fetch image bytes from R2
       const obj = await c.env.MEDIA.get(photo.storage_key);
       if (!obj) { skipped++; continue; }
       const bytes = await obj.arrayBuffer();
 
-      // Classify via Workers AI LLaVA
-      const result = await (c.env.AI as any).run('@cf/llava-1.5-7b-hf', {
+      const result = await (c.env.AI as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
         image: [...new Uint8Array(bytes)],
         prompt: 'This is a wedding event photo. Classify it into exactly one category and reply with that single word only.\n- "ceremony": chuppah, exchanging vows, ring exchange, wedding processional, officiant at altar\n- "reception": seated dinner, toasts, speeches, guests at tables eating a meal\n- "dancing": dance floor, hora, group dancing, first dance\n- "party": general festive celebration, cocktail hour, cake cutting, confetti — anything not fitting the above three\nReply with one word only.',
         max_tokens: 50,
-      }) as { response?: string } | null;
+      }) as { description?: string } | null;
 
-      const category = result?.response ? parseCat(result.response) : null;
+      const category = result?.description ? parseCat(result.description) : null;
       if (!category) { skipped++; continue; }
 
       const { error: upErr } = await db
