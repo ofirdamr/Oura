@@ -2,6 +2,16 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## ✅ DONE 2026-07-19 — Rate-limit /auth/forgot-password (PR #78, merged + deployed)
+
+Founder got 5-6 password-reset emails in one hour. Root cause: public
+`POST /auth/forgot-password` had no throttle — a bot email-bombed his inbox.
+**No account compromise** (reset links only redeem from the target's own inbox).
+Fix: Cloudflare native rate limiter `RESET_RATE_LIMITER` (`[[unsafe.bindings]]`,
+3 req/60s, keyed per-email AND per-IP), silent 200 on limit. Merged (squash
+`1d340cde`) and **deployed** (oura-api version `d4852f2e`). Endpoint smoke-tested
+200. See `docs/ARCHITECTURE.md` §forgot-password.
+
 ## 🔄 IN PROGRESS 2026-07-19 — Gallery multi-select + full AI pipeline (PR #77, open draft)
 
 **Branch:** `claude/oura-mvp-ai-pipeline-rsb711`  
