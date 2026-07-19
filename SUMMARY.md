@@ -246,6 +246,19 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
+## ✅ DONE 2026-07-19 — PRD Section 10 fully restored (PR #89, open draft)
+
+Branch `claude/restore-section-10-prd-7y6fkc`. Restored all technical content accidentally deleted in the prior iteration:
+- 10.2: `extractZipLocally` (JSZip) + complete `ResilientUploadManager` class
+- 10.3B: `buildStoryCanvas` Sharp pipeline
+- 10.4C: Print Queue Dashboard Workspace (all 4 zones — header/status strip, filter bar, dimension-grouped task lists, notification system)
+- 10.6: Agile Development Milestones — 3 sprints with strict deliverables and Definition of Done
+
+**Open PR:** #89 (draft) — PRD doc only, no code changes. Ready to merge.
+
+**NEXT MISSION: Implement PRD Section 10 in code — start to finish.**
+See Section 10 in PRD.md and the 3-sprint plan in §10.6. Start with Sprint 1 (client-side upload engine). First-message for next session below.
+
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):

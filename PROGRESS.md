@@ -455,3 +455,4 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - PR #81 open draft, CI green, ready to merge.
 - BLOCKED: backfill call for WED-2024 needs ADMIN_BACKFILL_TOKEN value — exists in Cloudflare secrets vault but not readable from this environment. Founder needs to paste it in chat or add it to Claude Code environment secrets.
 - Added iPhone-only rule to CLAUDE.md and MISTAKES.md.
+2026-07-19 | Restored PRD Section 10 in full (extractZipLocally, ResilientUploadManager, buildStoryCanvas, Print Queue Dashboard Workspace, Sprint milestones). PR #89 open draft.
