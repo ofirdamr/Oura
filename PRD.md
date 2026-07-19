@@ -106,5 +106,127 @@ Hybrid model — pay-per-event entry tier (matches competitor LOCA's model) plus
 ## 9. Success Criteria per Stage
 - **MVP done:** one real pilot event run end-to-end (QR → live upload → face-find → branded share) with a real photographer and real guests, consent gate verified working.
 - **Phase 2 done:** a photographer can self-serve sign up, pay, run an event, and a guest can complete a print order, with zero founder manual intervention.
+
+---
+
+## 10. System Extensions (Phase 2+ Specs)
+
+### 10.1 Two-Stage Hybrid Upload Pipeline (Low-Bandwidth Venue Architecture)
+
+Decouples asset publishing from high-resolution archival to guarantee 100% uptime inside concrete halls, basements, or areas with unstable cellular.
+
+**Stage 1 — Real-Time Event Publish (Venue Mode)**
+- Client intercepts files and uploads only the locally generated Web-Optimized tier (Tier 3) and Thumbnail tier (Tier 5) directly to R2 — ~90% smaller payload.
+- Backend commits metadata rows immediately. `storage_keys.original = null`, `is_original_uploaded = false`. Gallery goes live instantly for guests.
+
+**Stage 2 — Asynchronous Original Sync (Studio Upload)**
+- Platform tracks all photos where `is_original_uploaded = false`.
+- Back at studio/home on broadband, photographer triggers "Sync High-Res Originals" from the dashboard.
+- Client scan-matches local high-res source files (by filename, timestamp, or SHA hash) against pending DB records, uploads Tier 1 binaries in a background thread, toggles `is_original_uploaded = true`.
+
+### 10.2 Photographer UX & Client-Side Extraction Engine
+
+The photographer's only action: drag-and-drop loose JPEGs or a single Lightroom `.zip` into the dashboard — exactly like Dropbox.
+
+- **Local ZIP decompression:** `.zip` files are extracted in the browser (e.g. JSZip / Web Streams). Raw ZIP files are never uploaded to the backend.
+- **Silent client-side batch compression:** a background worker loop immediately downscales dropped/extracted images to Web-Optimized spec using a client-side library (e.g. browser-image-compression) — no user confirmation needed.
+- **Resilient upload queue:** 3–5 parallel HTTP connections max. On dropped connections: exponential backoff retries, seamless resume without state loss.
+- **Simplified UI:** all background processing is masked behind one unified progress indicator ("מייעל ומעלה נכסים בצורה בטוחה...").
+
+### 10.3 Aspect Ratio, Smart Cropping & Social Framing Engine
+
+Photographers shoot landscape (3:2 / 16:9); guests live on vertical mobile screens. This engine closes that gap automatically.
+
+**A. Smart Focal-Point Cropping (Feed Presets)**
+- For 1:1 square and 4:5 vertical templates, the pipeline never center-crops blindly.
+- An edge microservice or client canvas analyzer (e.g. smartcrop.js) locates faces / primary subjects and anchors the crop box dynamically around those coordinates.
+
+**B. Dynamic 9:16 "Magnet-Style" Canvas Wrapper (Story/Reels)**
+1. Create a 9:16 canvas (1080×1920 or 2160×3840).
+2. Duplicate the landscape photo, scale to cover canvas height, apply heavy Gaussian blur (30–50 px) and darken by 25–30% to form the ambient backdrop.
+3. Overlay the sharp, original landscape photo centered vertically across the canvas.
+4. Use the vacant top/bottom margin to stamp the photographer's translucent studio branding watermark + event text — keeping the photo itself completely unblemished.
+
+**C. Social Export UI Options & Bandwidth Guardrails**
+- "הורדה לסטורי/ריל" — fetches the 9:16 ambient canvas version with clean branding.
+- "הורדה לפיד" — delivers the 1:1 or 4:5 smart-crop version.
+- "מקור / הורדה ישירה" — delivers the un-cropped original format.
+- All non-commercial guest saves default to Tier 3 (Web-Optimized) — egress cost protection while maintaining crisp mobile clarity.
+
+*Note: the share button bottom sheet (מקורי / פיד 4:5 / סטורי 9:16) was implemented in PR #85 as the frontend trigger for this engine. The backend `/photos/:id/social-export` endpoint handles format generation.*
+
+### 10.4 E-Commerce & Print Shop Ingestion with Hybrid Fulfillment Routing
+
+Print purchases must never be blocked by a pending Stage 2 sync — guests at the venue buy on impulse.
+
+**A. Order Ingestion Logic (No Guest Restrictions)**
+- Guests purchase prints (magnets, blocks, photo books) seamlessly during Stage 1. No warnings, no holding badges.
+- On order placement: payment collected instantly, order written to DB with status `Awaiting_High_Res_Asset`.
+- Photographer dashboard surfaces a high-priority alert for pending print orders needing Stage 2 sync.
+- Order remains locked until `is_original_uploaded = true` triggers an automatic state change.
+
+**B. Split Fulfillment Execution Routing**
+
+Controlled by a `fulfillment_type` parameter set at the gallery or photographer configuration level:
+
+| Route | Type | Trigger |
+|---|---|---|
+| Cloud Fulfillment | `AUTOMATED_WHOLESALE` | On `is_original_uploaded → true`, system fires a webhook to the remote print house API for automated production and mailing. |
+| Self-Fulfillment | `SELF_FULFILLMENT` | On sync complete, order shifts to `Ready_For_Photographer_Print`. Photographer's Print Queue dashboard shows tasks by dimension (Magnet / 10×15 / Block), allows batch Tier-1 download, and has a manual "Mark as Printed & Delivered" trigger. |
+
+### 10.5 Database Schema Extensions
+
+```sql
+-- Media assets: deferred upload tracking + smart crop focal data + multi-tier storage keys
+ALTER TABLE public.media_assets ADD COLUMN is_original_uploaded BOOLEAN DEFAULT FALSE NOT NULL;
+ALTER TABLE public.media_assets ADD COLUMN focal_point_x INT DEFAULT 50;
+ALTER TABLE public.media_assets ADD COLUMN focal_point_y INT DEFAULT 50;
+ALTER TABLE public.media_assets ADD COLUMN storage_keys JSONB DEFAULT '{
+  "thumbnail": null,
+  "web_optimized": null,
+  "social_story": null,
+  "social_feed": null,
+  "original": null
+}'::jsonb NOT NULL;
+
+-- Order management: hybrid fulfillment routing
+CREATE TYPE fulfillment_route_type AS ENUM ('AUTOMATED_WHOLESALE', 'SELF_FULFILLMENT');
+CREATE TYPE platform_order_status AS ENUM (
+  'Awaiting_High_Res_Asset',
+  'Ready_For_Photographer_Print',
+  'Dispatched_To_Wholesaler',
+  'Completed'
+);
+ALTER TABLE public.orders ADD COLUMN fulfillment_type fulfillment_route_type DEFAULT 'AUTOMATED_WHOLESALE' NOT NULL;
+ALTER TABLE public.orders ADD COLUMN order_status platform_order_status DEFAULT 'Awaiting_High_Res_Asset' NOT NULL;
+
+-- Performance indexes
+CREATE INDEX idx_media_pending_sync ON public.media_assets (is_original_uploaded) WHERE is_original_uploaded = FALSE;
+CREATE INDEX idx_orders_awaiting_assets ON public.orders (order_status) WHERE order_status = 'Awaiting_High_Res_Asset';
+CREATE INDEX idx_media_gallery_lookup ON public.media_assets (gallery_id);
+
+-- Auto-release trigger: flips order status when original sync completes
+CREATE OR REPLACE FUNCTION release_held_orders_on_sync()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.is_original_uploaded = TRUE THEN
+    UPDATE public.orders
+      SET order_status = 'Ready_For_Photographer_Print'
+      WHERE photo_id = NEW.id AND fulfillment_type = 'SELF_FULFILLMENT' AND order_status = 'Awaiting_High_Res_Asset';
+
+    UPDATE public.orders
+      SET order_status = 'Dispatched_To_Wholesaler'
+      WHERE photo_id = NEW.id AND fulfillment_type = 'AUTOMATED_WHOLESALE' AND order_status = 'Awaiting_High_Res_Asset';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_release_orders
+  AFTER UPDATE OF is_original_uploaded ON public.media_assets
+  FOR EACH ROW EXECUTE FUNCTION release_held_orders_on_sync();
+```
+
+*These schema changes are Phase 2 — they are specified here for planning purposes. Apply via a numbered Supabase migration when Phase 2 implementation begins.*
 </content>
 </invoke>
