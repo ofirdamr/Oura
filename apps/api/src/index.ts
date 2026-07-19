@@ -899,6 +899,83 @@ app.post('/admin/backfill-embeddings', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /admin/events/:id/backfill-categories
+//   One-time backfill: classifies each photo in an event that has no category
+//   set via the same Workers AI LLaVA model used in the queue consumer.
+//   Gated by ADMIN_BACKFILL_TOKEN bearer secret (operator-only action).
+// ---------------------------------------------------------------------------
+app.post('/admin/events/:id/backfill-categories', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+
+  const event_id = c.req.param('id');
+  const db = supa(c.env);
+
+  // Resolve numeric event id or code like WED-2024
+  const isCode = isNaN(Number(event_id));
+  const eventQuery = isCode
+    ? db.from('events').select('id').eq('code', event_id).single()
+    : db.from('events').select('id').eq('id', event_id).single();
+  const { data: ev, error: evErr } = await eventQuery;
+  if (evErr || !ev) return c.json({ error: 'event_not_found' }, 404);
+  const resolved_event_id: string = (ev as { id: string }).id;
+
+  // Fetch photos with no category
+  const { data: photos, error: photosErr } = await db
+    .from('photos')
+    .select('id, storage_key')
+    .eq('event_id', resolved_event_id)
+    .is('category', null);
+  if (photosErr) return c.json({ error: 'query_failed' }, 500);
+  if (!photos || photos.length === 0) return c.json({ updated: 0, skipped: 0, message: 'no photos without category' });
+
+  function parseCat(text: string): string | null {
+    const t = text.toLowerCase();
+    if (t.includes('ceremony') || t.includes('chuppah') || t.includes('altar') || t.includes('vow')) return 'ceremony';
+    if (t.includes('danc') || t.includes('dance floor') || t.includes('hora')) return 'dancing';
+    if (t.includes('reception') || t.includes('cocktail') || t.includes('welcome') || t.includes('entrance')) return 'reception';
+    if (t.includes('party') || t.includes('celebration') || t.includes('toast') || t.includes('cake') || t.includes('dinner')) return 'party';
+    return null;
+  }
+
+  let updated = 0;
+  let skipped = 0;
+  for (const photo of photos as { id: string; storage_key: string }[]) {
+    try {
+      // Fetch image bytes from R2
+      const obj = await c.env.MEDIA.get(photo.storage_key);
+      if (!obj) { skipped++; continue; }
+      const bytes = await obj.arrayBuffer();
+
+      // Classify via Workers AI LLaVA
+      const result = await (c.env.AI as any).run('@cf/llava-1.5-7b-hf', {
+        image: [...new Uint8Array(bytes)],
+        prompt: 'This is an event photo. Reply with exactly one word: "ceremony" (wedding ceremony, chuppah, vows), "dancing" (dance floor, dancing guests), "reception" (cocktail hour, welcome), or "party" (dinner, celebration, toasts, cake).',
+        max_tokens: 10,
+      }) as { response?: string } | null;
+
+      const category = result?.response ? parseCat(result.response) : null;
+      if (!category) { skipped++; continue; }
+
+      const { error: upErr } = await db
+        .from('photos')
+        .update({ category })
+        .eq('id', photo.id);
+      if (upErr) { skipped++; continue; }
+      updated++;
+    } catch (err) {
+      console.error('backfill-categories error for photo', photo.id, err);
+      skipped++;
+    }
+  }
+
+  return c.json({ updated, skipped, total: photos.length });
+});
+
+// ---------------------------------------------------------------------------
 // GET /admin/embed-status?event_id=...   (same operator bearer secret)
 //   Read-only diagnostic: for an event, how many photos exist, their
 //   embed_status breakdown, how many face_embeddings rows exist, and how many

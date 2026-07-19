@@ -2,6 +2,25 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## 🔄 IN PROGRESS 2026-07-19 — Category backfill endpoint (PR #80, open draft)
+
+**Branch:** `claude/oura-category-backfill-sjtb40`
+**PR:** #80 open draft — NOT yet deployed
+
+**What's in this PR:**
+- `POST /admin/events/:id/backfill-categories` — iterates every photo with `category = NULL` for an event, calls Workers AI LLaVA (same model/logic as queueConsumer.ts), writes result to `photos.category`
+- Accepts event code (`WED-2024`) or numeric id
+- Gated by existing `ADMIN_BACKFILL_TOKEN` bearer secret
+- Returns `{ updated, skipped, total }`
+
+**Steps to make the gallery chips work for WED-2024:**
+1. Apply migration 0009 first (adds `category` column): paste `supabase/migrations/0009_ai_pipeline.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new → Run
+2. Deploy `apps/api` (`wrangler deploy` from `apps/api/`)
+3. Call the backfill: `curl -X POST https://oura-api.oura-events.workers.dev/admin/events/WED-2024/backfill-categories -H "Authorization: Bearer <ADMIN_BACKFILL_TOKEN>"`
+4. Merge PR #80, then PR #77 (which has the full AI pipeline + gallery chips that read the category field)
+
+**Next-session first message:** "Pick up Oura PR #80 (`claude/oura-category-backfill-sjtb40`). The backfill endpoint is built and pushed. Remaining: (1) confirm founder applied migration 0009, (2) deploy apps/api, (3) call the backfill for WED-2024, (4) verify gallery chips show non-empty results at https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024, (5) merge PR #80 then PR #77. Full context in SUMMARY.md."
+
 ## ✅ DONE 2026-07-19 — Rate-limit /auth/forgot-password (PR #78, merged + deployed)
 
 Founder got 5-6 password-reset emails in one hour. Root cause: public
