@@ -730,6 +730,63 @@ app.delete('/events/:event_id/photos/:photo_id', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// Original-tier upload (Stage 2 high-res sync).
+// PUT /events/:event_id/photos/:photo_id/original
+//   Photographer-authenticated: requires `Authorization: Bearer <supabase jwt>`
+//   and event ownership. Accepts the raw high-res binary in the request body;
+//   Content-Type header is used as-is (defaults to image/jpeg).
+//
+//   R2 key: events/<event_id>/original/<photo_id>  (no extension — the original
+//   is stored once and accessed by photo id, and we already have the extension
+//   on the web-optimised tier's storage_key from ingest).
+//
+//   On success: sets photos.is_original_uploaded = true so dashboard/print
+//   orders can gate on it (PRD §10.1). Idempotent: a second PUT to the same
+//   photo overwrites the R2 object and re-sets the flag (no harm done).
+//   Response 200: { id, event_id, original_key }
+// ---------------------------------------------------------------------------
+app.put('/events/:event_id/photos/:photo_id/original', async (c) => {
+  const event_id = c.req.param('event_id');
+  const photo_id = c.req.param('photo_id');
+  if (!event_id) return c.json({ error: 'missing_event_id' }, 400);
+  if (!photo_id) return c.json({ error: 'missing_photo_id' }, 400);
+
+  const db = supa(c.env);
+
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  // Verify the photo belongs to this event before accepting the binary.
+  const { data: photo, error: lookupErr } = await db
+    .from('photos')
+    .select('id')
+    .eq('id', photo_id)
+    .eq('event_id', event_id)
+    .maybeSingle();
+  if (lookupErr) return c.json({ error: 'photo_lookup_failed' }, 500);
+  if (!photo) return c.json({ error: 'photo_not_found' }, 404);
+
+  const contentType = c.req.header('content-type') || 'image/jpeg';
+  const body = await c.req.arrayBuffer();
+  if (!body || body.byteLength === 0) return c.json({ error: 'empty_body' }, 400);
+
+  const original_key = `events/${event_id}/original/${photo_id}`;
+
+  await c.env.MEDIA.put(original_key, body, {
+    httpMetadata: { contentType },
+  });
+
+  const { error: updateErr } = await db
+    .from('photos')
+    .update({ is_original_uploaded: true })
+    .eq('id', photo_id)
+    .eq('event_id', event_id);
+  if (updateErr) return c.json({ error: 'photo_update_failed' }, 500);
+
+  return c.json({ id: photo_id, event_id, original_key });
+});
+
+// ---------------------------------------------------------------------------
 // Studio logo upload (branding settings).
 // POST /events/:event_id/branding/logo
 //   Photographer-authenticated: same `Authorization: Bearer <supabase jwt>` +
