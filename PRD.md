@@ -228,5 +228,42 @@ CREATE TRIGGER trigger_release_orders
 ```
 
 *These schema changes are Phase 2 — they are specified here for planning purposes. Apply via a numbered Supabase migration when Phase 2 implementation begins.*
+
+### 10.6 Implementation Sprint Plan
+
+Sprint sequence for §10.1–10.4. Each sprint is self-contained and shippable.
+
+#### Sprint 1 — Client upload engine + Stage 2 sync trigger (this session)
+
+**Deliverables:**
+1. `packages/shared/src/upload/extractZipLocally.ts` — JSZip-based browser extraction; skips macOS metadata, maps MIME types, fires progress callback. Raw ZIP never touches any server.
+2. `packages/shared/src/upload/ResilientUploadManager.ts` — parallel upload queue (4 concurrent), 3 retries with jittered exponential backoff, `drain()` resolves when all items settle. Drives per-file `onItemStateChange` callbacks for live UI.
+3. `apps/web/lib/upload/` — web-app copy of the above (Next.js can't import from outside its project root without a full monorepo toolchain; packages/shared remains canonical source).
+4. **Dashboard dropzone upgrade** (`apps/web/app/admin/events/[event_id]/page.tsx`):
+   - Accepts `.zip` files in addition to loose images via `accept="image/*,.zip"`.
+   - Drag-and-drop support (dragover/drop handlers on the zone div).
+   - ZIP extraction runs client-side before upload; progress shown in dropzone body.
+   - Upload queue driven by `ResilientUploadManager` (replaces the sequential loop).
+   - Single unified progress text: "מייעל ומעלה נכסים בצורה בטוחה..." during extraction.
+5. **Migration 0010** (`supabase/migrations/0010_is_original_uploaded.sql`) — adds `is_original_uploaded BOOLEAN DEFAULT FALSE` to `photos`; partial index on `(event_id, is_original_uploaded) WHERE is_original_uploaded = FALSE`.
+6. **Stage 2 sync button** — surfaces below the photo grid when `pendingCount > 0`. Photographer picks original-resolution files from disk; client matches by filename against pending DB records; uploads to `PUT /events/:id/photos/:photo_id/original` (to be implemented in Sprint 2); toggles `is_original_uploaded = true` locally on success. Per-photo "מקור חסר" badge shows unsynced photos.
+
+**API endpoint needed in Sprint 2:** `PUT /events/:event_id/photos/:photo_id/original` — receives the raw high-res body, writes to R2 under the original-tier key, sets `is_original_uploaded = true`.
+
+#### Sprint 2 — API: original-upload endpoint + order hold logic
+
+**Deliverables:**
+1. `PUT /events/:event_id/photos/:photo_id/original` — streaming R2 write, photographer-authenticated, sets `is_original_uploaded = true`. Idempotent (re-upload of same original is safe).
+2. `GET /admin/events/:event_id/pending-originals` — returns count + list of photos pending Stage 2 sync. Feeds dashboard "Sync" alert badge.
+3. Order hold wiring: on print order placement, set `order_status = 'Awaiting_High_Res_Asset'` if `is_original_uploaded = false`. Auto-release trigger (`release_held_orders_on_sync` from §10.5) fires once original lands.
+4. Print-order alert in dashboard: card shown when `orders.order_status = 'Awaiting_High_Res_Asset'` count > 0.
+
+#### Sprint 3 — Smart framing + social export backend (§10.3)
+
+**Deliverables:**
+1. `POST /photos/:id/social-export` — generates requested format (`story_9_16`, `feed_1_1`, `feed_4_5`, `original`) on demand. Uses `focal_point_x/y` from `media_assets` (default 50/50 = center). Story format: 9:16 canvas, blur-darken backdrop from landscape source, sharp overlay centered, studio watermark in vacant bands.
+2. `focal_point_x/y` population: either from AI face-detection pipeline output (already runs during ingest) or defaults on photos without detected faces.
+3. Social export UI bottom sheet (PR #85 already built the trigger) — wire the three download buttons to call the endpoint with the correct format param.
+4. Egress guard: all non-commercial guest downloads capped at Tier 3 (web-optimised ~600px) unless `is_original_uploaded = true` AND photographer has enabled "original downloads".
 </content>
 </invoke>

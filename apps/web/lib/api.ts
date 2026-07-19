@@ -193,6 +193,7 @@ export async function uploadEventPhoto(
   eventId: string,
   file: File,
   accessToken: string,
+  signal?: AbortSignal,
 ): Promise<ApiResult<UploadPhotoResponse>> {
   const formData = new FormData();
   formData.append("file", file);
@@ -203,6 +204,7 @@ export async function uploadEventPhoto(
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}` },
       body: formData,
+      signal,
     });
   } catch {
     return { ok: false, status: null, error: "network_error" };

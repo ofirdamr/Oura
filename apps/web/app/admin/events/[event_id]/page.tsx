@@ -1,34 +1,26 @@
 "use client";
 
-// Photographer-facing single-Event management screen: this is where photos
-// actually get into an event. Closes the gap between event-creation
-// (create-event -> branding -> qr-management) and the guest gallery, which
-// until now had no ingest path from the browser at all - the only working
-// route was a direct POST to the Worker (apps/api's
-// `POST /events/:event_id/photos`, already deployed, multipart/form-data with
-// a single `file` field, Authorization: Bearer <supabase access token>,
-// requireEventOwner-gated).
-//
-// Visual pattern is deliberately reused wholesale from the branding
-// dropzone (founder-approved shortcut for this screen - no fresh Stitch
-// design), and the photo-grid rendering pattern is reused from
-// app/gallery/page.tsx (next/image against the Worker's GET /media/:key R2
-// route, same next.config.ts remotePatterns host).
+// Photographer-facing single-Event management screen.
+// Sprint 1 upgrade: supports drag-and-drop loose JPEGs *and* Lightroom .zip
+// archives (extracted client-side via JSZip — the raw zip never hits the server).
+// Uploads run through ResilientUploadManager (4 parallel connections, 3 retries,
+// exponential backoff).  A "Sync High-Res Originals" Stage 2 button surfaces
+// below the photo grid for photos where is_original_uploaded = false.
 //
 // Reads (event header + photo list) go straight through the Supabase browser
-// client per CLAUDE.md's read-path convention already used in
-// branding/qr-management (RLS already scopes both to the owning
-// photographer). Writes that touch R2 (upload, delete) go through the Worker
-// instead - never expose R2 credentials to the browser, and a direct
-// Supabase-only delete couldn't remove the R2 object anyway.
+// client per CLAUDE.md's read-path convention (RLS scopes to owning photographer).
+// Writes (upload, delete) go through the Worker — never expose R2 credentials
+// to the browser, and a direct Supabase delete can't remove the R2 object.
 
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { API_BASE_URL, deletePhoto, uploadEventPhoto } from "@/lib/api";
+import { extractZipLocally, ResilientUploadManager } from "@/lib/upload";
+import type { UploadItemState } from "@/lib/upload";
 
 type EventRow = {
   name: string;
@@ -41,15 +33,7 @@ type PhotoRow = {
   storage_key: string;
   status: string;
   created_at: string;
-};
-
-type UploadStatus = "uploading" | "done" | "failed";
-
-type UploadItem = {
-  key: string;
-  name: string;
-  status: UploadStatus;
-  errorMessage?: string;
+  is_original_uploaded: boolean;
 };
 
 export default function EventManagementPage() {
@@ -62,28 +46,34 @@ export default function EventManagementPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const [uploads, setUploads] = useState<UploadItem[]>([]);
+  // Upload queue state — driven by ResilientUploadManager callbacks
+  const [uploadItems, setUploadItems] = useState<UploadItemState[]>([]);
+  const [extracting, setExtracting] = useState(false);
+  const [extractProgress, setExtractProgress] = useState<string | null>(null);
   const [uploadBannerError, setUploadBannerError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  // Stage 2 sync state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPhotos = useCallback(async (id: string) => {
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("photos")
-      .select("id, storage_key, status, created_at")
+      .select("id, storage_key, status, created_at, is_original_uploaded")
       .eq("event_id", id)
       .order("created_at", { ascending: false });
 
-    if (error || !data) {
-      return null;
-    }
+    if (error || !data) return null;
     return data as PhotoRow[];
   }, []);
 
   useEffect(() => {
     if (!eventId) return;
-
     let cancelled = false;
 
     async function load(id: string) {
@@ -95,7 +85,6 @@ export default function EventManagementPage() {
         .single();
 
       if (cancelled) return;
-
       if (error || !data) {
         setNotFound(true);
         setLoading(false);
@@ -123,7 +112,6 @@ export default function EventManagementPage() {
 
   async function handleFilesSelected(fileList: FileList | null) {
     if (!fileList || fileList.length === 0 || !eventId) return;
-    const files = Array.from(fileList);
 
     setUploadBannerError(null);
 
@@ -137,35 +125,86 @@ export default function EventManagementPage() {
       return;
     }
 
-    // Sequential uploads: simplest correct option for MVP scale, and it keeps
-    // the per-file status list trivially consistent (no interleaved
-    // read-modify-write races on `uploads` state from parallel completions).
-    for (const file of files) {
-      const key = `${file.name}-${file.size}-${file.lastModified}-${Math.random().toString(36).slice(2)}`;
-      setUploads((prev) => [...prev, { key, name: file.name, status: "uploading" }]);
+    const accessToken = session.access_token;
+    const allFiles: File[] = [];
 
-      const result = await uploadEventPhoto(eventId, file, session.access_token);
+    // Separate ZIP files from direct images
+    const zipFiles: File[] = [];
+    const imageFiles: File[] = [];
 
-      if (!result.ok) {
-        setUploads((prev) =>
-          prev.map((u) =>
-            u.key === key ? { ...u, status: "failed", errorMessage: "ההעלאה נכשלה" } : u,
-          ),
-        );
-        continue;
+    for (const f of Array.from(fileList)) {
+      if (f.name.toLowerCase().endsWith(".zip") || f.type === "application/zip") {
+        zipFiles.push(f);
+      } else {
+        imageFiles.push(f);
       }
-
-      setUploads((prev) => prev.map((u) => (u.key === key ? { ...u, status: "done" } : u)));
-
-      // Optimistically append rather than re-fetching the whole list on every
-      // file - cheaper, and the upload response already has everything a grid
-      // tile needs (id, storage_key). Falls back to a full re-fetch below only
-      // if this optimistic row shape ever needs the freshest `status`.
-      setPhotos((prev) => [
-        { id: result.data.id, storage_key: result.data.storage_key, status: "ready", created_at: new Date().toISOString() },
-        ...prev,
-      ]);
     }
+
+    // Extract ZIPs client-side
+    if (zipFiles.length > 0) {
+      setExtracting(true);
+      try {
+        for (const zip of zipFiles) {
+          const extracted = await extractZipLocally(zip, (progress) => {
+            setExtractProgress(
+              `מחלץ מ-${zip.name}: ${progress.extracted}/${progress.total}`,
+            );
+          });
+          allFiles.push(...extracted);
+        }
+      } catch {
+        setUploadBannerError("שגיאה בחילוץ הקובץ. ודאו שהקובץ הוא ZIP תקין.");
+        setExtracting(false);
+        setExtractProgress(null);
+        return;
+      }
+      setExtracting(false);
+      setExtractProgress(null);
+    }
+
+    allFiles.push(...imageFiles);
+
+    if (allFiles.length === 0) {
+      setUploadBannerError("לא נמצאו תמונות להעלאה.");
+      return;
+    }
+
+    const mgr = new ResilientUploadManager({
+      concurrency: 4,
+      maxRetries: 3,
+      baseDelayMs: 1_000,
+      uploadFn: async (file, signal) => {
+        const result = await uploadEventPhoto(eventId, file, accessToken, signal);
+        if (!result.ok) {
+          return { ok: false, errorMessage: result.error ?? "ההעלאה נכשלה" };
+        }
+        // Append to photo grid optimistically
+        const { id, storage_key } = result.data;
+        setPhotos((prev) => [
+          {
+            id,
+            storage_key,
+            status: "ready",
+            created_at: new Date().toISOString(),
+            is_original_uploaded: false,
+          },
+          ...prev,
+        ]);
+        return { ok: true };
+      },
+      onItemStateChange: (item) => {
+        setUploadItems((prev) => {
+          const idx = prev.findIndex((i) => i.id === item.id);
+          if (idx === -1) return [...prev, item];
+          const next = [...prev];
+          next[idx] = item;
+          return next;
+        });
+      },
+    });
+
+    mgr.enqueue(allFiles);
+    await mgr.drain();
   }
 
   async function handleDeletePhoto(photo: PhotoRow) {
@@ -190,7 +229,6 @@ export default function EventManagementPage() {
     }
 
     const result = await deletePhoto(eventId, photo.id, session.access_token);
-
     setDeletingIds((prev) => {
       const next = new Set(prev);
       next.delete(photo.id);
@@ -205,9 +243,130 @@ export default function EventManagementPage() {
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
   }
 
-  if (!eventId) {
-    return null;
+  async function handleStage2Sync() {
+    if (!eventId) return;
+
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setSyncMessage("יש להתחבר מחדש.");
+      return;
+    }
+
+    // Let the photographer pick the original-resolution files from disk.
+    // We match by filename against photos where is_original_uploaded = false.
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*,.zip";
+    input.multiple = true;
+
+    input.onchange = async () => {
+      const fileList = input.files;
+      if (!fileList || fileList.length === 0) return;
+
+      setIsSyncing(true);
+      setSyncMessage("מעלה קבצי מקור...");
+
+      const accessToken = session.access_token;
+      const pendingPhotos = photos.filter((p) => !p.is_original_uploaded);
+
+      // Build a lookup: filename → photo row
+      const pendingByName = new Map<string, PhotoRow>(pendingPhotos.map((p) => [extractBasename(p.storage_key), p]));
+
+      const allFiles: File[] = [];
+
+      for (const f of Array.from(fileList)) {
+        if (f.name.toLowerCase().endsWith(".zip") || f.type === "application/zip") {
+          try {
+            const extracted = await extractZipLocally(f, (progress) => {
+              setSyncMessage(`מחלץ ${progress.extracted}/${progress.total}...`);
+            });
+            allFiles.push(...extracted);
+          } catch {
+            // Skip bad zips, continue with rest
+          }
+        } else {
+          allFiles.push(f);
+        }
+      }
+
+      // Match files to pending photos by name
+      const matchedFiles = allFiles.filter((f) => pendingByName.has(f.name));
+
+      if (matchedFiles.length === 0) {
+        setSyncMessage("לא נמצאו קבצים תואמים לתמונות שממתינות לסנכרון.");
+        setIsSyncing(false);
+        return;
+      }
+
+      let synced = 0;
+
+      const mgr = new ResilientUploadManager({
+        concurrency: 3,
+        maxRetries: 3,
+        baseDelayMs: 1_000,
+        uploadFn: async (file: File, signal: AbortSignal) => {
+          const photo = pendingByName.get(file.name);
+          if (!photo) return { ok: false, errorMessage: "לא נמצא רשומה תואמת" };
+
+          const res = await fetch(
+            `${API_BASE_URL}/events/${encodeURIComponent(eventId)}/photos/${photo.id}/original`,
+            {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${accessToken}` },
+              body: file,
+              signal,
+            },
+          );
+
+          if (!res.ok) return { ok: false, errorMessage: `http_${res.status}` };
+
+          synced++;
+          setSyncMessage(`סנכרן ${synced}/${matchedFiles.length} קבצים...`);
+
+          // Update local state
+          setPhotos((prev) =>
+            prev.map((p) =>
+              p.id === photo.id ? { ...p, is_original_uploaded: true } : p,
+            ),
+          );
+          return { ok: true };
+        },
+        onItemStateChange: () => {},
+      });
+
+      mgr.enqueue(matchedFiles);
+      await mgr.drain();
+
+      setSyncMessage(`סנכרון הושלם — ${synced} מתוך ${matchedFiles.length} קבצים הועלו.`);
+      setIsSyncing(false);
+    };
+
+    input.click();
   }
+
+  // Drag-and-drop handlers
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(true);
+  }
+  function handleDragLeave() {
+    setIsDragging(false);
+  }
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    void handleFilesSelected(e.dataTransfer.files);
+  }
+
+  const pendingCount = photos.filter((p) => !p.is_original_uploaded).length;
+  const activeUploads = uploadItems.filter((i) => i.status === "uploading" || i.status === "queued");
+  const recentUploads = uploadItems.filter((i) => i.status === "done" || i.status === "failed");
+
+  if (!eventId) return null;
 
   if (notFound) {
     return (
@@ -229,6 +388,7 @@ export default function EventManagementPage() {
 
   return (
     <AdminShell active="אירועים פעילים">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="text-start">
           <h1 className="text-3xl font-bold text-on-surface">
@@ -254,6 +414,7 @@ export default function EventManagementPage() {
         </div>
       </div>
 
+      {/* Banners */}
       {loadError && (
         <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-center text-sm text-error">
           {loadError}
@@ -265,6 +426,7 @@ export default function EventManagementPage() {
         </p>
       )}
 
+      {/* Upload dropzone */}
       <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
         <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
           <span className="material-symbols-outlined text-base">add_photo_alternate</span>
@@ -273,7 +435,7 @@ export default function EventManagementPage() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.zip"
           multiple
           className="hidden"
           onChange={(e) => {
@@ -281,30 +443,58 @@ export default function EventManagementPage() {
             e.target.value = "";
           }}
         />
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => fileInputRef.current?.click()}
-          className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-outline-variant/50 p-8 text-center transition-colors hover:border-primary/50"
+          onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`flex w-full cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-outline-variant/50 hover:border-primary/50"
+          }`}
         >
-          <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
-            add_photo_alternate
-          </span>
-          <p className="text-sm font-medium text-on-surface">לחצו להעלאת תמונות</p>
-          <p className="text-xs text-on-surface-variant">ניתן לבחור מספר תמונות בו-זמנית</p>
-        </button>
+          {extracting ? (
+            <>
+              <span className="material-symbols-outlined animate-spin text-3xl text-primary">
+                progress_activity
+              </span>
+              <p className="text-sm font-medium text-on-surface">מייעל ומעלה נכסים בצורה בטוחה...</p>
+              {extractProgress && (
+                <p className="text-xs text-on-surface-variant">{extractProgress}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-3xl text-on-surface-variant/50">
+                add_photo_alternate
+              </span>
+              <p className="text-sm font-medium text-on-surface">
+                גררו תמונות או קובץ ZIP לכאן, או לחצו לבחירה
+              </p>
+              <p className="text-xs text-on-surface-variant">
+                JPG, PNG, HEIC — או ארכיון Lightroom ZIP
+              </p>
+            </>
+          )}
+        </div>
 
-        {uploads.length > 0 && (
+        {/* Active uploads progress */}
+        {(activeUploads.length > 0 || recentUploads.length > 0) && (
           <ul className="mt-4 space-y-2">
-            {uploads.map((u) => (
+            {[...activeUploads, ...recentUploads.slice(0, 5)].map((u) => (
               <li
-                key={u.key}
+                key={u.id}
                 className="flex flex-row-reverse items-center justify-between gap-3 rounded-xl bg-surface-container-high px-4 py-2.5 text-start"
               >
                 <span className="truncate text-sm text-on-surface" dir="ltr">
-                  {u.name}
+                  {u.file.name}
                 </span>
                 <span className="flex shrink-0 items-center gap-1.5 text-xs font-bold">
-                  {u.status === "uploading" && (
+                  {(u.status === "uploading" || u.status === "queued") && (
                     <span className="material-symbols-outlined animate-spin text-base text-on-surface-variant">
                       progress_activity
                     </span>
@@ -329,6 +519,37 @@ export default function EventManagementPage() {
         )}
       </div>
 
+      {/* Stage 2 Sync High-Res Originals */}
+      {pendingCount > 0 && (
+        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-start">
+              <h2 className="flex items-center gap-1.5 text-sm font-bold text-on-surface">
+                <span className="material-symbols-outlined text-base text-warning">
+                  cloud_sync
+                </span>
+                סנכרון קבצי מקור ({pendingCount} תמונות ממתינות)
+              </h2>
+              <p className="mt-1 text-xs text-on-surface-variant">
+                התמונות הועלו בפורמט מותאם לאירוע. לחצו להעלאת הקבצים המקוריים מהאולפן.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleStage2Sync()}
+              disabled={isSyncing}
+              className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-on-primary transition-all hover:opacity-90 disabled:opacity-60"
+            >
+              {isSyncing ? "מסנכרן..." : "סנכרון High-Res"}
+            </button>
+          </div>
+          {syncMessage && (
+            <p className="mt-3 text-xs text-on-surface-variant">{syncMessage}</p>
+          )}
+        </div>
+      )}
+
+      {/* Photo grid */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-on-surface-variant">
           תמונות האירוע ({photos.length})
@@ -351,6 +572,12 @@ export default function EventManagementPage() {
                   sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
                   className="object-cover"
                 />
+                {/* Pending sync badge */}
+                {!photo.is_original_uploaded && (
+                  <div className="absolute start-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">
+                    מקור חסר
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => handleDeletePhoto(photo)}
@@ -369,4 +596,8 @@ export default function EventManagementPage() {
       </div>
     </AdminShell>
   );
+}
+
+function extractBasename(storageKey: string): string {
+  return storageKey.split("/").pop() ?? storageKey;
 }
