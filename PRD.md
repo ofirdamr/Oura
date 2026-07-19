@@ -129,6 +129,7 @@ Decouples asset publishing from high-resolution archival to guarantee 100% uptim
 The photographer's only action: drag-and-drop loose JPEGs or a single Lightroom `.zip` into the dashboard — exactly like Dropbox.
 
 - **Local ZIP decompression:** `.zip` files are extracted in the browser (e.g. JSZip / Web Streams). Raw ZIP files are never uploaded to the backend.
+- **Memory Guardrail:** Browser-side decompression must be optimized using In-Memory processing (and Web Streams where applicable) to guarantee that extracting massive Lightroom ZIP archives does not block the Main UI Thread or cause browser tab crashes due to out-of-memory errors.
 - **Silent client-side batch compression:** a background worker loop immediately downscales dropped/extracted images to Web-Optimized spec using a client-side library (e.g. browser-image-compression) — no user confirmation needed.
 - **Resilient upload queue:** 3–5 parallel HTTP connections max. On dropped connections: exponential backoff retries, seamless resume without state loss.
 - **Simplified UI:** all background processing is masked behind one unified progress indicator ("מייעל ומעלה נכסים בצורה בטוחה...").
@@ -147,11 +148,14 @@ Photographers shoot landscape (3:2 / 16:9); guests live on vertical mobile scree
 3. Overlay the sharp, original landscape photo centered vertically across the canvas.
 4. Use the vacant top/bottom margin to stamp the photographer's translucent studio branding watermark + event text — keeping the photo itself completely unblemished.
 
+**Watermark Product Requirement:** The system must ensure that the high-resolution translucent studio branding watermark and event text are rendered exclusively inside the vacant top/bottom blurred margin zones. The sharp native horizontal photo rectangle itself must remain 100% untouched and unblemished by intrusive watermark overlays, preserving the original artistic composition.
+
 **C. Social Export UI Options & Bandwidth Guardrails**
 - "הורדה לסטורי/ריל" — fetches the 9:16 ambient canvas version with clean branding.
 - "הורדה לפיד" — delivers the 1:1 or 4:5 smart-crop version.
 - "מקור / הורדה ישירה" — delivers the un-cropped original format.
 - All non-commercial guest saves default to Tier 3 (Web-Optimized) — egress cost protection while maintaining crisp mobile clarity.
+- **API-Level Egress Protection:** The backend must explicitly restrict and enforce permission checks on Tier 1 (original high-res) download routes. End-user guests must be programmatically blocked from requesting signed URLs for Tier 1 assets, ensuring they only receive Tier 3 variants to protect system egress costs.
 
 *Note: the share button bottom sheet (מקורי / פיד 4:5 / סטורי 9:16) was implemented in PR #85 as the frontend trigger for this engine. The backend `/photos/:id/social-export` endpoint handles format generation.*
 
