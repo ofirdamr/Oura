@@ -128,10 +128,239 @@ Decouples asset publishing from high-resolution archival to guarantee 100% uptim
 
 The photographer's only action: drag-and-drop loose JPEGs or a single Lightroom `.zip` into the dashboard — exactly like Dropbox.
 
-- **Local ZIP decompression:** `.zip` files are extracted in the browser (e.g. JSZip / Web Streams). Raw ZIP files are never uploaded to the backend.
-- **Silent client-side batch compression:** a background worker loop immediately downscales dropped/extracted images to Web-Optimized spec using a client-side library (e.g. browser-image-compression) — no user confirmation needed.
+- **Local ZIP decompression:** `.zip` files are extracted in the browser using JSZip / Web Streams. Raw ZIP files are never uploaded to the backend.
+- **Silent client-side batch compression:** a background worker loop immediately downscales dropped/extracted images to Web-Optimized spec using browser-image-compression — no user confirmation needed.
 - **Resilient upload queue:** 3–5 parallel HTTP connections max. On dropped connections: exponential backoff retries, seamless resume without state loss.
 - **Simplified UI:** all background processing is masked behind one unified progress indicator ("מייעל ומעלה נכסים בצורה בטוחה...").
+
+#### `extractZipLocally` — Client-Side ZIP Extraction (JSZip)
+
+Runs entirely in the browser; no ZIP bytes ever reach the backend.
+
+```typescript
+// packages/shared/src/upload/extractZipLocally.ts
+import JSZip from 'jszip';
+
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'tiff', 'tif', 'heic']);
+
+export async function extractZipLocally(
+  file: File,
+  onProgress?: (extracted: number, total: number) => void
+): Promise<File[]> {
+  const arrayBuffer = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(arrayBuffer);
+
+  const imageEntries = Object.entries(zip.files).filter(([name, entry]) => {
+    if (entry.dir) return false;
+    const ext = name.split('.').pop()?.toLowerCase() ?? '';
+    return IMAGE_EXTENSIONS.has(ext);
+  });
+
+  const total = imageEntries.length;
+  const extractedFiles: File[] = [];
+
+  for (let i = 0; i < imageEntries.length; i++) {
+    const [path, entry] = imageEntries[i];
+    const blob = await entry.async('blob');
+    const filename = path.split('/').pop() ?? path;
+    const ext = filename.split('.').pop()?.toLowerCase() ?? 'jpeg';
+    const mimeType = ext === 'png' ? 'image/png'
+      : ext === 'webp' ? 'image/webp'
+      : 'image/jpeg';
+
+    extractedFiles.push(new File([blob], filename, { type: mimeType }));
+    onProgress?.(i + 1, total);
+  }
+
+  return extractedFiles;
+}
+```
+
+#### `ResilientUploadManager` — Parallel Queue with Exponential Backoff
+
+Manages all upload concurrency, retries, and progress events. Instantiated once per upload session in the photographer dashboard.
+
+```typescript
+// packages/shared/src/upload/ResilientUploadManager.ts
+
+export type UploadTaskStatus = 'queued' | 'uploading' | 'done' | 'failed';
+
+export interface UploadTask {
+  id: string;
+  file: File;
+  galleryId: string;
+  retries: number;
+  status: UploadTaskStatus;
+  percentComplete: number;
+}
+
+export interface UploadManagerOptions {
+  /** Maximum simultaneous in-flight uploads. Default: 4 */
+  maxConcurrent?: number;
+  /** Maximum retry attempts per file before marking failed. Default: 5 */
+  maxRetries?: number;
+  /** Base delay in ms for exponential backoff (doubles each retry). Default: 500 */
+  baseBackoffMs?: number;
+  /** Upload endpoint path. Default: '/api/upload' */
+  uploadEndpoint?: string;
+  onProgress?: (taskId: string, percent: number) => void;
+  onComplete?: (taskId: string, assetId: string) => void;
+  onError?: (taskId: string, error: Error, finalFailure: boolean) => void;
+  onQueueDrained?: () => void;
+}
+
+export class ResilientUploadManager {
+  private readonly tasks = new Map<string, UploadTask>();
+  private readonly queue: string[] = []; // ordered list of task IDs awaiting processing
+  private active = 0;
+
+  private readonly maxConcurrent: number;
+  private readonly maxRetries: number;
+  private readonly baseBackoffMs: number;
+  private readonly uploadEndpoint: string;
+  private readonly onProgress?: UploadManagerOptions['onProgress'];
+  private readonly onComplete?: UploadManagerOptions['onComplete'];
+  private readonly onError?: UploadManagerOptions['onError'];
+  private readonly onQueueDrained?: UploadManagerOptions['onQueueDrained'];
+
+  constructor(options: UploadManagerOptions = {}) {
+    this.maxConcurrent  = options.maxConcurrent  ?? 4;
+    this.maxRetries     = options.maxRetries     ?? 5;
+    this.baseBackoffMs  = options.baseBackoffMs  ?? 500;
+    this.uploadEndpoint = options.uploadEndpoint ?? '/api/upload';
+    this.onProgress     = options.onProgress;
+    this.onComplete     = options.onComplete;
+    this.onError        = options.onError;
+    this.onQueueDrained = options.onQueueDrained;
+  }
+
+  /** Add a file to the upload queue. Returns a stable task ID for progress tracking. */
+  enqueue(file: File, galleryId: string): string {
+    const id = crypto.randomUUID();
+    const task: UploadTask = { id, file, galleryId, retries: 0, status: 'queued', percentComplete: 0 };
+    this.tasks.set(id, task);
+    this.queue.push(id);
+    this.drain();
+    return id;
+  }
+
+  /** Enqueue multiple files atomically. */
+  enqueueAll(files: File[], galleryId: string): string[] {
+    return files.map(f => this.enqueue(f, galleryId));
+  }
+
+  /** Snapshot of aggregate queue statistics for UI binding. */
+  get stats() {
+    const all = [...this.tasks.values()];
+    return {
+      queued:    all.filter(t => t.status === 'queued').length,
+      uploading: all.filter(t => t.status === 'uploading').length,
+      done:      all.filter(t => t.status === 'done').length,
+      failed:    all.filter(t => t.status === 'failed').length,
+      total:     all.length,
+      overallPercent: all.length === 0 ? 0 : Math.round(
+        all.reduce((sum, t) => sum + (t.status === 'done' ? 100 : t.percentComplete), 0) / all.length
+      ),
+    };
+  }
+
+  getTask(id: string): UploadTask | undefined {
+    return this.tasks.get(id);
+  }
+
+  // ── internals ──────────────────────────────────────────────────────────────
+
+  private drain(): void {
+    while (this.active < this.maxConcurrent && this.queue.length > 0) {
+      const id = this.queue.shift();
+      if (!id) break;
+      const task = this.tasks.get(id);
+      if (!task || task.status !== 'queued') continue;
+
+      task.status = 'uploading';
+      this.active++;
+
+      this.runTask(task).finally(() => {
+        this.active--;
+        if (this.queue.length === 0 && this.active === 0) {
+          this.onQueueDrained?.();
+        }
+        this.drain();
+      });
+    }
+  }
+
+  private async runTask(task: UploadTask): Promise<void> {
+    try {
+      const assetId = await this.uploadWithXHR(task);
+      task.status = 'done';
+      task.percentComplete = 100;
+      this.onComplete?.(task.id, assetId);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+
+      if (task.retries < this.maxRetries) {
+        task.retries++;
+        task.status = 'queued';
+        task.percentComplete = 0;
+        this.onError?.(task.id, error, false);
+
+        // Exponential backoff: 500ms, 1s, 2s, 4s, 8s
+        const delay = this.baseBackoffMs * Math.pow(2, task.retries - 1);
+        await sleep(delay);
+
+        this.queue.unshift(task.id); // re-insert at front for priority retry
+      } else {
+        task.status = 'failed';
+        this.onError?.(task.id, error, true);
+      }
+    }
+  }
+
+  private uploadWithXHR(task: UploadTask): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append('file', task.file);
+      formData.append('galleryId', task.galleryId);
+
+      xhr.open('POST', this.uploadEndpoint);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          task.percentComplete = percent;
+          this.onProgress?.(task.id, percent);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const body = JSON.parse(xhr.responseText) as { assetId: string };
+            resolve(body.assetId);
+          } catch {
+            reject(new Error('Malformed JSON response from upload endpoint'));
+          }
+        } else {
+          reject(new Error(`Upload failed — HTTP ${xhr.status}: ${xhr.statusText}`));
+        }
+      });
+
+      xhr.addEventListener('error',  () => reject(new Error('Network error during upload')));
+      xhr.addEventListener('abort',  () => reject(new Error('Upload was aborted')));
+      xhr.addEventListener('timeout',() => reject(new Error('Upload timed out')));
+
+      xhr.timeout = 120_000; // 2-minute per-file hard timeout
+      xhr.send(formData);
+    });
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+```
 
 ### 10.3 Aspect Ratio, Smart Cropping & Social Framing Engine
 
@@ -140,12 +369,106 @@ Photographers shoot landscape (3:2 / 16:9); guests live on vertical mobile scree
 **A. Smart Focal-Point Cropping (Feed Presets)**
 - For 1:1 square and 4:5 vertical templates, the pipeline never center-crops blindly.
 - An edge microservice or client canvas analyzer (e.g. smartcrop.js) locates faces / primary subjects and anchors the crop box dynamically around those coordinates.
+- Focal-point coordinates (`focal_point_x`, `focal_point_y`) are persisted to `media_assets` at ingest time (see §10.5 schema) and reused for all subsequent crop variants — the subject-detection compute runs once, not on every download.
 
 **B. Dynamic 9:16 "Magnet-Style" Canvas Wrapper (Story/Reels)**
 1. Create a 9:16 canvas (1080×1920 or 2160×3840).
 2. Duplicate the landscape photo, scale to cover canvas height, apply heavy Gaussian blur (30–50 px) and darken by 25–30% to form the ambient backdrop.
 3. Overlay the sharp, original landscape photo centered vertically across the canvas.
 4. Use the vacant top/bottom margin to stamp the photographer's translucent studio branding watermark + event text — keeping the photo itself completely unblemished.
+
+`buildStoryCanvas` — Sharp pipeline (runs in `packages/processing-pipeline` on Fly.io / Cloud Run):
+
+```typescript
+// packages/processing-pipeline/src/transforms/buildStoryCanvas.ts
+import sharp, { OverlayOptions } from 'sharp';
+
+export interface StoryCanvasOptions {
+  /** Canvas dimensions. Defaults to 1080×1920 (standard Reels/Story). */
+  canvasWidth?:   number;
+  canvasHeight?:  number;
+  /** Gaussian blur radius for ambient backdrop. Default: 40. */
+  blurSigma?:     number;
+  /** Fractional brightness reduction for backdrop (0–1). Default: 0.28 (28% darker). */
+  darkenAmount?:  number;
+  /** Pre-loaded PNG buffer of the studio logo/watermark (RGBA). Optional. */
+  watermarkBuffer?: Buffer;
+  /** Event name or tagline rendered below the watermark in the bottom margin. Optional. */
+  eventText?:     string;
+  /** JPEG output quality (0–100). Default: 92. */
+  outputQuality?: number;
+}
+
+/**
+ * Produces a 9:16 ambient-canvas export from a landscape source image.
+ * The source photo is never modified — it is composited centered and sharp
+ * over a blurred/darkened copy of itself that fills the full canvas.
+ */
+export async function buildStoryCanvas(
+  sourceBuffer: Buffer,
+  options: StoryCanvasOptions = {}
+): Promise<Buffer> {
+  const {
+    canvasWidth   = 1080,
+    canvasHeight  = 1920,
+    blurSigma     = 40,
+    darkenAmount  = 0.28,
+    watermarkBuffer,
+    outputQuality = 92,
+  } = options;
+
+  // ── Step 1: Blurred, darkened ambient backdrop ──────────────────────────
+  const backdrop = await sharp(sourceBuffer)
+    .resize(canvasWidth, canvasHeight, { fit: 'cover', position: 'centre' })
+    .blur(blurSigma)
+    .modulate({ brightness: 1 - darkenAmount })
+    .toBuffer();
+
+  // ── Step 2: Scale the original photo to fill canvas width, preserve AR ──
+  const { width: srcW = 3, height: srcH = 2 } = await sharp(sourceBuffer).metadata();
+  const sourceAspect  = srcW / srcH;
+  const overlayWidth  = canvasWidth;
+  const overlayHeight = Math.round(overlayWidth / sourceAspect);
+  const overlayTop    = Math.round((canvasHeight - overlayHeight) / 2); // vertically centred
+
+  const overlayPhoto = await sharp(sourceBuffer)
+    .resize(overlayWidth, overlayHeight, { fit: 'fill' })
+    .toBuffer();
+
+  const composites: OverlayOptions[] = [
+    { input: overlayPhoto, top: overlayTop, left: 0 },
+  ];
+
+  // ── Step 3: Optional translucent watermark in the bottom margin ─────────
+  if (watermarkBuffer) {
+    const wmTargetWidth = Math.round(canvasWidth * 0.42); // 42% canvas width
+
+    // Resize watermark and apply 70% opacity via alpha channel modulation
+    const watermark = await sharp(watermarkBuffer)
+      .resize(wmTargetWidth, undefined, { fit: 'inside' })
+      .ensureAlpha()
+      .modulate({ alpha: 0.70 })
+      .toBuffer();
+
+    const { width: wmW = wmTargetWidth, height: wmH = 60 } =
+      await sharp(watermark).metadata();
+
+    // Centre the watermark in the available bottom margin
+    const bottomMarginTop  = overlayTop + overlayHeight;
+    const bottomMarginSize = canvasHeight - bottomMarginTop;
+    const wmTop  = bottomMarginTop + Math.round((bottomMarginSize - wmH) / 2);
+    const wmLeft = Math.round((canvasWidth - wmW) / 2);
+
+    composites.push({ input: watermark, top: wmTop, left: wmLeft });
+  }
+
+  // ── Step 4: Composite and encode ────────────────────────────────────────
+  return sharp(backdrop)
+    .composite(composites)
+    .jpeg({ quality: outputQuality, mozjpeg: true })
+    .toBuffer();
+}
+```
 
 **C. Social Export UI Options & Bandwidth Guardrails**
 - "הורדה לסטורי/ריל" — fetches the 9:16 ambient canvas version with clean branding.
@@ -173,6 +496,86 @@ Controlled by a `fulfillment_type` parameter set at the gallery or photographer 
 |---|---|---|
 | Cloud Fulfillment | `AUTOMATED_WHOLESALE` | On `is_original_uploaded → true`, system fires a webhook to the remote print house API for automated production and mailing. |
 | Self-Fulfillment | `SELF_FULFILLMENT` | On sync complete, order shifts to `Ready_For_Photographer_Print`. Photographer's Print Queue dashboard shows tasks by dimension (Magnet / 10×15 / Block), allows batch Tier-1 download, and has a manual "Mark as Printed & Delivered" trigger. |
+
+**C. Print Queue Dashboard Workspace (Self-Fulfillment Route)**
+
+The Print Queue is a dedicated workspace surface within the photographer dashboard — not a modal, not a sidebar panel. It is only visible to photographers whose `fulfillment_type = 'SELF_FULFILLMENT'`. It has three structural zones:
+
+---
+
+**Zone 1 — Header Bar & Live Status Strip**
+
+```
+[ Print Queue — Smart Gallery "Vered & Omer" ]          [ Sync High-Res (3 pending) 🔴 ]
+
+ Awaiting Asset  ●3    Ready to Print  ●12    Printed  ●27    Dispatched  ●8
+```
+
+- The event name and a primary CTA ("Sync High-Res") are always pinned at the top.
+- The status strip shows a live count of orders in each state — updates in real time via Supabase Realtime channel on the `orders` table (filtered to this gallery ID).
+- The red badge on "Sync High-Res" pulses while any `Awaiting_High_Res_Asset` orders exist. Once all originals are synced it turns grey and disappears.
+
+---
+
+**Zone 2 — Filter Bar**
+
+```
+[ All Formats ▾ ]  [ All Statuses ▾ ]  [ Newest first ▾ ]  [ 🔍 Search by guest name ]
+```
+
+- **Format filter** (multi-select chips): `מגנט`, `10×15`, `15×20`, `20×30`, `קנבס`, `ספר אירוע` — maps directly to `product_sku` values in the `orders` table.
+- **Status filter** (radio): All / Ready to Print / Printed / Dispatched.
+- **Sort**: Newest first / Oldest first / By format (groups all magnets together, then 10×15, etc.).
+- **Search**: client-side fuzzy filter on `guest_name` — no server round-trip for this since the full ready-list is already fetched on workspace mount.
+
+---
+
+**Zone 3 — Dimension-Grouped Task Lists**
+
+Orders in `Ready_For_Photographer_Print` are automatically grouped by print dimension. Each group is a collapsible section:
+
+```
+▼ מגנט  (7 orders)                              [ הורדת כל המגנטים — Tier 1 ZIP ↓ ]
+  ┌──────────────────────────────────────────────────────────────────────────────┐
+  │  📷  IMG_4821.jpg   |  ליאת כהן        |  ×2 magnets  |  [ הורד ] [ סומן ✓ ] │
+  │  📷  IMG_4903.jpg   |  נועה לוי        |  ×1 magnet   |  [ הורד ] [ סומן ✓ ] │
+  │  ...                                                                         │
+  └──────────────────────────────────────────────────────────────────────────────┘
+
+▼ 10×15  (5 orders)                             [ הורדת כל ה-10×15 — Tier 1 ZIP ↓ ]
+  ┌──────────────────────────────────────────────────────────────────────────────┐
+  │  📷  IMG_5102.jpg   |  תמר אברהם       |  ×1 print    |  [ הורד ] [ סומן ✓ ] │
+  │  ...                                                                         │
+  └──────────────────────────────────────────────────────────────────────────────┘
+
+▼ קנבס / בלוק  (2 orders)                       [ הורדת כל הקנבסים — Tier 1 ZIP ↓ ]
+  ...
+```
+
+Per-row controls:
+- **[ הורד ]** — downloads the single Tier-1 original for this order directly from R2 (signed URL, short-lived).
+- **[ סומן ✓ ]** — marks the order `Printed`. On click: optimistic UI flip, `PATCH /api/orders/:id { order_status: 'Completed' }` fires in the background. If the API call fails, the row snaps back and shows an inline error chip.
+
+Per-group batch controls:
+- **"הורדת כל [dimension] — Tier 1 ZIP ↓"** — triggers a signed batch-download URL that streams all originals for that dimension as a ZIP archive. The archive is assembled on-demand in the Cloudflare Worker using R2's `createMultipartUpload` + streaming zip (no intermediate large object stored). The photographer's browser begins downloading immediately — no polling, no "your file is ready" email.
+
+Marking a whole group done:
+- Long-pressing (mobile) or right-clicking (desktop) a group header reveals "סמן את כולם כמודפסים" — bulk-status-updates all rows in the group to `Completed` in a single `PATCH /api/orders/bulk { ids: [...], order_status: 'Completed' }` call.
+
+---
+
+**Zone 4 — Notification System**
+
+Three notification layers run in parallel for the Self-Fulfillment route:
+
+| Trigger | Notification channel | Message |
+|---|---|---|
+| New order placed (Stage 1) | In-app toast + dashboard badge | "הזמנת [format] חדשה — ממתינה לסנכרון" |
+| `is_original_uploaded` flips true | Supabase Realtime push → dashboard updates silently; if print orders now unlocked, additional toast fires | "סנכרון הושלם — [N] הזמנות מוכנות להדפסה" |
+| Order in `Awaiting_High_Res_Asset` > 48 hrs | Scheduled background job (Cloudflare Queue cron) sends email + dashboard banner | "הזמנה ממתינה לסנכרון יותר מ-48 שעות" |
+| Bulk "Mark all printed" action | Confirmation snackbar | "סומנו [N] הזמנות כמודפסות" |
+
+All in-app toasts use the Radix UI `Toast` primitive (already in the design system) with RTL direction and the existing dark-luxury token palette. No new UI components needed for the notification layer.
 
 ### 10.5 Database Schema Extensions
 
@@ -228,5 +631,71 @@ CREATE TRIGGER trigger_release_orders
 ```
 
 *These schema changes are Phase 2 — they are specified here for planning purposes. Apply via a numbered Supabase migration when Phase 2 implementation begins.*
+
+### 10.6 Agile Development Milestones
+
+Three sprints deliver the full §10 feature set. Each sprint has a hard Definition of Done — no sprint closes without every line item checked. Sprint order is fixed; a later sprint may not begin until the prior one's DoD is satisfied.
+
+---
+
+#### Sprint 1 — Client-Side Upload Engine (Weeks 1–2)
+
+**Goal:** A photographer can drag a folder of JPEGs or a Lightroom ZIP into the dashboard and have all files upload reliably without any manual steps, even on a bad venue connection.
+
+**Deliverables:**
+
+- `extractZipLocally` (§10.2) shipped and unit-tested with a real 500-image ZIP. Test asserts: correct file count, correct MIME types, no ZIP bytes sent to backend.
+- `ResilientUploadManager` (§10.2) shipped. Integration test covers: concurrent uploads up to `maxConcurrent`, retry on HTTP 5xx (mocked), exponential backoff timing (mocked clock), `onQueueDrained` fires exactly once after last upload, `stats` object reflects accurate counts at every transition.
+- Dashboard upload dropzone wired to `ResilientUploadManager`. Accepts both loose files and `.zip`. Shows the "מייעל ומעלה נכסים בצורה בטוחה..." unified progress bar (single percentage, no per-file list).
+- Two-Stage upload flag: `is_original_uploaded = false` written at Stage 1 row creation. DB migration applied (§10.5 `is_original_uploaded` column only — other columns deferred to Sprint 3).
+- "Sync High-Res Originals" button appears in dashboard for galleries with pending originals. Triggers Stage 2 scan-and-upload flow.
+
+**Definition of Done:**
+- E2E Playwright test: drop a 50-image ZIP → all 50 appear in the gallery → `is_original_uploaded = false` for all → trigger Stage 2 → all flip to `true`.
+- Simulated 60%-packet-loss run: all files eventually upload with no user intervention (retries absorb the loss).
+- No ZIP bytes appear in backend request logs (verified via Cloudflare Worker log tail).
+
+---
+
+#### Sprint 2 — Social Framing Engine (Weeks 3–4)
+
+**Goal:** Every photo in the gallery can be exported as a properly framed Story/Reel or feed crop, with studio branding, without the photographer doing anything manually.
+
+**Deliverables:**
+
+- `buildStoryCanvas` (§10.3B) shipped in `packages/processing-pipeline`. Unit-tested with a 3:2 landscape input; assert output dimensions are exactly 1080×1920 (or configured values), backdrop is blurred (pixel-sample check), overlay photo is centred (position assert), watermark is composited in bottom margin.
+- Focal-point detection integrated at ingest: `smartcrop.js` (or equivalent) runs on Web-Optimized tier and writes `focal_point_x` / `focal_point_y` to `media_assets`. DB migration applied (§10.5 `focal_point_x`, `focal_point_y`, `storage_keys` columns).
+- Backend endpoint `POST /photos/:id/social-export?format=story|feed|original` — returns a signed R2 URL for the requested tier. Story and feed variants are generated lazily on first request and cached in R2 under `storage_keys.social_story` / `storage_keys.social_feed`. Second request returns the cached URL immediately.
+- Guest share bottom sheet (PR #85 frontend) wired to the real endpoint. Three buttons produce real downloads, not placeholder alerts.
+- Bandwidth guardrail: guest-initiated Story/Feed downloads serve Tier 3 (web-optimized) by default; Tier 1 original only served when `format=original` AND the requesting token has `allow_original_download: true` scope.
+
+**Definition of Done:**
+- Visual QA: Playwright screenshot of a 3:2 source photo exported as 9:16 Story. Human review: photo is sharp, centred, backdrop is visibly blurred and darkened, watermark is in the bottom margin and not overlapping the photo.
+- Performance: `buildStoryCanvas` completes in < 800 ms on a 24 MP JPEG on the Fly.io worker tier (measured via `console.time`).
+- Cache hit test: second `/social-export?format=story` request for the same photo returns HTTP 200 with a pre-signed R2 URL in < 50 ms (no Sharp pipeline re-run).
+
+---
+
+#### Sprint 3 — Print Queue & Fulfillment Routing (Weeks 5–6)
+
+**Goal:** A photographer running self-fulfillment can see every pending print order grouped by size, batch-download the originals, and mark orders done — all from a single dashboard workspace. Cloud-fulfillment orders route automatically to the wholesale API on sync.
+
+**Deliverables:**
+
+- `fulfillment_type` and `order_status` columns shipped (§10.5 full schema — ENUMs, indexes, trigger).
+- Print Queue workspace (§10.4C) fully implemented:
+  - Header bar with live Supabase Realtime status counts.
+  - Filter bar: format multi-select, status radio, sort, guest-name search.
+  - Dimension-grouped task list with per-row download + "Mark Printed" controls.
+  - Per-group batch ZIP download endpoint (`GET /api/orders/batch-download?galleryId=&sku=`). Streams a ZIP of signed R2 URLs assembled in the Worker — no large intermediate object. Tested with 30 originals in a single batch.
+  - Bulk "Mark all printed" for a dimension group (`PATCH /api/orders/bulk`).
+- Notification system (§10.4C Zone 4): all four triggers implemented and manually verified (new order toast, sync-complete toast, 48-hr overdue email via Cloudflare Queue cron, bulk-mark snackbar).
+- Automated wholesale route: on `trigger_release_orders` firing for `AUTOMATED_WHOLESALE` orders, a Cloudflare Queue message is enqueued; a Worker consumer calls the print-house webhook with the Tier-1 R2 URL and the order metadata. Webhook call is idempotent (order ID used as idempotency key).
+
+**Definition of Done:**
+- E2E test (Self-Fulfillment path): place 3 orders across 2 dimensions → Stage 1 → Print Queue shows "Awaiting Asset" → trigger Stage 2 → orders move to "Ready to Print" → batch-download ZIP for one dimension → verify ZIP contains correct files → mark all as printed → orders show "Completed" in DB.
+- E2E test (Cloud Fulfillment path): place 1 order → Stage 2 → verify Queue consumer fires webhook → verify `order_status = 'Dispatched_To_Wholesaler'` in DB within 5 s.
+- Notification test: advance the DB clock 49 hours (test helper) → verify the Cloudflare Queue cron job enqueues the overdue-alert message → verify the email send is called (mocked SendGrid/Resend).
+- RTL visual QA: Playwright screenshot of the Print Queue workspace in Hebrew. Human review: all text is RTL, group headers are right-aligned, action buttons on the inline-start side, no LTR layout leaks.
 </content>
 </invoke>
