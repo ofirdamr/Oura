@@ -934,10 +934,10 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
 
   function parseCat(text: string): string | null {
     const t = text.toLowerCase();
-    if (t.includes('ceremony') || t.includes('chuppah') || t.includes('altar') || t.includes('vow')) return 'ceremony';
-    if (t.includes('danc') || t.includes('dance floor') || t.includes('hora')) return 'dancing';
-    if (t.includes('reception') || t.includes('cocktail') || t.includes('welcome') || t.includes('entrance')) return 'reception';
-    if (t.includes('party') || t.includes('celebration') || t.includes('toast') || t.includes('cake') || t.includes('dinner')) return 'party';
+    if (t.includes('ceremony') || t.includes('chuppah') || t.includes('vow') || t.includes('ring') || t.includes('processional') || t.includes('altar')) return 'ceremony';
+    if (t.includes('danc') || t.includes('hora')) return 'dancing';
+    if (t.includes('reception') || t.includes('dinner') || t.includes('toast') || t.includes('speech') || t.includes('seated') || t.includes('meal')) return 'reception';
+    if (t.includes('party') || t.includes('celebration') || t.includes('festive') || t.includes('cocktail') || t.includes('cake')) return 'party';
     return null;
   }
 
@@ -953,7 +953,7 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
       // Classify via Workers AI LLaVA
       const result = await (c.env.AI as any).run('@cf/llava-1.5-7b-hf', {
         image: [...new Uint8Array(bytes)],
-        prompt: 'This is an event photo. Reply with exactly one word: "ceremony" (wedding ceremony, chuppah, vows), "dancing" (dance floor, dancing guests), "reception" (cocktail hour, welcome), or "party" (dinner, celebration, toasts, cake).',
+        prompt: 'This is a wedding event photo. Classify it into exactly one category and reply with that single word only.\n- "ceremony": chuppah, exchanging vows, ring exchange, wedding processional, officiant at altar\n- "reception": seated dinner, toasts, speeches, guests at tables eating a meal\n- "dancing": dance floor, hora, group dancing, first dance\n- "party": general festive celebration, cocktail hour, cake cutting, confetti — anything not fitting the above three\nReply with one word only.',
         max_tokens: 10,
       }) as { response?: string } | null;
 

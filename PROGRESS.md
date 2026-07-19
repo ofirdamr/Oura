@@ -426,3 +426,10 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - Rewrote `apps/web/app/photo-editor/page.tsx` 1:1 to the Stitch design exports (mobile + desktop). Mobile: scroll layout, 4 sliders, 2 toggles, fixed bottom bar. Desktop: two-panel. Sliders apply live CSS filter. No CDN scripts. All business logic (localStorage, compositeBranding, save/share) preserved.
 - Fixed gallery page (`apps/web/app/gallery/page.tsx`): removed selectMode multi-select feature. Photos now always open the full-screen lightbox on tap (resolves the "tap opens lightbox instead of toggling selection" bug). Removed fixed bottom action bar — in-page save/share buttons per Stitch design.
 - Committed both to branch `claude/photo-editor-stitch-wire-1xm5wf`, pushed, opened PR #76 (draft). Not yet merged.
+
+## 2026-07-19 — Session claude/session-wjr7e9
+- Fixed LLaVA category mislabeling: tightened prompt + parser in queueConsumer.ts and index.ts (backfill endpoint). Ceremony = chuppah/vows/rings/processional. Reception = dinner/toasts/seated meal. Dancing = dance floor/hora. Party = general festive catch-all.
+- Deployed oura-api successfully (version fe16e1ee).
+- PR #81 open draft, CI green, ready to merge.
+- BLOCKED: backfill call for WED-2024 needs ADMIN_BACKFILL_TOKEN value — exists in Cloudflare secrets vault but not readable from this environment. Founder needs to paste it in chat or add it to Claude Code environment secrets.
+- Added iPhone-only rule to CLAUDE.md and MISTAKES.md.
