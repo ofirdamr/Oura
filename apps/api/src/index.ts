@@ -787,6 +787,134 @@ app.put('/events/:event_id/photos/:photo_id/original', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// Social export — smart-cropped / story-canvas variant of a single photo.
+// GET /photos/:photo_id/social-export?format=original|feed|story&token=<guest>
+//
+// Auth: guest token in query param (same opaque signed token used for gallery).
+// The endpoint resolves the photo's event, validates the guest belongs to that
+// event (via token verification), then calls the embed service /social-frame to
+// produce the variant. No Tier 1 (original) assets are ever returned here —
+// the source is always the web-optimized R2 key (Tier 3), honoring the PRD
+// §10.3 API-Level Egress Protection guardrail.
+//
+// Focal point: centroid of the face bboxes stored in face_embeddings for this
+// photo. Falls back to (0.5, 0.5) when no faces are recorded.
+app.get('/photos/:photo_id/social-export', async (c) => {
+  const { photo_id } = c.req.param();
+  const format = c.req.query('format') ?? 'feed';
+  if (!['original', 'feed', 'story'].includes(format)) {
+    return c.json({ error: 'invalid_format' }, 400);
+  }
+
+  const rawToken = c.req.query('token');
+  if (!rawToken) return c.json({ error: 'missing_token' }, 401);
+
+  const payload = await verifyGuestToken(rawToken, c.env.GUEST_TOKEN_SECRET);
+  if (!payload) return c.json({ error: 'invalid_token' }, 401);
+
+  const db = supa(c.env);
+
+  // Fetch photo — must belong to the token's event (RLS + explicit filter).
+  const { data: photo, error: photoErr } = await db
+    .from('photos')
+    .select('storage_key, event_id')
+    .eq('id', photo_id)
+    .eq('event_id', payload.event_id)
+    .single();
+  if (photoErr || !photo) return c.json({ error: 'photo_not_found' }, 404);
+
+  // Fetch face bboxes to compute focal point.
+  const { data: embedRows } = await db
+    .from('face_embeddings')
+    .select('bbox')
+    .eq('photo_id', photo_id);
+
+  let focal_x = 0.5;
+  let focal_y = 0.5;
+  if (embedRows && embedRows.length > 0) {
+    // Each bbox is [x1, y1, x2, y2] absolute pixels. We need a normalized
+    // centroid, but we don't know image dimensions here — use the centroid
+    // of the raw pixel centroids and normalize by the max bbox coordinate seen.
+    let cx = 0;
+    let cy = 0;
+    let maxX = 1;
+    let maxY = 1;
+    for (const row of embedRows) {
+      const bbox = row.bbox as number[] | null;
+      if (!bbox || bbox.length < 4) continue;
+      const [x1, y1, x2, y2] = bbox;
+      cx += (x1 + x2) / 2;
+      cy += (y1 + y2) / 2;
+      if (x2 > maxX) maxX = x2;
+      if (y2 > maxY) maxY = y2;
+    }
+    cx /= embedRows.length;
+    cy /= embedRows.length;
+    focal_x = Math.min(1, Math.max(0, cx / maxX));
+    focal_y = Math.min(1, Math.max(0, cy / maxY));
+  }
+
+  // Fetch event branding for story watermark text.
+  let watermark_top = '';
+  let watermark_bottom = '';
+  if (format === 'story') {
+    const { data: ev } = await db
+      .from('events')
+      .select('name, branding')
+      .eq('id', payload.event_id)
+      .single();
+    if (ev) {
+      const br = (ev.branding ?? {}) as Record<string, unknown>;
+      watermark_top = (typeof br.studio_name === 'string' ? br.studio_name : '') || '';
+      watermark_bottom = ev.name ?? '';
+    }
+  }
+
+  // Fetch the web-optimized R2 object (Tier 3 — never the original).
+  const r2obj = await c.env.MEDIA.get(photo.storage_key);
+  if (!r2obj) return c.json({ error: 'media_not_found' }, 404);
+  const imgBytes = await r2obj.arrayBuffer();
+
+  // Call Python embed service /social-frame.
+  const params = new URLSearchParams({
+    format,
+    focal_x: focal_x.toFixed(4),
+    focal_y: focal_y.toFixed(4),
+    watermark_top,
+    watermark_bottom,
+  });
+  let frameRes: globalThis.Response;
+  try {
+    frameRes = await fetch(`${c.env.EMBED_SERVICE_URL}/social-frame?${params}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        Authorization: `Bearer ${c.env.EMBED_SERVICE_TOKEN}`,
+      },
+      body: imgBytes,
+    });
+  } catch {
+    return c.json({ error: 'frame_service_unavailable' }, 502);
+  }
+
+  if (!frameRes.ok) {
+    const detail = await frameRes.text().catch(() => '');
+    console.error('social-frame failed', frameRes.status, detail);
+    return c.json({ error: 'frame_service_error' }, 502);
+  }
+
+  const resultBytes = await frameRes.arrayBuffer();
+  return new Response(resultBytes, {
+    status: 200,
+    headers: {
+      'Content-Type': 'image/jpeg',
+      'Cache-Control': 'private, max-age=3600',
+      'Content-Disposition': `inline; filename="photo-${format}.jpg"`,
+    },
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Studio logo upload (branding settings).
 // POST /events/:event_id/branding/logo
 //   Photographer-authenticated: same `Authorization: Bearer <supabase jwt>` +
