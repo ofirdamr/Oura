@@ -27,17 +27,20 @@ function cosineSim(a: number[], b: number[]): number {
 }
 
 function parseCategory(text: string): string | null {
-  const t = text.toLowerCase();
-  // Use word-boundary test for short keywords that appear as substrings (e.g. "ring" inside "during"/"gathering"/"wearing")
-  const hasWord = (w: string) => new RegExp(`(?<![a-z])${w}(?![a-z])`).test(t);
-  // ceremony = chuppah / vows / rings / processional — must match before reception
-  if (t.includes('ceremony') || t.includes('chuppah') || t.includes('vow') || hasWord('ring') || t.includes('processional') || t.includes('altar')) return 'ceremony';
-  // dancing = dance floor / hora / group dancing
-  if (t.includes('danc') || t.includes('hora')) return 'dancing';
-  // reception = seated dinner / toasts / speeches / meal
-  if (t.includes('reception') || t.includes('dinner') || t.includes('toast') || t.includes('speech') || t.includes('seated') || t.includes('meal')) return 'reception';
-  // party = general festive celebration not fitting the above
-  if (t.includes('party') || t.includes('celebration') || t.includes('festive') || t.includes('cocktail') || t.includes('cake')) return 'party';
+  const t = text.toLowerCase().trim();
+  // Score each category by how many of its keywords appear
+  const score = (words: string[]) => words.filter(w => t.includes(w)).length;
+  const ceremonyScore = score(['canopy', 'arch', 'chuppah', 'vow', 'altar', 'officiant', 'rabbi', 'bride', 'groom', 'glass', 'breaking', 'processional', 'aisle', 'wedding ceremony', 'marriage ceremony']);
+  const dancingScore = score(['danc', 'hora', 'dance floor', 'first dance', 'circle', 'spinning', 'jumping']);
+  const receptionScore = score(['kabbalat', 'cocktail', 'mingle', 'mingling', 'appetizer', 'waiter', 'serving', 'station', 'reception area', 'before the ceremony']);
+  const partyScore = score(['seated', 'dinner', 'table', 'meal', 'eating', 'toast', 'speech', 'banquet', 'celebrating at table']);
+
+  const best = Math.max(ceremonyScore, dancingScore, receptionScore, partyScore);
+  if (best === 0) return null; // genuinely unrecognizable — don't guess
+  if (ceremonyScore === best) return 'ceremony';
+  if (dancingScore === best) return 'dancing';
+  if (receptionScore === best) return 'reception';
+  if (partyScore === best) return 'party';
   return null;
 }
 
@@ -45,8 +48,8 @@ async function classifyCategory(ai: Ai, imageBytes: ArrayBuffer): Promise<string
   try {
     const result = await (ai as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
       image: [...new Uint8Array(imageBytes)],
-      prompt: 'This is a wedding event photo. Classify it into exactly one category and reply with that single word only.\n- "ceremony": chuppah, exchanging vows, ring exchange, wedding processional, officiant at altar\n- "reception": seated dinner, toasts, speeches, guests at tables eating a meal\n- "dancing": dance floor, hora, group dancing, first dance\n- "party": general festive celebration, cocktail hour, cake cutting, confetti — anything not fitting the above three\nReply with one word only.',
-      max_tokens: 50,
+      prompt: 'Look at this Jewish/Israeli wedding photo. Describe only what you literally see in 1-2 sentences. Focus on: (1) Ceremony (chuppah): canopy or arch, bride and groom underneath, rows of chairs with seated guests watching, aisle/carpet, rabbi, glass-breaking, processional — the whole ceremony area. (2) Reception (kabbalat panim): cocktail-style area before the ceremony — waiters serving food and drinks, people mingling with small appetizer stations, no seating arrangement. (3) Dancing: hora circle, dance floor, group dancing. (4) Party: formal seated dinner tables with full meals, toasts, speeches.',
+      max_tokens: 100,
     }) as { description?: string } | null;
     if (!result?.description) return null;
     return parseCategory(result.description);
