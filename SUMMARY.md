@@ -17,7 +17,27 @@ PR #82 open draft on `claude/llava-photo-categorization-2ajpm0`. Merge when read
 - **PR #80** — category backfill endpoint (superseded by #82 which includes the fix; can close)
 - **PR #77** — full AI pipeline + multi-select, needs migration 0009 + deploy
 
-## 🔄 IN PROGRESS 2026-07-19 — Category backfill endpoint (PR #80, open draft)
+## ⚠️ ACTION REQUIRED — Apply migration 0009 to activate gallery chips
+
+The AI pipeline code is deployed (apps/api `2fef59a1`, apps/web `f44ab3fd`). The gallery category filter chips will work once migration 0009 is applied in Supabase:
+
+1. Go to https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new
+2. Paste the contents of `supabase/migrations/0009_ai_pipeline.sql`
+3. Click Run
+
+After that, the backfill endpoint will populate existing photos with categories:
+```
+curl -X POST https://oura-api.oura-events.workers.dev/admin/events/WED-2024/backfill-categories \
+  -H "Authorization: Bearer <ADMIN_BACKFILL_TOKEN>"
+```
+
+Then verify chips at: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
+
+## ✅ DONE 2026-07-19 — PR #82 merged (LLaVA fix), PR #80 + PR #77 already merged
+
+All three PRs landed on main. apps/api and apps/web deployed. Only migration 0009 remains for founder to apply.
+
+## ✅ DONE 2026-07-19 — Category backfill endpoint (PR #80, merged)
 
 **Branch:** `claude/oura-category-backfill-sjtb40`
 **PR:** #80 open draft — NOT yet deployed

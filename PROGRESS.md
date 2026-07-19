@@ -1,5 +1,12 @@
 # Progress Log
 
+### 2026-07-19 (session — PR merges + full AI pipeline deploy)
+- Merged PR #82 (LLaVA fix) — squash to main
+- PR #80 already merged by founder; PR #77 already merged by founder
+- Deployed apps/api (version 2fef59a1) — AI pipeline + backfill endpoint live
+- Deployed apps/web (version f44ab3fd) — gallery multi-select + festive chips + reports screen live
+- Migration 0009 still pending founder apply (adds category/ai_rejected/rejection_reason columns)
+
 ### 2026-07-19 (session — LLaVA category labeling fix, PR #82)
 - Diagnosed 3 root-cause bugs in photo category classification:
   1. Wrong model ID: `@cf/llava-1.5-7b-hf` → `@cf/llava-hf/llava-1.5-7b-hf` (AiError 5007)
