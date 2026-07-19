@@ -261,10 +261,12 @@ export default function GalleryPage() {
   const activeFilter = filter === "mine" && personalPhotos.length > 0 ? "mine" : "all";
   const shownPhotos = activeFilter === "mine" ? personalPhotos : generalPhotos;
 
+  // Festive category chips filter ALL event photos; "mine" toggle then narrows to personal.
+  const festiveBase = activeFilter === "mine" ? personalPhotos : generalPhotos;
   const festivePhotos =
     festiveCategory === "all"
-      ? personalPhotos
-      : personalPhotos.filter((p) => p.category === festiveCategory);
+      ? festiveBase
+      : festiveBase.filter((p) => p.category === festiveCategory);
 
   const galleryTheme = data.event?.gallery_theme ?? "festive";
 
