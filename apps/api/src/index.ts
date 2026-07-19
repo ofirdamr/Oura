@@ -1217,6 +1217,41 @@ app.get('/admin/ai-pipeline-stats', async (c) => {
   return c.json({ total: all.length, approved: approved.length, rejected: rejected.length, by_reason, by_category, rejected_photos });
 });
 
+// PATCH /admin/photos/:id/restore
+//   Photographer-auth. Un-rejects an AI-filtered photo, making it visible in
+//   guest galleries again. Sets ai_rejected=false, rejection_reason=null.
+// ---------------------------------------------------------------------------
+app.patch('/admin/photos/:id/restore', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
+  if (!token) return c.json({ error: 'unauthorized' }, 401);
+
+  const db = createServerSupabaseClient(c.env, token);
+  const { data: { user }, error: authErr } = await db.auth.getUser();
+  if (authErr || !user) return c.json({ error: 'unauthorized' }, 401);
+
+  const photoId = c.req.param('id');
+
+  // Confirm the photo belongs to one of this photographer's events.
+  const { data: eventIds } = await db.from('events').select('id').eq('photographer_id', user.id);
+  if (!eventIds || eventIds.length === 0) return c.json({ error: 'not_found' }, 404);
+  const ids = eventIds.map((e: { id: string }) => e.id);
+
+  const { data: photo, error: photoErr } = await db.from('photos')
+    .select('id, event_id')
+    .eq('id', photoId)
+    .in('event_id', ids)
+    .single();
+  if (photoErr || !photo) return c.json({ error: 'not_found' }, 404);
+
+  const { error: updateErr } = await db.from('photos')
+    .update({ ai_rejected: false, rejection_reason: null })
+    .eq('id', photoId);
+  if (updateErr) return c.json({ error: 'update_failed' }, 500);
+
+  return c.json({ ok: true });
+});
+
 // POST /auth/forgot-password
 //   Public endpoint. Takes { email } body, generates a Supabase recovery link
 //   server-side (no email sent by Supabase), then sends it via Brevo's

@@ -29,6 +29,37 @@ export default function ReportsPage() {
   const [stats, setStats] = useState<AiStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandRejected, setExpandRejected] = useState(false);
+  const [restoring, setRestoring] = useState<Set<string>>(new Set());
+
+  async function restorePhoto(photoId: string) {
+    setRestoring((prev) => new Set(prev).add(photoId));
+    const sb = createClient(supabaseUrl, supabaseAnonKey);
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { setRestoring((prev) => { const s = new Set(prev); s.delete(photoId); return s; }); return; }
+    const res = await fetch(`${API_BASE_URL}/admin/photos/${photoId}/restore`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (res.ok) {
+      setStats((prev) => {
+        if (!prev) return prev;
+        const updatedRejected = prev.rejected_photos.filter((p) => p.id !== photoId);
+        const removedPhoto = prev.rejected_photos.find((p) => p.id === photoId);
+        const newByReason = { ...prev.by_reason };
+        if (removedPhoto?.rejection_reason) {
+          newByReason[removedPhoto.rejection_reason] = Math.max(0, (newByReason[removedPhoto.rejection_reason] ?? 1) - 1);
+        }
+        return {
+          ...prev,
+          rejected: prev.rejected - 1,
+          approved: prev.approved + 1,
+          by_reason: newByReason,
+          rejected_photos: updatedRejected,
+        };
+      });
+    }
+    setRestoring((prev) => { const s = new Set(prev); s.delete(photoId); return s; });
+  }
 
   useEffect(() => {
     async function load() {
@@ -150,14 +181,29 @@ export default function ReportsPage() {
                       alt=""
                       fill
                       sizes="120px"
-                      className="object-cover"
+                      className="object-cover opacity-60"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100" />
                     <div className="absolute bottom-0 start-0 end-0 bg-black/70 px-1.5 py-1">
                       <span className="font-sans text-[10px] text-on-surface-variant">
                         {p.rejection_reason ? (REASON_LABEL[p.rejection_reason] ?? p.rejection_reason) : "סונן"}
                       </span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => restorePhoto(p.id)}
+                      disabled={restoring.has(p.id)}
+                      className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-wait"
+                      title="הצג תמונה זו לאורחים"
+                    >
+                      {restoring.has(p.id) ? (
+                        <span className="material-symbols-outlined animate-spin text-2xl text-white">progress_activity</span>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-2xl text-white" style={{ fontVariationSettings: "'FILL' 1" }}>visibility</span>
+                          <span className="font-sans text-[11px] font-bold text-white">הצג לאורחים</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 ))}
               </div>
