@@ -900,8 +900,8 @@ app.post('/admin/backfill-embeddings', async (c) => {
 
 // ---------------------------------------------------------------------------
 // POST /admin/events/:id/backfill-categories
-//   One-time backfill: classifies each photo in an event that has no category
-//   set via the same Workers AI LLaVA model used in the queue consumer.
+//   Force-reclassifies ALL photos in an event via Workers AI LLaVA, overwriting
+//   any existing category value (including previously wrong labels).
 //   Gated by ADMIN_BACKFILL_TOKEN bearer secret (operator-only action).
 // ---------------------------------------------------------------------------
 app.post('/admin/events/:id/backfill-categories', async (c) => {
@@ -923,18 +923,19 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   if (evErr || !ev) return c.json({ error: 'event_not_found' }, 404);
   const resolved_event_id: string = (ev as { id: string }).id;
 
-  // Fetch photos with no category
+  // Fetch ALL photos for the event — overwrite existing (possibly wrong) categories too
   const { data: photos, error: photosErr } = await db
     .from('photos')
     .select('id, storage_key')
-    .eq('event_id', resolved_event_id)
-    .is('category', null);
+    .eq('event_id', resolved_event_id);
   if (photosErr) return c.json({ error: 'query_failed' }, 500);
-  if (!photos || photos.length === 0) return c.json({ updated: 0, skipped: 0, message: 'no photos without category' });
+  if (!photos || photos.length === 0) return c.json({ updated: 0, skipped: 0, total: 0, message: 'no photos found' });
 
   function parseCat(text: string): string | null {
     const t = text.toLowerCase();
-    if (t.includes('ceremony') || t.includes('chuppah') || t.includes('vow') || t.includes('ring') || t.includes('processional') || t.includes('altar')) return 'ceremony';
+    // word-boundary guard: "ring" inside "during"/"gathering"/"wearing" must NOT match
+    const hasWord = (w: string) => new RegExp(`(?<![a-z])${w}(?![a-z])`).test(t);
+    if (t.includes('ceremony') || t.includes('chuppah') || t.includes('vow') || hasWord('ring') || t.includes('processional') || t.includes('altar')) return 'ceremony';
     if (t.includes('danc') || t.includes('hora')) return 'dancing';
     if (t.includes('reception') || t.includes('dinner') || t.includes('toast') || t.includes('speech') || t.includes('seated') || t.includes('meal')) return 'reception';
     if (t.includes('party') || t.includes('celebration') || t.includes('festive') || t.includes('cocktail') || t.includes('cake')) return 'party';
@@ -954,7 +955,7 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
       const result = await (c.env.AI as any).run('@cf/llava-1.5-7b-hf', {
         image: [...new Uint8Array(bytes)],
         prompt: 'This is a wedding event photo. Classify it into exactly one category and reply with that single word only.\n- "ceremony": chuppah, exchanging vows, ring exchange, wedding processional, officiant at altar\n- "reception": seated dinner, toasts, speeches, guests at tables eating a meal\n- "dancing": dance floor, hora, group dancing, first dance\n- "party": general festive celebration, cocktail hour, cake cutting, confetti — anything not fitting the above three\nReply with one word only.',
-        max_tokens: 10,
+        max_tokens: 50,
       }) as { response?: string } | null;
 
       const category = result?.response ? parseCat(result.response) : null;
