@@ -421,3 +421,8 @@ Deployed: oura-api `e0adc7ac`, oura-web `6cf389ef`. PR #48 open (draft), branch 
 
 ## 2026-07-18 — password-reset token-burning fix (branch claude/password-reset-token-burning-f329ym)
 API emails our /reset-password?token_hash link (not action_link); page redeems via verifyOtp + surfaces real error. Deployed oura-api 766c0b3c, oura-web 8d01a0cb. Reset stale Worker BREVO_API_KEY secret (PR #68 blocker). Proven via curl: token_hash redeems to recovery session; our page inert on GET (token survives prefetch); Brevo delivers. REMAINING: Brevo click-tracking (/tr/cl/ wrapper) pre-scans & burns the token — disable Brevo click-tracking to complete. Headless-browser screenshots blocked by egress proxy (resets all browser TLS).
+
+### 2026-07-19 (session — photo editor Stitch wire + gallery fixes)
+- Rewrote `apps/web/app/photo-editor/page.tsx` 1:1 to the Stitch design exports (mobile + desktop). Mobile: scroll layout, 4 sliders, 2 toggles, fixed bottom bar. Desktop: two-panel. Sliders apply live CSS filter. No CDN scripts. All business logic (localStorage, compositeBranding, save/share) preserved.
+- Fixed gallery page (`apps/web/app/gallery/page.tsx`): removed selectMode multi-select feature. Photos now always open the full-screen lightbox on tap (resolves the "tap opens lightbox instead of toggling selection" bug). Removed fixed bottom action bar — in-page save/share buttons per Stitch design.
+- Committed both to branch `claude/photo-editor-stitch-wire-1xm5wf`, pushed, opened PR #76 (draft). Not yet merged.

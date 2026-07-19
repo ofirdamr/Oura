@@ -2,6 +2,34 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## 2026-07-19 — Photo editor Stitch wire + gallery tap/action-bar fix (PR #76, open draft)
+
+**Branch:** `claude/photo-editor-stitch-wire-1xm5wf`  
+**PR:** #76 (draft, NOT yet merged)
+
+**What's in this PR:**
+1. `apps/web/app/photo-editor/page.tsx` — full rewrite to match Stitch design exports:
+   - Mobile: scroll layout, photo preview, 4 sliders (brightness/contrast/saturation/exposure), 2 toggles (auto-optimize / add frame), fixed bottom bar (שמור + שתף)
+   - Desktop: two-panel (photo canvas left, sidebar right)
+   - Sliders apply live CSS filter to the preview; no CDN scripts
+2. `apps/web/app/gallery/page.tsx` — selectMode multi-select removed:
+   - Tapping a photo now always opens the full-screen lightbox (bug fix)
+   - Fixed floating action bar (save/share for selected photos) is gone — matches Stitch in-page layout
+
+**Remaining for next session:**
+1. Merge PR #76 (no deploy needed — photo-editor page is frontend-only, gets deployed with next `npm run deploy` cycle)
+2. Verify with a real guest token that the photo editor sliders apply CSS filter live and שמור/שתף work
+3. Check PR #71 status (should be merged — confirm)
+
+**Open PRs:**
+- **PR #76** (`claude/photo-editor-stitch-wire-1xm5wf`) — photo editor + gallery fix, NOT merged
+- **PR #71** — should be merged (check)
+- **PR #16, #4, #7** — old doc PRs with conflicts, low priority
+
+**Next-session first message:** "Pick up Oura PR #76 on branch `claude/photo-editor-stitch-wire-1xm5wf`. It wires the photo editor to its Stitch design and fixes the gallery tap bug. Merge it, then verify the photo editor works end-to-end with a real guest token (sliders apply CSS filter live, שמור/שתף complete). Full context in SUMMARY.md."
+
+---
+
 ## 2026-07-18 — Brevo click-tracking burns reset-password token (branch `claude/brevo-click-tracking-disable-1hd7h1`, commit `074253f`, PR #71 open draft, NOT YET DEPLOYED)
 
 **Open PRs, current status:**

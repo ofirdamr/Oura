@@ -41,39 +41,28 @@ function confidencePct(sim: number | null | undefined): string | null {
 function PhotoTile({
   photo,
   matched,
-  selectMode,
-  selected,
   onOpen,
-  onToggleSelect,
 }: {
   photo: GuestPhoto;
   matched?: boolean;
-  selectMode: boolean;
-  selected: boolean;
   onOpen: () => void;
-  onToggleSelect: () => void;
 }) {
   const pct = matched ? confidencePct(photo.match_similarity) : null;
   return (
     <button
       type="button"
-      onClick={selectMode ? onToggleSelect : onOpen}
-      aria-label={selectMode ? "בחירת תמונה" : "פתיחת התמונה במסך מלא"}
-      aria-pressed={selectMode ? selected : undefined}
-      className={`group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97] ${
-        selectMode && selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
-      }`}
+      onClick={onOpen}
+      aria-label="פתיחת התמונה במסך מלא"
+      className="group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97]"
     >
       <Image
         src={photo.url}
         alt=""
         fill
         sizes="(min-width: 512px) 170px, 33vw"
-        className={`object-cover transition-transform duration-300 group-hover:scale-105 ${
-          selectMode && selected ? "scale-95" : ""
-        }`}
+        className="object-cover transition-transform duration-300 group-hover:scale-105"
       />
-      {matched && !selectMode && pct && (
+      {matched && pct && (
         <div className="absolute start-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-black/65 px-1.5 py-0.5 backdrop-blur-md">
           <span dir="ltr" className="text-[11px] font-bold leading-none text-primary">{pct}</span>
           <span
@@ -82,19 +71,6 @@ function PhotoTile({
           >
             verified
           </span>
-        </div>
-      )}
-      {selectMode && (
-        <div
-          className={`absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
-            selected ? "border-primary bg-primary text-on-primary" : "border-white/80 bg-black/30"
-          }`}
-        >
-          {selected && (
-            <span className="material-symbols-outlined" style={{ fontSize: "16px", fontVariationSettings: "'FILL' 1" }}>
-              check
-            </span>
-          )}
         </div>
       )}
     </button>
@@ -118,9 +94,6 @@ export default function GalleryPage() {
   // Which photo list + index the full-screen viewer is showing (null = closed).
   const [viewer, setViewer] = useState<{ list: GuestPhoto[]; index: number } | null>(null);
   const [bulk, setBulk] = useState<{ mode: "download" | "share"; done: number; total: number } | null>(null);
-  // Multi-select: guests usually want a few photos, not all of them.
-  const [selectMode, setSelectMode] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   // Header controls open real panels (notifications / profile).
   const [sheet, setSheet] = useState<"none" | "notifications" | "profile">("none");
 
@@ -147,20 +120,6 @@ export default function GalleryPage() {
       ? `חוגגים ב${title}! 📸 הצילומים באדיבות ${STUDIO_NAME}`
       : `📸 הצילומים באדיבות ${STUDIO_NAME}`;
   }, [data]);
-
-  function toggleSelect(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function exitSelect() {
-    setSelectMode(false);
-    setSelected(new Set());
-  }
 
   // Composite a whole set into branded JPEGs, then hand them to the phone in ONE
   // action: save-all lands in Photos (share sheet → "Save N Images"), share-all
@@ -475,22 +434,6 @@ export default function GalleryPage() {
                   {cat.label}
                 </button>
               ))}
-              {festivePhotos.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                  className={`ms-auto shrink-0 flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                    selectMode
-                      ? "bg-primary text-on-primary"
-                      : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">
-                    {selectMode ? "close" : "check_circle"}
-                  </span>
-                  {selectMode ? "ביטול" : "בחירה"}
-                </button>
-              )}
             </div>
             {/* "mine" toggle — only visible when face-matched photos exist */}
             {personalPhotos.length > 0 && (
@@ -549,22 +492,6 @@ export default function GalleryPage() {
                   </button>
                 ))}
             </div>
-            {shownPhotos.length > 0 && (
-              <button
-                type="button"
-                onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-all ${
-                  selectMode
-                    ? "bg-primary text-on-primary"
-                    : "border border-white/5 bg-surface-container text-on-surface-variant hover:bg-white/10"
-                }`}
-              >
-                <span className="material-symbols-outlined text-base">
-                  {selectMode ? "close" : "check_circle"}
-                </span>
-                {selectMode ? "ביטול" : "בחירה"}
-              </button>
-            )}
           </div>
         )}
 
@@ -578,10 +505,7 @@ export default function GalleryPage() {
                     key={photo.id}
                     photo={photo}
                     matched={matchedIds.has(photo.id)}
-                    selectMode={selectMode}
-                    selected={selected.has(photo.id)}
                     onOpen={() => setViewer({ list: festivePhotos, index: i })}
-                    onToggleSelect={() => toggleSelect(photo.id)}
                   />
                 ))}
               </div>
@@ -594,10 +518,7 @@ export default function GalleryPage() {
                       key={photo.id}
                       photo={photo}
                       matched={matchedIds.has(photo.id)}
-                      selectMode={selectMode}
-                      selected={selected.has(photo.id)}
                       onOpen={() => setViewer({ list: shownPhotos, index: i })}
-                      onToggleSelect={() => toggleSelect(photo.id)}
                     />
                   ))}
                 </div>
@@ -609,10 +530,7 @@ export default function GalleryPage() {
                           key={photo.id}
                           photo={photo}
                           matched={matchedIds.has(photo.id)}
-                          selectMode={selectMode}
-                          selected={selected.has(photo.id)}
                           onOpen={() => setViewer({ list: shownPhotos, index: i + 2 })}
-                          onToggleSelect={() => toggleSelect(photo.id)}
                         />
                       ))}
                     </div>
@@ -636,10 +554,7 @@ export default function GalleryPage() {
                     key={photo.id}
                     photo={photo}
                     matched={matchedIds.has(photo.id)}
-                    selectMode={selectMode}
-                    selected={selected.has(photo.id)}
                     onOpen={() => setViewer({ list: shownPhotos, index: i })}
-                    onToggleSelect={() => toggleSelect(photo.id)}
                   />
                 ))}
               </div>
@@ -654,45 +569,8 @@ export default function GalleryPage() {
         </section>
       </main>
 
-      {/* Selection action bar — floats above the bottom nav while selecting, so
-          the guest acts on just the photos they picked. */}
-      {selectMode && (
-        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-40 mx-auto max-w-lg px-4">
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-surface-container-high p-2 shadow-2xl">
-            <span className="ps-2 text-sm font-bold text-on-surface" style={{ unicodeBidi: "isolate" }}>
-              {selected.size} נבחרו
-            </span>
-            <div className="ms-auto flex items-center gap-2">
-              <button
-                type="button"
-                disabled={selected.size === 0 || bulk !== null}
-                onClick={() => bulkAction("share", shownPhotos.filter((p) => selected.has(p.id)))}
-                className="flex items-center gap-1.5 rounded-xl border border-outline-variant/40 px-4 py-2.5 text-sm font-medium text-on-surface transition-all active:bg-white/5 disabled:opacity-40"
-              >
-                <span className={`material-symbols-outlined text-base ${bulk?.mode === "share" ? "animate-spin" : ""}`}>
-                  {bulk?.mode === "share" ? "progress_activity" : "ios_share"}
-                </span>
-                שיתוף
-              </button>
-              <button
-                type="button"
-                disabled={selected.size === 0 || bulk !== null}
-                onClick={() => bulkAction("download", shownPhotos.filter((p) => selected.has(p.id)))}
-                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-on-primary transition-all active:scale-95 disabled:opacity-40"
-              >
-                <span className={`material-symbols-outlined text-base ${bulk?.mode === "download" ? "animate-spin" : ""}`}>
-                  {bulk?.mode === "download" ? "progress_activity" : "download"}
-                </span>
-                שמירה
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <BottomNav
         active="gallery"
-        onShare={() => setSelectMode(true)}
         onProfile={() => setSheet("profile")}
       />
 
