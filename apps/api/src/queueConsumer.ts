@@ -28,8 +28,10 @@ function cosineSim(a: number[], b: number[]): number {
 
 function parseCategory(text: string): string | null {
   const t = text.toLowerCase();
+  // Use word-boundary test for short keywords that appear as substrings (e.g. "ring" inside "during"/"gathering"/"wearing")
+  const hasWord = (w: string) => new RegExp(`(?<![a-z])${w}(?![a-z])`).test(t);
   // ceremony = chuppah / vows / rings / processional — must match before reception
-  if (t.includes('ceremony') || t.includes('chuppah') || t.includes('vow') || t.includes('ring') || t.includes('processional') || t.includes('altar')) return 'ceremony';
+  if (t.includes('ceremony') || t.includes('chuppah') || t.includes('vow') || hasWord('ring') || t.includes('processional') || t.includes('altar')) return 'ceremony';
   // dancing = dance floor / hora / group dancing
   if (t.includes('danc') || t.includes('hora')) return 'dancing';
   // reception = seated dinner / toasts / speeches / meal
@@ -41,13 +43,13 @@ function parseCategory(text: string): string | null {
 
 async function classifyCategory(ai: Ai, imageBytes: ArrayBuffer): Promise<string | null> {
   try {
-    const result = await (ai as any).run('@cf/llava-1.5-7b-hf', {
+    const result = await (ai as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
       image: [...new Uint8Array(imageBytes)],
       prompt: 'This is a wedding event photo. Classify it into exactly one category and reply with that single word only.\n- "ceremony": chuppah, exchanging vows, ring exchange, wedding processional, officiant at altar\n- "reception": seated dinner, toasts, speeches, guests at tables eating a meal\n- "dancing": dance floor, hora, group dancing, first dance\n- "party": general festive celebration, cocktail hour, cake cutting, confetti — anything not fitting the above three\nReply with one word only.',
-      max_tokens: 10,
-    }) as { response?: string } | null;
-    if (!result?.response) return null;
-    return parseCategory(result.response);
+      max_tokens: 50,
+    }) as { description?: string } | null;
+    if (!result?.description) return null;
+    return parseCategory(result.description);
   } catch (err) {
     console.error('category classification failed:', err);
     return null;

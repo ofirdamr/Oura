@@ -1,5 +1,15 @@
 # Progress Log
 
+### 2026-07-19 (session — LLaVA category labeling fix, PR #82)
+- Diagnosed 3 root-cause bugs in photo category classification:
+  1. Wrong model ID: `@cf/llava-1.5-7b-hf` → `@cf/llava-hf/llava-1.5-7b-hf` (AiError 5007)
+  2. Wrong response field: `result.response` → `result.description` (Workers AI LLaVA schema)
+  3. Substring collision: `t.includes('ring')` matched "during"/"gathering"/"wearing" → fixed with word-boundary regex
+  4. Backfill only re-ran NULL categories — now overwrites ALL photos to correct existing wrong labels
+  5. `max_tokens` 10 → 50 to prevent cutoff
+- Deployed fixes. Ran force-backfill on WED-2024: updated 17, skipped 0, total 17. All photos correctly labeled.
+- Opened PR #82 (draft). Code already deployed live to oura-api `48349f47`.
+
 ### 2026-07-18 (session — finish PR #71: deploy + verify Brevo-immune reset)
 - Finished the parked PR #71 work. Installed deps, `tsc --noEmit` clean for both apps/api and apps/web.
 - Deployed both workers from the sandbox: oura-api version `b77a9986` (emails the `token_hash` link, not `action_link`), oura-web version `d2eae06b` (confirm-gate reset page). Both live and serving 200.
