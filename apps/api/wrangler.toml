@@ -14,6 +14,11 @@ compatibility_flags = ["nodejs_compat"]
 binding = "MEDIA"
 bucket_name = "ouramedia"
 
+# Cloudflare Workers AI — used for photo category classification and closed-eye
+# detection in the face-embed queue consumer. No external API key needed.
+[ai]
+binding = "AI"
+
 # Stage 2 face-embedding queue: photo uploads enqueue here, the Worker's own
 # `queue()` handler (src/queueConsumer.ts) consumes it. Created via
 # `npx wrangler queues create face-embed-queue` / `face-embed-queue-dlq`.

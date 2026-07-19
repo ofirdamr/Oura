@@ -1,173 +1,209 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { API_BASE_URL } from "@/lib/api";
+import { createClient } from "@supabase/supabase-js";
 
-const STATS = [
-  { label: 'סה"כ תמונות שהועלו', value: "14,208", sub: "+12% החודש", tone: "primary-fixed-dim" },
-  { label: "צפיות בגלריות", value: "8.5k", icon: "trending_up", tone: "tertiary-fixed-dim" },
-  { label: "אירועים פעילים", value: "24", sub: "/ 50", tone: "primary-fixed" },
-  { label: "תמונות שסוננו", value: "42", icon: "filter_alt", tone: "error" },
-];
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const REPORTS = [
-  { reporter: "מיכל כהן", status: "חדש" },
-  { reporter: "אלון לוי", status: "חדש" },
-  { reporter: "שירה ברק", status: "חדש" },
-];
+const REASON_LABEL: Record<string, string> = {
+  closed_eyes: "עיניים עצומות",
+  duplicate: "כפילות",
+  low_quality: "איכות נמוכה",
+  blurry: "מטושטשת",
+};
+
+type AiStats = {
+  total: number;
+  approved: number;
+  rejected: number;
+  by_reason: Record<string, number>;
+  by_category: Record<string, number>;
+  rejected_photos: Array<{ id: string; url: string; rejection_reason: string | null }>;
+};
 
 export default function ReportsPage() {
+  const [stats, setStats] = useState<AiStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandRejected, setExpandRejected] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      const sb = createClient(supabaseUrl, supabaseAnonKey);
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { setLoading(false); return; }
+
+      const res = await fetch(`${API_BASE_URL}/admin/ai-pipeline-stats`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) setStats(await res.json());
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const rejectedCount = stats?.rejected ?? 0;
+  const closedEyes = stats?.by_reason?.closed_eyes ?? 0;
+  const duplicates = stats?.by_reason?.duplicate ?? 0;
+  const blurry = (stats?.by_reason?.blurry ?? 0) + (stats?.by_reason?.low_quality ?? 0);
+
   return (
     <AdminShell active="ניתוח נתונים">
       {/* Page header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div className="text-start">
-          <h1 className="text-3xl font-bold text-on-surface font-sans">
+          <h1 className="font-sans text-3xl font-bold text-on-surface">
             דוחות הפקה וביקורת
           </h1>
-          <p className="mt-1 text-sm text-on-surface-variant font-sans">
+          <p className="mt-1 font-sans text-sm text-on-surface-variant">
             סקירת תמונות שדווחו, סטטיסטיקות העלאה וסינון AI
           </p>
         </div>
-        <button className="rounded-xl bg-primary px-6 py-2 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 active:opacity-80">
-          ייצוא דוח
-        </button>
       </div>
 
-      {/* Stats bento grid */}
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
-        <div className="col-span-2 rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
-          <span className="text-xs text-on-surface-variant font-sans">
-            {STATS[0].label}
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-primary-fixed-dim font-sans">
-              {STATS[0].value}
-            </span>
-            <span className="text-sm font-medium text-tertiary font-sans">
-              {STATS[0].sub}
-            </span>
+      {/* Stats bento grid — real data */}
+      {!loading && stats && (
+        <section className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <div className="col-span-2 rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl lg:col-span-1">
+            <span className="font-sans text-xs text-on-surface-variant">סה״כ תמונות עובדו</span>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-sans text-3xl font-bold text-primary" dir="ltr">{stats.total.toLocaleString()}</span>
+            </div>
           </div>
-        </div>
-        <div className="rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
-          <span className="text-xs text-on-surface-variant font-sans">
-            {STATS[1].label}
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-tertiary-fixed-dim font-sans">
-              {STATS[1].value}
-            </span>
-            <span className="material-symbols-outlined text-sm text-tertiary-fixed">
-              trending_up
-            </span>
+          <div className="rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
+            <span className="font-sans text-xs text-on-surface-variant">אושרו לגלריה</span>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-sans text-3xl font-bold text-tertiary" dir="ltr">{stats.approved.toLocaleString()}</span>
+              <span className="material-symbols-outlined text-sm text-tertiary">check_circle</span>
+            </div>
           </div>
-        </div>
-        <div className="rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
-          <span className="text-xs text-on-surface-variant font-sans">
-            {STATS[2].label}
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-primary-fixed font-sans">
-              {STATS[2].value}
-            </span>
-            <span className="text-sm text-on-surface-variant font-sans">
-              {STATS[2].sub}
-            </span>
+          <div className="rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
+            <span className="font-sans text-xs text-on-surface-variant">סוננו ע״י AI</span>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-sans text-3xl font-bold text-error" dir="ltr">{stats.rejected.toLocaleString()}</span>
+              <span className="material-symbols-outlined text-sm text-error">filter_alt</span>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* AI filter summary */}
+      {/* AI filter section — wired to real data */}
       <section className="mb-8 rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-tertiary-fixed-dim">
-            <span className="material-symbols-outlined">filter_alt</span>
-            <h3 className="text-lg font-bold text-on-surface font-sans">
-              סינון AI אוטומטי
-            </h3>
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+              filter_alt
+            </span>
+            <h3 className="font-sans text-lg font-bold text-on-surface">סינון AI אוטומטי</h3>
           </div>
-          <span className="rounded-full bg-error/20 px-3 py-1 text-xs font-medium text-error">
-            42 תמונות הוסתרו
-          </span>
+          {!loading && (
+            <span className="rounded-full bg-error/20 px-3 py-1 font-sans text-xs font-medium text-error" dir="ltr">
+              {rejectedCount} תמונות הוסתרו
+            </span>
+          )}
         </div>
-        <p className="mb-6 text-sm text-on-surface-variant text-start font-sans">
+        <p className="mb-6 font-sans text-sm text-on-surface-variant">
           ה-AI זיהה תמונות מטושטשות, עיניים עצומות או כפילויות באיכות נמוכה.
         </p>
-        <div className="mb-6 grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-white/5 bg-surface-container-highest p-4">
-            <div className="mb-1 text-xs text-on-surface-variant font-sans">
-              מטושטשות
-            </div>
-            <div className="text-xl font-bold text-on-surface font-sans">28</div>
-          </div>
-          <div className="rounded-xl border border-white/5 bg-surface-container-highest p-4">
-            <div className="mb-1 text-xs text-on-surface-variant font-sans">
-              עיניים עצומות
-            </div>
-            <div className="text-xl font-bold text-on-surface font-sans">14</div>
-          </div>
-        </div>
-        <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-tertiary py-3 text-sm font-bold text-on-tertiary transition-all hover:brightness-110">
-          <span className="material-symbols-outlined">visibility</span>
-          סקירת תמונות שסוננו
-        </button>
-      </section>
 
-      {/* Reports section */}
-      <section className="rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <span className="material-symbols-outlined">report_problem</span>
-            <h3 className="text-lg font-bold text-on-surface font-sans">
-              דוחות הפקה וביקורת
-            </h3>
+        {loading ? (
+          <div className="flex justify-center py-6">
+            <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
           </div>
-          <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">
-            3 דיווחים חדשים
-          </span>
-        </div>
+        ) : (
+          <>
+            <div className="mb-6 grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-white/5 bg-surface-container p-4">
+                <div className="mb-1 font-sans text-xs text-on-surface-variant">עיניים עצומות</div>
+                <div className="font-sans text-xl font-bold text-on-surface" dir="ltr">{closedEyes}</div>
+              </div>
+              <div className="rounded-xl border border-white/5 bg-surface-container p-4">
+                <div className="mb-1 font-sans text-xs text-on-surface-variant">כפילויות</div>
+                <div className="font-sans text-xl font-bold text-on-surface" dir="ltr">{duplicates}</div>
+              </div>
+              <div className="rounded-xl border border-white/5 bg-surface-container p-4">
+                <div className="mb-1 font-sans text-xs text-on-surface-variant">מטושטשות</div>
+                <div className="font-sans text-xl font-bold text-on-surface" dir="ltr">{blurry}</div>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {REPORTS.map((r, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-4 rounded-2xl border border-white/5 bg-surface-container-highest p-3"
+            <button
+              type="button"
+              onClick={() => setExpandRejected((v) => !v)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-surface-container py-3 font-sans text-sm font-bold text-on-surface transition-all hover:brightness-110 border border-white/10"
             >
-              {/* Placeholder image */}
-              <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-surface-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl text-on-surface-variant/30">
-                  image
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col justify-between gap-3">
-                <div className="text-start">
-                  <div className="text-xs text-on-surface-variant font-sans">
-                    דווח על ידי:
-                  </div>
-                  <div className="font-medium text-on-surface font-sans">
-                    {r.reporter}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button className="flex-1 rounded-lg bg-primary py-1.5 text-xs font-medium text-on-primary transition-all hover:brightness-110">
-                    אשר הסרה
-                  </button>
-                  <button className="flex-1 rounded-lg border border-white/20 py-1.5 text-xs font-medium text-on-surface-variant transition-colors hover:bg-white/5">
-                    דחה
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
+                {expandRejected ? "visibility_off" : "visibility"}
+              </span>
+              {expandRejected ? "הסתרת תמונות שסוננו" : "סקירת תמונות שסוננו"}
+            </button>
 
-        <Link
-          href="/admin/events"
-          className="mt-4 block text-center text-xs font-medium text-primary underline underline-offset-4"
-        >
-          צפייה בכל הדיווחים
-        </Link>
+            {expandRejected && stats && stats.rejected_photos.length > 0 && (
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+                {stats.rejected_photos.map((p) => (
+                  <div key={p.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-container">
+                    <Image
+                      src={p.url}
+                      alt=""
+                      fill
+                      sizes="120px"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="absolute bottom-0 start-0 end-0 bg-black/70 px-1.5 py-1">
+                      <span className="font-sans text-[10px] text-on-surface-variant">
+                        {p.rejection_reason ? (REASON_LABEL[p.rejection_reason] ?? p.rejection_reason) : "סונן"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {expandRejected && stats && stats.rejected_photos.length === 0 && (
+              <p className="mt-4 rounded-xl border border-white/5 bg-surface-container p-4 text-center font-sans text-sm text-on-surface-variant">
+                אין תמונות שסוננו עדיין.
+              </p>
+            )}
+          </>
+        )}
       </section>
+
+      {/* Category distribution */}
+      {!loading && stats && Object.keys(stats.by_category).length > 0 && (
+        <section className="rounded-3xl border border-white/5 bg-surface-container-high p-6 shadow-2xl">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+              category
+            </span>
+            <h3 className="font-sans text-lg font-bold text-on-surface">התפלגות קטגוריות</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { key: "ceremony", label: "חופה" },
+              { key: "reception", label: "קבלת פנים" },
+              { key: "dancing", label: "ריקודים" },
+              { key: "party", label: "מסיבה" },
+            ].map(({ key, label }) => {
+              const count = stats.by_category[key] ?? 0;
+              const pct = stats.approved > 0 ? Math.round((count / stats.approved) * 100) : 0;
+              return (
+                <div key={key} className="rounded-xl border border-white/5 bg-surface-container p-4">
+                  <div className="mb-1 font-sans text-xs text-on-surface-variant">{label}</div>
+                  <div className="font-sans text-2xl font-bold text-primary" dir="ltr">{count}</div>
+                  <div className="mt-2 h-1.5 w-full rounded-full bg-surface-container-highest">
+                    <div className="h-1.5 rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="mt-1 font-sans text-[11px] text-on-surface-variant" dir="ltr">{pct}%</div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </AdminShell>
   );
 }

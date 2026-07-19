@@ -2,6 +2,30 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail and `PROGRESS.md` for history.**
 
+## 🔄 IN PROGRESS 2026-07-19 — Gallery multi-select + full AI pipeline (PR #77, open draft)
+
+**Branch:** `claude/oura-mvp-ai-pipeline-rsb711`  
+**PR:** #77 open draft — NOT yet deployed
+
+**What's in this PR:**
+1. **Gallery multi-select restored** (PR #76 wrongly removed it): tap = select with checkmark + ring, floating action bar (שמור/שתף N), expand icon for full-screen viewer
+2. **Auto-category labeling**: Workers AI (LLaVA) classifies each photo into ceremony/reception/dancing/party in the queue consumer — festive gallery chips filter by real DB field
+3. **Full AI pipeline on upload**: closed-eye detection (detection_score < 0.70), duplicate detection (cosine sim > 0.97), both flags hide photo from guest gallery
+4. **Reports Management screen wired**: new `GET /admin/ai-pipeline-stats` endpoint, page shows live counts + expandable rejected-photo grid + category breakdown
+5. **Migration 0009**: adds `category`, `ai_rejected`, `rejection_reason` columns to `photos`
+
+**Remaining before merge:**
+1. Founder applies migration 0009: paste `supabase/migrations/0009_ai_pipeline.sql` at https://supabase.com/dashboard/project/voxxhvywzaizyputjqkm/sql/new → Run
+2. Deploy `apps/api` (Workers AI binding added to wrangler.toml — required for category classification)
+3. Deploy `apps/web` (gallery multi-select + reports page changes)
+4. Verify: gallery tap-select works, festive chips filter by category, reports screen shows real AI counts
+5. Merge PR #77
+
+**Open PRs:**
+- **PR #77** (`claude/oura-mvp-ai-pipeline-rsb711`) — AI pipeline + multi-select, needs migration + deploy
+- **PR #76** — was merged per prior session; confirm it's closed
+- **PR #16, #4, #7** — old doc PRs with conflicts, low priority
+
 ## ✅ DONE 2026-07-19 — Photo editor Stitch wire + gallery tap/action-bar fix (PR #76, merged + deployed)
 
 **Branch:** `claude/photo-editor-stitch-wire-1xm5wf` → merged to main  

@@ -38,6 +38,8 @@ export type Env = {
   // Verified Brevo sender address (validated once in the Brevo dashboard).
   // Optional — falls back to the founder's validated sender when unset.
   BREVO_SENDER_EMAIL?: string;
+  // Cloudflare Workers AI — photo category classification and quality checks.
+  AI: Ai;
 };
 
 // Service-role Supabase client. Bypasses RLS — lives ONLY inside the Worker,
@@ -264,12 +266,13 @@ app.get('/gallery/:token', async (c) => {
     },
   };
 
-  // General event gallery — no consent needed. Exclude culled photos.
+  // General event gallery — no consent needed. Exclude culled and AI-rejected photos.
   const { data: photoRows, error: photosErr } = await db
     .from('photos')
-    .select('id, storage_key, status')
+    .select('id, storage_key, status, category')
     .eq('event_id', payload.event_id)
     .neq('status', 'culled')
+    .eq('ai_rejected', false)
     .order('created_at', { ascending: false });
   if (photosErr) return c.json({ error: 'photos_lookup_failed' }, 500);
 
@@ -278,6 +281,7 @@ app.get('/gallery/:token', async (c) => {
     storage_key: p.storage_key,
     url: photoUrlStub(c, p.storage_key),
     status: p.status,
+    category: (p.category as string | null) ?? null,
   }));
 
   // CONSENT GATE — the face-matched personal gallery is included only when a
@@ -307,23 +311,24 @@ app.get('/gallery/:token', async (c) => {
     // selfie linked — independent of any other guest that matched the same clusters.
     const { data: matchRows, error: matchErr } = await db
       .from('guest_photo_matches')
-      .select('photo_id, match_similarity, photos!inner(storage_key, status)')
+      .select('photo_id, match_similarity, photos!inner(storage_key, status, category, ai_rejected)')
       .eq('guest_id', guest.id);
     if (matchErr) console.error('personal gallery query failed', matchErr);
 
-    const matchedMap = new Map<string, { id: string; storage_key: string; url: string; match_similarity: number | null }>();
+    const matchedMap = new Map<string, { id: string; storage_key: string; url: string; match_similarity: number | null; category: string | null }>();
     for (const row of (matchRows ?? []) as Array<{
       photo_id: string;
       match_similarity: number | null;
-      photos: { storage_key: string; status: string } | { storage_key: string; status: string }[] | null;
+      photos: { storage_key: string; status: string; category: string | null; ai_rejected: boolean } | { storage_key: string; status: string; category: string | null; ai_rejected: boolean }[] | null;
     }>) {
       const ph = Array.isArray(row.photos) ? row.photos[0] : row.photos;
-      if (!ph || ph.status === 'culled') continue; // parity with the general gallery
+      if (!ph || ph.status === 'culled' || ph.ai_rejected) continue;
       matchedMap.set(row.photo_id, {
         id: row.photo_id,
         storage_key: ph.storage_key,
         url: photoUrlStub(c, ph.storage_key),
         match_similarity: row.match_similarity ?? null,
+        category: ph.category ?? null,
       });
     }
     const matched = Array.from(matchedMap.values());
@@ -1147,6 +1152,65 @@ app.get('/admin/processing-status', async (c) => {
   }));
 
   return c.json({ stats, recent, face_embeddings: (faces as unknown as { count?: number } | null)?.count ?? 0 });
+});
+
+// GET /admin/ai-pipeline-stats
+//   Photographer-auth. Returns AI filtering stats across this photographer's events:
+//   total/rejected/approved counts, breakdown by rejection_reason, and category
+//   distribution. Used by the Reports Management screen (סינון AI אוטומטי section).
+// ---------------------------------------------------------------------------
+app.get('/admin/ai-pipeline-stats', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length).trim()
+    : undefined;
+  if (!token) return c.json({ error: 'missing_auth' }, 401);
+
+  const db = supa(c.env);
+  const { data: authData, error: authErr } = await db.auth.getUser(token);
+  if (authErr || !authData?.user) return c.json({ error: 'invalid_auth' }, 401);
+
+  const { data: events, error: evErr } = await db
+    .from('events')
+    .select('id')
+    .eq('photographer_id', authData.user.id);
+  if (evErr) return c.json({ error: 'events_query_failed' }, 500);
+  if (!events?.length) return c.json({ total: 0, approved: 0, rejected: 0, by_reason: {}, by_category: {}, rejected_photos: [] });
+
+  const event_ids = events.map((e: { id: string }) => e.id);
+
+  const { data: photos, error: pErr } = await db
+    .from('photos')
+    .select('id, event_id, storage_key, ai_rejected, rejection_reason, category, created_at')
+    .in('event_id', event_ids)
+    .eq('embed_status', 'done')
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (pErr) return c.json({ error: 'photos_query_failed' }, 500);
+
+  const all = photos ?? [];
+  const rejected = all.filter((p: { ai_rejected: boolean }) => p.ai_rejected);
+  const approved = all.filter((p: { ai_rejected: boolean }) => !p.ai_rejected);
+
+  const by_reason: Record<string, number> = {};
+  for (const p of rejected) {
+    const r = (p.rejection_reason as string) ?? 'unknown';
+    by_reason[r] = (by_reason[r] ?? 0) + 1;
+  }
+
+  const by_category: Record<string, number> = {};
+  for (const p of approved) {
+    const cat = (p.category as string) ?? 'uncategorized';
+    by_category[cat] = (by_category[cat] ?? 0) + 1;
+  }
+
+  const rejected_photos = rejected.slice(0, 50).map((p: { id: string; storage_key: string; rejection_reason: string | null }) => ({
+    id: p.id,
+    url: `${new URL(c.req.url).origin}/media/${p.storage_key}`,
+    rejection_reason: p.rejection_reason,
+  }));
+
+  return c.json({ total: all.length, approved: approved.length, rejected: rejected.length, by_reason, by_category, rejected_photos });
 });
 
 // POST /auth/forgot-password
