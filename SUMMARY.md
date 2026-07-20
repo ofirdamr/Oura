@@ -16,6 +16,7 @@ Working MVP live end-to-end:
 
 ## Open PRs
 
+- **PR #96** (`claude/admin-print-queue-dashboard-6ncrtl`) — §10.4B Admin Print Queue dashboard redesign. Draft, watching CI.
 - **PR #95** (`claude/oura-prd-10-5-jvo389`) — §10.4 Premium Prints wired to real API, deployed oura-web `0deb2597`. Ready to merge.
 - **PR #83** — adds ריקודים chip to festive gallery filter (small fix, ready to merge)
 - **PR #75** — gallery UX fixes (save/share bar, chips), draft
@@ -30,7 +31,7 @@ Guest-facing print order flow wired end-to-end:
 - API: `POST /gallery/:token/orders`, `GET /admin/events/:id/orders`, `PUT /admin/orders/:id/mark-printed` — all live
 - Migration 0011 (orders table, fulfillment ENUMs, auto-release trigger, RLS) — already applied
 
-**NOT built:** Admin Print Queue dashboard (`/admin/print-queue`) — no Stitch design exists. Per project rules, must get design from founder before building.
+**PR #96:** Admin Print Queue dashboard (`/admin/print-queue`) — fully redesigned to match Stitch screens (desktop table + mobile cards + WhatsApp modal). Draft PR, awaiting CI.
 
 ## ✅ DONE 2026-07-19 — §10.3 Smart Crop & Social Export (PR #94, merged)
 
@@ -53,7 +54,7 @@ Confirm-gate on `/reset-password` page prevents token burn by Brevo's pre-scan. 
 - §10.1 Two-Stage Upload Pipeline: ✅ (migration 0010, Stage 2 sync button)
 - §10.2 Extraction Engine: ✅
 - §10.3 Smart Crop/Social Export: ✅
-- §10.4 E-Commerce/Print Shop (guest flow): ✅ | Admin Print Queue: ❌ needs Stitch design
+- §10.4 E-Commerce/Print Shop (guest flow): ✅ | Admin Print Queue: PR #96 (draft)
 - §10.5 DB Schema: ✅ (migration 0011 applied)
 
 ## What's real vs. not
