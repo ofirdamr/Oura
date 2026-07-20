@@ -18,17 +18,15 @@ Working MVP, live. A photographer can sign up → create event → brand it → 
 
 ---
 
-## Current Mission — PRD §10.4
+## Current Mission — PRD §10.5/§10.6
 
-**Branch:** `claude/oura-10-4-migration-c8dmmn`  
-**Migration 0011:** applied ✅
+**Next branch:** start fresh from `main` for §10.5 or §10.6 (per PRD order).
 
-**⚠️ PENDING FOUNDER ACTION:**
-Redeploy Cloud Run `oura-embed` → https://console.cloud.google.com/run/detail/us-central1/oura-embed/revisions?project=ouraforphotographers → Edit & Deploy New Revision → Deploy.
-
-Once founder confirms Cloud Run redeploy done:
-1. Merge PR #94
-2. Proceed to §10.5/§10.6 per PRD order
+**Completed this session:**
+- ✅ Migration 0011 applied
+- ✅ Cloud Run `oura-embed` redeployed (founder confirmed)
+- ✅ PR #94 merged (§10.3 smart crop + social export)
+- ✅ Session memory compacted (SUMMARY/PROGRESS/MISTAKES all lean now)
 
 ---
 
@@ -36,7 +34,6 @@ Once founder confirms Cloud Run redeploy done:
 
 | PR | Branch | Status |
 |----|--------|--------|
-| **#94** | `claude/oura-10-3-deploy-wb0txc` | §10.3 smart crop / social export — awaiting founder Cloud Run redeploy, then merge |
 | #16, #4, #7 | various | Old doc PRs with merge conflicts — low priority, resolve in a trim session |
 
 ---
