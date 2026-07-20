@@ -1,8 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function OrderConfirmationPage() {
+function fmt(agorot: string | null): string {
+  const n = parseInt(agorot ?? "0", 10);
+  if (isNaN(n) || n === 0) return "";
+  return `₪${(n / 100).toFixed(0)}`;
+}
+
+function todayHe(): string {
+  return new Date().toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function shortId(orderId: string): string {
+  // Convert UUID to a short #OR- display code
+  return `#OR-${orderId.slice(0, 6).toUpperCase()}`;
+}
+
+function OrderConfirmationContent() {
+  const params = useSearchParams();
+  const orderId = params.get("order_id") ?? "";
+  const total = params.get("total");
+
   return (
     <div dir="rtl" className="min-h-screen bg-[#0c0e12] text-[#e2e2e8] font-sans flex flex-col">
       {/* Top nav */}
@@ -16,9 +37,7 @@ export default function OrderConfirmationPage() {
             <Link href="#" className="text-[#94a3b8] text-sm hover:text-[#ffb4a5] transition-colors">הזמנות</Link>
             <Link href="#" className="text-[#94a3b8] text-sm hover:text-[#ffb4a5] transition-colors">פרופיל</Link>
           </nav>
-          <button className="text-[#e2e2e8]">
-            <span className="text-lg">🛍</span>
-          </button>
+          <div className="material-symbols-outlined text-[#e2e2e8]">shopping_bag</div>
         </div>
       </header>
 
@@ -28,14 +47,15 @@ export default function OrderConfirmationPage() {
           {/* Success icon */}
           <div className="mb-8 flex justify-center">
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center border border-[#e2725b]/20"
-              style={{ background: "rgba(226,114,91,0.08)", boxShadow: "0 0 40px rgba(255,180,165,0.15)" }}
+              className="w-24 h-24 rounded-2xl flex items-center justify-center"
+              style={{ background: "rgba(226,114,91,0.12)", border: "1px solid rgba(226,114,91,0.25)", boxShadow: "0 0 48px rgba(255,180,165,0.12)" }}
             >
-              <span className="text-5xl text-[#e2725b]">✓</span>
+              <span className="material-symbols-outlined text-[#e2725b]" style={{ fontSize: "48px", fontVariationSettings: "'FILL' 1" }}>
+                check_circle
+              </span>
             </div>
           </div>
 
-          {/* Headlines */}
           <h1 className="text-2xl md:text-4xl font-semibold text-[#e2e2e8] mb-3 tracking-tight">
             ההזמנה שלך התקבלה בהצלחה!
           </h1>
@@ -45,64 +65,53 @@ export default function OrderConfirmationPage() {
 
           {/* Order details card */}
           <div
-            className="rounded-lg overflow-hidden text-start mb-10"
-            style={{ border: "1px solid #33363d", background: "rgba(26,28,32,0.8)", backdropFilter: "blur(12px)" }}
+            className="rounded-xl overflow-hidden text-start mb-10"
+            style={{ border: "1px solid #33363d", background: "rgba(26,28,32,0.9)", backdropFilter: "blur(12px)" }}
           >
             {/* Order header */}
-            <div className="p-6 border-b border-[#33363d] bg-[#282a2e]/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="p-6 border-b border-[#33363d] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <span className="text-xs text-[#94a3b8] block uppercase mb-1 tracking-wider">מספר הזמנה</span>
-                <span className="text-xl font-semibold text-[#e2e2e8] tracking-widest">#OR-98421</span>
+                <span className="text-xs text-[#94a3b8] block mb-1">מספר הזמנה</span>
+                <span className="text-xl font-semibold text-[#e2e2e8] tracking-widest font-mono">
+                  {orderId ? shortId(orderId) : "—"}
+                </span>
               </div>
               <div>
-                <span className="text-xs text-[#94a3b8] block uppercase mb-1 tracking-wider">תאריך</span>
-                <span className="text-sm text-[#e2e2e8]">24 באוקטובר, 2024</span>
+                <span className="text-xs text-[#94a3b8] block mb-1">תאריך</span>
+                <span className="text-sm text-[#e2e2e8]">{todayHe()}</span>
               </div>
             </div>
 
-            {/* Order items */}
-            <div className="p-6 space-y-6">
-              {[
-                {
-                  title: "סט הדפסים פרימיום",
-                  desc: "12 הדפסים בגודל 15×20 ס\"מ, נייר מט ארכיוני",
-                  price: "₪240",
-                },
-                {
-                  title: "מארז עץ בעבודת יד",
-                  desc: "אלון מושחר, סגירה מגנטית, חריטה אישית",
-                  price: "₪350",
-                },
-              ].map(({ title, desc, price }) => (
-                <div key={title} className="flex items-start gap-4">
-                  <div className="w-20 h-24 bg-[#08090a] rounded border border-[#33363d] overflow-hidden shrink-0" />
-                  <div className="flex-1">
-                    <h3 className="text-base font-medium text-[#e2e2e8]">{title}</h3>
-                    <p className="text-sm text-[#94a3b8] mt-1">{desc}</p>
-                  </div>
-                  <div className="text-base text-[#e2e2e8] font-medium shrink-0">{price}</div>
-                </div>
-              ))}
+            {/* Item */}
+            <div className="p-6 flex items-start gap-4 border-b border-[#33363d]">
+              <div className="w-16 h-20 bg-[#08090a] rounded border border-[#33363d] overflow-hidden shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-base font-medium text-[#e2e2e8]">הדפסת פרימיום</h3>
+                <p className="text-sm text-[#94a3b8] mt-1">תמונה שנבחרה מהגלריה שלך</p>
+              </div>
+              {total && <div className="text-base text-[#e2e2e8] font-medium shrink-0">{fmt(total)}</div>}
             </div>
 
             {/* Totals */}
-            <div className="p-6 bg-[#08090a]/30 border-t border-[#33363d] space-y-3">
+            <div className="p-6 bg-[#08090a]/30 space-y-3">
+              {total && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[#94a3b8]">סיכום ביניים</span>
+                  <span className="text-sm text-[#e2e2e8]">{fmt(total)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[#94a3b8]">סיכום ביניים</span>
-                <span className="text-sm text-[#e2e2e8]">₪590</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-[#94a3b8]">משלוח אקספרס</span>
+                <span className="text-sm text-[#94a3b8]">משלוח</span>
                 <span className="text-sm text-[#10b981] font-medium">חינם</span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-[#33363d]">
                 <span className="text-base font-semibold text-[#e2e2e8]">סה״כ לתשלום</span>
-                <span className="text-xl font-semibold text-[#e2725b]">₪590</span>
+                <span className="text-xl font-semibold text-[#e2725b]">{fmt(total) || "—"}</span>
               </div>
             </div>
           </div>
 
-          {/* Status indicator */}
+          {/* Status */}
           <div className="flex items-center justify-center gap-2 mb-8">
             <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
             <span className="text-xs text-[#94a3b8]">ההזמנה בטיפול — עדכון ישלח למייל</span>
@@ -115,10 +124,10 @@ export default function OrderConfirmationPage() {
               className="bg-[#e2725b] text-white px-10 py-4 text-sm font-semibold rounded-lg hover:brightness-110 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <span>חזרה לגלריה</span>
-              <span>←</span>
+              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_back</span>
             </Link>
             <button className="border border-[#33363d] text-[#e2e2e8] px-10 py-4 text-sm font-medium rounded-lg hover:border-[#94a3b8] transition-colors flex items-center justify-center gap-2">
-              <span>⬇</span>
+              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>download</span>
               <span>הורדת קבלה (PDF)</span>
             </button>
           </div>
@@ -128,19 +137,23 @@ export default function OrderConfirmationPage() {
       {/* Footer */}
       <footer className="bg-[#08090a] border-t border-[#33363d]">
         <div className="max-w-5xl mx-auto py-8 px-6 md:px-10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
-            <span className="font-display text-base font-bold text-[#e2725b]">OURA</span>
-          </div>
+          <span className="font-display text-base font-bold text-[#e2725b]">OURA</span>
           <div className="flex flex-wrap justify-center gap-6">
             {["תנאי שימוש", "מדיניות פרטיות", "מידע על משלוחים", "צור קשר"].map((link) => (
-              <Link key={link} href="#" className="text-xs text-[#94a3b8] hover:text-[#e2e2e8] transition-colors">
-                {link}
-              </Link>
+              <Link key={link} href="#" className="text-xs text-[#94a3b8] hover:text-[#e2e2e8] transition-colors">{link}</Link>
             ))}
           </div>
           <span className="text-xs text-[#94a3b8]">© 2024 Oura. כל הזכויות שמורות.</span>
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function OrderConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0c0e12] flex items-center justify-center text-[#94a3b8]">טוען...</div>}>
+      <OrderConfirmationContent />
+    </Suspense>
   );
 }
