@@ -4,6 +4,7 @@
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 # (see apps/api/README-DEPLOY.md)
 
+account_id = "abf954bb93aa95b99f5db99a6a646dee"
 name = "oura-api"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"

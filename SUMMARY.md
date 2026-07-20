@@ -16,10 +16,19 @@ Working MVP live end-to-end:
 
 ## Open PRs
 
-- **PR #95** (`claude/oura-prd-10-5-jvo389`) — §10.4 Premium Prints wired to real API, deployed oura-web `0deb2597`. Ready to merge.
-- **PR #83** — adds ריקודים chip to festive gallery filter (small fix, ready to merge)
-- **PR #75** — gallery UX fixes (save/share bar, chips), draft
-- **PR #16, #4, #7** — old doc PRs with conflicts, low priority
+- **PR #96** — Admin Print Queue dashboard (needs Stitch design first, do not merge yet)
+- **PR #75** — gallery UX fixes (save/share bar, chips) — has conflicts with main, needs rebase in next session
+- **PRs #90, #89, #87, #84, #72, #68, #67, #66, #64, #58, #56, #52, #16, #4** — stale/superseded, close in next session
+
+## ✅ MERGED 2026-07-20
+- **PR #95** — §10.4 Premium Prints (merged to main)
+- **PR #83** — ריקודים chip in festive gallery filter (merged to main)
+
+## ✅ DONE 2026-07-20 — Face recognition back-match bug fixed (API deployed)
+
+New photos uploaded after a guest's selfie now automatically appear in that guest's personal gallery. The queue consumer now runs a back-match step: after embedding a new photo, it finds all existing guests who matched the same face cluster and links them to the new photo via `guest_photo_matches`. API version `279d5383` live.
+
+**Still needed:** the web app (`oura-web`) was NOT redeployed this session — only the API changed, so no web deploy needed for this fix. PR #75 (gallery UX) still has merge conflicts and needs rebase.
 
 ## ✅ DONE 2026-07-20 — §10.4 Premium Prints & Order Confirmation (PR #95)
 
