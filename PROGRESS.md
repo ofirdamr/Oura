@@ -1,8 +1,11 @@
 # Progress Log
 
-### 2026-07-19 (session — format picker bottom sheet)
-- Created `FormatPickerSheet` component matching Stitch design (3 formats: מקורי / פיד 4:5 / סטורי 9:16)
-- Wired into `PhotoViewer` share button → calls `/photos/:id/social-export?format=…&token=…`
+### 2026-07-19 (session — §10.3 smart crop + story framing engine)
+- Created `FormatPickerSheet` component (3 formats: מקורי / פיד 4:5 / סטורי 9:16), wired into `PhotoViewer`
+- Added `POST /social-frame` to Python processing service (PIL: focal-point 4:5 crop, 9:16 blurred canvas, pass-through)
+- Added `GET /photos/:id/social-export` Worker route (guest token auth, R2 Tier 3 only, proxies to /social-frame)
+- Deployed oura-api `28dfa8ac`. PR #93 open draft. Python Cloud Run redeploy pending (founder action).
+- Watching PR #93 (trig_01SqruaKwFeRNF4AdXDX9WRa fires in ~1hr for check-in)
 - PR #85 open (draft) on branch `claude/format-picker-bottom-sheet-a5gjq5`
 
 ### 2026-07-19 (session — PR merges + full AI pipeline deploy)
