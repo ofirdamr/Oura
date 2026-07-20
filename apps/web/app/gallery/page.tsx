@@ -55,8 +55,8 @@ function PhotoTile({
   return (
     <button
       type="button"
-      onClick={onTap}
-      aria-label={selected ? "בטל בחירת תמונה" : "בחר תמונה"}
+      onClick={onOpen}
+      aria-label="פתיחת התמונה"
       className={`group relative block aspect-square w-full overflow-hidden rounded-xl bg-surface-container transition-transform active:scale-[0.97] ${selected ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}`}
     >
       <Image
@@ -66,27 +66,23 @@ function PhotoTile({
         sizes="(min-width: 512px) 170px, 33vw"
         className={`object-cover transition-all duration-300 group-hover:scale-105 ${selected ? "brightness-75" : ""}`}
       />
-      {/* Select checkmark overlay */}
-      {selected ? (
-        <div className="absolute end-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg">
-          <span className="material-symbols-outlined text-on-primary" style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}>
-            check
-          </span>
-        </div>
-      ) : (
-        <div className="absolute end-1.5 top-1.5 h-6 w-6 rounded-full border-2 border-white/60 bg-black/20 opacity-0 transition-opacity group-hover:opacity-100" />
-      )}
-      {/* Expand button — opens full-screen viewer; only visible on hover when not selected */}
-      {!selected && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          aria-label="פתיחת התמונה במסך מלא"
-          className="absolute bottom-1.5 end-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 backdrop-blur-sm"
-        >
-          <span className="material-symbols-outlined text-white" style={{ fontSize: "13px" }}>open_in_full</span>
-        </button>
-      )}
+      {/* Select circle — tap to select/deselect */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onTap(); }}
+        aria-label={selected ? "בטל בחירת תמונה" : "בחר תמונה"}
+        className="absolute end-1.5 top-1.5"
+      >
+        {selected ? (
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg">
+            <span className="material-symbols-outlined text-on-primary" style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}>
+              check
+            </span>
+          </div>
+        ) : (
+          <div className="h-6 w-6 rounded-full border-2 border-white/60 bg-black/20 opacity-60" />
+        )}
+      </button>
       {matched && pct && (
         <div className="absolute start-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-black/65 px-1.5 py-0.5 backdrop-blur-md">
           <span dir="ltr" className="text-[11px] font-bold leading-none text-primary">{pct}</span>
@@ -106,13 +102,14 @@ const FESTIVE_CATEGORIES = [
   { key: "all", label: "כל התמונות" },
   { key: "ceremony", label: "חופה" },
   { key: "reception", label: "קבלת פנים" },
+  { key: "dancing", label: "ריקודים" },
   { key: "party", label: "מסיבה" },
 ] as const;
 
 export default function GalleryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "mine">("all");
-  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "reception" | "party">("all");
+  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "reception" | "dancing" | "party">("all");
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
