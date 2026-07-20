@@ -101,15 +101,15 @@ function PhotoTile({
 const FESTIVE_CATEGORIES = [
   { key: "all", label: "כל התמונות" },
   { key: "ceremony", label: "חופה" },
+  { key: "dances", label: "ריקודים" },
   { key: "reception", label: "קבלת פנים" },
-  { key: "dancing", label: "ריקודים" },
-  { key: "party", label: "מסיבה" },
+  { key: "main_course", label: "מנה עיקרית" },
 ] as const;
 
 export default function GalleryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "mine">("all");
-  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "reception" | "dancing" | "party">("all");
+  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "dances" | "reception" | "main_course">("all");
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
