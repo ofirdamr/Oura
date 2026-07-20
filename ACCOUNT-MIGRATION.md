@@ -53,10 +53,18 @@ The connector *definition* is in `.mcp.json`, but each account must approve it o
 - Supabase project is already pinned in `.mcp.json`
   (`project_ref=voxxhvywzaizyputjqkm`) — no ID to type, just approve the login.
 
-### C. Environment secrets (re-add the values on the new environment)
-Secrets are deliberately **never** stored in the repo. The new Claude Code
-environment needs these keys re-entered (get the values from the same dashboards
-you used originally — Supabase, Cloudflare, Brevo, Stripe). Names to add:
+### C. Environment secrets — THIS IS THE REAL GAP (does NOT travel with the repo)
+Secrets are deliberately **never** stored in the repo and are **never** copied into
+this file — putting a secret in a repo or a chat leaks it. So they will **not**
+appear on the new account by themselves. You move them yourself, privately:
+
+- Open the **current** environment's secrets page → copy each value.
+- Open the **new** account's Claude Code environment secrets page → paste each one
+  under the same name.
+- Or re-fetch each value from its original dashboard (Supabase, Cloudflare, Brevo,
+  Stripe) if you don't have the old page open.
+
+Never route these through the repo, a PR, or a chat message. The names to add:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL
@@ -76,9 +84,18 @@ ADMIN_BACKFILL_TOKEN
 (Tuning values — `GUEST_MATCH_THRESHOLD`, `GUEST_MATCH_TOPK`,
 `CLUSTER_MATCH_THRESHOLD` — are optional overrides; defaults are fine to start.)
 
-> Anything else — GitHub connector, Claude.ai personal "memory", and any other
-> connectors you added by hand — is re-connected the same way: sign in on the new
-> account and approve each one once. There is no hidden state beyond this list.
+### D. Claude's personal "memory" does NOT transfer (and doesn't need to)
+Claude's account-level memory is tied to the account and cannot be exported to
+another one. **This is fine** — for Oura, none of the project's real state lives in
+that personal memory. Every rule, decision, and lesson lives in the repo files
+(`CLAUDE.md`, `SUMMARY.md`, `PROGRESS.md`, `MISTAKES.md`). The first-session message
+in §3 makes the new account read those, so it starts fully caught up. If there was
+any preference you'd only ever told Claude in chat and never wrote down, add it to
+`CLAUDE.md` now so it becomes permanent, repo-backed memory instead of account memory.
+
+> Anything else — GitHub connector, and any other connectors you added by hand — is
+> re-connected the same way: sign in on the new account and approve each one once.
+> There is no hidden state beyond this list.
 
 ---
 
