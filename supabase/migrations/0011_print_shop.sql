@@ -18,7 +18,7 @@ CREATE TYPE print_format_type AS ENUM ('magnet', 'print_10x15', 'block', 'photo_
 -- Orders table
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_id TEXT NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+  event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
   photo_id UUID NOT NULL REFERENCES public.photos(id) ON DELETE CASCADE,
   guest_token TEXT NOT NULL,
   format print_format_type NOT NULL DEFAULT 'print_10x15',
