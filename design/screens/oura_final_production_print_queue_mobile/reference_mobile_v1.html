@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#e2e2e5",
+                    "primary-container": "#ff8a75",
+                    "primary": "#ffb4a6",
+                    "inverse-on-surface": "#2f3131",
+                    "on-primary-container": "#752215",
+                    "inverse-surface": "#e2e2e2",
+                    "secondary-fixed-dim": "#c6c6c9",
+                    "secondary-container": "#454749",
+                    "background": "#121414",
+                    "on-primary": "#601308",
+                    "surface-tint": "#ffb4a6",
+                    "on-tertiary": "#2e3135",
+                    "error": "#ffb4ab",
+                    "surface-container": "#1e2020",
+                    "primary-fixed": "#ffdad4",
+                    "on-background": "#e2e2e2",
+                    "on-tertiary-fixed-variant": "#44474b",
+                    "on-error": "#690005",
+                    "on-primary-fixed": "#3f0300",
+                    "surface-variant": "#333535",
+                    "on-surface": "#e2e2e2",
+                    "outline-variant": "#56423e",
+                    "on-tertiary-container": "#3d4044",
+                    "on-secondary-container": "#b4b5b7",
+                    "surface-container-low": "#1a1c1c",
+                    "on-secondary-fixed-variant": "#454749",
+                    "on-error-container": "#ffdad6",
+                    "tertiary": "#c4c6cb",
+                    "surface-bright": "#38393a",
+                    "tertiary-container": "#a9abb0",
+                    "outline": "#a48b87",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#c4c6cb",
+                    "on-surface-variant": "#dcc0bb",
+                    "on-tertiary-fixed": "#191c20",
+                    "secondary": "#c6c6c9",
+                    "surface-dim": "#121414",
+                    "surface": "#121414",
+                    "tertiary-fixed": "#e1e2e7",
+                    "on-secondary-fixed": "#1a1c1e",
+                    "surface-container-highest": "#333535",
+                    "surface-container-high": "#282a2b",
+                    "on-primary-fixed-variant": "#7f291c",
+                    "on-secondary": "#2f3133",
+                    "primary-fixed-dim": "#ffb4a6",
+                    "surface-container-lowest": "#0c0f0f",
+                    "inverse-primary": "#9f4030"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "stack-md": "24px",
+                    "stack-lg": "48px",
+                    "gutter": "16px",
+                    "container-padding-desktop": "40px",
+                    "container-padding-mobile": "20px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Manrope"],
+                    "display-lg": ["Manrope"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0E0E0E;
+            color: #e2e2e2;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(44, 47, 51, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .copper-glow {
+            box-shadow: 0 0 15px rgba(255, 138, 117, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .active-chip {
+            background: rgba(255, 180, 166, 0.15);
+            color: #ffb4a6;
+            border: 1px solid rgba(255, 180, 166, 0.3);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden pb-24">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/10 h-16 flex flex-row-reverse items-center justify-between px-container-padding-mobile">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl active:scale-95 transition-transform">menu</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary">Oura</h1>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a refined photographer in a dark luxury setting. The lighting is dramatic, high-contrast chiaroscuro, highlighting the subject's focused expression. The background is a blurred high-end photography studio with copper accents. The aesthetic is sophisticated and elite." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4UqkcToRVlZPxGll7zL5OkaNy_wMka599mF8RilrKr7l2IWWxLZv6LD2DgRJuqVIMWX8dV7OnfKHG_YwP-2UgJA5rBZfTgEiO4Id4aKo3HOopfAbjy09gEglTMtjfCfxBKxI3eZOwjdpOmRvyXZC9MmYDLsgvHLcFf6pt93z66Z6g8YOucznOizTc9M-OFv_UUx_xB0z8PCAfSN1KbgelroptQXLq6gEu7BTIfB53djvxtYZNPD4ogLIybGyPFYXAKylnh8IBkQno"/>
+</div>
+</header>
+<main class="mt-20 px-container-padding-mobile">
+<!-- Title & Export Row -->
+<div class="flex flex-col gap-4 mb-stack-md">
+<div class="flex justify-between items-end">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">תור הדפסות</h2>
+<div class="flex gap-2">
+<button class="bg-surface-variant/50 p-2 rounded-xl border border-white/5 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant">sync</span>
+</button>
+<button class="bg-primary text-on-primary font-bold px-4 py-2 rounded-xl flex items-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+<span class="text-sm">ייצוא</span>
+</button>
+</div>
+</div>
+<!-- Filters Scrollable Row -->
+<div class="flex gap-2 overflow-x-auto hide-scrollbar py-2">
+<button class="active-chip px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">הכל</button>
+<button class="bg-surface-container px-4 py-2 rounded-full text-sm font-medium text-on-surface-variant border border-white/5 whitespace-nowrap">ממתין</button>
+<button class="bg-surface-container px-4 py-2 rounded-full text-sm font-medium text-on-surface-variant border border-white/5 whitespace-nowrap">מוכן להדפסה</button>
+<button class="bg-surface-container px-4 py-2 rounded-full text-sm font-medium text-on-surface-variant border border-white/5 whitespace-nowrap">נשלח</button>
+<button class="bg-surface-container px-4 py-2 rounded-full text-sm font-medium text-on-surface-variant border border-white/5 whitespace-nowrap">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+</button>
+</div>
+</div>
+<!-- Orders Queue -->
+<div class="flex flex-col gap-4">
+<!-- Card 1: Noa Levi -->
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-lg text-primary">נועה לוי</h3>
+<p class="text-xs text-on-surface-variant">הוזמן: 12:45 | 14.05.2024</p>
+</div>
+<span class="bg-green-500/10 text-green-400 text-[10px] px-2 py-1 rounded-full font-bold border border-green-500/20 uppercase tracking-wider">שולם</span>
+</div>
+<div class="flex items-center gap-4 py-2 border-y border-white/5">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">סוג הדפסה</span>
+<span class="text-sm font-medium">קנבס 40x60</span>
+</div>
+<div class="flex flex-col border-r border-white/10 pr-4">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">סטטוס</span>
+<span class="text-sm font-medium text-primary-container">מוכן להדפסה</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-1">
+<div class="flex -space-x-2 space-x-reverse">
+<div class="w-8 h-8 rounded-lg border-2 border-background overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A cinematic, high-fashion wedding portrait of a bride and groom in a lush, moonlit garden. The style is editorial with deep shadows and soft, warm highlights on the silk and lace. Rich amber and deep charcoal tones dominate the frame." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDctbtdk6OPXFZMilNBBPUmsy2DF1kHyffhck5YNvL0n38YBf5ht2Zut3HWJWINyDxyWbtxaFDaIbY1WFGHfLXOgucCfhqQs-uFiRApVmFlyHarCOW44AJ_2K34RG2NI4a1XG7Z-AOlaqvCjRjMfYBdBXOlzBwtB63gYApwbhkmB9p2WEUI8F3y_XxM3f3jvHlEERMIFJnZpbutiWHh_lex5jtuCFeXagQXGVnEbQCBFUT6DwHXbudePOnqkFkmWwALwK3p7MEu7nEl"/>
+</div>
+<div class="w-8 h-8 rounded-lg border-2 border-background overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up of a luxury wedding ring and a glass of champagne on a dark marble surface. The lighting is sophisticated, creating elegant reflections and a moody, high-end celebratory atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuASKuCzJPR8fHjiyLG3rzzzcjuHNc7oJ6Z-1tRYYub1I9csJDWFUZ8lv-7RJmJdvNghYpG1CoWxVjxr5zArux7ermVmib2VLckHYs_yRzXFKyE07Khu9ETYevNThop1WxAyL2o9j1CepWRW-aafr6ZMZQpJ2G0nCxkKtmt1WvL-zbgkISvcV3yla3jhpW-ohip3x8vFtry-Mev0z0aqB0DmPUVzhF6srAtgyGudIoX30wr01AIWci2P2RsVMSmFAmz8Mc5GQKt3eXsV"/>
+</div>
+<div class="flex items-center justify-center w-8 h-8 rounded-lg border-2 border-background bg-surface-container text-[10px] font-bold">+3</div>
+</div>
+<div class="flex gap-2">
+<button class="bg-primary/10 text-primary p-2 rounded-xl active:scale-90 transition-transform">
+<span class="material-symbols-outlined">print</span>
+</button>
+<button class="bg-white/5 text-on-surface p-2 rounded-xl active:scale-90 transition-transform">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2: Guy Aharoni -->
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-lg text-primary">גיא אהרוני</h3>
+<p class="text-xs text-on-surface-variant">הוזמן: 11:20 | 14.05.2024</p>
+</div>
+<span class="bg-primary/10 text-primary text-[10px] px-2 py-1 rounded-full font-bold border border-primary/20 uppercase tracking-wider">ממתין לתשלום</span>
+</div>
+<div class="flex items-center gap-4 py-2 border-y border-white/5">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">סוג הדפסה</span>
+<span class="text-sm font-medium">זכוכית אקרילית</span>
+</div>
+<div class="flex flex-col border-r border-white/10 pr-4">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">סטטוס</span>
+<span class="text-sm font-medium text-amber-400/80">בתהליך עריכה</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-1">
+<div class="flex -space-x-2 space-x-reverse">
+<div class="w-8 h-8 rounded-lg border-2 border-background overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="An artistic black and white street photography shot of an elderly man with a camera, captured in a dramatic shaft of light. The style is gritty yet refined, emphasizing texture and contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2_ZN5F2sFkiUJw9_lxiN1KEVjoDAIdWkMCUSvnk9dwg23GVspFkDYH0cjxwwbUW_Xrh0by0FljAzo7Z2MaqPPUB_hjZoqctKKPjEH0yZbmP-FQtQlE1-dCKSoY1J2RU_vCh0HaShm4BM1JSrffEvKRGFdyyt3a2mC_De0SJfwrSthDlcCwBy8g2z-kSg1QkJSFaoeT2kvF76MV_bU8i8fJgzrsMo_hu_nR6w-o4y7gdO2FP529G-LUK64CPi_kfP71ywCn_Omqj7Z"/>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="bg-green-500/20 text-green-400 p-2 rounded-xl active:scale-90 transition-transform flex items-center gap-2 pr-3">
+<span class="text-xs font-bold">תזכורת</span>
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</button>
+<button class="bg-white/5 text-on-surface p-2 rounded-xl active:scale-90 transition-transform">
+<span class="material-symbols-outlined">edit_note</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3: Avital Cohen -->
+<div class="glass-card rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-lg text-primary">אביטל כהן</h3>
+<p class="text-xs text-on-surface-variant">הוזמן: 09:15 | 14.05.2024</p>
+</div>
+<span class="bg-green-500/10 text-green-400 text-[10px] px-2 py-1 rounded-full font-bold border border-green-500/20 uppercase tracking-wider">שולם</span>
+</div>
+<div class="flex items-center gap-4 py-2 border-y border-white/5">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">סוג הדפסה</span>
+<span class="text-sm font-medium">אלבום דיגיטלי</span>
+</div>
+<div class="flex flex-col border-r border-white/10 pr-4">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">סטטוס</span>
+<span class="text-sm font-medium text-green-400">נשלח להדפסה</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-1">
+<div class="flex -space-x-2 space-x-reverse">
+<div class="w-8 h-8 rounded-lg border-2 border-background bg-surface-container-highest animate-pulse"></div>
+<div class="w-8 h-8 rounded-lg border-2 border-background bg-surface-container-highest animate-pulse"></div>
+<div class="w-8 h-8 rounded-lg border-2 border-background bg-surface-container-highest animate-pulse"></div>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center px-3 py-1 bg-surface-container rounded-full text-[10px] font-bold text-on-surface-variant border border-white/5">
+                            סריקה הושלמה
+                        </div>
+<button class="bg-white/5 text-on-surface p-2 rounded-xl active:scale-90 transition-transform">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/90 backdrop-blur-2xl border-t border-white/5 shadow-lg flex flex-row-reverse justify-around items-center py-2 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-primary font-bold bg-primary/10 rounded-xl px-3 py-1 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm">ראשי</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary-container hover:bg-surface-variant/50 transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined">subscriptions</span>
+<span class="font-label-sm text-label-sm">גלריה</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary-container hover:bg-surface-variant/50 transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined">edit_note</span>
+<span class="font-label-sm text-label-sm">עריכה</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary-container hover:bg-surface-variant/50 transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">פרופיל</span>
+</a>
+</nav>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Horizontal scroll momentum helper
+        const scrollContainer = document.querySelector('.overflow-x-auto');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        scrollContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - scrollContainer.offsetLeft;
+            scrollLeft = scrollContainer.scrollLeft;
+        });
+        scrollContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+        scrollContainer.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+        scrollContainer.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - scrollContainer.offsetLeft;
+            const walk = (x - startX) * 2;
+            scrollContainer.scrollLeft = scrollLeft - walk;
+        });
+    </script>
+</body></html>

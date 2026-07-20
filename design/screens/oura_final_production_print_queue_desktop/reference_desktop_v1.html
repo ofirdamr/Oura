@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="he"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Rubik:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#7f291c",
+                        "surface-container-high": "#282a2b",
+                        "surface-container-lowest": "#0c0f0f",
+                        "error": "#ffb4ab",
+                        "secondary": "#c6c6c9",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#121414",
+                        "outline-variant": "#56423e",
+                        "tertiary-fixed-dim": "#c4c6cb",
+                        "on-primary-container": "#752215",
+                        "inverse-on-surface": "#2f3131",
+                        "primary-fixed-dim": "#ffb4a6",
+                        "surface-bright": "#38393a",
+                        "surface-tint": "#ffb4a6",
+                        "surface-dim": "#121414",
+                        "surface-container-highest": "#333535",
+                        "on-tertiary-container": "#3d4044",
+                        "on-secondary": "#2f3133",
+                        "inverse-surface": "#e2e2e2",
+                        "surface-container": "#1e2020",
+                        "on-background": "#e2e2e2",
+                        "tertiary": "#c4c6cb",
+                        "on-error": "#690005",
+                        "on-surface": "#e2e2e2",
+                        "on-secondary-fixed": "#1a1c1e",
+                        "primary": "#ffb4a6",
+                        "secondary-container": "#454749",
+                        "surface-container-low": "#1a1c1c",
+                        "on-tertiary-fixed-variant": "#44474b",
+                        "primary-fixed": "#ffdad4",
+                        "on-primary-fixed": "#3f0300",
+                        "surface-variant": "#333535",
+                        "on-surface-variant": "#dcc0bb",
+                        "tertiary-container": "#a9abb0",
+                        "secondary-fixed": "#e2e2e5",
+                        "on-secondary-container": "#b4b5b7",
+                        "on-primary": "#601308",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#c6c6c9",
+                        "on-secondary-fixed-variant": "#454749",
+                        "outline": "#a48b87",
+                        "inverse-primary": "#9f4030",
+                        "on-tertiary-fixed": "#191c20",
+                        "on-tertiary": "#2e3135",
+                        "background": "#121414",
+                        "tertiary-fixed": "#e1e2e7",
+                        "primary-container": "#ff8a75"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "unit": "8px",
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "container-padding-mobile": "20px",
+                        "gutter": "16px",
+                        "container-padding-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Manrope"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg": ["Manrope"],
+                        "hebrew": ["Rubik"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0E0E0E;
+            color: #e2e2e2;
+            font-family: 'Inter', 'Rubik', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(44, 47, 51, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .order-row:hover {
+            background: rgba(255, 180, 166, 0.03);
+        }
+        .badge-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1); opacity: 0.2; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="pb-24">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/10 flex flex-row-reverse items-center justify-between px-container-padding-mobile h-16 w-full">
+<div class="flex items-center gap-4 flex-row-reverse">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a premium event photographer, dressed in a sleek charcoal suit, set against a blurred background of a luxury wedding venue with warm bokeh lights. The lighting is dramatic yet soft, reflecting a high-end corporate health and tech aesthetic with deep shadows and warm highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAET0TETJkCD7acZu8IgTwT8wX_fXXinKGHQHvOsFY7eQZg8LSNk2Em21MpuaKSC3Fmn0KQDuJiBWuf8wDEF8Ee_UpZMRnb-cAqKNgHNiPbtkq807P5sv6xSnVaK06O6FVQjxn9O1-s26kE6JYvC2w6YR7Z7_OhniX32SWuBI7ZKOEHmhd48xU10mi6eldHcu8DA6VkEoY_lKGT-MfNDPRrtE6TdGdpCGVSJAdJDdmLgWJA7cA18StyEQE4ak9K8Z4AlkGSsiomAVn0"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity cursor-pointer">notifications</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-full border border-white/5 cursor-pointer hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined text-primary text-sm">expand_more</span>
+<span class="font-hebrew text-label-sm font-medium">אירוע חתונה • 12.10.2023</span>
+</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary">Oura</span>
+</div>
+</nav>
+<!-- Content Canvas -->
+<main class="mt-20 px-container-padding-mobile max-w-5xl mx-auto">
+<!-- Header Section -->
+<header class="mb-stack-md flex justify-between items-end"><div>
+<h1 class="font-hebrew font-headline-lg text-headline-lg text-on-surface">תור הדפסות</h1>
+<p class="font-hebrew text-on-surface-variant mt-1">ניהול הזמנות והדפסות לאירוע הנוכחי</p>
+</div>
+<div class="flex items-center gap-3"><div class="flex items-center gap-2 bg-surface-container border border-white/10 px-4 py-2.5 rounded-xl hover:border-primary/30 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">print</span>
+<div class="flex items-center gap-2 text-sm font-hebrew">
+<span class="text-on-surface-variant">סוג:</span>
+<span class="text-on-surface">הכל</span>
+</div>
+<span class="material-symbols-outlined text-primary text-sm">expand_more</span>
+</div>
+<div class="flex items-center gap-2 bg-surface-container border border-white/10 px-4 py-2.5 rounded-xl hover:border-primary/30 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">calendar_today</span>
+<div class="flex items-center gap-2 text-sm font-hebrew">
+<span class="text-on-surface-variant">מ-</span>
+<span class="text-on-surface">01.10.23</span>
+<span class="text-on-surface-variant">עד-</span>
+<span class="text-on-surface">12.10.23</span>
+</div>
+<span class="material-symbols-outlined text-primary text-sm">expand_more</span>
+</div><div class="flex items-center gap-2 bg-surface-container border border-white/10 px-4 py-2.5 rounded-xl hover:border-primary/30 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">payments</span>
+<div class="flex items-center gap-2 text-sm font-hebrew">
+<span class="text-on-surface-variant">סטטוס תשלום:</span>
+<span class="text-on-surface">הכל</span>
+</div>
+<span class="material-symbols-outlined text-primary text-sm">expand_more</span>
+</div>
+<button class="border border-white/20 text-on-surface/80 hover:border-primary/50 hover:text-primary font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined">description</span>
+<span class="font-hebrew">ייצוא לדוח CSV</span>
+</button>
+<button class="bg-primary text-on-primary font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">sync</span>
+<span class="font-hebrew">סנכרן קבצים</span>
+</button>
+</div></header>
+<!-- Filter Bar -->
+<div class="flex gap-2 mb-stack-md overflow-x-auto pb-2 scrollbar-hide">
+<button class="bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full whitespace-nowrap flex items-center gap-2 font-hebrew text-sm font-medium">
+                הכל
+                <span class="bg-primary text-on-primary-container text-[10px] px-1.5 rounded-full">42</span>
+</button>
+<button class="bg-surface-container text-on-surface-variant hover:bg-surface-variant transition-colors border border-white/5 px-4 py-1.5 rounded-full whitespace-nowrap flex items-center gap-2 font-hebrew text-sm">
+                ממתין לקובץ
+                <span class="bg-surface-container-highest text-on-surface-variant text-[10px] px-1.5 rounded-full">12</span>
+</button>
+<button class="bg-surface-container text-on-surface-variant hover:bg-surface-variant transition-colors border border-white/5 px-4 py-1.5 rounded-full whitespace-nowrap flex items-center gap-2 font-hebrew text-sm">
+                מוכן להדפסה
+                <span class="bg-surface-container-highest text-on-surface-variant text-[10px] px-1.5 rounded-full">28</span>
+</button>
+<button class="bg-surface-container text-on-surface-variant hover:bg-surface-variant transition-colors border border-white/5 px-4 py-1.5 rounded-full whitespace-nowrap flex items-center gap-2 font-hebrew text-sm">
+                הושלם
+                <span class="bg-surface-container-highest text-on-surface-variant text-[10px] px-1.5 rounded-full">2</span>
+</button>
+</div>
+<!-- Warning Banner -->
+<div class="glass-card border-l-4 border-l-[#ffb4a6] p-4 rounded-xl mb-stack-lg flex items-start gap-4">
+<div class="bg-primary/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">warning</span>
+</div>
+<div class="flex-1">
+<p class="font-hebrew text-on-surface leading-relaxed text-sm">
+<span class="font-bold">12 הזמנות ממתינות לקובץ מקורי.</span> כשתסנכרן את הקבצים המקוריים, ההזמנות יעברו אוטומטית למצב מוכן להדפסה.
+                </p>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<!-- Order Sections -->
+<div class="space-y-stack-lg">
+<!-- Section: Magnets -->
+<section>
+<div class="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+<h3 class="font-hebrew font-bold text-lg flex items-center gap-2">
+                        מגנט
+                        <span class="text-sm font-normal text-on-surface-variant">(24 יחידות)</span>
+</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">filter_list</span>
+</div>
+<div class="glass-card rounded-xl overflow-hidden">
+<!-- Desktop Table Header -->
+<div class="hidden md:grid gap-4 p-4 bg-white/5 text-on-surface-variant text-xs font-hebrew uppercase tracking-wider md:grid-cols-7"><div class="col-span-2">אורח</div><div class="text-center">כמות</div><div class="text-center">סטטוס</div><div class="text-center">סטטוס תשלום</div><div class="text-center">תאריך</div><div class="text-right">פעולה</div></div>
+<!-- Order Row 1 -->
+<div class="order-row border-b border-white/5 md:grid md:grid-cols-7 items-center gap-4 p-4 transition-colors"><div class="col-span-2 flex items-center gap-3 mb-2 md:mb-0"><div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary font-bold">נ</div><div><p class="font-hebrew font-medium text-on-surface">נועה לוי</p><p class="text-xs text-on-surface-variant">054-123-4567</p></div></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">כמות:</span><span class="font-hebrew">3</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">סטטוס:</span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10b98120] text-[#10b981] text-xs font-bold font-hebrew"><span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>מוכן</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">סטטוס תשלום:</span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10b98120] text-[#10b981] text-xs font-bold font-hebrew">שולם</span></div><div class="flex justify-between md:block md:text-center mb-4 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">תאריך:</span><span class="text-xs text-on-surface-variant">12.10.23, 21:15</span></div><div class="text-right"><button class="w-full md:w-auto bg-primary text-on-primary font-bold px-4 py-1.5 rounded-lg text-sm active:scale-95 transition-transform font-hebrew">סמן כהודפס</button></div></div>
+<!-- Order Row 2 (Waiting) -->
+<div class="order-row border-b border-white/5 md:grid md:grid-cols-7 items-center gap-4 p-4 transition-colors"><div class="col-span-2 flex items-center gap-3 mb-2 md:mb-0"><div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary font-bold">ג</div><div><p class="font-hebrew font-medium text-on-surface">גיא אהרוני</p><p class="text-xs text-on-surface-variant">052-987-6543</p></div></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">כמות:</span><span class="font-hebrew">5</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">סטטוס:</span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f59e0b20] text-[#f59e0b] text-xs font-bold font-hebrew"><span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b] animate-pulse"></span>ממתין</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">סטטוס תשלום:</span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f59e0b20] text-[#f59e0b] text-xs font-bold font-hebrew">ממתין</span></div><div class="flex justify-between md:block md:text-center mb-4 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">תאריך:</span><span class="text-xs text-on-surface-variant">12.10.23, 21:42</span></div><div class="text-right flex items-center gap-2 justify-end"><button class="w-full md:w-auto border border-white/10 text-on-surface-variant cursor-not-allowed font-bold px-4 py-1.5 rounded-lg text-sm font-hebrew opacity-50">סמן כהודפס</button><button class="flex flex-row-reverse items-center gap-1 bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] font-bold px-3 py-1.5 rounded-lg text-xs hover:brightness-110 active:scale-95 transition-all font-hebrew" onclick="document.getElementById('whatsapp-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-sm">chat</span>
+<span>תזכורת בוואטסאפ</span>
+</button></div></div>
+</div>
+</section>
+<!-- Section: Block Prints -->
+<section>
+<div class="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+<h3 class="font-hebrew font-bold text-lg flex items-center gap-2">
+                        בלוק עץ
+                        <span class="text-sm font-normal text-on-surface-variant">(8 יחידות)</span>
+</h3>
+</div>
+<div class="glass-card rounded-xl overflow-hidden">
+<!-- Order Row 3 (Completed) -->
+<div class="order-row md:grid md:grid-cols-7 items-center gap-4 p-4 transition-colors"><div class="col-span-2 flex items-center gap-3 mb-2 md:mb-0"><div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary font-bold">א</div><div><p class="font-hebrew font-medium text-on-surface">אביטל כהן</p><p class="text-xs text-on-surface-variant">050-111-2222</p></div></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">כמות:</span><span class="font-hebrew">1</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">סטטוס:</span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-xs font-bold font-hebrew"><span class="material-symbols-outlined text-[14px]">check_circle</span>הושלם</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">סטטוס תשלום:</span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#10b98120] text-[#10b981] text-xs font-bold font-hebrew">שולם</span></div><div class="flex justify-between md:block md:text-center mb-2 md:mb-0"><span class="md:hidden text-xs text-on-surface-variant font-hebrew">תאריך:</span><span class="text-xs text-on-surface-variant">12.10.23, 20:30</span></div><div class="text-right"><span class="font-hebrew text-xs text-secondary-container bg-surface-container px-3 py-1 rounded-full inline-block">הודפס ב-21:05</span></div></div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/90 backdrop-blur-2xl border-t border-white/5 shadow-lg flex flex-row-reverse justify-around items-center w-full py-2 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-tertiary-container hover:bg-surface-variant/50 transition-colors px-3 py-1 rounded-xl" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-sm text-label-sm font-hebrew mt-1">ראשי</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold bg-primary/10 rounded-xl px-3 py-1 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">subscriptions</span>
+<span class="font-label-sm text-label-sm font-hebrew mt-1">גלריה</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary-container hover:bg-surface-variant/50 transition-colors px-3 py-1 rounded-xl" href="#">
+<span class="material-symbols-outlined">edit_note</span>
+<span class="font-label-sm text-label-sm font-hebrew mt-1">עריכה</span>
+</a>
+<a class="flex flex-col items-center justify-center text-tertiary-container hover:bg-surface-variant/50 transition-colors px-3 py-1 rounded-xl" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm font-hebrew mt-1">פרופיל</span>
+</a>
+</nav>
+<!-- FAB (Contextual for Printing Task) -->
+<button class="fixed bottom-24 left-6 z-40 bg-primary-container text-on-primary-container w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">print</span>
+</button>
+<script>
+        // Micro-interaction for primary sync button
+        document.querySelector('button').addEventListener('click', function() {
+            const icon = this.querySelector('.material-symbols-outlined');
+            icon.classList.add('animate-spin');
+            setTimeout(() => icon.classList.remove('animate-spin'), 2000);
+        });
+    </script>
+<div class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" id="whatsapp-modal">
+<div class="glass-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-[#121414]"><div class="p-6 space-y-4"><div class="flex items-center justify-between mb-4"><h3 class="font-hebrew font-bold text-lg text-on-surface">הגדרת הודעת וואטסאפ</h3><span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary" onclick="document.getElementById('whatsapp-modal').classList.add('hidden')">close</span></div><div class="flex flex-col md:flex-row gap-6"><div class="flex-1 order-2 md:order-1 space-y-4"><div class="space-y-2"><label class="text-xs text-on-surface-variant font-hebrew">בחירת תבנית:</label><div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><button class="bg-primary text-on-primary-container px-3 py-1.5 rounded-full whitespace-nowrap font-hebrew text-xs font-medium transition-all">תזכורת תשלום</button><button class="bg-surface-container text-on-surface-variant hover:bg-surface-variant border border-white/5 px-3 py-1.5 rounded-full whitespace-nowrap font-hebrew text-xs transition-all">הזמנה מוכנה</button><button class="bg-surface-container text-on-surface-variant hover:bg-surface-variant border border-white/5 px-3 py-1.5 rounded-full whitespace-nowrap font-hebrew text-xs transition-all">תודה רבה</button></div></div><div class="space-y-2"><label class="text-xs text-on-surface-variant font-hebrew">תוכן ההודעה:</label><textarea class="w-full h-32 bg-surface-container border border-white/10 rounded-xl p-3 text-sm text-on-surface font-hebrew focus:border-primary/50 focus:ring-0 transition-colors resize-none" id="whatsapp-message-text">היי גיא אהרוני, כאן מהצילום של אירוע חתונה. התמונות שבחרת מחכות להדפסה! נשמח להשלמת התשלום כדי שנוכל להוציא אותן לדרך. לינק לתשלום: [לינק]</textarea></div><div class="flex gap-3 pt-2"><button class="flex-1 bg-primary-container text-on-primary-container font-bold py-2.5 rounded-xl active:scale-95 transition-transform font-hebrew" onclick="document.getElementById('whatsapp-modal').classList.add('hidden')">שלח לוואטסאפ</button><button class="flex-1 border border-white/10 text-on-surface-variant font-bold py-2.5 rounded-xl hover:bg-white/5 active:scale-95 transition-all font-hebrew" onclick="document.getElementById('whatsapp-modal').classList.add('hidden')">ביטול</button></div></div><div class="flex-1 order-1 md:order-2 bg-black/40 rounded-2xl p-4 border border-white/5 flex flex-col justify-center items-center min-h-[240px]"><div class="w-full max-w-[280px] space-y-2"><p class="text-[10px] text-center text-on-surface-variant mb-2">היום, 14:30</p><div class="relative bg-[#075E54]/20 border border-[#075E54]/30 p-3 rounded-xl rounded-tr-none text-sm text-on-surface font-hebrew shadow-lg"><p id="whatsapp-preview-text">היי גיא אהרוני, כאן מהצילום של אירוע חתונה. התמונות שבחרת מחכות להדפסה! נשמח להשלמת התשלום כדי שנוכל להוציא אותן לדרך.</p><div class="flex items-center justify-end gap-1 mt-1"><span class="text-[10px] opacity-60">14:31</span><span class="material-symbols-outlined text-[14px] text-[#34B7F1]">done_all</span></div><div class="absolute -top-[1px] -right-2 w-3 h-3 bg-[#075E54]/20 border-t border-r border-[#075E54]/30" style="clip-path: polygon(0 0, 0% 100%, 100% 0);"></div></div></div></div></div></div></div>
+</div></body></html>
