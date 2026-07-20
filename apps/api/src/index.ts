@@ -1654,6 +1654,135 @@ app.get('/events/by-code/:code', async (c) => {
   return c.json({ event_id: event.id });
 });
 
+// §10.4 — Print Shop: order placement (guest-facing, no auth required)
+app.post('/gallery/:token/orders', async (c) => {
+  const token = c.req.param('token');
+  if (!token) return c.json({ error: 'missing_token' }, 400);
+
+  const db = supa(c.env);
+
+  const guestResult = await resolveGuest(db, token, c.env.GUEST_TOKEN_SECRET);
+  if (!guestResult.ok) return c.json({ error: guestResult.error }, guestResult.status);
+  const guest = guestResult.guest;
+
+  const body = await c.req.json<{
+    photo_id: string;
+    format: string;
+    quantity?: number;
+    price_agorot?: number;
+    guest_name?: string;
+    guest_phone?: string;
+    notes?: string;
+  }>();
+
+  if (!body.photo_id || !body.format) {
+    return c.json({ error: 'missing_fields' }, 400);
+  }
+
+  const validFormats = ['magnet', 'print_10x15', 'block', 'photo_book'];
+  if (!validFormats.includes(body.format)) {
+    return c.json({ error: 'invalid_format' }, 400);
+  }
+
+  // Verify photo belongs to this guest's event
+  const { data: photo, error: photoErr } = await db
+    .from('photos')
+    .select('id, event_id, is_original_uploaded')
+    .eq('id', body.photo_id)
+    .eq('event_id', guest.event_id)
+    .maybeSingle();
+
+  if (photoErr || !photo) return c.json({ error: 'photo_not_found' }, 404);
+
+  // Determine initial status based on whether high-res is available
+  const initialStatus = photo.is_original_uploaded
+    ? 'Ready_For_Photographer_Print'
+    : 'Awaiting_High_Res_Asset';
+
+  const { data: order, error: insertErr } = await db
+    .from('orders')
+    .insert({
+      event_id: guest.event_id,
+      photo_id: body.photo_id,
+      guest_token: token,
+      format: body.format,
+      fulfillment_type: 'SELF_FULFILLMENT',
+      order_status: initialStatus,
+      quantity: body.quantity ?? 1,
+      price_agorot: body.price_agorot ?? 0,
+      guest_name: body.guest_name ?? null,
+      guest_phone: body.guest_phone ?? null,
+      notes: body.notes ?? null,
+    })
+    .select('id, order_status')
+    .single();
+
+  if (insertErr) {
+    console.error('order insert error', insertErr);
+    return c.json({ error: 'order_failed' }, 500);
+  }
+
+  return c.json({ order_id: order.id, order_status: order.order_status }, 201);
+});
+
+// §10.4 — Print Shop: list orders for photographer (admin)
+app.get('/admin/events/:event_id/orders', async (c) => {
+  const event_id = c.req.param('event_id');
+  if (!event_id) return c.json({ error: 'missing_event_id' }, 400);
+
+  const db = supa(c.env);
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  const status = c.req.query('status');
+
+  let query = db
+    .from('orders')
+    .select('id, photo_id, format, fulfillment_type, order_status, quantity, price_agorot, guest_name, guest_phone, notes, marked_printed_at, created_at, photos(storage_key)')
+    .eq('event_id', event_id)
+    .order('created_at', { ascending: false });
+
+  if (status) query = query.eq('order_status', status);
+
+  const { data: orders, error } = await query;
+  if (error) return c.json({ error: 'fetch_failed' }, 500);
+
+  return c.json({ orders });
+});
+
+// §10.4 — Print Shop: photographer marks order as printed
+app.put('/admin/orders/:order_id/mark-printed', async (c) => {
+  const order_id = c.req.param('order_id');
+  if (!order_id) return c.json({ error: 'missing_order_id' }, 400);
+
+  const db = supa(c.env);
+
+  // Fetch order to verify ownership
+  const { data: order, error: fetchErr } = await db
+    .from('orders')
+    .select('id, event_id, order_status')
+    .eq('id', order_id)
+    .maybeSingle();
+
+  if (fetchErr || !order) return c.json({ error: 'order_not_found' }, 404);
+
+  const auth = await requireEventOwner(c, db, order.event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  if (order.order_status !== 'Ready_For_Photographer_Print') {
+    return c.json({ error: 'order_not_ready', current_status: order.order_status }, 409);
+  }
+
+  const { error: updateErr } = await db
+    .from('orders')
+    .update({ order_status: 'Completed', marked_printed_at: new Date().toISOString() })
+    .eq('id', order_id);
+
+  if (updateErr) return c.json({ error: 'update_failed' }, 500);
+
+  return c.json({ ok: true });
+});
+
 app.get('/', (c) => c.text('oura-api'));
 
 // Cloudflare Queues (queue) and Cron Triggers (scheduled) require handlers on

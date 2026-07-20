@@ -468,3 +468,11 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - PR #81 open draft, CI green, ready to merge.
 - BLOCKED: backfill call for WED-2024 needs ADMIN_BACKFILL_TOKEN value — exists in Cloudflare secrets vault but not readable from this environment. Founder needs to paste it in chat or add it to Claude Code environment secrets.
 - Added iPhone-only rule to CLAUDE.md and MISTAKES.md.
+
+### 2026-07-20 (session — §10.4 Print Shop)
+- Migration 0011: orders table, fulfillment_route_type + platform_order_status enums, auto-release trigger, RLS
+- API: POST /gallery/:token/orders, GET /admin/events/:id/orders, PUT /admin/orders/:id/mark-printed
+- /admin/print-queue dashboard page (dimension-grouped, status filter chips, "סמן כהודפס")
+- AdminShell nav: "תור הדפסות" added
+- Deployed: oura-api 21d72915, oura-web aa889bc6
+- PR #94 open on claude/oura-10-3-deploy-wb0txc — awaiting founder migration + merge
