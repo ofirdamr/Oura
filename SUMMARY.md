@@ -246,6 +246,13 @@ When face-matching returns 0 personal photos: subtitle now says "מחפשים א
 
 **Note:** migration 0007 (`0007_gallery_theme_personal.sql`) — confirm whether it was ever applied; apply if not.
 
+## ✅ DONE 2026-07-19 — PRD §10.2 client-side upload engine (PR #92, deployed)
+
+Photographer can now drag a whole Lightroom ZIP into the event upload screen and it just works: ZIP extracted in-browser (jszip, entry-by-entry for memory safety), each image silently compressed to ≤1 MB (browser-image-compression, Web Worker), then uploaded via a 5-parallel queue with automatic retries (2s/4s/8s backoff). Single "מייעל ומעלה נכסים בצורה בטוחה... X/Y" progress bar. Deployed oura-web `c1cedcca`. PR #92 draft on `claude/oura-prd-next-5a9vtt`.
+
+**Open PRs:**
+- **PR #92** — PRD §10.2 upload engine, deployed, ready to merge
+
 ## ⏭️ NEXT MVP MISSION — (to be decided per PRD order)
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):
