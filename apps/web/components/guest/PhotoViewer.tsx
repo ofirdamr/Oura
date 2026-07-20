@@ -39,12 +39,14 @@ export function PhotoViewer({
   branding,
   shareCaption,
   onClose,
+  guestToken,
 }: {
   photos: GuestPhoto[];
   startIndex: number;
   branding: CompositeBranding;
   shareCaption?: string;
   onClose: () => void;
+  guestToken?: string;
 }) {
   const router = useRouter();
   const [index, setIndex] = useState(startIndex);
@@ -292,6 +294,18 @@ export function PhotoViewer({
               className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20"
             >
               <span className="material-symbols-outlined">tune</span>
+            </button>
+          )}
+          {!isVideo(photo) && guestToken && (
+            <button
+              type="button"
+              onClick={() => router.push(
+                `/premium-prints?photo_id=${encodeURIComponent(photo.id)}&photo_url=${encodeURIComponent(photo.url)}&token=${encodeURIComponent(guestToken)}`
+              )}
+              aria-label="הזמנת הדפסה"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            >
+              <span className="material-symbols-outlined">print</span>
             </button>
           )}
           <button

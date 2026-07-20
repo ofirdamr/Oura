@@ -123,6 +123,7 @@ export default function GalleryPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   // Header controls open real panels (notifications / profile).
   const [sheet, setSheet] = useState<"none" | "notifications" | "profile">("none");
+  const [guestToken, setGuestToken] = useState<string | null>(null);
 
   const branding: CompositeBranding = useMemo(() => {
     const b = data?.event?.branding;
@@ -190,6 +191,7 @@ export default function GalleryPage() {
       }
 
       setStatus("loading");
+      setGuestToken(session.token);
       const result = await getGallery(session.token);
       if (cancelled) return;
 
@@ -705,6 +707,7 @@ export default function GalleryPage() {
           branding={branding}
           shareCaption={shareCaption}
           onClose={() => setViewer(null)}
+          guestToken={guestToken ?? undefined}
         />
       )}
 
