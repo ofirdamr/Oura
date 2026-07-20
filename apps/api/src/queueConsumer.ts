@@ -155,6 +155,53 @@ export async function handleQueue(
         category,
       }).eq('id', photo_id);
 
+      // ── Back-match existing guests against this new photo ─────────────────
+      // Guests who scanned their selfie BEFORE this photo was uploaded will
+      // never see it unless we explicitly link them here. For each person_id
+      // detected in this photo, find all guests in this event who already have
+      // a guest_photo_matches row that references that same person_id (via
+      // face_embeddings), and create a new row for this photo.
+      if (!ai_rejected && insertedEmbeddings.length > 0) {
+        const personIds = [...new Set(insertedEmbeddings.map((e) => e.person_id))];
+        // Find (guest_id, person_id) pairs where the guest previously matched
+        // any of these clusters in this event.
+        const { data: existingLinks } = await db
+          .from('guest_photo_matches')
+          .select('guest_id, match_similarity, face_embeddings!inner(person_id)')
+          .eq('event_id', event_id)
+          .in('face_embeddings.person_id', personIds);
+
+        if (existingLinks && existingLinks.length > 0) {
+          // Build guest_id → best similarity for the matched person_ids.
+          const simByGuest = new Map<string, number | null>();
+          for (const row of existingLinks as Array<{
+            guest_id: string;
+            match_similarity: number | null;
+            face_embeddings: { person_id: string } | { person_id: string }[] | null;
+          }>) {
+            const fe = Array.isArray(row.face_embeddings) ? row.face_embeddings[0] : row.face_embeddings;
+            if (!fe || !personIds.includes(fe.person_id)) continue;
+            const prev = simByGuest.get(row.guest_id);
+            const sim = row.match_similarity ?? null;
+            if (prev === undefined || (sim !== null && (prev === null || sim > prev))) {
+              simByGuest.set(row.guest_id, sim);
+            }
+          }
+          const newLinks = Array.from(simByGuest.entries()).map(([guest_id, sim]) => ({
+            guest_id,
+            event_id,
+            photo_id,
+            match_similarity: sim,
+          }));
+          if (newLinks.length > 0) {
+            const { error: backMatchErr } = await db
+              .from('guest_photo_matches')
+              .upsert(newLinks, { onConflict: 'guest_id,photo_id' });
+            if (backMatchErr) console.error('back-match upsert failed', photo_id, backMatchErr);
+          }
+        }
+      }
+
       message.ack();
     } catch (err) {
       console.error('face-embed failed for photo', photo_id, err);
