@@ -476,3 +476,4 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - AdminShell nav: "תור הדפסות" added
 - Deployed: oura-api 21d72915, oura-web aa889bc6
 - PR #94 open on claude/oura-10-3-deploy-wb0txc — awaiting founder migration + merge
+- 2026-07-20: §10.4 Premium Prints + Order Confirmation wired to real API (POST /gallery/:token/orders). PhotoViewer gets print button. premium-prints page is now fully interactive (size/paper/frame pickers, live price, API submit). order-confirmation shows real order_id + date. Deployed oura-web 0deb2597. PR #95 open on claude/oura-prd-10-5-jvo389.
