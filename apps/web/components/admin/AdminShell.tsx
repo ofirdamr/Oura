@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { label: "ניתוח נתונים", icon: "analytics", href: "/admin/statistics" },
   { label: "מרכז הודעות", icon: "chat", href: "/admin/messaging" },
   { label: "דוחות", icon: "bar_chart", href: "/admin/reports" },
+  { label: "תור הדפסות", icon: "print", href: "/admin/print-queue" },
   { label: "ספר האירוע", icon: "auto_stories", href: "/admin/event-book" },
 ];
 
