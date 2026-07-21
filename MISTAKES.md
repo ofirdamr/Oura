@@ -258,3 +258,11 @@ Append-only. Log immediately on discovery, before moving on.
 
 **Correct approach:** Stitch MCP is installed in this project. Use it to generate the screen before writing any UI code. If unsure how to invoke it, write the prompt and hand it to the founder.
 
+
+## 2026-07-21 — False design-violation accusation (same session, same day)
+
+**What:** Flagged PR #96's screen.png files as "freehanded by Claude" and added a warning to SUMMARY.md and MISTAKES.md. Both were wrong — the designs were real Stitch exports made together with the founder.
+
+**Why the mistake:** (1) The files weren't on main yet (they were only in the PR branch), so assumed they were self-generated. (2) The implementation_guide.md said "for Claude" — misread that as Claude writing it, not Stitch outputting it. Neither check was conclusive. Should have asked the founder before making an accusation.
+
+**Correct approach:** Before flagging a guardrail violation involving the founder's own work, ASK first. "Were these design files from Stitch?" is a one-second question. Never write a violation into permanent docs (SUMMARY, MISTAKES) based on an assumption — only on confirmed fact.
