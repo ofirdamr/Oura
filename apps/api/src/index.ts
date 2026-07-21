@@ -1158,20 +1158,6 @@ app.get('/admin/processing-status', async (c) => {
 //   custom domain required.
 //   Always returns 200 with the same body regardless of whether the email
 //   exists, to avoid leaking account existence (same pattern as requireEventOwner).
-//
-//   IMPORTANT — why we do NOT email Supabase's raw `action_link`:
-//   `action_link` is the one-time `/auth/v1/verify` GET URL, and Supabase burns
-//   its token on the FIRST request that hits it. Gmail/Brevo link scanners
-//   prefetch that URL the moment the mail is delivered, spending the token before
-//   the human ever taps — so the real click always landed on an already-consumed
-//   token and showed "link invalid". Instead we email a link to OUR OWN
-//   `/reset-password?token_hash=…&type=recovery` page. Brevo's click-tracking
-//   still wraps this link (`…/tr/cl/…`) and pre-scans the destination — and Brevo
-//   provides no way to disable that for transactional email — so the page itself
-//   is built to be immune to it: it does NOT redeem the one-time token on load.
-//   It shows a confirm gate and redeems `verifyOtp({type:'recovery',token_hash})`
-//   only on the real user's button tap, which no prefetch/pre-scan performs — so
-//   the token survives every scan and is spent only by the human.
 app.post('/auth/forgot-password', async (c) => {
   let email = '';
   try {
@@ -1196,21 +1182,16 @@ app.post('/auth/forgot-password', async (c) => {
 
   // If the email doesn't exist in Supabase, generateLink returns an error.
   // Silently return ok so the caller can't enumerate accounts.
-  if (linkErr || !linkData?.properties?.hashed_token) {
+  if (linkErr || !linkData?.properties?.action_link) {
     return c.json({ ok: true });
   }
 
-  // Build a link to OUR page carrying the one-time token_hash (NOT action_link —
-  // see the header comment: action_link gets burned by email-scanner prefetch).
-  const tokenHash = linkData.properties.hashed_token;
-  const resetLink =
-    `https://oura-web.oura-events.workers.dev/reset-password` +
-    `?token_hash=${encodeURIComponent(tokenHash)}&type=recovery`;
+  const resetLink = linkData.properties.action_link;
 
   // Send via Brevo's transactional-email API (delivers to any inbox, no custom
   // domain needed — the reason we moved off Resend's owner-only shared sender).
   const senderEmail = c.env.BREVO_SENDER_EMAIL ?? 'ofirdamr@gmail.com';
-  const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+  await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'api-key': c.env.BREVO_API_KEY,
@@ -1238,15 +1219,6 @@ app.post('/auth/forgot-password', async (c) => {
       `,
     }),
   });
-
-  // Surface the real send outcome server-side: fetch() does NOT throw on a
-  // non-2xx, so an invalid/mis-scoped Brevo key or unverified sender otherwise
-  // fails completely silently (the reset email just never arrives). Log it so a
-  // delivery failure is diagnosable instead of invisible.
-  if (!brevoRes.ok) {
-    const detail = await brevoRes.text().catch(() => '');
-    console.error('brevo send failed', brevoRes.status, detail);
-  }
 
   return c.json({ ok: true });
 });
