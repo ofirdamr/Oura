@@ -104,12 +104,13 @@ const FESTIVE_CATEGORIES = [
   { key: "dances", label: "ריקודים" },
   { key: "reception", label: "קבלת פנים" },
   { key: "main_course", label: "מנה עיקרית" },
+  { key: "couple", label: "זוג" },
 ] as const;
 
 export default function GalleryPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<"all" | "mine">("all");
-  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "dances" | "reception" | "main_course">("all");
+  const [festiveCategory, setFestiveCategory] = useState<"all" | "ceremony" | "dances" | "reception" | "main_course" | "couple">("all");
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<GalleryResponse | null>(null);
@@ -118,6 +119,7 @@ export default function GalleryPage() {
   const [bulk, setBulk] = useState<{ mode: "download" | "share"; done: number; total: number } | null>(null);
   // Multi-select: set of selected photo IDs. Empty = no selection mode.
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [declinedConsent, setDeclinedConsent] = useState(false);
   // Header controls open real panels (notifications / profile).
   const [sheet, setSheet] = useState<"none" | "notifications" | "profile">("none");
   const [guestToken, setGuestToken] = useState<string | null>(null);
@@ -207,6 +209,7 @@ export default function GalleryPage() {
       }
 
       const declinedConsent = new URLSearchParams(window.location.search).get("declined") === "1";
+      setDeclinedConsent(declinedConsent);
       if (result.data.personal_gallery.consent_required && !declinedConsent) {
         // Real enforcement point, not just the consent screen's job: never
         // render personal data for a guest who hasn't actually consented,
@@ -236,7 +239,7 @@ export default function GalleryPage() {
     );
   }
 
-  if (status === "error" || !data || data.personal_gallery.consent_required) {
+  if (status === "error" || !data || (data.personal_gallery.consent_required && !declinedConsent)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
         <p className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
