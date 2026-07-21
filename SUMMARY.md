@@ -47,6 +47,10 @@ Festive category chips now show correct Hebrew labels (ריקודים, מנה ע
 
 **NOTE:** `category` column not yet in DB — chips will filter correctly once migration 0012 (adds `category` to photos table) is applied. Chip "כל התמונות" works now; others show 0 results until then.
 
+## ✅ DONE 2026-07-21 — Password reset verified working live (end-to-end by founder)
+
+Full flow confirmed: forgot-password → email arrives → confirm gate → new password → login. Both workers redeployed from main.
+
 ## ✅ DONE 2026-07-18 — Password reset fully immune to Brevo click-tracking (PR #71, merged)
 
 Confirm-gate on `/reset-password` page prevents token burn by Brevo's pre-scan. Verified e2e.
