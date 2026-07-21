@@ -1,5 +1,8 @@
 # CLAUDE.md — Oura
 
+## Agent Spawning Rule (non-negotiable)
+**Never spawn a background agent (`run_in_background: true`) unless you can guarantee the ability to stop it in the same session.** If the session might end before the agent finishes, do NOT spawn it. Foreground agents only, so the founder always has control. Violating this rule is prohibited.
+
 Event-photography SaaS. Guests scan a QR at an event → live, face-matched, branded gallery on their phone. See `PRD.md` for full product detail, `SUMMARY.md` for current state.
 
 ## Stack
