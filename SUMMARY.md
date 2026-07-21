@@ -79,18 +79,24 @@ Run a real QA pass on the live site: walk every §10 flow with actual screenshot
 5. **Category misclassification + missing categories** — FIXED in PR #107: parseCat now returns 'dances'/'main_course'/'couple'; 'couple' chip added (code only, undeployed).
 6. **Demo photos too few** — upload more photos via https://oura-web.oura-events.workers.dev/admin/upload. Manual data task, no code change needed.
 
-## Open PR — must deploy + QA before merging
+## Open PRs
 
-**PR #107** (branch `claude/section-10-prints-qa-iys3c8`) — fixes bugs 1/2/3/5 below. Code-complete, TypeScript clean. NOT yet deployed to Cloudflare, NOT merged, NOT visually QA'd. Next session must: deploy (`wrangler deploy` for API, Cloudflare Pages/Workers for web), take a real Playwright screenshot of the live app confirming each fix, then merge.
+None — all clear.
 
-## Open bugs — status after 2026-07-21 session
+## Recent fixes (2026-07-21)
 
-1. **Gallery crash when consent declined** — FIXED in PR #107 (code only, undeployed).
-2. **Black photo preview in prints page (mobile)** — FIXED in PR #107 (code only, undeployed).
-3. **"Add to cart" immediately places order** — FIXED in PR #107: buttons now say "הזמנת הדפסה עכשיו" (code only, undeployed).
-4. **PDF receipt** — defer to Stripe phase, no fix needed now.
-5. **Category misclassification + missing categories** — FIXED in PR #107: parseCat now returns 'dances'/'main_course'/'couple'; 'couple' chip added (code only, undeployed).
-6. **Demo photos too few** — upload more photos via https://oura-web.oura-events.workers.dev/admin/upload. Manual data task, no code change needed.
+PR #107 merged and deployed:
+- Gallery consent-decline crash fixed — declined guests now see the open gallery, not an error screen
+- Mobile photo preview black box fixed — `relative` added to container
+- Print order button labels fixed — "הזמנת הדפסה עכשיו" instead of "הוספה לסל"
+- Category chips fixed — `parseCat` now returns correct keys ('dances'/'main_course'); 'couple' chip added
+
+**Visual QA still pending** — no Playwright screenshot taken this session. Next session should open https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024, decline consent, and verify the gallery shows (not an error). Also check the prints page on mobile for the photo preview and button label.
+
+## Remaining open items
+
+- **Demo photos too few** — upload more photos covering dancing/eating/celebration via https://oura-web.oura-events.workers.dev/admin/upload (manual task, no code needed)
+- **Visual QA** — confirm the 4 fixes above look correct on the live site
 
 ## Key guardrails (NEVER violate)
 
