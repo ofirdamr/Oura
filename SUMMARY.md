@@ -93,9 +93,9 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Backfill still needed** — API deployed with improved category AI prompt (couple shots now distinct from ceremony). Still need to run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos.
+- **Backfill needed** — run `POST https://oura-api.oura-events.workers.dev/admin/events/WED-2024/backfill-categories` with `Authorization: Bearer $ADMIN_BACKFILL_TOKEN` to reclassify existing photos with the improved AI prompt.
 - **Demo photos too few** — only ceremony/reception shots exist. Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
-- **Visual QA** — confirm the 4 bug fixes look correct on the live site.
+- **Visual QA** — no Playwright screenshots taken this session. Confirm fixes on the live site.
 
 ## Key guardrails (NEVER violate)
 
