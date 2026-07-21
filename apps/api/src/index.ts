@@ -1559,16 +1559,24 @@ app.post('/auth/forgot-password', async (c) => {
 
   if (!email) return c.json({ ok: true });
 
-  // Rate-limit to stop abuse of this public endpoint (anyone could POST the
-  // founder's email repeatedly and email-bomb their inbox). Throttle on both
-  // the target email and the caller IP. On limit, return the same silent 200 —
-  // no email sent, no signal to the abuser.
+  // Rate-limit to stop abuse of this public endpoint.
+  // Layer 1 — Cloudflare native limiter: 1 req / 60s per email and per IP.
+  // Layer 2 — R2-backed 1-hour per-email cooldown: even across multiple IPs,
+  //   each email address can only receive one reset email per hour.
   const clientIp = c.req.header('cf-connecting-ip') ?? 'unknown';
   const [emailOk, ipOk] = await Promise.all([
     c.env.RESET_RATE_LIMITER.limit({ key: `reset:email:${email}` }),
     c.env.RESET_RATE_LIMITER.limit({ key: `reset:ip:${clientIp}` }),
   ]);
   if (!emailOk.success || !ipOk.success) return c.json({ ok: true });
+
+  // Layer 2: 1-hour per-email cooldown stored in R2.
+  const cooldownKey = `_reset-cooldown/${encodeURIComponent(email)}`;
+  const existing = await c.env.MEDIA.get(cooldownKey);
+  if (existing) {
+    const { sentAt } = await existing.json<{ sentAt: number }>().catch(() => ({ sentAt: 0 }));
+    if (Date.now() - sentAt < 60 * 60 * 1000) return c.json({ ok: true });
+  }
 
   const db = supa(c.env);
 
@@ -1633,6 +1641,9 @@ app.post('/auth/forgot-password', async (c) => {
   if (!brevoRes.ok) {
     const detail = await brevoRes.text().catch(() => '');
     console.error('brevo send failed', brevoRes.status, detail);
+  } else {
+    // Record the send time so the 1-hour cooldown can gate the next request.
+    await c.env.MEDIA.put(cooldownKey, JSON.stringify({ sentAt: Date.now() }));
   }
 
   return c.json({ ok: true });

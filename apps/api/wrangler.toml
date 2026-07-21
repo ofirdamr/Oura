@@ -27,7 +27,7 @@ binding = "AI"
 name = "RESET_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1001"
-simple = { limit = 3, period = 60 }
+simple = { limit = 1, period = 60 }
 
 # Stage 2 face-embedding queue: photo uploads enqueue here, the Worker's own
 # `queue()` handler (src/queueConsumer.ts) consumes it. Created via
