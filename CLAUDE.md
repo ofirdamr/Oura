@@ -1,5 +1,8 @@
 # CLAUDE.md — Oura
 
+## ⛔ SOLO MODE ONLY — NO AGENTS (non-negotiable)
+**Do NOT spawn any sub-agents, background agents, or specialist agents.** Every task runs Solo in the top-level session. No Agent tool calls, no foreground or background spawns. This rule stays until the founder explicitly lifts it.
+
 ## ⛔ NEVER SAY "MVP" OR "LIVE END-TO-END" (non-negotiable)
 **§10 (Two-Stage Upload, Smart Crop, Print Shop, DB Schema) has NOT been confirmed complete by the founder.** Until the founder explicitly says "§10 is done", never describe the product as "MVP", "live end-to-end", or "working end-to-end". Never write ✅ next to any §10 item without a real screenshot from the live running app taken in that same session. Writing false ✅ checkmarks in SUMMARY.md is the single biggest mistake this project has suffered — it causes every new session to start with a lie and wastes the founder's time.
 
