@@ -64,7 +64,7 @@ We are in **§10 QA phase**. All §10 code has been merged but has NOT been veri
 
 ## Next mission
 
-Switch backfill-categories from paid Workers AI LLaVA to free CLIP on the existing Cloud Run embed service (flat monthly cost, zero per-call). Then merge PR #109.
+Replace Workers AI LLaVA in backfill-categories with a FREE solution — zero per-call cost, no new paid services. Next session must first verify Cloud Run and any AI library costs before touching code. Options to evaluate (cheapest first): (1) CLIP on Cloud Run if Cloud Run is confirmed free/already-paid, (2) a pure CPU open-source model with no API calls. FOUNDER RULE: do not use any service that adds a new charge without explicit approval.
 
 ## Open PR — must deploy + QA before merging
 
