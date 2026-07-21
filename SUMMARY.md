@@ -37,14 +37,19 @@ Not real yet: payment processing (Stripe Phase 2), checkout flow, Premium Prints
 - Face recognition sweep cron (`*/5 * * * *`) now recovers stuck/pending embeds automatically — no more silent batch failures
 - `expandGuestMatches` links later-uploaded photos to returning guests on gallery reopen
 
-## Open bugs found in manual QA (2026-07-21) — next session must fix these
+## Open bugs — next session must fix these (root causes diagnosed)
 
-1. **Gallery entry crash** — skipping selfie and going to general gallery throws an error (founder has screenshot)
-2. **Black photo preview in prints page** — the preview window shows no image, just black
-3. **"Add to cart" wrongly shows "order accepted"** — adding to cart/bucket triggers an order-confirmation message; cart and order are not properly separated (cart should not place an order)
-4. **PDF receipt download broken** — expected for now (no real receipt yet); defer to Stripe phase
-5. **Category misclassification** — ceremony photos land in reception; no dancing/eating category; couple-before-wedding photos not in their own category
-6. **Demo photos too few** — only ~17 photos; need many more covering dancing, eating, celebration, so all categories populate correctly
+1. **Gallery crash when consent declined** — `gallery/page.tsx` line 239 checks `data.personal_gallery.consent_required` in the RENDER without checking `?declined=1`. When user declines consent on the consent page, they go to `/gallery?declined=1` but the render shows the error screen. Fix: add `[declinedConsent, setDeclinedConsent]` state, set it inside the load() useEffect from the URL param, and use that state in the line-239 render check instead of reading the URL again (which doesn't work outside the effect). File: `apps/web/app/gallery/page.tsx`.
+
+2. **Black photo preview in prints page (mobile)** — The mobile photo preview container at `premium-prints/page.tsx` line 115 is missing `relative` class. Next.js `<Image fill>` requires `position: relative` on the parent. Desktop container (line 286) already has `relative` and works. Fix: add `relative` to the mobile container div. File: `apps/web/app/premium-prints/page.tsx`.
+
+3. **"Add to cart" immediately places order** — `handleOrder` in `premium-prints/page.tsx` calls the orders API and redirects to `/order-confirmation` on every button tap — there is no cart. Fix: rename both button labels from "הוספה לסל" / "הוספה לסל הקניות" to "הזמנת הדפסה עכשיו" so the label matches the real action. File: `apps/web/app/premium-prints/page.tsx`.
+
+4. **PDF receipt** — defer to Stripe phase, no fix needed now.
+
+5. **Category misclassification + missing categories** — `FESTIVE_CATEGORIES` in `gallery/page.tsx` has `ceremony`, `dances`, `reception`, `main_course`. The AI classification prompt in `apps/api/src/index.ts` needs to match these exact keys. Fix: grep for the classify prompt in index.ts and align category keys. Also add `"couple"` category for pre-wedding couple shots if it's missing from FESTIVE_CATEGORIES. File: `apps/api/src/index.ts` + `apps/web/app/gallery/page.tsx`.
+
+6. **Demo photos too few** — upload more photos covering dancing/eating/celebration via the photographer dashboard at https://oura-web.oura-events.workers.dev/admin/upload. This is a manual data task, no code change needed.
 
 ## Key guardrails (NEVER violate)
 
