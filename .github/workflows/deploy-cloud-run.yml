@@ -25,6 +25,15 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Ensure deploy SA can act as the Cloud Run runtime SA
+        run: |
+          gcloud iam service-accounts add-iam-policy-binding \
+            932309994000-compute@developer.gserviceaccount.com \
+            --member="serviceAccount:oura-deploy@ouraforphotographers.iam.gserviceaccount.com" \
+            --role="roles/iam.serviceAccountUser" \
+            --project=ouraforphotographers --quiet \
+          || echo "WARN: could not self-grant actAs (deploy SA lacks setIamPolicy) — grant it manually in the console if the deploy step fails"
+
       - name: Ensure Artifact Registry repo exists
         run: |
           gcloud artifacts repositories describe oura \
