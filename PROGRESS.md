@@ -1,5 +1,13 @@
 # Progress Log
 
+### 2026-07-21 — Replace Workers AI LLaVA with zero-cost CLIP classification
+- `main.py`: added CLIP ViT-B/32 + `/classify-category` endpoint (zero per-call cost, runs on existing Cloud Run instance)
+- `queueConsumer.ts`: auto-classifies every photo on upload (step 4 of pipeline, same bytes already in memory from face-embed)
+- `index.ts` `backfill-categories`: replaced LLaVA call with CLIP via `EMBED_SERVICE_URL/classify-category`
+- `wrangler.toml`: removed stale Workers AI comment (no AI binding was ever added)
+- CI workflow auto-deploys Cloud Run on merge to main (`.github/workflows/deploy-cloud-run.yml` — also redeploys §10.3 /social-frame)
+- PR #112 open draft.
+
 ### 2026-07-21 — Gallery & Print UX fixes (PR #100, merged)
 - Category chips filter correctly per category
 - Consent decline redirect fixed

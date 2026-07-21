@@ -93,9 +93,10 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Backfill still needed** — API deployed with improved category AI prompt (couple shots now distinct from ceremony). Still need to run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos.
-- **Demo photos too few** — only ceremony/reception shots exist. Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
-- **Visual QA** — confirm the 4 bug fixes look correct on the live site.
+- **Cloud Run redeploy** — PR for CLIP classification (branch `claude/zero-cost-ai-classification-4l51ek`, PR #112) must be merged to main so CI auto-deploys Cloud Run. Once merged, both `/classify-category` (new) and `/social-frame` (§10.3) will go live automatically. No manual GCP action needed.
+- **Backfill still needed** — after merging PR #112 and Cloud Run redeploy completes, run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos using CLIP.
+- **Demo photos too few** — upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
+- **Visual QA** — confirm category chips show correct photos after backfill.
 
 ## Key guardrails (NEVER violate)
 
