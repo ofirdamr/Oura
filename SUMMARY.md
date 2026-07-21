@@ -16,7 +16,14 @@ Working MVP live end-to-end:
 
 ## Open PRs
 
+- **PR #96** — Admin Print Queue dashboard (built, deployed, needs review/merge)
 - **PR #16, #4, #7** — old doc PRs with conflicts, low priority
+
+## ✅ DONE 2026-07-21 — Password reset email flood fix (PR #98, merged)
+
+- Max 5 reset emails per address per hour (tracked in R2), no cooldown between retries
+- Native rate limiter tightened to 1 req/min per email and per IP
+- Hard rule added to CLAUDE.md: never send any email to ofirdamr@gmail.com during testing
 
 ## ✅ DONE 2026-07-20 — §10.4 Premium Prints & Order Confirmation (PR #95)
 
