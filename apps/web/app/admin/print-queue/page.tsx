@@ -43,6 +43,34 @@ const FORMAT_GROUPS = ["magnet", "print_10x15", "block", "photo_book"] as const;
 
 type StatusFilter = "all" | "Awaiting_High_Res_Asset" | "Ready_For_Photographer_Print" | "Completed";
 
+function exportCsv(rows: Order[]) {
+  const headers = ["מספר הזמנה", "אורח", "טלפון", "פורמט", "כמות", "סטטוס", "תאריך"];
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [
+    headers.join(","),
+    ...rows.map((o) =>
+      [
+        o.id,
+        o.guest_name ?? "אורח",
+        o.guest_phone ?? "",
+        FORMAT_LABEL[o.format] ?? o.format,
+        String(o.quantity),
+        STATUS_LABEL[o.order_status]?.label ?? o.order_status,
+        new Date(o.created_at).toLocaleDateString("he-IL"),
+      ]
+        .map(escape)
+        .join(",")
+    ),
+  ];
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `print-queue-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function PrintQueuePage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,6 +177,18 @@ export default function PrintQueuePage() {
             </p>
           </div>
 
+          <div className="flex items-center gap-3">
+            {/* CSV export */}
+            {filteredOrders.length > 0 && (
+              <button
+                onClick={() => exportCsv(filteredOrders)}
+                className="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface-container px-3 py-2 text-sm text-on-surface hover:bg-surface-container-high transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">download</span>
+                ייצוא CSV
+              </button>
+            )}
+
           {/* Event selector */}
           {events.length > 1 && (
             <select
@@ -163,6 +203,7 @@ export default function PrintQueuePage() {
               ))}
             </select>
           )}
+          </div>
         </div>
 
         {/* Alert: pending high-res */}
@@ -254,22 +295,35 @@ export default function PrintQueuePage() {
                               {new Date(order.created_at).toLocaleDateString("he-IL")}
                             </td>
                             <td className="px-4 py-3 text-end">
-                              {order.order_status === "Ready_For_Photographer_Print" && (
-                                <button
-                                  onClick={() => markPrinted(order.id)}
-                                  disabled={markingId === order.id}
-                                  className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-on-primary disabled:opacity-50"
-                                >
-                                  {markingId === order.id ? "..." : "סמן כהודפס"}
-                                </button>
-                              )}
-                              {order.order_status === "Completed" && (
-                                <span className="text-xs text-on-surface-variant">
-                                  {order.marked_printed_at
-                                    ? new Date(order.marked_printed_at).toLocaleDateString("he-IL")
-                                    : "הושלם"}
-                                </span>
-                              )}
+                              <div className="flex items-center justify-end gap-2">
+                                {order.guest_phone && (
+                                  <a
+                                    href={`https://wa.me/${order.guest_phone.replace(/\D/g, "")}?text=${encodeURIComponent(`שלום ${order.guest_name ?? "אורח"}, ההדפסה שלך מוכנה!`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>chat</span>
+                                    WhatsApp
+                                  </a>
+                                )}
+                                {order.order_status === "Ready_For_Photographer_Print" && (
+                                  <button
+                                    onClick={() => markPrinted(order.id)}
+                                    disabled={markingId === order.id}
+                                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-on-primary disabled:opacity-50"
+                                  >
+                                    {markingId === order.id ? "..." : "סמן כהודפס"}
+                                  </button>
+                                )}
+                                {order.order_status === "Completed" && (
+                                  <span className="text-xs text-on-surface-variant">
+                                    {order.marked_printed_at
+                                      ? new Date(order.marked_printed_at).toLocaleDateString("he-IL")
+                                      : "הושלם"}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );

@@ -19,6 +19,47 @@ function shortId(orderId: string): string {
   return `#OR-${orderId.slice(0, 6).toUpperCase()}`;
 }
 
+function downloadReceiptPdf(orderId: string, total: string | null) {
+  const dateStr = new Date().toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" });
+  const shortId = orderId ? `#OR-${orderId.slice(0, 6).toUpperCase()}` : "—";
+  const totalFmt = total ? `₪${(parseInt(total, 10) / 100).toFixed(0)}` : "—";
+
+  const win = window.open("", "_blank", "width=600,height=800");
+  if (!win) return;
+  win.document.write(`<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<title>קבלה ${shortId}</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 40px; color: #111; direction: rtl; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #666; font-size: 13px; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  th, td { text-align: end; padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+  th { font-weight: 600; color: #555; }
+  .total-row td { font-weight: 700; font-size: 16px; border-top: 2px solid #111; }
+  .brand { font-size: 24px; font-weight: 800; color: #e2725b; margin-bottom: 16px; letter-spacing: 2px; }
+  @media print { button { display: none; } }
+</style>
+</head>
+<body>
+<div class="brand">OURA</div>
+<h1>קבלה על הזמנה</h1>
+<div class="sub">תאריך: ${dateStr}</div>
+<table>
+  <thead><tr><th>מספר הזמנה</th><th>פריט</th><th>משלוח</th><th>סה"כ</th></tr></thead>
+  <tbody>
+    <tr><td>${shortId}</td><td>הדפסת פרימיום</td><td>חינם</td><td>${totalFmt}</td></tr>
+    <tr class="total-row"><td colspan="3">סה"כ לתשלום</td><td>${totalFmt}</td></tr>
+  </tbody>
+</table>
+<p style="font-size:12px;color:#999;">תודה שרכשת ב-Oura. שמור קבלה זו לצרכי עזר.</p>
+<button onclick="window.print()" style="margin-top:16px;padding:10px 24px;background:#e2725b;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">הדפס / שמור PDF</button>
+</body></html>`);
+  win.document.close();
+}
+
 function OrderConfirmationContent() {
   const params = useSearchParams();
   const orderId = params.get("order_id") ?? "";
@@ -126,7 +167,10 @@ function OrderConfirmationContent() {
               <span>חזרה לגלריה</span>
               <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_back</span>
             </Link>
-            <button className="border border-[#33363d] text-[#e2e2e8] px-10 py-4 text-sm font-medium rounded-lg hover:border-[#94a3b8] transition-colors flex items-center justify-center gap-2">
+            <button
+              onClick={() => downloadReceiptPdf(orderId, total)}
+              className="border border-[#33363d] text-[#e2e2e8] px-10 py-4 text-sm font-medium rounded-lg hover:border-[#94a3b8] transition-colors flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>download</span>
               <span>הורדת קבלה (PDF)</span>
             </button>
