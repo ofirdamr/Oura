@@ -1247,12 +1247,16 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   const debug = c.req.query('debug') === '1';
   const debugLog: { photo_id: string; description: string; category: string | null }[] = [];
 
+  const CONCURRENCY = 10;
   let updated = 0;
   let skipped = 0;
-  for (const photo of photos as { id: string; storage_key: string }[]) {
+
+  const typedPhotos = photos as { id: string; storage_key: string }[];
+
+  async function processOne(photo: { id: string; storage_key: string }): Promise<void> {
     try {
       const obj = await c.env.MEDIA.get(photo.storage_key);
-      if (!obj) { skipped++; continue; }
+      if (!obj) { skipped++; return; }
       const bytes = await obj.arrayBuffer();
 
       const result = await (c.env.AI as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
@@ -1264,18 +1268,23 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
       const description = result?.description ?? '';
       const category = description ? parseCat(description) : null;
       if (debug) debugLog.push({ photo_id: photo.id, description, category });
-      if (!category) { skipped++; continue; }
+      if (!category) { skipped++; return; }
 
       const { error: upErr } = await db
         .from('photos')
         .update({ category })
         .eq('id', photo.id);
-      if (upErr) { skipped++; continue; }
+      if (upErr) { skipped++; return; }
       updated++;
     } catch (err) {
       console.error('backfill-categories error for photo', photo.id, err);
       skipped++;
     }
+  }
+
+  // Process in parallel batches of CONCURRENCY to avoid hitting Worker CPU limits
+  for (let i = 0; i < typedPhotos.length; i += CONCURRENCY) {
+    await Promise.all(typedPhotos.slice(i, i + CONCURRENCY).map(processOne));
   }
 
   return c.json(debug
