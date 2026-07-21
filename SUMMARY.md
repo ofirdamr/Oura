@@ -58,10 +58,6 @@ We are in **§10 QA phase**. All §10 code has been merged but has NOT been veri
 - The Stage 2 original upload (migration 0010 status unknown)
 - Admin print queue dashboard
 
-## Open PRs
-
-None — all clear. (Branch `claude/summary-markdown-review-b95whv` pending merge for this honest rewrite.)
-
 ## Next mission
 
 Run a real QA pass on the live site: walk every §10 flow with actual screenshots, confirm migrations 0010/0011 are applied, confirm or fix Cloud Run §10.3, and update this file with real pass/fail per item.
@@ -93,9 +89,24 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Backfill still needed** — API deployed with improved category AI prompt (couple shots now distinct from ceremony). Still need to run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos.
-- **Demo photos too few** — only ceremony/reception shots exist. Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
+- **Cloud Run not redeployed** — CLIP-based classifier (PR #110) never deployed; old code on Cloud Run lacks `/classify`. Blocked by Artifact Registry repo `oura` not existing in GCP project `ouraforphotographers`. **Founder must create the repo in GCP console** (see below), then merge PR #113 to trigger redeploy.
+- **Backfill needed after Cloud Run redeploy** — `POST /admin/events/WED-2024/backfill-categories` returns `{updated:0, skipped:35}` because Cloud Run `/classify` returns 404. Will work once Cloud Run is on new code. ADMIN_BACKFILL_TOKEN was rotated this session (new value in Cloudflare secrets); update env secret at https://claude.ai/settings/claude-code to match.
+- **Demo photos too few** — Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload.
 - **Visual QA** — confirm the 4 bug fixes look correct on the live site.
+
+## GCP Artifact Registry — founder one-time action
+
+Go to: https://console.cloud.google.com/artifacts/create-repo?project=ouraforphotographers
+- Name: `oura`
+- Format: `Docker`
+- Region: `us-central1`
+- Tap **Create**
+
+Then start a new session and say: "GCP repo created — merge PR #113, trigger Cloud Run deploy, run backfill."
+
+## Open PRs
+
+- **PR #113** (`claude/artifact-registry-repo-creation-vdr0gg`) — fixes workflow to surface Artifact Registry errors properly. Merge once GCP repo exists (merge triggers Cloud Run redeploy automatically).
 
 ## Key guardrails (NEVER violate)
 
