@@ -29,12 +29,6 @@ function agorotToShekel(agorot: number) {
   return `₪${(agorot / 100).toFixed(2)}`;
 }
 
-// Map print_10x15/print_13x18/print_20x30 to DB format
-function sizeKeyToDbFormat(key: string): string {
-  if (key === "print_13x18" || key === "print_20x30") return "photo_book"; // closest mapping
-  return "print_10x15";
-}
-
 function PremiumPrintsContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -50,12 +44,12 @@ function PremiumPrintsContent() {
 
   const total = selectedSize.priceAgorot + selectedFrame.priceAgorot;
 
-  // Determine DB format enum value from size key
-  const dbFormat = (
-    selectedSize.key === "print_10x15" ? "print_10x15"
-    : selectedSize.key === "print_13x18" ? "print_10x15"
-    : "block"
-  );
+  // All three flat print sizes (10×15 / 13×18 / 20×30) belong to the same DB
+  // product category (print_10x15); the exact size is carried in `notes`.
+  // The DB print_format enum has no per-size flat-print values, so mapping
+  // 20×30 to "block" (the wooden-block product) mis-routed large prints in
+  // the admin queue — they are photo prints, not wood blocks.
+  const dbFormat = "print_10x15";
 
   async function handleOrder() {
     if (!token || !photoId) {
