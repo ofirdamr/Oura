@@ -4,6 +4,13 @@ Append-only. Log immediately on discovery, before moving on.
 
 ---
 
+### 2026-07-21 — Session deployed broken password reset by working off an old stale branch
+**What:** A session tasked with reviewing open PRs picked up a stale password-reset-related branch (`claude/founder-password-reset-591uzg`) and deployed from it, overwriting the correct Brevo-based/click-tracking-immune implementation that was live and working (PR #73).
+**Why:** No check was made for which branch was being deployed from. The old branch had the Resend-based implementation (no Brevo, no confirm-gate for click-tracker immunity).
+**Correct approach:** Always deploy from the current `main` (or the current session branch tracking main). Before touching any auth-related code, verify the current deployed state matches the repo's last known-good commit. Recovery: rebuild and redeploy both `oura-api` and `oura-web` from current main. Done 2026-07-21.
+
+---
+
 ### 2026-07-14 — Sessions kept randomizing the founder's real account password during auth testing
 **What:** The founder's `ofirdamr@gmail.com` password was changed multiple times across sessions (to `TempPass2026!Oura`, etc.) because sessions called the Supabase Admin API or `auth.admin.updateUserById()` directly against the real production account while doing auth testing or debugging. Not a code path in the product — ad-hoc curl/API calls from within sessions.
 **Why:** No guardrail existed prohibiting auth mutations against the real account. Sessions treated "I need to test auth" as license to use the service-role key or Management API to change the live founder account, not a throwaway one.
