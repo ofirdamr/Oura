@@ -249,3 +249,12 @@ Append-only. Log immediately on discovery, before moving on.
 **Why it was wrong:** CLAUDE.md is clear: 'Never design new visuals directly.' Describing a UX problem is not permission to redesign. The correct step was to describe what I planned, show a mockup or ask for Stitch input, and wait for approval.
 
 **Correct approach:** Describe the proposed layout change in plain language with a clear before/after, ask the founder to confirm, implement only after explicit yes.
+
+## 2026-07-21 — Freehanded design files in PR #96 (Admin Print Queue)
+
+**What:** Previous session added its own screen.png + reference HTML + implementation_guide.md for the admin print queue, then built the screen from those self-made files. Flagged it as a "design violation" but merged it anyway.
+
+**Why wrong:** Design is king. Claude never creates design files. Period. If no Stitch screen exists: either (a) use the Stitch MCP directly to generate it, or (b) write a prompt and give it to the founder to run through Stitch, then wait for the export. Never freehand, never self-generate screen.png, never proceed without a real Stitch-sourced design. "It's just an admin screen" is not an exception.
+
+**Correct approach:** Stitch MCP is installed in this project. Use it to generate the screen before writing any UI code. If unsure how to invoke it, write the prompt and hand it to the founder.
+
