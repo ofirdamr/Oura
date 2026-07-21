@@ -1570,13 +1570,19 @@ app.post('/auth/forgot-password', async (c) => {
   ]);
   if (!emailOk.success || !ipOk.success) return c.json({ ok: true });
 
-  // Layer 2: 1-hour per-email cooldown stored in R2.
+  // Layer 2: max 5 reset emails per email address per hour, tracked in R2.
+  // No cooldown between attempts — a user who didn't get the email can retry
+  // immediately. Only the hourly total is capped.
   const cooldownKey = `_reset-cooldown/${encodeURIComponent(email)}`;
   const existing = await c.env.MEDIA.get(cooldownKey);
+  let sends: number[] = [];
   if (existing) {
-    const { sentAt } = await existing.json<{ sentAt: number }>().catch(() => ({ sentAt: 0 }));
-    if (Date.now() - sentAt < 5 * 60 * 1000) return c.json({ ok: true });
+    const data = await existing.json<{ sends: number[] }>().catch(() => ({ sends: [] }));
+    sends = data.sends ?? [];
   }
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  sends = sends.filter(t => t > oneHourAgo); // drop entries older than 1 hour
+  if (sends.length >= 5) return c.json({ ok: true });
 
   const db = supa(c.env);
 
@@ -1642,8 +1648,8 @@ app.post('/auth/forgot-password', async (c) => {
     const detail = await brevoRes.text().catch(() => '');
     console.error('brevo send failed', brevoRes.status, detail);
   } else {
-    // Record the send time so the 1-hour cooldown can gate the next request.
-    await c.env.MEDIA.put(cooldownKey, JSON.stringify({ sentAt: Date.now() }));
+    sends.push(Date.now());
+    await c.env.MEDIA.put(cooldownKey, JSON.stringify({ sends }));
   }
 
   return c.json({ ok: true });
