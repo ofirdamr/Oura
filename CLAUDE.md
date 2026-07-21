@@ -3,7 +3,7 @@
 ## ⛔ "DONE" REQUIRES FULL VERIFICATION (non-negotiable)
 You may only say a mission is "done" after ALL of the following are confirmed in that same session:
 1. **Code review** — every file changed was read and checked for correctness.
-2. **Visual review** — real Playwright screenshot of the live deployed app (not localhost, not a local build).
+2. **Visual review** — real Playwright screenshot of the live deployed app (not localhost, not a local build). Screenshots MUST be committed to the repo under `qa/screenshots/` — storing them only in `/tmp` or the scratchpad means they are lost forever when the session ends.
 3. **End-to-end check** — every button, feature, and element in the mission scope was clicked/tested and works.
 If any one of these three is missing, say what was verified and what was not — never say "done."
 
