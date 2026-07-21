@@ -25,6 +25,14 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Ensure Artifact Registry repo exists
+        run: |
+          gcloud artifacts repositories create oura \
+            --repository-format=docker \
+            --location=us-central1 \
+            --project=ouraforphotographers \
+            --quiet 2>/dev/null || true
+
       - name: Build and push to Artifact Registry
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
