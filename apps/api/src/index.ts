@@ -1217,11 +1217,14 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   if (evErr || !ev) return c.json({ error: 'event_not_found' }, 404);
   const resolved_event_id: string = (ev as { id: string }).id;
 
-  // Fetch ALL photos for the event — overwrite existing (possibly wrong) categories too
+  // Fetch photos — support ?limit=N&offset=N for pagination on large events (1500+ photos)
+  const limit = Math.min(parseInt(c.req.query('limit') ?? '200', 10), 200);
+  const offset = Math.max(parseInt(c.req.query('offset') ?? '0', 10), 0);
   const { data: photos, error: photosErr } = await db
     .from('photos')
     .select('id, storage_key')
-    .eq('event_id', resolved_event_id);
+    .eq('event_id', resolved_event_id)
+    .range(offset, offset + limit - 1);
   if (photosErr) return c.json({ error: 'query_failed' }, 500);
   if (!photos || photos.length === 0) return c.json({ updated: 0, skipped: 0, total: 0, message: 'no photos found' });
 
