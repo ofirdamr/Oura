@@ -477,3 +477,9 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - Deployed: oura-api 21d72915, oura-web aa889bc6
 - PR #94 open on claude/oura-10-3-deploy-wb0txc — awaiting founder migration + merge
 - 2026-07-20: §10.4 Premium Prints + Order Confirmation wired to real API (POST /gallery/:token/orders). PhotoViewer gets print button. premium-prints page is now fully interactive (size/paper/frame pickers, live price, API submit). order-confirmation shows real order_id + date. Deployed oura-web 0deb2597. PR #95 open on claude/oura-prd-10-5-jvo389.
+
+## 2026-07-21 — Permanent fix: later upload batches never face-recognized
+- Root cause: inline enqueue-on-upload is best-effort; lost sends stranded photos at embed_status=pending forever (18 WED-2024 batch-2 photos, 0 face rows for days).
+- Added sweepStuckEmbeds to the */5 cron: re-enqueues pending + stale-processing photos automatically, for all events forever.
+- Added expandGuestMatches on gallery read: surfaces post-scan photos in the guest's own clusters (leak-proof ownership test).
+- Cleared old backlog via backfill; deployed to oura-api.

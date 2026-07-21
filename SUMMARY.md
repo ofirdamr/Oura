@@ -18,6 +18,13 @@ Working MVP live end-to-end:
 
 None — all clear.
 
+## ✅ DONE 2026-07-21 — Face recognition never ran on later upload batches (permanent fix, deployed)
+
+Root cause: the inline enqueue-on-upload in `POST /events/:id/photos` is best-effort; when a queue send is lost (transient error / consumer death mid-batch), photos strand at `embed_status:'pending'` with zero face rows forever and no retry. Real incident: all 18 WED-2024 second-batch photos sat unprocessed for days → guests saw none of them.
+- **Permanent fix (all photographers/guests, forever):** the `*/5 * * * *` cron now also runs `sweepStuckEmbeds` — atomically claims any `pending` photo and re-enqueues it, plus recovers `processing` stuck >1h. Every uploaded batch is now recognized within minutes even if its inline enqueue failed.
+- **Guest side:** `expandGuestMatches` on every gallery read links photos that joined the guest's own clusters after their scan (leak-proof per-cluster ownership test — bystander clusters excluded), so later batches appear on reopen.
+- Old WED-2024 backlog cleared via one-time backfill; deployed to `oura-api`.
+
 ## ✅ DONE 2026-07-21 — §10.4B Admin Print Queue Dashboard (PR #96, merged to main)
 
 Photographer admin screen `/admin/print-queue`:
