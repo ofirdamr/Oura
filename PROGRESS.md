@@ -490,3 +490,9 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - Added sweepStuckEmbeds to the */5 cron: re-enqueues pending + stale-processing photos automatically, for all events forever.
 - Added expandGuestMatches on gallery read: surfaces post-scan photos in the guest's own clusters (leak-proof ownership test).
 - Cleared old backlog via backfill; deployed to oura-api.
+
+## 2026-07-21 — Wire 3 dead UI buttons (PR #102)
+- order-confirmation: PDF receipt button now opens printable receipt window (client-side, no deps)
+- print-queue: WhatsApp button per row when guest_phone present, pre-filled Hebrew message
+- print-queue: CSV export button downloads filtered orders as UTF-8+BOM for Excel
+- Branch: claude/session-0lq9uy, PR #102 (draft, no CI configured)
