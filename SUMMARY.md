@@ -79,6 +79,15 @@ Run a real QA pass on the live site: walk every §10 flow with actual screenshot
 5. **Category misclassification + missing categories** — FIXED in PR #107: parseCat now returns 'dances'/'main_course'/'couple'; 'couple' chip added (code only, undeployed).
 6. **Demo photos too few** — upload more photos via https://oura-web.oura-events.workers.dev/admin/upload. Manual data task, no code change needed.
 
+## Open bugs found in manual QA (2026-07-21) — next session must fix these
+
+1. **Gallery entry crash** — skipping selfie and going to general gallery throws an error (founder has screenshot)
+2. **Black photo preview in prints page** — the preview window shows no image, just black
+3. **"Add to cart" wrongly shows "order accepted"** — adding to cart/bucket triggers an order-confirmation message; cart and order are not properly separated (cart should not place an order)
+4. **PDF receipt download broken** — expected for now (no real receipt yet); defer to Stripe phase
+5. **Category misclassification** — ceremony photos land in reception; no dancing/eating category; couple-before-wedding photos not in their own category
+6. **Demo photos too few** — only ~17 photos; need many more covering dancing, eating, celebration, so all categories populate correctly
+
 ## Key guardrails (NEVER violate)
 
 - NEVER mutate `ofirdamr@gmail.com` auth credentials or send email to that address during testing
