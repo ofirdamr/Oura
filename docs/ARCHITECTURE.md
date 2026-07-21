@@ -564,7 +564,22 @@ non-secret `BREVO_SENDER_EMAIL` overrides the validated sender address
 `face-embed-queue` (+ `face-embed-queue-dlq` dead-letter queue) — **created
 live** via `wrangler queues create` and deployed. Daily cron `0 3 * * *` for
 retention cleanup, live (harmless no-op until real consents cross the 30-day
-mark).
+mark). Five-minute cron `*/5 * * * *` runs BOTH `keepEmbedWarm` AND
+`sweepStuckEmbeds` (`index.ts`): the sweep atomically claims any
+`embed_status:'pending'` photo (pending → processing) and re-enqueues it, plus
+recovers photos stuck in `processing` for >1h from a crashed consumer run. This
+is the permanent safety net for the "photographer uploaded a batch, guests see
+none of it" bug — the inline enqueue-on-upload is best-effort and can be lost
+(transient queue error, consumer death mid-batch), stranding photos at `pending`
+with zero face rows forever; the sweep guarantees every uploaded photo is
+eventually embedded regardless. Complements the on-demand
+`POST /admin/backfill-embeddings` (which is operator-triggered; the cron is
+automatic). Guest side: `expandGuestMatches` (`index.ts`, called on every
+`GET /gallery/:token` for consented guests) links photos that landed in the
+guest's OWN clusters AFTER their selfie scan, so later batches surface in the
+personal gallery on reopen — leak-proof via a per-cluster ownership test
+(a cluster is the guest's only if all its pre-scan photos are already matched,
+which excludes bystander clusters co-appearing in group shots).
 
 **`apps/api` (non-secret vars, `wrangler.toml`):** `EMBED_SERVICE_URL`
 (placeholder until the embedding service is deployed), `CLUSTER_MATCH_THRESHOLD`

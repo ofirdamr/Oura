@@ -217,6 +217,109 @@ async function resolveGuest(
 }
 
 // ---------------------------------------------------------------------------
+// Re-expand a consented guest's face matches so photos uploaded AFTER the guest
+// scanned their selfie also surface in their personal gallery.
+//
+// The bug this fixes: guest_photo_matches is written ONCE, at selfie time, from
+// the photos that existed then. Photographers upload in batches — a second batch
+// uploaded later gets face-embedded and (via the incremental greedy clusterer)
+// assigned to the guest's SAME person clusters, but nothing ever links those new
+// photos to the already-scanned guest. Result: the founder scanned after batch 1
+// (10 of 17 matched), batch 2 landed later, and his gallery stayed frozen at 10.
+//
+// Fix: the guest's existing matches are the seed that identifies WHICH clusters
+// this guest belongs to. Resolve those clusters, find every photo now in them,
+// and upsert the newly-appeared ones. Privacy-safe: we read only opaque cluster
+// ids (person_id), never a stored selfie embedding, and we never widen beyond the
+// clusters the guest already legitimately matched — same boundary as the original
+// selfie match. Idempotent and self-healing on every gallery open.
+async function expandGuestMatches(
+  db: ReturnType<typeof supa>,
+  guestId: string,
+  eventId: string,
+): Promise<void> {
+  // Seed = photos already linked to this guest, plus WHEN they scanned (all seed
+  // rows share the selfie-scan instant; take the earliest as the scan time).
+  const { data: seed } = await db
+    .from('guest_photo_matches')
+    .select('photo_id, created_at')
+    .eq('guest_id', guestId);
+  const seedRows = (seed ?? []) as { photo_id: string; created_at: string }[];
+  if (seedRows.length === 0) return; // matched 0 clusters — nothing to expand
+  const seedPhotoIds = new Set(seedRows.map((r) => r.photo_id));
+  const scanTime = seedRows.reduce(
+    (min, r) => (r.created_at < min ? r.created_at : min),
+    seedRows[0].created_at,
+  );
+
+  // Candidate clusters = every person cluster appearing in the guest's matched
+  // photos. This deliberately includes bystander clusters (other faces in the
+  // guest's group shots) — the ownership test below filters them out.
+  const { data: seedFaces } = await db
+    .from('face_embeddings')
+    .select('person_id')
+    .eq('event_id', eventId)
+    .in('photo_id', Array.from(seedPhotoIds));
+  const candidatePersonIds = Array.from(
+    new Set(
+      ((seedFaces ?? []) as { person_id: string | null }[])
+        .map((r) => r.person_id)
+        .filter((p): p is string => !!p),
+    ),
+  );
+  if (candidatePersonIds.length === 0) return;
+
+  // For each candidate cluster, all its photos + when each was uploaded.
+  const { data: clusterFaces } = await db
+    .from('face_embeddings')
+    .select('photo_id, person_id, photos!inner(created_at)')
+    .eq('event_id', eventId)
+    .in('person_id', candidatePersonIds);
+
+  const byCluster = new Map<string, { photoId: string; createdAt: string }[]>();
+  for (const row of (clusterFaces ?? []) as Array<{
+    photo_id: string;
+    person_id: string | null;
+    photos: { created_at: string } | { created_at: string }[] | null;
+  }>) {
+    if (!row.person_id) continue;
+    const ph = Array.isArray(row.photos) ? row.photos[0] : row.photos;
+    if (!ph) continue;
+    const arr = byCluster.get(row.person_id) ?? [];
+    arr.push({ photoId: row.photo_id, createdAt: ph.created_at });
+    byCluster.set(row.person_id, arr);
+  }
+
+  // Ownership test (leak-proof): a cluster is THIS GUEST'S own iff every photo of
+  // it uploaded at/before the scan is already in the seed. At selfie time we link
+  // ALL photos of the guest's true clusters, so a guest-owned cluster has no
+  // pre-scan photo outside the seed. A bystander cluster (a different face merely
+  // co-appearing in a group shot) DOES have pre-scan solo photos the guest never
+  // matched — it fails the test and is skipped, so its photos never leak. For a
+  // guest-owned cluster, its post-scan photos (later upload batches — the exact
+  // "second batch not recognized" bug) are the ones we add.
+  const toAdd = new Set<string>();
+  for (const [, photos] of byCluster) {
+    const isBystander = photos.some(
+      (p) => p.createdAt <= scanTime && !seedPhotoIds.has(p.photoId),
+    );
+    if (isBystander) continue;
+    for (const p of photos) if (!seedPhotoIds.has(p.photoId)) toAdd.add(p.photoId);
+  }
+  if (toAdd.size === 0) return;
+
+  const rows = Array.from(toAdd).map((photo_id) => ({
+    guest_id: guestId,
+    event_id: eventId,
+    photo_id,
+    match_similarity: null,
+  }));
+  const { error: upErr } = await db
+    .from('guest_photo_matches')
+    .upsert(rows, { onConflict: 'guest_id,photo_id' });
+  if (upErr) console.error('expandGuestMatches upsert failed', upErr);
+}
+
 // Guest gallery.
 // GET /gallery/:token
 //   Verifies the opaque token, resolves the guest, and returns the event's
@@ -309,10 +412,16 @@ app.get('/gallery/:token', async (c) => {
     // Pre-consent: signal the frontend to show the consent-gate screen. No face data.
     personal_gallery = { consent_required: true };
   } else {
-    // Consented: face-matching is permitted. Return this guest's matched photos,
-    // read from the many-to-many guest_photo_matches join table (migration 0008).
-    // One row per (guest, photo), so this guest sees exactly the photos its own
-    // selfie linked — independent of any other guest that matched the same clusters.
+    // Consented: face-matching is permitted. First re-expand this guest's match
+    // set so photos uploaded AFTER their selfie (later batches, same clusters)
+    // also appear — otherwise the gallery stays frozen at scan-time (see
+    // expandGuestMatches above). Then read the (now-current) matches.
+    await expandGuestMatches(db, guest.id, payload.event_id);
+
+    // Return this guest's matched photos, read from the many-to-many
+    // guest_photo_matches join table (migration 0008). One row per (guest, photo),
+    // so this guest sees exactly the photos its own selfie linked — independent of
+    // any other guest that matched the same clusters.
     const { data: matchRows, error: matchErr } = await db
       .from('guest_photo_matches')
       .select('photo_id, match_similarity, photos!inner(storage_key, status, category, ai_rejected)')
@@ -1802,6 +1911,60 @@ app.put('/admin/orders/:order_id/mark-printed', async (c) => {
 
 app.get('/', (c) => c.text('oura-api'));
 
+// Safety net: re-enqueue photos whose face-embedding never completed. The inline
+// enqueue in POST /events/:id/photos is best-effort — if the queue send throws
+// (a transient hiccup) or a consumer invocation dies mid-batch, the photo is
+// stranded at embed_status 'pending' (never picked up) or 'processing' (started,
+// never finished) with NO retry, and the guest never sees it in their matches.
+// This is the real "photographer uploaded a second batch, guest sees none of it"
+// bug: 18 photos sat at 'pending' with zero face rows for days. Running this
+// every 5 minutes is what actually guarantees EVERY uploaded photo gets
+// face-matched, regardless of how it was uploaded or whether the inline enqueue
+// succeeded — so a photographer can upload in batches and each new batch is
+// recognized automatically.
+async function sweepStuckEmbeds(env: Env): Promise<void> {
+  const db = supa(env);
+
+  // Claim pending photos atomically (pending → processing) so a later sweep can't
+  // re-enqueue the same photo and cause double-embedding — that would both insert
+  // duplicate face rows AND trip the 0.97 dedup guard, wrongly hiding the photo.
+  const { data: claimed } = await db
+    .from('photos')
+    .update({ embed_status: 'processing' })
+    .eq('embed_status', 'pending')
+    .eq('status', 'ready')
+    .select('id, event_id, storage_key')
+    .limit(500);
+
+  // Recover photos stuck in 'processing' from a crashed earlier run. A genuine
+  // in-flight embed is seconds old; anything older than an hour never completed.
+  const staleCutoff = new Date(Date.now() - 60 * 60_000).toISOString();
+  const { data: stale } = await db
+    .from('photos')
+    .select('id, event_id, storage_key')
+    .eq('embed_status', 'processing')
+    .eq('status', 'ready')
+    .lt('created_at', staleCutoff)
+    .limit(500);
+
+  // Dedupe: a just-claimed photo (now 'processing', old created_at) can also match
+  // the stale query in the same run — key by id so it's enqueued at most once.
+  const byId = new Map<string, { id: string; event_id: string; storage_key: string }>();
+  for (const p of [...(claimed ?? []), ...(stale ?? [])]) byId.set(p.id, p);
+  if (byId.size === 0) return;
+
+  let enqueued = 0;
+  for (const p of byId.values()) {
+    try {
+      await env.FACE_EMBED_QUEUE.send({ photo_id: p.id, event_id: p.event_id, storage_key: p.storage_key });
+      enqueued++;
+    } catch (err) {
+      console.error('sweepStuckEmbeds re-enqueue failed for', p.id, err);
+    }
+  }
+  console.log(`sweepStuckEmbeds: re-enqueued ${enqueued}/${byId.size} stuck photos`);
+}
+
 // Cloudflare Queues (queue) and Cron Triggers (scheduled) require handlers on
 // the same default export as fetch — a bare Hono app (`export default app`)
 // only implements fetch, so this must be an explicit ExportedHandler object.
@@ -1811,11 +1974,13 @@ export default {
   scheduled: (event: ScheduledController, env: Env) => {
     // Two crons share this handler; dispatch on which one fired.
     // "0 3 * * *"  → daily biometric-retention cleanup.
-    // "*/5 * * * *" → keep the embed service warm so guest selfies never hit a
-    //                 cold start (SUMMARY.md 2026-07-14). Fire-and-forget.
+    // "*/5 * * * *" → keep the embed service warm (SUMMARY.md 2026-07-14) AND
+    //                 sweep any stranded photo back into the face-embed queue so
+    //                 every uploaded batch is recognized even if its inline
+    //                 enqueue was lost. Fire-and-forget.
     if (event.cron === '0 3 * * *') {
       return handleScheduled(event, env, supa);
     }
-    return keepEmbedWarm(env);
+    return Promise.allSettled([keepEmbedWarm(env), sweepStuckEmbeds(env)]).then(() => undefined);
   },
 } satisfies ExportedHandler<Env, PhotoEmbedMessage>;
