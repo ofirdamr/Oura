@@ -38,8 +38,6 @@ export type Env = {
   // Verified Brevo sender address (validated once in the Brevo dashboard).
   // Optional — falls back to the founder's validated sender when unset.
   BREVO_SENDER_EMAIL?: string;
-  // Cloudflare Workers AI — photo category classification and quality checks.
-  AI: Ai;
   // Cloudflare native rate limiter gating POST /auth/forgot-password so the
   // public endpoint can't be used to email-bomb an account (5-6 reset emails
   // to the founder in one hour, 2026-07-19). Config lives in wrangler.toml.
@@ -1194,8 +1192,9 @@ app.post('/admin/backfill-embeddings', async (c) => {
 
 // ---------------------------------------------------------------------------
 // POST /admin/events/:id/backfill-categories
-//   Force-reclassifies ALL photos in an event via Workers AI LLaVA, overwriting
-//   any existing category value (including previously wrong labels).
+//   Force-reclassifies photos in an event via Cloud Run CLIP (zero per-call cost),
+//   overwriting any existing category value (including previously wrong labels).
+//   Supports ?limit=N&offset=N for pagination on large events (max 200/call).
 //   Gated by ADMIN_BACKFILL_TOKEN bearer secret (operator-only action).
 // ---------------------------------------------------------------------------
 app.post('/admin/events/:id/backfill-categories', async (c) => {
@@ -1217,65 +1216,61 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   if (evErr || !ev) return c.json({ error: 'event_not_found' }, 404);
   const resolved_event_id: string = (ev as { id: string }).id;
 
-  // Fetch ALL photos for the event — overwrite existing (possibly wrong) categories too
+  // Pagination — supports ?limit=N&offset=N for large events (max 200/call)
+  const limit = Math.min(parseInt(c.req.query('limit') ?? '200', 10), 200);
+  const offset = Math.max(parseInt(c.req.query('offset') ?? '0', 10), 0);
   const { data: photos, error: photosErr } = await db
     .from('photos')
     .select('id, storage_key')
-    .eq('event_id', resolved_event_id);
+    .eq('event_id', resolved_event_id)
+    .range(offset, offset + limit - 1);
   if (photosErr) return c.json({ error: 'query_failed' }, 500);
   if (!photos || photos.length === 0) return c.json({ updated: 0, skipped: 0, total: 0, message: 'no photos found' });
 
-  function parseCat(text: string): string | null {
-    const t = text.toLowerCase().trim();
-    const score = (words: string[]) => words.filter(w => t.includes(w)).length;
-    const ceremonyScore = score(['canopy', 'arch', 'chuppah', 'vow', 'altar', 'officiant', 'rabbi', 'glass', 'breaking', 'processional', 'aisle', 'wedding ceremony', 'marriage ceremony', 'ketubah', 'under the chuppah', 'exchange vow', 'ring exchange']);
-    const dancingScore = score(['danc', 'hora', 'dance floor', 'first dance', 'circle', 'spinning', 'jumping']);
-    const receptionScore = score(['kabbalat', 'cocktail', 'mingle', 'mingling', 'appetizer', 'waiter', 'serving', 'station', 'reception area', 'before the ceremony']);
-    const mainCourseScore = score(['seated', 'dinner', 'table', 'meal', 'eating', 'toast', 'speech', 'banquet', 'celebrating at table', 'food', 'dessert', 'plate']);
-    // couple: two people alone, posed/intimate — weighted higher to beat ceremony overlap
-    const coupleScore = score(['couple', 'pre-wedding', 'prewedding', 'romantic', 'portrait', 'pose', 'just the two', 'bride and groom alone', 'engagement', 'alone together', 'intimate', 'embracing', 'holding hands', 'looking at each other', 'forehead', 'kiss']) * 2;
-    const best = Math.max(ceremonyScore, dancingScore, receptionScore, mainCourseScore, coupleScore);
-    if (best === 0) return null;
-    if (coupleScore >= ceremonyScore && coupleScore === best) return 'couple';
-    if (ceremonyScore === best) return 'ceremony';
-    if (dancingScore === best) return 'dances';
-    if (receptionScore === best) return 'reception';
-    if (mainCourseScore === best) return 'main_course';
-    return null;
-  }
-
   const debug = c.req.query('debug') === '1';
-  const debugLog: { photo_id: string; description: string; category: string | null }[] = [];
+  const debugLog: { photo_id: string; category: string | null; scores?: Record<string, number> }[] = [];
 
   let updated = 0;
   let skipped = 0;
-  for (const photo of photos as { id: string; storage_key: string }[]) {
+  const typedPhotos = photos as { id: string; storage_key: string }[];
+
+  async function processOne(photo: { id: string; storage_key: string }): Promise<void> {
     try {
       const obj = await c.env.MEDIA.get(photo.storage_key);
-      if (!obj) { skipped++; continue; }
+      if (!obj) { skipped++; return; }
       const bytes = await obj.arrayBuffer();
 
-      const result = await (c.env.AI as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
-        image: [...new Uint8Array(bytes)],
-        prompt: 'Look at this Jewish/Israeli wedding photo. Describe ONLY what you literally see in 1-2 sentences. Be specific — which of these best matches: (1) COUPLE PORTRAIT: just the bride and groom alone, posing or being romantic together, no ceremony happening around them — use words like "couple", "portrait", "embracing", "kiss", "alone together". (2) CEREMONY: chuppah canopy with rabbi and guests watching in rows, glass-breaking, processional — use words like "chuppah", "ceremony", "vow", "aisle". (3) DANCING: hora circle, dance floor, group dancing — use words like "dancing", "hora", "dance floor". (4) RECEPTION cocktail: waiters, appetizers, people mingling before ceremony — use words like "cocktail", "reception", "mingling". (5) DINNER: seated guests at dinner tables with full meals — use words like "dinner", "table", "meal", "seated".',
-        max_tokens: 100,
-      }) as { description?: string } | null;
-
-      const description = result?.description ?? '';
-      const category = description ? parseCat(description) : null;
-      if (debug) debugLog.push({ photo_id: photo.id, description, category });
-      if (!category) { skipped++; continue; }
+      // Cloud Run CLIP — zero per-call cost (open-source model, Cloud Run free tier)
+      const clipRes = await fetch(`${c.env.EMBED_SERVICE_URL}/classify-category`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${c.env.EMBED_SERVICE_TOKEN}`,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: bytes,
+      });
+      if (!clipRes.ok) { skipped++; return; }
+      const clipData = await clipRes.json() as { category: string | null; scores?: Record<string, number> };
+      const category = clipData.category;
+      if (debug) debugLog.push({ photo_id: photo.id, category, scores: clipData.scores });
+      if (!category) { skipped++; return; }
 
       const { error: upErr } = await db
         .from('photos')
         .update({ category })
         .eq('id', photo.id);
-      if (upErr) { skipped++; continue; }
+      if (upErr) { skipped++; return; }
       updated++;
     } catch (err) {
       console.error('backfill-categories error for photo', photo.id, err);
       skipped++;
     }
+  }
+
+  // Process in parallel batches of 10 to avoid hitting Worker CPU/memory limits
+  const CONCURRENCY = 10;
+  for (let i = 0; i < typedPhotos.length; i += CONCURRENCY) {
+    await Promise.all(typedPhotos.slice(i, i + CONCURRENCY).map(processOne));
   }
 
   return c.json(debug

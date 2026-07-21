@@ -11,9 +11,12 @@ ready variant: focal-point 4:5 crop (feed) or 9:16 blurred-backdrop canvas (stor
 """
 import io
 import os
+from typing import Optional
 
 import cv2
 import numpy as np
+import open_clip
+import torch
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import Response
 from insightface.app import FaceAnalysis
@@ -23,13 +26,41 @@ EMBED_SERVICE_TOKEN = os.environ.get("EMBED_SERVICE_TOKEN")
 
 app = FastAPI()
 _face_app: FaceAnalysis | None = None
+_clip_model: Optional[torch.nn.Module] = None
+_clip_preprocess = None
+_clip_text_features: Optional[torch.Tensor] = None
+
+# Fixed wedding category labels — order matches _clip_text_features rows.
+_CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course"]
+_CATEGORY_PROMPTS = [
+    "bride and groom couple portrait, romantic and intimate, just the two of them",
+    "Jewish wedding ceremony under a chuppah canopy with rabbi and guests watching",
+    "hora circle dancing on a wedding dance floor, people dancing together",
+    "cocktail reception with people mingling and waiters serving appetizers",
+    "guests seated at dinner tables eating a wedding banquet meal with speeches",
+]
+# CLIP confidence floor — scores below this yield null (photo genuinely ambiguous).
+_CLIP_MIN_SCORE = 0.20
 
 
 @app.on_event("startup")
-def load_model() -> None:
-    global _face_app
+def load_models() -> None:
+    global _face_app, _clip_model, _clip_preprocess, _clip_text_features
+
     _face_app = FaceAnalysis(name="buffalo_l")
     _face_app.prepare(ctx_id=-1)  # CPU; pilot scale doesn't need GPU
+
+    # Load CLIP ViT-B/32 (weights baked into image at build time).
+    model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
+    model.eval()
+    tokenizer = open_clip.get_tokenizer("ViT-B-32")
+    texts = tokenizer(_CATEGORY_PROMPTS)
+    with torch.no_grad():
+        text_feats = model.encode_text(texts)
+        text_feats = text_feats / text_feats.norm(dim=-1, keepdim=True)
+    _clip_model = model
+    _clip_preprocess = preprocess
+    _clip_text_features = text_feats
 
 
 def _check_auth(request: Request) -> None:
@@ -42,7 +73,7 @@ def _check_auth(request: Request) -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True, "model": "buffalo_l"}
+    return {"ok": True, "models": ["buffalo_l", "clip-ViT-B-32"]}
 
 
 @app.post("/embed")
@@ -69,6 +100,39 @@ async def embed(request: Request) -> dict:
             for face in faces
         ]
     }
+
+
+@app.post("/classify-category")
+async def classify_category(request: Request) -> dict:
+    """Zero-cost CLIP-based wedding photo category classification.
+
+    Returns {"category": "<key>"|null, "scores": {<key>: float, ...}}.
+    Null when top similarity score is below _CLIP_MIN_SCORE (ambiguous photo).
+    """
+    _check_auth(request)
+    body = await request.body()
+    if not body:
+        raise HTTPException(status_code=400, detail="empty_body")
+
+    try:
+        img = Image.open(io.BytesIO(body)).convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="decode_failed")
+
+    assert _clip_model is not None and _clip_preprocess is not None and _clip_text_features is not None
+
+    image_input = _clip_preprocess(img).unsqueeze(0)
+    with torch.no_grad():
+        image_feats = _clip_model.encode_image(image_input)
+        image_feats = image_feats / image_feats.norm(dim=-1, keepdim=True)
+
+    sims = (image_feats @ _clip_text_features.T).squeeze(0)
+    scores = {k: round(float(sims[i]), 3) for i, k in enumerate(_CATEGORY_KEYS)}
+    best_idx = int(sims.argmax())
+    best_score = float(sims[best_idx])
+
+    category = _CATEGORY_KEYS[best_idx] if best_score >= _CLIP_MIN_SCORE else None
+    return {"category": category, "scores": scores}
 
 
 def _focal_crop(img: Image.Image, target_w: int, target_h: int, focal_x: float, focal_y: float) -> Image.Image:

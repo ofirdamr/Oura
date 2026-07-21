@@ -5,3 +5,7 @@ onnxruntime==1.19.2
 opencv-python-headless==4.10.0.84
 numpy==1.26.4
 pillow==10.4.0
+# CLIP zero-shot image classification — CPU-only torch to keep image lean
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+open_clip_torch==2.24.0

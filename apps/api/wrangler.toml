@@ -15,10 +15,6 @@ binding = "MEDIA"
 bucket_name = "ouramedia"
 
 # Cloudflare Workers AI — used for photo category classification and closed-eye
-# detection in the face-embed queue consumer. No external API key needed.
-[ai]
-binding = "AI"
-
 # Native rate limiter gating POST /auth/forgot-password. Config-only (no KV
 # namespace, no migration). Cloudflare currently supports a 10s or 60s window;
 # 3 requests / 60s per key throttles the reset-email abuse without blocking a

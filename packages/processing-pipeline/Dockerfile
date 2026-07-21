@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
+    --extra-index-url https://download.pytorch.org/whl/cpu
 
 FROM python:3.11-slim
 
@@ -27,6 +28,8 @@ WORKDIR /app
 # network, and the image is portable to whichever host (Fly.io/Cloud Run) gets
 # picked later without re-downloading anything.
 RUN python -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_l').prepare(ctx_id=-1)"
+# Bake CLIP ViT-B/32 weights — used by /classify-category (zero per-call cost).
+RUN python -c "import open_clip; open_clip.create_model_and_transforms('ViT-B-32', pretrained='openai')"
 
 COPY app/ ./app
 

@@ -6,7 +6,7 @@
 //   1. Face embedding via Cloud Run InsightFace service
 //   2. Closed-eye / low-quality detection (detection_score heuristic)
 //   3. Duplicate detection (cosine similarity against existing cluster embeddings)
-//   4. Category auto-labeling via Cloudflare Workers AI (LLaVA vision model)
+//   4. Category classification via Cloud Run CLIP (/classify-category) — zero per-call cost
 //   5. Persist results: face_embeddings rows + update photos columns
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from './index';
@@ -26,33 +26,23 @@ function cosineSim(a: number[], b: number[]): number {
   return dot;
 }
 
-function parseCategory(text: string): string | null {
-  const t = text.toLowerCase().trim();
-  // Score each category by how many of its keywords appear
-  const score = (words: string[]) => words.filter(w => t.includes(w)).length;
-  const ceremonyScore = score(['canopy', 'arch', 'chuppah', 'vow', 'altar', 'officiant', 'rabbi', 'bride', 'groom', 'glass', 'breaking', 'processional', 'aisle', 'wedding ceremony', 'marriage ceremony']);
-  const dancingScore = score(['danc', 'hora', 'dance floor', 'first dance', 'circle', 'spinning', 'jumping']);
-  const receptionScore = score(['kabbalat', 'cocktail', 'mingle', 'mingling', 'appetizer', 'waiter', 'serving', 'station', 'reception area', 'before the ceremony']);
-  const partyScore = score(['seated', 'dinner', 'table', 'meal', 'eating', 'toast', 'speech', 'banquet', 'celebrating at table']);
-
-  const best = Math.max(ceremonyScore, dancingScore, receptionScore, partyScore);
-  if (best === 0) return null; // genuinely unrecognizable — don't guess
-  if (ceremonyScore === best) return 'ceremony';
-  if (dancingScore === best) return 'dancing';
-  if (receptionScore === best) return 'reception';
-  if (partyScore === best) return 'party';
-  return null;
-}
-
-async function classifyCategory(ai: Ai, imageBytes: ArrayBuffer): Promise<string | null> {
+async function classifyCategory(
+  embedServiceUrl: string,
+  embedServiceToken: string,
+  imageBytes: ArrayBuffer,
+): Promise<string | null> {
   try {
-    const result = await (ai as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
-      image: [...new Uint8Array(imageBytes)],
-      prompt: 'Look at this Jewish/Israeli wedding photo. Describe only what you literally see in 1-2 sentences. Focus on: (1) Ceremony (chuppah): canopy or arch, bride and groom underneath, rows of chairs with seated guests watching, aisle/carpet, rabbi, glass-breaking, processional — the whole ceremony area. (2) Reception (kabbalat panim): cocktail-style area before the ceremony — waiters serving food and drinks, people mingling with small appetizer stations, no seating arrangement. (3) Dancing: hora circle, dance floor, group dancing. (4) Party: formal seated dinner tables with full meals, toasts, speeches.',
-      max_tokens: 100,
-    }) as { description?: string } | null;
-    if (!result?.description) return null;
-    return parseCategory(result.description);
+    const res = await fetch(`${embedServiceUrl}/classify-category`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${embedServiceToken}`,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: imageBytes,
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { category: string | null };
+    return data.category;
   } catch (err) {
     console.error('category classification failed:', err);
     return null;
@@ -144,8 +134,8 @@ export async function handleQueue(
         }
       }
 
-      // ── Category classification via Workers AI ────────────────────────────
-      const category = await classifyCategory(env.AI, bytes);
+      // ── Category classification via Cloud Run CLIP (zero per-call cost) ──
+      const category = await classifyCategory(env.EMBED_SERVICE_URL, env.EMBED_SERVICE_TOKEN, bytes);
 
       // ── Persist all pipeline results ──────────────────────────────────────
       await db.from('photos').update({
