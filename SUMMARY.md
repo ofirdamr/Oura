@@ -66,6 +66,19 @@ None — all clear. (Branch `claude/summary-markdown-review-b95whv` pending merg
 
 Run a real QA pass on the live site: walk every §10 flow with actual screenshots, confirm migrations 0010/0011 are applied, confirm or fix Cloud Run §10.3, and update this file with real pass/fail per item.
 
+## Open PR — must deploy + QA before merging
+
+**PR #107** (branch `claude/section-10-prints-qa-iys3c8`) — fixes bugs 1/2/3/5 below. Code-complete, TypeScript clean. NOT yet deployed to Cloudflare, NOT merged, NOT visually QA'd. Next session must: deploy (`wrangler deploy` for API, Cloudflare Pages/Workers for web), take a real Playwright screenshot of the live app confirming each fix, then merge.
+
+## Open bugs — status after 2026-07-21 session
+
+1. **Gallery crash when consent declined** — FIXED in PR #107 (code only, undeployed).
+2. **Black photo preview in prints page (mobile)** — FIXED in PR #107 (code only, undeployed).
+3. **"Add to cart" immediately places order** — FIXED in PR #107: buttons now say "הזמנת הדפסה עכשיו" (code only, undeployed).
+4. **PDF receipt** — defer to Stripe phase, no fix needed now.
+5. **Category misclassification + missing categories** — FIXED in PR #107: parseCat now returns 'dances'/'main_course'/'couple'; 'couple' chip added (code only, undeployed).
+6. **Demo photos too few** — upload more photos via https://oura-web.oura-events.workers.dev/admin/upload. Manual data task, no code change needed.
+
 ## Key guardrails (NEVER violate)
 
 - NEVER mutate `ofirdamr@gmail.com` auth credentials or send email to that address during testing

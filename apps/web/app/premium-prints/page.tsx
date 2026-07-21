@@ -112,7 +112,7 @@ function PremiumPrintsContent() {
         </header>
 
         {/* Photo preview */}
-        <div className="mx-5 mt-6 rounded-2xl overflow-hidden border-8 border-[#1a1a1a] shadow-2xl bg-[#0e0e0e] aspect-[3/4]">
+        <div className="relative mx-5 mt-6 rounded-2xl overflow-hidden border-8 border-[#1a1a1a] shadow-2xl bg-[#0e0e0e] aspect-[3/4]">
           {photoExists ? (
             <Image src={photoUrl} alt="תמונה נבחרת" fill className="object-cover" />
           ) : (
@@ -229,7 +229,7 @@ function PremiumPrintsContent() {
             className="w-full py-4 bg-[#e2725b] text-white text-base font-semibold rounded-full shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex justify-center items-center gap-2 disabled:opacity-60"
           >
             <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>shopping_cart</span>
-            <span>{busy ? "שולח הזמנה..." : "הוספה לסל"}</span>
+            <span>{busy ? "שולח הזמנה..." : "הזמנת הדפסה עכשיו"}</span>
           </button>
         </div>
       </div>
@@ -402,7 +402,7 @@ function PremiumPrintsContent() {
               className="w-full py-4 bg-[#e2725b] text-white text-base font-semibold rounded-full shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex justify-center items-center gap-2 disabled:opacity-60"
             >
               <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>shopping_cart</span>
-              <span>{busy ? "שולח הזמנה..." : "הוספה לסל הקניות"}</span>
+              <span>{busy ? "שולח הזמנה..." : "הזמנת הדפסה עכשיו"}</span>
             </button>
             <p className="text-center mt-3 text-xs text-[#a48b87]">משלוח חינם בהזמנה מעל ₪250</p>
           </div>

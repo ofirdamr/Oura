@@ -1231,13 +1231,15 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
     const ceremonyScore = score(['canopy', 'arch', 'chuppah', 'vow', 'altar', 'officiant', 'rabbi', 'bride', 'groom', 'glass', 'breaking', 'processional', 'aisle', 'wedding ceremony', 'marriage ceremony']);
     const dancingScore = score(['danc', 'hora', 'dance floor', 'first dance', 'circle', 'spinning', 'jumping']);
     const receptionScore = score(['kabbalat', 'cocktail', 'mingle', 'mingling', 'appetizer', 'waiter', 'serving', 'station', 'reception area', 'before the ceremony']);
-    const partyScore = score(['seated', 'dinner', 'table', 'meal', 'eating', 'toast', 'speech', 'banquet', 'celebrating at table']);
-    const best = Math.max(ceremonyScore, dancingScore, receptionScore, partyScore);
+    const mainCourseScore = score(['seated', 'dinner', 'table', 'meal', 'eating', 'toast', 'speech', 'banquet', 'celebrating at table', 'food', 'dessert', 'plate']);
+    const coupleScore = score(['couple', 'pre-wedding', 'prewedding', 'romantic', 'portrait', 'pose', 'just the two', 'bride and groom alone', 'engagement']);
+    const best = Math.max(ceremonyScore, dancingScore, receptionScore, mainCourseScore, coupleScore);
     if (best === 0) return null;
+    if (coupleScore === best) return 'couple';
     if (ceremonyScore === best) return 'ceremony';
-    if (dancingScore === best) return 'dancing';
+    if (dancingScore === best) return 'dances';
     if (receptionScore === best) return 'reception';
-    if (partyScore === best) return 'party';
+    if (mainCourseScore === best) return 'main_course';
     return null;
   }
 
