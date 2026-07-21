@@ -2,7 +2,7 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-20)
+## Current state (2026-07-21)
 
 Working MVP live end-to-end:
 - Photographer: sign up → login → create event → brand it (logo upload) → upload photos (ZIP or loose, client-side extraction + compression) → QR code
@@ -16,9 +16,6 @@ Working MVP live end-to-end:
 
 ## Open PRs
 
-- **PR #95** (`claude/oura-prd-10-5-jvo389`) — §10.4 Premium Prints wired to real API, deployed oura-web `0deb2597`. Ready to merge.
-- **PR #83** — adds ריקודים chip to festive gallery filter (small fix, ready to merge)
-- **PR #75** — gallery UX fixes (save/share bar, chips), draft
 - **PR #16, #4, #7** — old doc PRs with conflicts, low priority
 
 ## ✅ DONE 2026-07-20 — §10.4 Premium Prints & Order Confirmation (PR #95)
@@ -43,6 +40,12 @@ ZIP extraction in-browser, browser-image-compression, 5-parallel queue with retr
 ## ✅ DONE 2026-07-19 — LLaVA photo category labeling fixed (PR #82, merged)
 
 All 17 WED-2024 photos correctly labeled (ceremony). Gallery category chips work.
+
+## ✅ DONE 2026-07-21 — Gallery UX fixes (PRs #75 + #83, merged)
+
+Festive category chips now show correct Hebrew labels (ריקודים, מנה עיקרית) and filter the full event gallery. Mobile save now opens blob in new tab as fallback when Web Share v2 not available. Save/share buttons restored to in-page position (not fixed bottom). Regression from `category` column fix deployed.
+
+**NOTE:** `category` column not yet in DB — chips will filter correctly once migration 0012 (adds `category` to photos table) is applied. Chip "כל התמונות" works now; others show 0 results until then.
 
 ## ✅ DONE 2026-07-18 — Password reset fully immune to Brevo click-tracking (PR #71, merged)
 
