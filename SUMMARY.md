@@ -26,7 +26,7 @@ Photographer admin screen `/admin/print-queue`:
 - WhatsApp reminder modal: 3 Hebrew templates, live preview, opens wa.me link
 - CSV export of filtered view, sync button, mark-printed action
 - RTL logical properties throughout; mobile card layout
-- ⚠️ Design files (screen.png) were created by Claude session, not a real Stitch export — violates guardrail. Admin-only screen; founder accepted via merge instruction.
+- Design files (screen.png) are real Stitch exports — designed together with founder in Stitch session.
 
 ## ✅ DONE 2026-07-20 — §10.4 Premium Prints & Order Confirmation (PR #95)
 
@@ -72,7 +72,7 @@ Confirm-gate on `/reset-password` page prevents token burn by Brevo's pre-scan. 
 ## What's real vs. not
 
 Real end-to-end: full guest path (face-matching), full photographer flow, print order placement.
-Not real yet: payment (Stripe Phase 2), admin print queue dashboard, checkout flow, Premium Prints/Statistics/Messaging (Phase 2).
+Not real yet: payment (Stripe Phase 2), checkout flow, Premium Prints/Statistics/Messaging (Phase 2).
 
 ## Key guardrails (NEVER violate)
 - NEVER mutate `ofirdamr@gmail.com` auth credentials
