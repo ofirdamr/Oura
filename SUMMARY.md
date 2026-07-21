@@ -89,7 +89,7 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Cloud Run deploy BLOCKED — GCP IAM permission** — The deploy service account `oura-deploy` is missing the `Service Account User` role. To fix: open GCP console → IAM & Admin → Service Accounts → click on `932309994000-compute@developer.gserviceaccount.com` → go to Permissions tab → Grant Access → enter `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` as the new principal → pick the role "Service Account User" → Save. Then tell next session to re-trigger the Cloud Run deploy.
+- **Cloud Run deploy BLOCKED — GCP IAM permission (still open, needs founder's ONE console tap).** The deploy SA `oura-deploy` lacks `Service Account User` (actAs) on the runtime SA `932309994000-compute@developer.gserviceaccount.com`. PR #115 added a workflow step that tries to self-grant this — it did NOT work: `oura-deploy` has no `setIamPolicy` power, so it cannot bootstrap its own permission (confirmed by run 29872840411 failing again with the identical `actAs denied` after the self-grant step ran). The self-grant step is harmless (idempotent, non-fatal) but ineffective; leaving it in PR #115 does no harm but does not fix anything. **The fix genuinely requires the founder** (only an admin with setIamPolicy can create the binding): on the compute SA's Permissions tab, tap the **GRANT ACCESS** button (NOT any name in the list — tapping a name opens edit-existing for the wrong principal, which is the trap the founder hit twice), which opens an EMPTY "New principals" box → paste `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` → role **Service Account User** → Save. Direct link: https://console.cloud.google.com/iam-admin/serviceaccounts/details/932309994000-compute@developer.gserviceaccount.com?project=ouraforphotographers → Permissions tab. After that, re-trigger `deploy-cloud-run.yml` on main (workflow_dispatch) and run the backfill below.
 - **Backfill blocked until Cloud Run deploys** — backfill ran but returned `0 updated / 35 skipped` because the `/classify-category` CLIP endpoint doesn't exist on the currently running Cloud Run revision. After IAM fix + successful deploy, re-run: `POST /admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
 - **ADMIN_BACKFILL_TOKEN rotated** — the live Cloudflare secret is now `Oura-backfill-2026` (set this session via CF API).
 - **Demo photos too few** — upload dancing/eating/couple photos via the admin upload page so all category chips show content.
@@ -97,7 +97,7 @@ PR #107 merged and deployed:
 
 ## Open PRs
 
-None — PR #113 merged, PR #114 merged.
+- **PR #115** (branch `claude/cloud-run-deploy-permission-2z2296`, DRAFT) — adds a self-grant actAs step to `deploy-cloud-run.yml`. Confirmed ineffective (see Cloud Run item above) but harmless. Decision for founder/next session: either close it (the real fix is the manual IAM grant, not this), or keep it merged as a no-op safety net. Do NOT rely on it to fix the deploy.
 
 ## Key guardrails (NEVER violate)
 
