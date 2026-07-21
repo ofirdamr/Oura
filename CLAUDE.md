@@ -1,5 +1,19 @@
 # CLAUDE.md — Oura
 
+## ⛔ "DONE" REQUIRES FULL VERIFICATION (non-negotiable)
+You may only say a mission is "done" after ALL of the following are confirmed in that same session:
+1. **Code review** — every file changed was read and checked for correctness.
+2. **Visual review** — real Playwright screenshot of the live deployed app (not localhost, not a local build).
+3. **End-to-end check** — every button, feature, and element in the mission scope was clicked/tested and works.
+If any one of these three is missing, say what was verified and what was not — never say "done."
+
+## ⛔ HANDOFF SUMMARY REQUIRED AT END OF EVERY SESSION (non-negotiable)
+Before ending any session or mission, write a short summary directly in the chat:
+- What was completed (with evidence — screenshot, PR link, or curl result).
+- What was NOT completed or NOT verified.
+- What the next session must do first.
+Then commit an updated SUMMARY.md reflecting this honest state before the session ends.
+
 ## ⛔ SOLO MODE ONLY — NO AGENTS (non-negotiable)
 **Do NOT spawn any sub-agents, background agents, or specialist agents.** Every task runs Solo in the top-level session. No Agent tool calls, no foreground or background spawns. This rule stays until the founder explicitly lifts it.
 
