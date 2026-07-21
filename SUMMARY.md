@@ -89,24 +89,15 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Cloud Run not redeployed** — CLIP-based classifier (PR #110) never deployed; old code on Cloud Run lacks `/classify`. Blocked by Artifact Registry repo `oura` not existing in GCP project `ouraforphotographers`. **Founder must create the repo in GCP console** (see below), then merge PR #113 to trigger redeploy.
-- **Backfill needed after Cloud Run redeploy** — `POST /admin/events/WED-2024/backfill-categories` returns `{updated:0, skipped:35}` because Cloud Run `/classify` returns 404. Will work once Cloud Run is on new code. ADMIN_BACKFILL_TOKEN was rotated this session (new value in Cloudflare secrets); update env secret at https://claude.ai/settings/claude-code to match.
-- **Demo photos too few** — Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload.
+- **Cloud Run deploy BLOCKED — GCP IAM permission** — The deploy service account `oura-deploy` is missing the `Service Account User` role. To fix: open GCP console → IAM & Admin → Service Accounts → click on `932309994000-compute@developer.gserviceaccount.com` → go to Permissions tab → Grant Access → enter `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` as the new principal → pick the role "Service Account User" → Save. Then tell next session to re-trigger the Cloud Run deploy.
+- **Backfill blocked until Cloud Run deploys** — backfill ran but returned `0 updated / 35 skipped` because the `/classify-category` CLIP endpoint doesn't exist on the currently running Cloud Run revision. After IAM fix + successful deploy, re-run: `POST /admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
+- **ADMIN_BACKFILL_TOKEN rotated** — the live Cloudflare secret is now `Oura-backfill-2026` (set this session via CF API).
+- **Demo photos too few** — upload dancing/eating/couple photos via the admin upload page so all category chips show content.
 - **Visual QA** — confirm the 4 bug fixes look correct on the live site.
-
-## GCP Artifact Registry — founder one-time action
-
-Go to: https://console.cloud.google.com/artifacts/create-repo?project=ouraforphotographers
-- Name: `oura`
-- Format: `Docker`
-- Region: `us-central1`
-- Tap **Create**
-
-Then start a new session and say: "GCP repo created — merge PR #113, trigger Cloud Run deploy, run backfill."
 
 ## Open PRs
 
-- **PR #113** (`claude/artifact-registry-repo-creation-vdr0gg`) — fixes workflow to surface Artifact Registry errors properly. Merge once GCP repo exists (merge triggers Cloud Run redeploy automatically).
+None — PR #113 merged, PR #114 merged.
 
 ## Key guardrails (NEVER violate)
 
