@@ -4,7 +4,15 @@
 
 ## Current state (2026-07-21)
 
-We are in **§10 QA phase**. All §10 code has been merged but has NOT been verified live end-to-end with real screenshots from the running app. Previous sessions wrote "✅ verified" without doing it — that was wrong.
+We are in **§10 QA phase**. PR #107 (4 QA bug fixes) is now **merged and deployed** to the live site.
+
+**Bugs fixed and deployed (PR #107, merged 2026-07-21):**
+- Gallery crash after declining consent — fixed (render guard now checks `!declinedConsent`)
+- Black photo preview on mobile in prints page — fixed (`relative` class added)
+- Button said "הוספה לסל" but placed order immediately — fixed (now "הזמנת הדפסה עכשיו")
+- Category chip mismatch (dancing/party vs dances/main_course) + missing couple category — fixed
+
+**KNOWN REMAINING BUG:** Entering the general gallery (code → consent decline → open gallery) still showed an error screen on the live site as of 21:42 founder time. The fix is now deployed — founder must retest at https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 and tap "כניסה לגלריה" then decline consent to confirm it now shows the open gallery.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev

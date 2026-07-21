@@ -496,3 +496,4 @@ API emails our /reset-password?token_hash link (not action_link); page redeems v
 - print-queue: WhatsApp button per row when guest_phone present, pre-filled Hebrew message
 - print-queue: CSV export button downloads filtered orders as UTF-8+BOM for Excel
 - Branch: claude/session-0lq9uy, PR #102 (draft, no CI configured)
+2026-07-21 — Deployed PR #107 (4 QA fixes: gallery consent decline render bug, black photo preview mobile, button label, category chip mismatch). Merged PR #107 to main. API + web deployed to Cloudflare. Gallery entry error still present before deploy — fix deployed, founder must retest.
