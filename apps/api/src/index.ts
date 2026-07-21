@@ -1575,7 +1575,7 @@ app.post('/auth/forgot-password', async (c) => {
   const existing = await c.env.MEDIA.get(cooldownKey);
   if (existing) {
     const { sentAt } = await existing.json<{ sentAt: number }>().catch(() => ({ sentAt: 0 }));
-    if (Date.now() - sentAt < 60 * 60 * 1000) return c.json({ ok: true });
+    if (Date.now() - sentAt < 5 * 60 * 1000) return c.json({ ok: true });
   }
 
   const db = supa(c.env);
