@@ -37,6 +37,15 @@ Not real yet: payment processing (Stripe Phase 2), checkout flow, Premium Prints
 - Face recognition sweep cron (`*/5 * * * *`) now recovers stuck/pending embeds automatically — no more silent batch failures
 - `expandGuestMatches` links later-uploaded photos to returning guests on gallery reopen
 
+## Open bugs found in manual QA (2026-07-21) — next session must fix these
+
+1. **Gallery entry crash** — skipping selfie and going to general gallery throws an error (founder has screenshot)
+2. **Black photo preview in prints page** — the preview window shows no image, just black
+3. **"Add to cart" wrongly shows "order accepted"** — adding to cart/bucket triggers an order-confirmation message; cart and order are not properly separated (cart should not place an order)
+4. **PDF receipt download broken** — expected for now (no real receipt yet); defer to Stripe phase
+5. **Category misclassification** — ceremony photos land in reception; no dancing/eating category; couple-before-wedding photos not in their own category
+6. **Demo photos too few** — only ~17 photos; need many more covering dancing, eating, celebration, so all categories populate correctly
+
 ## Key guardrails (NEVER violate)
 
 - NEVER mutate `ofirdamr@gmail.com` auth credentials or send email to that address during testing
