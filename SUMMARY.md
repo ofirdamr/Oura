@@ -18,6 +18,14 @@ Working MVP live end-to-end:
 
 None — all clear.
 
+## ✅ DONE 2026-07-21 — Gallery & Print UX fixes (PR #100, merged to main)
+
+4 production fixes deployed to `oura-web`:
+- Category chips: filter correctly per selected category (no more empty results)
+- Consent decline: redirects properly instead of hanging
+- Print size comparisons: correct sizes displayed in print picker
+- Print live preview: updates correctly when switching size/paper/frame options
+
 ## ✅ DONE 2026-07-21 — Face recognition never ran on later upload batches (permanent fix, deployed)
 
 Root cause: the inline enqueue-on-upload in `POST /events/:id/photos` is best-effort; when a queue send is lost (transient error / consumer death mid-batch), photos strand at `embed_status:'pending'` with zero face rows forever and no retry. Real incident: all 18 WED-2024 second-batch photos sat unprocessed for days → guests saw none of them.

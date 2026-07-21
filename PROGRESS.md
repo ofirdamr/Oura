@@ -1,5 +1,12 @@
 # Progress Log
 
+### 2026-07-21 — Gallery & Print UX fixes (PR #100, merged)
+- Category chips filter correctly per category
+- Consent decline redirect fixed
+- Print size comparisons corrected
+- Print live preview updates on picker change
+- PR #100 squash-merged to main
+
 ### 2026-07-19 (session — §10.3 smart crop + story framing engine)
 - Created `FormatPickerSheet` component (3 formats: מקורי / פיד 4:5 / סטורי 9:16), wired into `PhotoViewer`
 - Added `POST /social-frame` to Python processing service (PIL: focal-point 4:5 crop, 9:16 blurred canvas, pass-through)
