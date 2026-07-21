@@ -1,5 +1,8 @@
 # CLAUDE.md — Oura
 
+## ⛔ NEVER SAY "MVP" OR "LIVE END-TO-END" (non-negotiable)
+**§10 (Two-Stage Upload, Smart Crop, Print Shop, DB Schema) has NOT been confirmed complete by the founder.** Until the founder explicitly says "§10 is done", never describe the product as "MVP", "live end-to-end", or "working end-to-end". Never write ✅ next to any §10 item without a real screenshot from the live running app taken in that same session. Writing false ✅ checkmarks in SUMMARY.md is the single biggest mistake this project has suffered — it causes every new session to start with a lie and wastes the founder's time.
+
 ## Agent Spawning Rule (non-negotiable)
 **Never spawn a background agent (`run_in_background: true`) unless you can guarantee the ability to stop it in the same session.** If the session might end before the agent finishes, do NOT spawn it. Foreground agents only, so the founder always has control. Violating this rule is prohibited.
 
