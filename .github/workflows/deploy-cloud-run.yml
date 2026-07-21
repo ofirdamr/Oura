@@ -27,11 +27,15 @@ jobs:
 
       - name: Ensure Artifact Registry repo exists
         run: |
+          gcloud artifacts repositories describe oura \
+            --location=us-central1 \
+            --project=ouraforphotographers \
+            --quiet 2>/dev/null || \
           gcloud artifacts repositories create oura \
             --repository-format=docker \
             --location=us-central1 \
             --project=ouraforphotographers \
-            --quiet 2>/dev/null || true
+            --quiet
 
       - name: Build and push to Artifact Registry
         run: |
