@@ -89,7 +89,7 @@ export default function ConsentPage() {
     // record. /gallery will keep showing consent_required:true for this
     // guest, which is exactly the desired state.
     setPending("decline");
-    router.push("/gallery");
+    router.push("/gallery?declined=1");
   }
 
   return (

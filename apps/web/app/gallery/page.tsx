@@ -206,10 +206,12 @@ export default function GalleryPage() {
         return;
       }
 
-      if (result.data.personal_gallery.consent_required) {
+      const declinedConsent = new URLSearchParams(window.location.search).get("declined") === "1";
+      if (result.data.personal_gallery.consent_required && !declinedConsent) {
         // Real enforcement point, not just the consent screen's job: never
         // render personal data for a guest who hasn't actually consented,
-        // even if they navigated here directly.
+        // even if they navigated here directly. Skip redirect if guest
+        // explicitly declined on the consent screen (?declined=1).
         router.replace("/consent");
         return;
       }

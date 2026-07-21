@@ -7,9 +7,9 @@ import { Suspense, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
 
 const SIZES = [
-  { key: "print_10x15" as const, label: "10×15 ס״מ", priceAgorot: 1500 },
-  { key: "print_13x18" as const, label: "13×18 ס״מ", priceAgorot: 2200 },
-  { key: "print_20x30" as const, label: "20×30 ס״מ", priceAgorot: 4500 },
+  { key: "print_10x15" as const, label: "10×15 ס״מ", comparison: "גודל כרטיס ביקור כפול", priceAgorot: 1500, previewW: 60, previewH: 90 },
+  { key: "print_13x18" as const, label: "13×18 ס״מ", comparison: "גודל תמונת ארנק", priceAgorot: 2200, previewW: 80, previewH: 110 },
+  { key: "print_20x30" as const, label: "20×30 ס״מ", comparison: "גודל A4 ומעלה", priceAgorot: 4500, previewW: 120, previewH: 180 },
 ];
 
 const PAPERS = [
@@ -142,8 +142,34 @@ function PremiumPrintsContent() {
                   }`}
                 >
                   <span className="text-sm font-semibold">{s.label}</span>
-                  <span className="text-xs">{agorotToShekel(s.priceAgorot).replace(".00", "")}</span>
+                  <span className="text-xs text-center leading-tight">{s.comparison}</span>
+                  <span className="text-xs font-medium">{agorotToShekel(s.priceAgorot).replace(".00", "")}</span>
                 </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Live preview */}
+          <section>
+            <h2 className="text-sm font-medium text-[#ffdad3] mb-3">תצוגה מקדימה</h2>
+            <div className="flex items-end justify-center gap-6 py-4 rounded-xl bg-[#0e0e0e] border border-[#56423e]">
+              {SIZES.map((s) => (
+                <div key={s.key} className={`flex flex-col items-center gap-2 transition-all ${selectedSize.key === s.key ? "opacity-100" : "opacity-30"}`}>
+                  <div
+                    className="relative overflow-hidden rounded"
+                    style={{
+                      width: `${s.previewW * 0.5}px`,
+                      height: `${s.previewH * 0.5}px`,
+                      border: selectedFrame.key !== "none" ? `${selectedSize.key === s.key ? 4 : 2}px solid ${selectedFrame.border}` : "1px solid #56423e",
+                      background: selectedFrame.key !== "none" ? selectedFrame.color : "transparent",
+                    }}
+                  >
+                    {photoExists && (
+                      <img src={photoUrl} alt="" className="w-full h-full object-cover" style={{ padding: selectedFrame.key !== "none" ? "3px" : "0" }} />
+                    )}
+                  </div>
+                  <span className="text-[10px] text-[#a48b87]">{s.label}</span>
+                </div>
               ))}
             </div>
           </section>
@@ -280,8 +306,37 @@ function PremiumPrintsContent() {
                     }`}
                   >
                     <span className="text-sm font-semibold">{s.label}</span>
-                    <span className="text-xs">{agorotToShekel(s.priceAgorot)}</span>
+                    <span className="text-xs text-center leading-tight">{s.comparison}</span>
+                    <span className="text-xs font-medium">{agorotToShekel(s.priceAgorot)}</span>
                   </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Live preview */}
+            <section>
+              <h3 className="text-base font-medium text-[#ffdad3] mb-3">תצוגה מקדימה</h3>
+              <div className="flex items-end justify-around py-5 rounded-xl bg-[#0e0e0e] border border-[#56423e]">
+                {SIZES.map((s) => (
+                  <div key={s.key} className={`flex flex-col items-center gap-2 transition-all duration-300 ${selectedSize.key === s.key ? "opacity-100 scale-110" : "opacity-30"}`}>
+                    <div
+                      className="relative overflow-hidden rounded"
+                      style={{
+                        width: `${s.previewW * 0.55}px`,
+                        height: `${s.previewH * 0.55}px`,
+                        border: selectedFrame.key !== "none" ? `4px solid ${selectedFrame.border}` : "1px solid #56423e",
+                        background: selectedFrame.key !== "none" ? selectedFrame.color : "transparent",
+                        padding: selectedFrame.key !== "none" ? "3px" : "0",
+                      }}
+                    >
+                      {photoExists ? (
+                        <img src={photoUrl} alt="" className="w-full h-full object-cover rounded-sm" />
+                      ) : (
+                        <div className="w-full h-full bg-[#2a2a2a] rounded-sm" />
+                      )}
+                    </div>
+                    <span className="text-[10px] text-[#a48b87]">{s.label}</span>
+                  </div>
                 ))}
               </div>
             </section>
