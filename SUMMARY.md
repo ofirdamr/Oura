@@ -53,11 +53,11 @@ Added `/auth/callback` route so Supabase magic-link and password-reset emails re
 
 Branding picker (חגיגי / מינימל / שלי) saves to `events.gallery_theme`. API returns the field. Gallery renders three distinct experiences: festive (filter chips + hero), minimal (editorial grid + badge), personal (3-col squares).
 
-## 🔄 IN PROGRESS — Statistics & Analytics wired to real data (PR in progress)
+## ⏸️ PAUSED — Statistics & Analytics wired (deployed, PR #52 closed by founder)
 
-`GET /admin/statistics` API endpoint added. Stats page (`/admin/statistics`) now fetches: total events, AI-processed photos, face embeddings, total guests, top events table. No fake hardcoded numbers — all live from DB.
+`GET /admin/statistics` API endpoint added and deployed. Stats page fetches real data: events count, AI-processed photos, face embeddings, guests total, top-events table. Code is on branch `claude/summary-update-next-mvp-b0kipg` and deployed live, but PR #52 was closed by the founder without merging — **founder is reviewing MVP before continuing Phase 2. Do NOT start any new Phase 2 work until explicitly asked.**
 
-## ⏭️ NEXT — Phase 2: Messaging Center (screen 6/18)
+## ⏭️ NEXT (when founder approves) — Phase 2: Messaging Center (screen 6/18), or merge statistics branch
 
 **Navigation gaps — RESOLVED** (as of PR #43, merged to main):
 - `/admin/qr-management` sidebar link: done (AdminShell navItems includes `ניהול QR`)
