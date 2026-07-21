@@ -91,12 +91,11 @@ PR #107 merged and deployed:
 - Print order button labels fixed — "הזמנת הדפסה עכשיו" instead of "הוספה לסל"
 - Category chips fixed — `parseCat` now returns correct keys ('dances'/'main_course'); 'couple' chip added
 
-**Visual QA still pending** — no Playwright screenshot taken this session. Next session should open https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024, decline consent, and verify the gallery shows (not an error). Also check the prints page on mobile for the photo preview and button label.
-
 ## Remaining open items
 
-- **Demo photos too few** — upload more photos covering dancing/eating/celebration via https://oura-web.oura-events.workers.dev/admin/upload (manual task, no code needed)
-- **Visual QA** — confirm the 4 fixes above look correct on the live site
+- **Backfill still needed** — API deployed with improved category AI prompt (couple shots now distinct from ceremony). Still need to run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos.
+- **Demo photos too few** — only ceremony/reception shots exist. Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
+- **Visual QA** — confirm the 4 bug fixes look correct on the live site.
 
 ## Key guardrails (NEVER violate)
 
