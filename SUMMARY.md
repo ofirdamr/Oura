@@ -79,6 +79,24 @@ Run a real QA pass on the live site: walk every §10 flow with actual screenshot
 5. **Category misclassification + missing categories** — FIXED in PR #107: parseCat now returns 'dances'/'main_course'/'couple'; 'couple' chip added (code only, undeployed).
 6. **Demo photos too few** — upload more photos via https://oura-web.oura-events.workers.dev/admin/upload. Manual data task, no code change needed.
 
+## Open PRs
+
+None — all clear.
+
+## Recent fixes (2026-07-21)
+
+PR #107 merged and deployed:
+- Gallery consent-decline crash fixed — declined guests now see the open gallery, not an error screen
+- Mobile photo preview black box fixed — `relative` added to container
+- Print order button labels fixed — "הזמנת הדפסה עכשיו" instead of "הוספה לסל"
+- Category chips fixed — `parseCat` now returns correct keys ('dances'/'main_course'); 'couple' chip added
+
+## Remaining open items
+
+- **Backfill still needed** — API deployed with improved category AI prompt (couple shots now distinct from ceremony). Still need to run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos.
+- **Demo photos too few** — only ceremony/reception shots exist. Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
+- **Visual QA** — confirm the 4 bug fixes look correct on the live site.
+
 ## Key guardrails (NEVER violate)
 
 - NEVER mutate `ofirdamr@gmail.com` auth credentials or send email to that address during testing

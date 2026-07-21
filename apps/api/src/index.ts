@@ -1228,14 +1228,15 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   function parseCat(text: string): string | null {
     const t = text.toLowerCase().trim();
     const score = (words: string[]) => words.filter(w => t.includes(w)).length;
-    const ceremonyScore = score(['canopy', 'arch', 'chuppah', 'vow', 'altar', 'officiant', 'rabbi', 'bride', 'groom', 'glass', 'breaking', 'processional', 'aisle', 'wedding ceremony', 'marriage ceremony']);
+    const ceremonyScore = score(['canopy', 'arch', 'chuppah', 'vow', 'altar', 'officiant', 'rabbi', 'glass', 'breaking', 'processional', 'aisle', 'wedding ceremony', 'marriage ceremony', 'ketubah', 'under the chuppah', 'exchange vow', 'ring exchange']);
     const dancingScore = score(['danc', 'hora', 'dance floor', 'first dance', 'circle', 'spinning', 'jumping']);
     const receptionScore = score(['kabbalat', 'cocktail', 'mingle', 'mingling', 'appetizer', 'waiter', 'serving', 'station', 'reception area', 'before the ceremony']);
     const mainCourseScore = score(['seated', 'dinner', 'table', 'meal', 'eating', 'toast', 'speech', 'banquet', 'celebrating at table', 'food', 'dessert', 'plate']);
-    const coupleScore = score(['couple', 'pre-wedding', 'prewedding', 'romantic', 'portrait', 'pose', 'just the two', 'bride and groom alone', 'engagement']);
+    // couple: two people alone, posed/intimate — weighted higher to beat ceremony overlap
+    const coupleScore = score(['couple', 'pre-wedding', 'prewedding', 'romantic', 'portrait', 'pose', 'just the two', 'bride and groom alone', 'engagement', 'alone together', 'intimate', 'embracing', 'holding hands', 'looking at each other', 'forehead', 'kiss']) * 2;
     const best = Math.max(ceremonyScore, dancingScore, receptionScore, mainCourseScore, coupleScore);
     if (best === 0) return null;
-    if (coupleScore === best) return 'couple';
+    if (coupleScore >= ceremonyScore && coupleScore === best) return 'couple';
     if (ceremonyScore === best) return 'ceremony';
     if (dancingScore === best) return 'dances';
     if (receptionScore === best) return 'reception';
@@ -1256,7 +1257,7 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
 
       const result = await (c.env.AI as any).run('@cf/llava-hf/llava-1.5-7b-hf', {
         image: [...new Uint8Array(bytes)],
-        prompt: 'Look at this Jewish/Israeli wedding photo. Describe only what you literally see in 1-2 sentences. Focus on: (1) Ceremony (chuppah): canopy or arch, bride and groom underneath, rows of chairs with seated guests watching, aisle/carpet, rabbi, glass-breaking, processional — the whole ceremony area. (2) Reception (kabbalat panim): cocktail-style area before the ceremony — waiters serving food and drinks, people mingling with small appetizer stations, no seating arrangement. (3) Dancing: hora circle, dance floor, group dancing. (4) Party: formal seated dinner tables with full meals, toasts, speeches.',
+        prompt: 'Look at this Jewish/Israeli wedding photo. Describe ONLY what you literally see in 1-2 sentences. Be specific — which of these best matches: (1) COUPLE PORTRAIT: just the bride and groom alone, posing or being romantic together, no ceremony happening around them — use words like "couple", "portrait", "embracing", "kiss", "alone together". (2) CEREMONY: chuppah canopy with rabbi and guests watching in rows, glass-breaking, processional — use words like "chuppah", "ceremony", "vow", "aisle". (3) DANCING: hora circle, dance floor, group dancing — use words like "dancing", "hora", "dance floor". (4) RECEPTION cocktail: waiters, appetizers, people mingling before ceremony — use words like "cocktail", "reception", "mingling". (5) DINNER: seated guests at dinner tables with full meals — use words like "dinner", "table", "meal", "seated".',
         max_tokens: 100,
       }) as { description?: string } | null;
 
