@@ -266,3 +266,8 @@ Append-only. Log immediately on discovery, before moving on.
 **Why the mistake:** (1) The files weren't on main yet (they were only in the PR branch), so assumed they were self-generated. (2) The implementation_guide.md said "for Claude" — misread that as Claude writing it, not Stitch outputting it. Neither check was conclusive. Should have asked the founder before making an accusation.
 
 **Correct approach:** Before flagging a guardrail violation involving the founder's own work, ASK first. "Were these design files from Stitch?" is a one-second question. Never write a violation into permanent docs (SUMMARY, MISTAKES) based on an assumption — only on confirmed fact.
+
+### 2026-07-21 — Jumped to Phase 2 without completing §10 QA
+**What:** Proposed Phase 2 (Statistics, Stripe) before running a full end-to-end code review + Playwright visual QA of §10 and the declared MVP.
+**Why wrong:** The founder's standing rule: complete §10 end-to-end Playwright verification → founder confirms → check full MVP → only then Phase 2. No session may skip this gate.
+**Correct approach:** Next session must run a full Playwright QA pass on every §10 feature (§10.1–§10.5) and the full guest+photographer MVP flows before surfacing any Phase 2 work.
