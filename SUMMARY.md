@@ -60,11 +60,11 @@ We are in **§10 QA phase**. All §10 code has been merged but has NOT been veri
 
 ## Open PRs
 
-None — all clear. (Branch `claude/summary-markdown-review-b95whv` pending merge for this honest rewrite.)
+**PR #109** (`claude/visual-qa-photo-backfill-auzpfa`) — visual QA screenshots + backfill-categories parallelized (10-at-a-time) + pagination (?limit=200&offset=N). Deployed. Draft, not merged.
 
 ## Next mission
 
-Run a real QA pass on the live site: walk every §10 flow with actual screenshots, confirm migrations 0010/0011 are applied, confirm or fix Cloud Run §10.3, and update this file with real pass/fail per item.
+Switch backfill-categories from paid Workers AI LLaVA to free CLIP on the existing Cloud Run embed service (flat monthly cost, zero per-call). Then merge PR #109.
 
 ## Open PR — must deploy + QA before merging
 
