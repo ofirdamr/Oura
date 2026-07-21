@@ -2,7 +2,7 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-21)
+## Current state (2026-07-21 — updated end of session)
 
 We are in **§10 QA phase**. All §10 code has been merged but has NOT been verified live end-to-end with real screenshots from the running app. Previous sessions wrote "✅ verified" without doing it — that was wrong.
 
@@ -93,7 +93,8 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Backfill still needed** — API deployed with improved category AI prompt (couple shots now distinct from ceremony). Still need to run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos.
+- **Cloud Run deploy BLOCKED** — GCP Artifact Registry repository `oura` does not exist in project `ouraforphotographers`, region `us-central1`. Founder must create it manually at https://console.cloud.google.com/artifacts?project=ouraforphotographers (Name: `oura`, Format: Docker, Region: us-central1). After creating, re-trigger workflow at https://github.com/ofirdamr/Oura/actions/workflows/deploy-cloud-run.yml.
+- **Backfill still needed** — ADMIN_BACKFILL_TOKEN is set to `b734fabec1d2bcbd40db459f67464ba9c8676bf802d4ee562307fc9321fea5ac` on the live worker. Once Cloud Run deploys, run: `curl -s -X POST "https://oura-api.oura-events.workers.dev/admin/events/WED-2024/backfill-categories" -H "Authorization: Bearer b734fabec1d2bcbd40db459f67464ba9c8676bf802d4ee562307fc9321fea5ac" -H "Content-Type: application/json" --cacert /root/.ccr/ca-bundle.crt`
 - **Demo photos too few** — only ceremony/reception shots exist. Upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
 - **Visual QA** — confirm the 4 bug fixes look correct on the live site.
 
