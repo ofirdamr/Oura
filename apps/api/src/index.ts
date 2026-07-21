@@ -1559,16 +1559,30 @@ app.post('/auth/forgot-password', async (c) => {
 
   if (!email) return c.json({ ok: true });
 
-  // Rate-limit to stop abuse of this public endpoint (anyone could POST the
-  // founder's email repeatedly and email-bomb their inbox). Throttle on both
-  // the target email and the caller IP. On limit, return the same silent 200 —
-  // no email sent, no signal to the abuser.
+  // Rate-limit to stop abuse of this public endpoint.
+  // Layer 1 — Cloudflare native limiter: 1 req / 60s per email and per IP.
+  // Layer 2 — R2-backed 1-hour per-email cooldown: even across multiple IPs,
+  //   each email address can only receive one reset email per hour.
   const clientIp = c.req.header('cf-connecting-ip') ?? 'unknown';
   const [emailOk, ipOk] = await Promise.all([
     c.env.RESET_RATE_LIMITER.limit({ key: `reset:email:${email}` }),
     c.env.RESET_RATE_LIMITER.limit({ key: `reset:ip:${clientIp}` }),
   ]);
   if (!emailOk.success || !ipOk.success) return c.json({ ok: true });
+
+  // Layer 2: max 5 reset emails per email address per hour, tracked in R2.
+  // No cooldown between attempts — a user who didn't get the email can retry
+  // immediately. Only the hourly total is capped.
+  const cooldownKey = `_reset-cooldown/${encodeURIComponent(email)}`;
+  const existing = await c.env.MEDIA.get(cooldownKey);
+  let sends: number[] = [];
+  if (existing) {
+    const data = await existing.json<{ sends: number[] }>().catch(() => ({ sends: [] }));
+    sends = data.sends ?? [];
+  }
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  sends = sends.filter(t => t > oneHourAgo); // drop entries older than 1 hour
+  if (sends.length >= 5) return c.json({ ok: true });
 
   const db = supa(c.env);
 
@@ -1633,6 +1647,9 @@ app.post('/auth/forgot-password', async (c) => {
   if (!brevoRes.ok) {
     const detail = await brevoRes.text().catch(() => '');
     console.error('brevo send failed', brevoRes.status, detail);
+  } else {
+    sends.push(Date.now());
+    await c.env.MEDIA.put(cooldownKey, JSON.stringify({ sends }));
   }
 
   return c.json({ ok: true });
