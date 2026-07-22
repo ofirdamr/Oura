@@ -34,13 +34,59 @@ _clip_text_features: Optional[torch.Tensor] = None
 _models_ready = threading.Event()
 
 # Fixed wedding category labels — order matches _clip_text_features rows.
-_CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course"]
-_CATEGORY_PROMPTS = [
-    "bride and groom couple portrait, romantic and intimate, just the two of them",
-    "Jewish wedding ceremony under a chuppah canopy with rabbi and guests watching",
-    "hora circle dancing on a wedding dance floor, people dancing together",
-    "cocktail reception with people mingling and waiters serving appetizers",
-    "guests seated at dinner tables eating a wedding banquet meal with speeches",
+_CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course", "family", "venue"]
+# Each inner list is an ensemble of prompts for one category.
+# At load time all prompts are encoded and averaged per category → [5, 512] matrix.
+_CATEGORY_PROMPTS: list[list[str]] = [
+    [  # couple — bridal portrait shoot at a separate location, NOT the wedding hall
+        "The bride and groom posing together outdoors for a professional portrait, fully styled in wedding attire — bride in white dress with hair and makeup done, groom in suit — at a scenic outdoor location away from the wedding venue.",
+        "A romantic couple photo shoot in a park, garden, rooftop, or urban street, with only the two of them in frame and no wedding hall, tables, or guests visible in the background.",
+        "The bride with perfect bridal hair and makeup and the groom in a formal suit, photographed together at a beautiful outdoor or architectural setting far from the event hall.",
+        "A professional bridal portrait of just the newlyweds at an artistic location — golden hour light, nature, or city architecture as the backdrop — the background clearly not a banquet hall or ceremony space.",
+        "Two people in full wedding attire alone together at a separate photo-shoot location: no other guests, no tables, no chuppah, no dance floor — just the couple at a scenic or intimate setting.",
+    ],
+    [  # ceremony — chuppah structure visible in background, guests seated, still formal ritual
+        "A Jewish wedding ceremony with the white chuppah canopy structure clearly visible in the background, the couple standing motionless beneath it.",
+        "Guests seated in rows of chairs facing the chuppah altar, watching the wedding ceremony from a distance — nobody dancing or moving.",
+        "The groom placing a ring on the bride's finger beneath the chuppah, the decorated canopy poles and fabric prominent behind them.",
+        "A wide shot of the ceremony space showing the formal altar or chuppah at the far end and rows of seated guests filling the aisle.",
+        "The bride walking down the ceremony aisle toward the chuppah, guests seated on both sides turning to watch — the canopy structure visible ahead.",
+    ],
+    [  # dances — open dance floor, no chuppah, chairs pushed aside, motion and energy
+        "Wedding guests dancing the hora in a jubilant circle on the open parquet dance floor, the chuppah nowhere in sight, chairs along the walls.",
+        "The bride and groom lifted on chairs by dancing guests on the dance floor — the ballroom background visible, no ceremony altar or canopy.",
+        "A crowded dance floor with many guests moving energetically to music, arms raised in joy, in the main hall separate from the ceremony area.",
+        "People dancing at a wedding with hands raised and bodies in motion — the background shows the lit banquet hall, not a chuppah or altar.",
+        "High-energy wedding dancing with motion blur, the dance floor space clearly distinct from the ceremony setting — no canopy, open floor area.",
+    ],
+    [  # reception — cocktail hour, standing, mingling, drinks in hand
+        "Wedding guests standing in small groups during the cocktail hour, drinks in hand, chatting and socializing.",
+        "A cocktail reception with elegantly dressed people mingling, waiters carrying trays of appetizers through the crowd.",
+        "Guests gathered around a cocktail station or open bar, glasses of wine in hand, talking in a decorated venue.",
+        "An outdoor garden cocktail hour at a wedding, standing guests socializing with drinks before the dinner.",
+        "People at a wedding reception cocktail hour, holding hors d'oeuvres and cocktails, no one seated at tables.",
+    ],
+    [  # main_course — seated banquet dinner, food on tables, formal dining
+        "Wedding guests seated at round banquet tables covered in white linen, eating a formal multi-course dinner.",
+        "A wedding reception dinner scene with all guests in their chairs, plates of food on the table and wine glasses filled.",
+        "A wide shot of a wedding banquet hall with hundreds of guests seated at dinner tables during the main course.",
+        "Guests at a wedding reception seated and eating their meal, with tall floral centerpieces and candles on the table.",
+        "A formal wedding dinner with people seated around large tables, servers bringing plates, a warm candlelit atmosphere.",
+    ],
+    [  # family — posed group portrait, multiple generations, no dancing or eating
+        "A formal family portrait at a wedding, multiple generations standing close together and smiling at the camera.",
+        "Parents, siblings, grandparents, and extended family members posed together in a group photo at a wedding.",
+        "A large family group photograph with adults and children arranged in rows, all dressed formally for the wedding.",
+        "The bride and groom surrounded by their immediate family members in a posed portrait on the wedding day.",
+        "A wide group photo of the entire wedding family — grandparents, parents, children, and cousins — lined up together.",
+    ],
+    [  # venue — hall decor, empty or near-empty space, architecture, table settings
+        "An elegant empty wedding banquet hall decorated with floral centerpieces, draped fabric, and soft ambient lighting.",
+        "A wide interior shot of a wedding venue showing decorated round tables, tall candelabras, and chandeliers before guests arrive.",
+        "Architectural detail photography inside a wedding hall: chandeliers, flower arrangements, and formally set tables with no people.",
+        "Close-up detail shots of wedding table decorations: place cards, candles, crystal glasses, and flower arrangements.",
+        "The grand interior of a wedding venue from above or distance, showing the decorated stage, altar area, and ambient lighting design.",
+    ],
 ]
 # CLIP confidence floor — scores below this yield null (photo genuinely ambiguous).
 _CLIP_MIN_SCORE = 0.20
@@ -56,10 +102,19 @@ def _load_models_sync() -> None:
     model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
     model.eval()
     tokenizer = open_clip.get_tokenizer("ViT-B-32")
-    texts = tokenizer(_CATEGORY_PROMPTS)
+    flat_prompts = [p for group in _CATEGORY_PROMPTS for p in group]
+    group_sizes = [len(g) for g in _CATEGORY_PROMPTS]
+    texts = tokenizer(flat_prompts)
     with torch.no_grad():
         text_feats = model.encode_text(texts)
         text_feats = text_feats / text_feats.norm(dim=-1, keepdim=True)
+        # Average the ensemble prompts per category, then re-normalise.
+        averaged, offset = [], 0
+        for size in group_sizes:
+            avg = text_feats[offset : offset + size].mean(dim=0)
+            averaged.append(avg / avg.norm())
+            offset += size
+        text_feats = torch.stack(averaged)  # [n_categories, dim]
     _clip_model = model
     _clip_preprocess = preprocess
     _clip_text_features = text_feats
