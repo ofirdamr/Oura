@@ -45,19 +45,19 @@ _CATEGORY_PROMPTS: list[list[str]] = [
         "A couple's portrait with only the two of them in frame, the bride's bouquet visible, warm emotional connection.",
         "Two newlyweds kissing, their faces and wedding attire filling the frame, no other people present.",
     ],
-    [  # ceremony — ritual moment, chuppah, officiant, formal positioning
-        "A Jewish wedding ceremony under a white chuppah canopy, the couple standing beneath it as a rabbi officiates.",
-        "The groom placing a gold ring on the bride's outstretched finger during the exchange of vows, guests watching from rows of seats.",
-        "A wide-angle view of the wedding ceremony hall with all guests seated in rows facing the couple at the altar.",
-        "The bride walking down the aisle escorted by her parents, guests standing and turning to watch her approach.",
-        "The ceremonial moment when the groom breaks a glass under his foot at the conclusion of a Jewish wedding, guests cheering.",
+    [  # ceremony — chuppah structure visible in background, guests seated, still formal ritual
+        "A Jewish wedding ceremony with the white chuppah canopy structure clearly visible in the background, the couple standing motionless beneath it.",
+        "Guests seated in rows of chairs facing the chuppah altar, watching the wedding ceremony from a distance — nobody dancing or moving.",
+        "The groom placing a ring on the bride's finger beneath the chuppah, the decorated canopy poles and fabric prominent behind them.",
+        "A wide shot of the ceremony space showing the formal altar or chuppah at the far end and rows of seated guests filling the aisle.",
+        "The bride walking down the ceremony aisle toward the chuppah, guests seated on both sides turning to watch — the canopy structure visible ahead.",
     ],
-    [  # dances — energetic group motion, hora, lifted chairs
-        "Wedding guests dancing the hora in a large jubilant circle on the dance floor, everyone holding hands.",
-        "The bride and groom being lifted on chairs by dancing guests during a lively traditional hora celebration.",
-        "A crowded wedding dance floor with many guests dancing energetically together to upbeat music, arms raised.",
-        "A circle of wedding guests performing traditional folk dancing, moving together in a joyful group.",
-        "High-energy wedding reception dancing with motion blur, guests laughing and celebrating together on the dance floor.",
+    [  # dances — open dance floor, no chuppah, chairs pushed aside, motion and energy
+        "Wedding guests dancing the hora in a jubilant circle on the open parquet dance floor, the chuppah nowhere in sight, chairs along the walls.",
+        "The bride and groom lifted on chairs by dancing guests on the dance floor — the ballroom background visible, no ceremony altar or canopy.",
+        "A crowded dance floor with many guests moving energetically to music, arms raised in joy, in the main hall separate from the ceremony area.",
+        "People dancing at a wedding with hands raised and bodies in motion — the background shows the lit banquet hall, not a chuppah or altar.",
+        "High-energy wedding dancing with motion blur, the dance floor space clearly distinct from the ceremony setting — no canopy, open floor area.",
     ],
     [  # reception — cocktail hour, standing, mingling, drinks in hand
         "Wedding guests standing in small groups during the cocktail hour, drinks in hand, chatting and socializing.",
