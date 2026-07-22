@@ -89,10 +89,45 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Cloud Run deploy BLOCKED — GCP IAM permission** — The deploy service account `oura-deploy` is missing the `Service Account User` role. To fix: open GCP console → IAM & Admin → Service Accounts → click on `932309994000-compute@developer.gserviceaccount.com` → go to Permissions tab → Grant Access → enter `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` as the new principal → pick the role "Service Account User" → Save. Then tell next session to re-trigger the Cloud Run deploy.
-- **Backfill blocked until Cloud Run deploys** — backfill ran but returned `0 updated / 35 skipped` because the `/classify-category` CLIP endpoint doesn't exist on the currently running Cloud Run revision. After IAM fix + successful deploy, re-run: `POST /admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
-- **ADMIN_BACKFILL_TOKEN rotated** — the live Cloudflare secret is now `Oura-backfill-2026` (set this session via CF API).
-- **Demo photos too few** — upload dancing/eating/couple photos via the admin upload page so all category chips show content.
+- **Cloud Run deploy BLOCKED — needs Cloud Shell setup first (two-step, one-time).**
+  Run these commands in GCP Cloud Shell (https://console.cloud.google.com/cloudshell?project=ouraforphotographers):
+
+  ```bash
+  # Step 1 — Grant IAM roles to the deploy service account
+  DEPLOY_SA="oura-deploy@ouraforphotographers.iam.gserviceaccount.com"
+  for ROLE in roles/artifactregistry.admin roles/run.admin roles/iam.serviceAccountUser; do
+    gcloud projects add-iam-policy-binding ouraforphotographers \
+      --member="serviceAccount:$DEPLOY_SA" --role="$ROLE" --quiet && echo "Granted $ROLE"
+  done
+
+  # Step 2 — Create Workload Identity Federation (so GitHub Actions needs no stored JSON key)
+  gcloud iam workload-identity-pools create github-pool \
+    --project=ouraforphotographers --location=global \
+    --display-name="GitHub Actions Pool" --quiet
+
+  gcloud iam workload-identity-pools providers create-oidc github-provider \
+    --project=ouraforphotographers --location=global \
+    --workload-identity-pool=github-pool \
+    --issuer-uri="https://token.actions.githubusercontent.com" \
+    --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+    --attribute-condition="assertion.repository=='ofirdamr/Oura'" --quiet
+
+  gcloud iam service-accounts add-iam-policy-binding oura-deploy@ouraforphotographers.iam.gserviceaccount.com \
+    --project=ouraforphotographers --role=roles/iam.workloadIdentityUser \
+    --member="principalSet://iam.googleapis.com/projects/932309994000/locations/global/workloadIdentityPools/github-pool/attribute.repository/ofirdamr/Oura"
+  ```
+
+  After both steps succeed, trigger the GitHub Actions deploy:
+  https://github.com/ofirdamr/Oura/actions/workflows/deploy-cloud-run.yml
+  → click "Run workflow" → Run workflow.
+
+  The `deploy-cloud-run.yml` workflow has been updated to use WIF (no JSON key needed).
+  The old `GCP_SA_KEY` and `GCP_ADMIN_KEY` GitHub secrets can be deleted after a successful deploy.
+
+- **Backfill blocked until Cloud Run deploys** — after a successful deploy, re-run:
+  `POST /admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
+- **ADMIN_BACKFILL_TOKEN** — live Cloudflare secret is `Oura-backfill-2026`.
+- **Demo photos too few** — upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload
 - **Visual QA** — confirm the 4 bug fixes look correct on the live site.
 
 ## Open PRs
