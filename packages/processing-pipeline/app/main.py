@@ -45,11 +45,11 @@ _CATEGORY_PROMPTS: list[list[str]] = [
         "Bridal preparation photography: the bride getting her hair styled, adjusting her veil, or looking in a mirror while getting ready for the wedding ceremony.",
         "The bride and groom sharing a private moment together — indoors or outdoors — away from wedding guests, just the two of them in an intimate or romantic setting.",
     ],
-    [  # ceremony — chuppah canopy clearly visible, formal ritual under the canopy, guests seated watching
-        "A Jewish wedding ceremony with the white chuppah canopy structure clearly visible, the couple standing motionless beneath it and a rabbi officiating.",
+    [  # ceremony — chuppah canopy OR close-up ritual moments: ring, glass-breaking, vows, aisle
+        "A Jewish wedding ceremony with the white chuppah canopy structure clearly visible, the couple standing beneath it and a rabbi officiating.",
         "Guests seated in rows of chairs facing the chuppah altar, watching the wedding ceremony — nobody dancing or moving, all eyes on the canopy.",
-        "The groom placing a ring on the bride's finger beneath the chuppah, the decorated canopy poles and white fabric prominent behind them.",
-        "A wide shot of the ceremony space showing the chuppah canopy at the far end and rows of seated guests filling the aisle — a formal religious ritual moment.",
+        "The groom placing a gold wedding ring on the bride's finger during the Jewish ceremony — a close-up of their hands and faces, the emotional peak of the ritual.",
+        "The groom stomping on a glass wrapped in white cloth at the end of the Jewish wedding ceremony, guests erupting in joy around the couple — a defining ritual close-up.",
         "The bride walking down the ceremony aisle toward the chuppah canopy, guests seated on both sides turning to watch — the canopy structure clearly visible ahead.",
     ],
     [  # dances — open dance floor, no chuppah, chairs pushed aside, motion and energy
