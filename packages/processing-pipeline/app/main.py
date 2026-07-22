@@ -22,6 +22,8 @@ from fastapi.responses import Response
 from insightface.app import FaceAnalysis
 from PIL import Image, ImageFilter
 
+import threading
+
 EMBED_SERVICE_TOKEN = os.environ.get("EMBED_SERVICE_TOKEN")
 
 app = FastAPI()
@@ -29,6 +31,7 @@ _face_app: FaceAnalysis | None = None
 _clip_model: Optional[torch.nn.Module] = None
 _clip_preprocess = None
 _clip_text_features: Optional[torch.Tensor] = None
+_models_ready = threading.Event()
 
 # Fixed wedding category labels — order matches _clip_text_features rows.
 _CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course"]
@@ -43,8 +46,7 @@ _CATEGORY_PROMPTS = [
 _CLIP_MIN_SCORE = 0.20
 
 
-@app.on_event("startup")
-def load_models() -> None:
+def _load_models_sync() -> None:
     global _face_app, _clip_model, _clip_preprocess, _clip_text_features
 
     _face_app = FaceAnalysis(name="buffalo_l")
@@ -61,6 +63,15 @@ def load_models() -> None:
     _clip_model = model
     _clip_preprocess = preprocess
     _clip_text_features = text_feats
+    _models_ready.set()
+
+
+@app.on_event("startup")
+def load_models() -> None:
+    # Load in background so uvicorn listens on port 8080 immediately.
+    # Cloud Run health check sees the port up; inference endpoints return 503
+    # until _models_ready is set (typically 30-90 s on cold start).
+    threading.Thread(target=_load_models_sync, daemon=True).start()
 
 
 def _check_auth(request: Request) -> None:
@@ -73,12 +84,15 @@ def _check_auth(request: Request) -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True, "models": ["buffalo_l", "clip-ViT-B-32"]}
+    ready = _models_ready.is_set()
+    return {"ok": ready, "models": ["buffalo_l", "clip-ViT-B-32"] if ready else []}
 
 
 @app.post("/embed")
 async def embed(request: Request) -> dict:
     _check_auth(request)
+    if not _models_ready.is_set():
+        raise HTTPException(status_code=503, detail="models_loading")
     body = await request.body()
     if not body:
         raise HTTPException(status_code=400, detail="empty_body")
@@ -110,6 +124,8 @@ async def classify_category(request: Request) -> dict:
     Null when top similarity score is below _CLIP_MIN_SCORE (ambiguous photo).
     """
     _check_auth(request)
+    if not _models_ready.is_set():
+        raise HTTPException(status_code=503, detail="models_loading")
     body = await request.body()
     if not body:
         raise HTTPException(status_code=400, detail="empty_body")
@@ -226,6 +242,8 @@ async def social_frame(
     format=story:    9:16 blurred-backdrop canvas (1080×1920).
     """
     _check_auth(request)
+    if not _models_ready.is_set():
+        raise HTTPException(status_code=503, detail="models_loading")
     body = await request.body()
     if not body:
         raise HTTPException(status_code=400, detail="empty_body")
