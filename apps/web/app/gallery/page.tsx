@@ -101,7 +101,7 @@ function PhotoTile({
 const FESTIVE_CATEGORIES = [
   { key: "all", label: "כל התמונות" },
   { key: "ceremony", label: "חופה" },
-  { key: "couple", label: "טיול" },
+  { key: "couple", label: "הזוג" },
   { key: "family", label: "משפחה" },
   { key: "dances", label: "ריקודים" },
   { key: "reception", label: "קבלת פנים" },
