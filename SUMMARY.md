@@ -4,7 +4,7 @@
 
 ## Current state (2026-07-22)
 
-We are in **§10 QA phase**. PR #121 (CLIP 5-prompt ensembles + משפחה/אולם categories) merged and Cloud Run redeploy triggered. **Migration 0012 pending** — must be applied manually in Supabase dashboard before backfill.
+We are in **§10 QA phase**. PR #121 (CLIP 5-prompt ensembles + משפחה/אולם categories) merged. Migration 0012 applied ✅. Cloud Run running with 7-category classifier. **Next:** fix backfill to target all `category IS NULL` photos (not just new uploads), then run on a real event.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
