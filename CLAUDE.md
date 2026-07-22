@@ -1,5 +1,8 @@
 # CLAUDE.md — Oura
 
+## ⛔ EFFORT DEFAULTS TO LOW (non-negotiable, founder's rule)
+Default reasoning/effort is **LOW**. Don't overthink. Rise to **MEDIUM** only for a genuinely complicated mission — never higher. Most tasks are low. Do the thing, don't spin.
+
 ## ⛔ "DONE" REQUIRES FULL VERIFICATION (non-negotiable)
 You may only say a mission is "done" after ALL of the following are confirmed in that same session:
 1. **Code review** — every file changed was read and checked for correctness.
