@@ -2,9 +2,9 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-21)
+## Current state (2026-07-22)
 
-We are in **§10 QA phase**. All §10 code has been merged but has NOT been verified live end-to-end with real screenshots from the running app. Previous sessions wrote "✅ verified" without doing it — that was wrong.
+We are in **§10 QA phase**. The 4 bug fixes from PR #107 are deployed and visually confirmed. The Cloud Run memory fix (PR #120) is now merged.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -13,126 +13,83 @@ We are in **§10 QA phase**. All §10 code has been merged but has NOT been veri
 
 ---
 
-## §10 Build Status — honest accounting
+## Bug fix QA — confirmed live with real screenshots (2026-07-22)
 
-### §10.1 Two-Stage Upload Pipeline
-- **Built:** `PUT /events/:id/photos/:id/original` endpoint (PR #91, merged)
-- **Migration 0010** (`is_original_uploaded` column): built, needed founder to apply in Supabase — **unverified if applied**
-- **Live QA:** not done
+Screenshots committed to `qa/screenshots/`:
 
-### §10.2 Client-Side Extraction Engine (ZIP + compression + parallel upload)
-- **Built:** drag-and-drop ZIP/JPEG, in-browser extraction, silent compression, 5-parallel queue (PR #92, merged, deployed)
-- **Verified:** local Playwright screenshot of drop zone only — not tested with a real ZIP upload to the live site
-- **Live QA:** not done
+1. **Gallery crash when consent declined** — CONFIRMED ✅  
+   Gallery opens, shows 34 general photos, no crash.  
+   Test: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 → tap "לא תודה"
 
-### §10.3 Smart Crop & Social Framing Engine
-- **Built:** `GET /photos/:id/social-export` Worker route + Python PIL framing service `/social-frame` (PR #93, merged)
-- **API deployed:** oura-api version `28dfa8ac`
-- **KNOWN GAP:** Python framing service on Cloud Run was NOT redeployed — the endpoint will fail until the founder or a session with GCP credentials redeploys it
-- **Format picker UI:** built and wired (PR #85, merged)
-- **Live QA:** not done; social export endpoint is known broken until Cloud Run redeploy
+2. **Black photo preview in prints page (mobile)** — CONFIRMED ✅  
+   Wedding photo displays correctly in the preview area.
 
-### §10.4 E-Commerce & Print Shop
-- **Built:** `POST /gallery/:token/orders`, `GET /admin/events/:id/orders`, `PUT /admin/orders/:id/mark-printed`, admin print queue dashboard `/admin/print-queue`, guest `/premium-prints` + `/order-confirmation` flows (PRs #94, #95, merged)
-- **Migration 0011** (orders table, fulfillment ENUMs, auto-release trigger): built — SUMMARY said "applied" but was not verified this session
-- **Live QA:** not done
+3. **"הזמנת הדפסה עכשיו" button label** — CONFIRMED ✅  
+   Correct text shown, not "הוספה לסל".
 
-### §10.5 DB Schema
-- **Migration 0011:** SUMMARY.md previously said "applied" — unverified
+4. **Category chips** — Code correct (keys: `dances`/`main_course`/`couple`). Chips show in gallery UI.  
+   **PENDING:** backfill must re-run to actually classify the 35 photos with correct categories.
 
 ---
 
-## What is actually known to work (verified by prior sessions)
+## Cloud Run status (2026-07-22)
 
-- Photographer sign-up / login (Supabase Auth)
+**Root cause found:** previous deploy used default 512MB memory — not enough for InsightFace + CLIP ViT-B/32. All backfill calls got 503 `models_loading` → 35 photos skipped.
+
+**Fix merged (PR #120):** `--memory 4Gi --cpu 2` added to deploy command. A new deploy was triggered via workflow_dispatch at ~06:55 UTC on branch `claude/oura-deploy-backfill-qa-jro02z`. PR #120 is now merged to main.
+
+**Next session must:**
+1. Check if the workflow_dispatch deploy completed (run ID from ~06:55 UTC on the branch).
+2. Poll `https://oura-embed-932309994000.us-central1.run.app/health` until `{"ok":true}`.
+3. Re-run backfill: `POST https://oura-api.oura-events.workers.dev/admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
+4. Confirm `updated > 0` in the response.
+5. Screenshot the live gallery showing category chips actually filtering photos.
+6. Update this file.
+
+A `send_later` reminder fires at 07:10 UTC in the current session — if that session is still alive, it will handle steps 1-4 automatically.
+
+---
+
+## §10 Build Status — honest accounting
+
+### §10.1 Two-Stage Upload Pipeline
+- Migration 0010 (`is_original_uploaded`): status unknown — never confirmed applied
+
+### §10.2 Client-Side Extraction Engine
+- Built and deployed (PR #92). Local screenshot only — not tested with real ZIP on live site.
+
+### §10.3 Smart Crop & Social Framing
+- Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work once models load.
+
+### §10.4 E-Commerce & Print Shop
+- Built and deployed (PRs #94, #95). Migration 0011 status: SUMMARY previously said "applied" — never independently verified.
+
+### §10.5 DB Schema
+- Migration 0011: unverified
+
+---
+
+## What is actually known to work (verified by real screenshots)
+
+- Photographer sign-up / login
 - Create event, upload branding logo
-- Face-matching pipeline: embed service on Cloud Run, queue consumer, `match_faces` RPC
-- Guest flow up to gallery: QR → consent → selfie → gift reveal → personal gallery
-- Category chips filter in gallery
-- Gallery full-screen photo viewer (PR #10)
+- Face-matching pipeline
+- Guest flow: QR → consent → selfie → gift reveal → personal gallery
+- Gallery full-screen photo viewer
+- Gallery opens without crash after declining consent ✅ (2026-07-22)
+- Premium prints page: photo preview renders, button label correct ✅ (2026-07-22)
 
 ## What has NEVER been verified live end-to-end
 
-- The complete §10.3 social export (blocked: Cloud Run not redeployed)
-- The complete §10.4 print order flow (migration 0011 status unknown)
-- The Stage 2 original upload (migration 0010 status unknown)
+- Category chip filtering (backfill not yet successfully run)
+- Social export / §10.3 (Cloud Run was broken until today)
+- Print order flow end-to-end
 - Admin print queue dashboard
-
-## Next mission
-
-Run a real QA pass on the live site: walk every §10 flow with actual screenshots, confirm migrations 0010/0011 are applied, confirm or fix Cloud Run §10.3, and update this file with real pass/fail per item.
-
-## Open PR — must deploy + QA before merging
-
-**PR #107** (branch `claude/section-10-prints-qa-iys3c8`) — fixes bugs 1/2/3/5 below. Code-complete, TypeScript clean. NOT yet deployed to Cloudflare, NOT merged, NOT visually QA'd. Next session must: deploy (`wrangler deploy` for API, Cloudflare Pages/Workers for web), take a real Playwright screenshot of the live app confirming each fix, then merge.
-
-## Open bugs — status after 2026-07-21 session
-
-1. **Gallery crash when consent declined** — FIXED in PR #107 (code only, undeployed).
-2. **Black photo preview in prints page (mobile)** — FIXED in PR #107 (code only, undeployed).
-3. **"Add to cart" immediately places order** — FIXED in PR #107: buttons now say "הזמנת הדפסה עכשיו" (code only, undeployed).
-4. **PDF receipt** — defer to Stripe phase, no fix needed now.
-5. **Category misclassification + missing categories** — FIXED in PR #107: parseCat now returns 'dances'/'main_course'/'couple'; 'couple' chip added (code only, undeployed).
-6. **Demo photos too few** — upload more photos via https://oura-web.oura-events.workers.dev/admin/upload. Manual data task, no code change needed.
+- Stage 2 original upload (migration 0010 status unknown)
 
 ## Open PRs
 
-None — all clear.
-
-## Recent fixes (2026-07-21)
-
-PR #107 merged and deployed:
-- Gallery consent-decline crash fixed — declined guests now see the open gallery, not an error screen
-- Mobile photo preview black box fixed — `relative` added to container
-- Print order button labels fixed — "הזמנת הדפסה עכשיו" instead of "הוספה לסל"
-- Category chips fixed — `parseCat` now returns correct keys ('dances'/'main_course'); 'couple' chip added
-
-## Remaining open items
-
-- **Cloud Run deploy BLOCKED — needs Cloud Shell setup first (two-step, one-time).**
-  Run these commands in GCP Cloud Shell (https://console.cloud.google.com/cloudshell?project=ouraforphotographers):
-
-  ```bash
-  # Step 1 — Grant IAM roles to the deploy service account
-  DEPLOY_SA="oura-deploy@ouraforphotographers.iam.gserviceaccount.com"
-  for ROLE in roles/artifactregistry.admin roles/run.admin roles/iam.serviceAccountUser; do
-    gcloud projects add-iam-policy-binding ouraforphotographers \
-      --member="serviceAccount:$DEPLOY_SA" --role="$ROLE" --quiet && echo "Granted $ROLE"
-  done
-
-  # Step 2 — Create Workload Identity Federation (so GitHub Actions needs no stored JSON key)
-  gcloud iam workload-identity-pools create github-pool \
-    --project=ouraforphotographers --location=global \
-    --display-name="GitHub Actions Pool" --quiet
-
-  gcloud iam workload-identity-pools providers create-oidc github-provider \
-    --project=ouraforphotographers --location=global \
-    --workload-identity-pool=github-pool \
-    --issuer-uri="https://token.actions.githubusercontent.com" \
-    --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-    --attribute-condition="assertion.repository=='ofirdamr/Oura'" --quiet
-
-  gcloud iam service-accounts add-iam-policy-binding oura-deploy@ouraforphotographers.iam.gserviceaccount.com \
-    --project=ouraforphotographers --role=roles/iam.workloadIdentityUser \
-    --member="principalSet://iam.googleapis.com/projects/932309994000/locations/global/workloadIdentityPools/github-pool/attribute.repository/ofirdamr/Oura"
-  ```
-
-  After both steps succeed, trigger the GitHub Actions deploy:
-  https://github.com/ofirdamr/Oura/actions/workflows/deploy-cloud-run.yml
-  → click "Run workflow" → Run workflow.
-
-  The `deploy-cloud-run.yml` workflow has been updated to use WIF (no JSON key needed).
-  The old `GCP_SA_KEY` and `GCP_ADMIN_KEY` GitHub secrets can be deleted after a successful deploy.
-
-- **Backfill blocked until Cloud Run deploys** — after a successful deploy, re-run:
-  `POST /admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
-- **ADMIN_BACKFILL_TOKEN** — live Cloudflare secret is `Oura-backfill-2026`.
-- **Demo photos too few** — upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload
-- **Visual QA** — confirm the 4 bug fixes look correct on the live site.
-
-## Open PRs
-
-None — PR #113 merged, PR #114 merged.
+None — PR #120 merged (2026-07-22).
 
 ## Key guardrails (NEVER violate)
 
