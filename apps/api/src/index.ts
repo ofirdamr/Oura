@@ -1192,8 +1192,8 @@ app.post('/admin/backfill-embeddings', async (c) => {
 
 // ---------------------------------------------------------------------------
 // POST /admin/events/:id/backfill-categories
-//   Force-reclassifies photos in an event via Cloud Run CLIP (zero per-call cost),
-//   overwriting any existing category value (including previously wrong labels).
+//   Classifies photos with no category yet via Cloud Run CLIP (zero per-call cost).
+//   Only processes photos WHERE category IS NULL — already-classified photos are skipped.
 //   Supports ?limit=N&offset=N for pagination on large events (max 200/call).
 //   Gated by ADMIN_BACKFILL_TOKEN bearer secret (operator-only action).
 // ---------------------------------------------------------------------------
@@ -1223,6 +1223,7 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
     .from('photos')
     .select('id, storage_key')
     .eq('event_id', resolved_event_id)
+    .is('category', null)
     .range(offset, offset + limit - 1);
   if (photosErr) return c.json({ error: 'query_failed' }, 500);
   if (!photos || photos.length === 0) return c.json({ updated: 0, skipped: 0, total: 0, message: 'no photos found' });
