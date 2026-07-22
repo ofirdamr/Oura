@@ -35,12 +35,44 @@ _models_ready = threading.Event()
 
 # Fixed wedding category labels — order matches _clip_text_features rows.
 _CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course"]
-_CATEGORY_PROMPTS = [
-    "bride and groom couple portrait, romantic and intimate, just the two of them",
-    "Jewish wedding ceremony under a chuppah canopy with rabbi and guests watching",
-    "hora circle dancing on a wedding dance floor, people dancing together",
-    "cocktail reception with people mingling and waiters serving appetizers",
-    "guests seated at dinner tables eating a wedding banquet meal with speeches",
+# Each inner list is an ensemble of prompts for one category.
+# At load time all prompts are encoded and averaged per category → [5, 512] matrix.
+_CATEGORY_PROMPTS: list[list[str]] = [
+    [  # couple — intimate portrait, just the two of them
+        "A romantic wedding portrait of the bride and groom alone together, facing each other closely.",
+        "An intimate close-up of two newlyweds, the bride in a white dress and groom in a suit, embracing and smiling.",
+        "The bride and groom sharing a quiet moment together, gazing into each other's eyes at their wedding.",
+        "A couple's portrait with only the two of them in frame, the bride's bouquet visible, warm emotional connection.",
+        "Two newlyweds kissing, their faces and wedding attire filling the frame, no other people present.",
+    ],
+    [  # ceremony — ritual moment, chuppah, officiant, formal positioning
+        "A Jewish wedding ceremony under a white chuppah canopy, the couple standing beneath it as a rabbi officiates.",
+        "The groom placing a gold ring on the bride's outstretched finger during the exchange of vows, guests watching from rows of seats.",
+        "A wide-angle view of the wedding ceremony hall with all guests seated in rows facing the couple at the altar.",
+        "The bride walking down the aisle escorted by her parents, guests standing and turning to watch her approach.",
+        "The ceremonial moment when the groom breaks a glass under his foot at the conclusion of a Jewish wedding, guests cheering.",
+    ],
+    [  # dances — energetic group motion, hora, lifted chairs
+        "Wedding guests dancing the hora in a large jubilant circle on the dance floor, everyone holding hands.",
+        "The bride and groom being lifted on chairs by dancing guests during a lively traditional hora celebration.",
+        "A crowded wedding dance floor with many guests dancing energetically together to upbeat music, arms raised.",
+        "A circle of wedding guests performing traditional folk dancing, moving together in a joyful group.",
+        "High-energy wedding reception dancing with motion blur, guests laughing and celebrating together on the dance floor.",
+    ],
+    [  # reception — cocktail hour, standing, mingling, drinks in hand
+        "Wedding guests standing in small groups during the cocktail hour, drinks in hand, chatting and socializing.",
+        "A cocktail reception with elegantly dressed people mingling, waiters carrying trays of appetizers through the crowd.",
+        "Guests gathered around a cocktail station or open bar, glasses of wine in hand, talking in a decorated venue.",
+        "An outdoor garden cocktail hour at a wedding, standing guests socializing with drinks before the dinner.",
+        "People at a wedding reception cocktail hour, holding hors d'oeuvres and cocktails, no one seated at tables.",
+    ],
+    [  # main_course — seated banquet dinner, food on tables, formal dining
+        "Wedding guests seated at round banquet tables covered in white linen, eating a formal multi-course dinner.",
+        "A wedding reception dinner scene with all guests in their chairs, plates of food on the table and wine glasses filled.",
+        "A wide shot of a wedding banquet hall with hundreds of guests seated at dinner tables during the main course.",
+        "Guests at a wedding reception seated and eating their meal, with tall floral centerpieces and candles on the table.",
+        "A formal wedding dinner with people seated around large tables, servers bringing plates, a warm candlelit atmosphere.",
+    ],
 ]
 # CLIP confidence floor — scores below this yield null (photo genuinely ambiguous).
 _CLIP_MIN_SCORE = 0.20
@@ -56,10 +88,19 @@ def _load_models_sync() -> None:
     model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
     model.eval()
     tokenizer = open_clip.get_tokenizer("ViT-B-32")
-    texts = tokenizer(_CATEGORY_PROMPTS)
+    flat_prompts = [p for group in _CATEGORY_PROMPTS for p in group]
+    group_sizes = [len(g) for g in _CATEGORY_PROMPTS]
+    texts = tokenizer(flat_prompts)
     with torch.no_grad():
         text_feats = model.encode_text(texts)
         text_feats = text_feats / text_feats.norm(dim=-1, keepdim=True)
+        # Average the ensemble prompts per category, then re-normalise.
+        averaged, offset = [], 0
+        for size in group_sizes:
+            avg = text_feats[offset : offset + size].mean(dim=0)
+            averaged.append(avg / avg.norm())
+            offset += size
+        text_feats = torch.stack(averaged)  # [n_categories, dim]
     _clip_model = model
     _clip_preprocess = preprocess
     _clip_text_features = text_feats
