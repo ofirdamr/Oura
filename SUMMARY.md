@@ -47,7 +47,7 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-**PR #122** (draft) — SUMMARY.md doc update only. Safe to merge or close.
+None. PR #123 merged 2026-07-22. PR #122 was a SUMMARY.md-only draft — superseded and closed by #123.
 
 ---
 
@@ -76,7 +76,7 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Built and deployed (PRs #94, #95). Migration 0011 status: never independently verified.
 
 ### §10.5 DB Schema
-- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): unverified — check before backfill produces DB errors on new categories.
+- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): **APPLIED ✅** — `photos_category_check` now covers all 7 values (ceremony/couple/dances/reception/main_course/family/venue). Confirmed 2026-07-22.
 
 ---
 
@@ -92,6 +92,7 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Category chips display and respond to taps in gallery ✅
 - Cloud Run classification model loads and runs ✅
 - Backfill endpoint: WHERE category IS NULL working ✅ — all 7 categories including משפחה/אולם score
+- Migration 0012 applied ✅ — DB CHECK constraint accepts all 7 category values
 
 ## What has NEVER been verified live end-to-end
 
