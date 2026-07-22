@@ -2,7 +2,7 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-21)
+## Current state (2026-07-22)
 
 We are in **§10 QA phase**. All §10 code has been merged but has NOT been verified live end-to-end with real screenshots from the running app. Previous sessions wrote "✅ verified" without doing it — that was wrong.
 
@@ -89,10 +89,13 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Cloud Run deploy BLOCKED — GCP IAM permission** — The deploy service account `oura-deploy` is missing the `Service Account User` role. To fix: open GCP console → IAM & Admin → Service Accounts → click on `932309994000-compute@developer.gserviceaccount.com` → go to Permissions tab → Grant Access → enter `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` as the new principal → pick the role "Service Account User" → Save. Then tell next session to re-trigger the Cloud Run deploy.
-- **Backfill blocked until Cloud Run deploys** — backfill ran but returned `0 updated / 35 skipped` because the `/classify-category` CLIP endpoint doesn't exist on the currently running Cloud Run revision. After IAM fix + successful deploy, re-run: `POST /admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
-- **ADMIN_BACKFILL_TOKEN rotated** — the live Cloudflare secret is now `Oura-backfill-2026` (set this session via CF API).
-- **Demo photos too few** — upload dancing/eating/couple photos via the admin upload page so all category chips show content.
+- **Cloud Run deploy BLOCKED — GCP IAM permission (CONFIRMED ROOT CAUSE 2026-07-22)** — `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` lacks `iam.serviceaccounts.actAs` on `932309994000-compute@developer.gserviceaccount.com`. Confirmed: 7 GitHub Actions runs all fail with this exact error. The workflow's "fix" step (`gcloud iam service-accounts add-iam-policy-binding`) also fails silently (oura-deploy can't self-grant setIamPolicy). THIS REQUIRES A PROJECT OWNER ACTION — cannot be automated from the deploy SA. Fix: open https://console.cloud.google.com/iam-admin/serviceaccounts?project=ouraforphotographers → click `932309994000-compute@developer.gserviceaccount.com` → Permissions tab → Grant Access → enter `oura-deploy@ouraforphotographers.iam.gserviceaccount.com` → role "Service Account User" → Save. Then re-run the GitHub Actions workflow at https://github.com/ofirdamr/Oura/actions/workflows/deploy-cloud-run.yml (click "Run workflow").
+- **Latest pushed image (ready to deploy once IAM fixed):**
+  - Tag `99e7569c4d3caa642c9042636d0075fb33357074`, digest `sha256:bc4d0fc4d12fedb08b0abd4cf732f01cf1b2832d81a04c12ceedb0bf40ded49e`
+  - Alternate (run 6): tag `893026b2f4b3`, digest `sha256:1a5c1b51eb904365c0f78867863a71e539fcb99b8364e018fe47728a2e02dd69`
+- **Backfill ready to re-run** — confirmed live 2026-07-22: `POST /admin/events/WED-2024/backfill-categories` returns `{"updated":0,"skipped":35,"total":35}` — skips because Cloud Run's `/classify-category` doesn't exist in current revision. Will work once Cloud Run is updated. Token: `Oura-backfill-2026`.
+- **GCP_SA_KEY_JSON NOT present in Claude Code environment** — the env secret was not saved. Only `GCP_SA_KEY` (GitHub repo secret) is available and used by GH Actions.
+- **Demo photos too few** — upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
 - **Visual QA** — confirm the 4 bug fixes look correct on the live site.
 
 ## Open PRs
