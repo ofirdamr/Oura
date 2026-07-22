@@ -38,12 +38,12 @@ _CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course", "f
 # Each inner list is an ensemble of prompts for one category.
 # At load time all prompts are encoded and averaged per category → [5, 512] matrix.
 _CATEGORY_PROMPTS: list[list[str]] = [
-    [  # couple — intimate portrait, just the two of them
-        "A romantic wedding portrait of the bride and groom alone together, facing each other closely.",
-        "An intimate close-up of two newlyweds, the bride in a white dress and groom in a suit, embracing and smiling.",
-        "The bride and groom sharing a quiet moment together, gazing into each other's eyes at their wedding.",
-        "A couple's portrait with only the two of them in frame, the bride's bouquet visible, warm emotional connection.",
-        "Two newlyweds kissing, their faces and wedding attire filling the frame, no other people present.",
+    [  # couple — bridal portrait shoot at a separate location, NOT the wedding hall
+        "The bride and groom posing together outdoors for a professional portrait, fully styled in wedding attire — bride in white dress with hair and makeup done, groom in suit — at a scenic outdoor location away from the wedding venue.",
+        "A romantic couple photo shoot in a park, garden, rooftop, or urban street, with only the two of them in frame and no wedding hall, tables, or guests visible in the background.",
+        "The bride with perfect bridal hair and makeup and the groom in a formal suit, photographed together at a beautiful outdoor or architectural setting far from the event hall.",
+        "A professional bridal portrait of just the newlyweds at an artistic location — golden hour light, nature, or city architecture as the backdrop — the background clearly not a banquet hall or ceremony space.",
+        "Two people in full wedding attire alone together at a separate photo-shoot location: no other guests, no tables, no chuppah, no dance floor — just the couple at a scenic or intimate setting.",
     ],
     [  # ceremony — chuppah structure visible in background, guests seated, still formal ritual
         "A Jewish wedding ceremony with the white chuppah canopy structure clearly visible in the background, the couple standing motionless beneath it.",
