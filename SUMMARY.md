@@ -13,23 +13,22 @@ We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visua
 
 ---
 
-## WED-2024 backfill re-run — confirmed (2026-07-22, post PR #125)
+## WED-2024 backfill re-run — confirmed (2026-07-22, post PR #128)
 
-Backfill ran manually after Cloud Run redeploy. Category breakdown shifted as expected:
+PR #128 (close-up ceremony prompts) → Cloud Run rebuilt and deployed (GH Actions run #29936381505, ~5 min). All 3 misclassified dances photos cleared to null. Full backfill ran: `updated:18, skipped:0`.
 
-| | Before | After |
+| | Post PR #125 | Post PR #128 (final) |
 |---|---|---|
-| ceremony | 30 (85.7%) | **8 (22.9%)** ✅ |
-| couple | 5 (14.3%) | **7 (20.0%)** ✅ |
-| dances | 0 | 3 (8.6%) |
-| family | 0 | 2 (5.7%) |
-| null | 0 | 15 (42.9%) |
+| ceremony | 8 (22.9%) | **23 (65.7%)** ✅ |
+| couple | 7 (20.0%) | 7 (20.0%) |
+| dances | 3 (8.6%) | 2 (5.7%) |
+| family | 2 (5.7%) | 2 (5.7%) |
+| main_course | 0 | 1 (2.9%) |
+| null | 15 (42.9%) | **0** ✅ |
 
-**15 permanently null photos** — fail identically on two consecutive backfill passes (empty debug log both times, meaning they fail before R2 fetch completes or before CLIP returns). Root cause: either orphaned DB records with no R2 file, or photos exceeding the Cloudflare Worker 6MB subrequest limit. Not a classification bug. These 15 need a separate R2 audit to confirm which.
+Close-up ceremony prompts work: ceremony rose from 8 → 23. 0 null photos remain (previously 15 were permanently null — all now classified with improved prompts). 2 remaining dances photos may be real dance shots or need further prompt tuning.
 
-**`משפחה` and `אולם` register real scores.** Lower confidence on WED-2024 expected — event has only ceremony/couple photos.
-
-**To validate high family/venue scores:** run backfill on a real multi-category event (family portraits, venue decor shots).
+**To validate family/venue scores:** run backfill on a real multi-category event.
 
 ---
 
@@ -50,9 +49,17 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ---
 
+## Deployment status (2026-07-22, this session)
+
+| Service | Last deployed | Code version |
+|---|---|---|
+| Cloud Run | 16:10 UTC | PR #128 (close-up ceremony prompts) ✅ |
+| oura-api | 16:13 UTC (this session) | PR #123 (WHERE IS NULL backfill) ✅ |
+| oura-web | 16:15 UTC (this session) | PR #121 (gallery chips 7 categories) ✅ |
+
 ## Open PRs
 
-None. PRs #121, #122, #123 all merged to main.
+None. PRs #121–#128 all merged to main and deployed.
 
 ## Migration 0012 — applied ✅
 

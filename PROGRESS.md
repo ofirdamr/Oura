@@ -18,6 +18,15 @@ _Older entries archived to `PROGRESS-archive.md`._
 - 15 permanently null: fail at R2 fetch on two consecutive passes (empty debug) — orphaned records or files >6MB; not a classification bug
 - CHECK constraint verified: all 7 categories present and correct in DB
 
+### 2026-07-22 — PR #128 deploy + backfill re-run (this session)
+- PR #128 (close-up ceremony prompts) merged → GH Actions Cloud Run deploy completed in ~5 min (run #29936381505 ✅)
+- Cleared all 3 dances-category photos to null via Supabase REST API (WED-2024 is ceremony/couple event, all 3 were misclassified)
+- Deployed oura-api (PR #123 WHERE IS NULL fix was NOT deployed — now fixed) ✅
+- Deployed oura-web (PR #121 gallery chips were NOT deployed — now fixed) ✅
+- Polled Cloud Run health until new image loaded, then ran full backfill: `{"updated":18,"skipped":0,"total":18}`
+- Final breakdown: ceremony 23 (65.7%), couple 7 (20%), dances 2 (5.7%), family 2 (5.7%), main_course 1 (2.9%), null 0
+- 15 previously permanently-null photos are now all classified (0 null remaining)
+
 ### 2026-07-22 — backfill-categories WHERE category IS NULL fix (this session)
 - Fixed `POST /admin/events/:id/backfill-categories` to add `.is('category', null)` — previously re-ran CLIP on ALL photos, wasting calls on already-classified ones
 - Deployed oura-api (deployed from branch `claude/backfill-uncategorized-photos-ideve1`)
