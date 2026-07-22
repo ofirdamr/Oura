@@ -13,18 +13,23 @@ We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visua
 
 ---
 
-## Backfill fix — confirmed live (2026-07-22, this session)
+## WED-2024 backfill re-run — confirmed (2026-07-22, post PR #125)
 
-`POST /admin/events/:id/backfill-categories` now queries `WHERE category IS NULL` — only unclassified photos go through CLIP. Previously re-classified all photos on every run (wasted Cloud Run calls).
+Backfill ran manually after Cloud Run redeploy. Category breakdown shifted as expected:
 
-Debug run on WED-2024 confirmed all 7 categories score:
-```
-couple: 0.21–0.34 | ceremony: 0.16–0.30 | dances: 0.18–0.26
-reception: 0.18–0.23 | main_course: 0.18–0.23 | family: 0.16–0.23 | venue: 0.15–0.23
-```
-`משפחה` and `אולם` register real scores. They score lower on WED-2024 because that event only has ceremony/couple photo types — expected behavior.
+| | Before | After |
+|---|---|---|
+| ceremony | 30 (85.7%) | **8 (22.9%)** ✅ |
+| couple | 5 (14.3%) | **7 (20.0%)** ✅ |
+| dances | 0 | 3 (8.6%) |
+| family | 0 | 2 (5.7%) |
+| null | 0 | 15 (42.9%) |
 
-**To validate high family/venue scores:** run backfill on a real multi-category event (one with family portraits and venue decor shots).
+**15 permanently null photos** — fail identically on two consecutive backfill passes (empty debug log both times, meaning they fail before R2 fetch completes or before CLIP returns). Root cause: either orphaned DB records with no R2 file, or photos exceeding the Cloudflare Worker 6MB subrequest limit. Not a classification bug. These 15 need a separate R2 audit to confirm which.
+
+**`משפחה` and `אולם` register real scores.** Lower confidence on WED-2024 expected — event has only ceremony/couple photos.
+
+**To validate high family/venue scores:** run backfill on a real multi-category event (family portraits, venue decor shots).
 
 ---
 
