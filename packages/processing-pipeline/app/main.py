@@ -34,7 +34,7 @@ _clip_text_features: Optional[torch.Tensor] = None
 _models_ready = threading.Event()
 
 # Fixed wedding category labels — order matches _clip_text_features rows.
-_CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course"]
+_CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course", "family", "venue"]
 # Each inner list is an ensemble of prompts for one category.
 # At load time all prompts are encoded and averaged per category → [5, 512] matrix.
 _CATEGORY_PROMPTS: list[list[str]] = [
@@ -72,6 +72,20 @@ _CATEGORY_PROMPTS: list[list[str]] = [
         "A wide shot of a wedding banquet hall with hundreds of guests seated at dinner tables during the main course.",
         "Guests at a wedding reception seated and eating their meal, with tall floral centerpieces and candles on the table.",
         "A formal wedding dinner with people seated around large tables, servers bringing plates, a warm candlelit atmosphere.",
+    ],
+    [  # family — posed group portrait, multiple generations, no dancing or eating
+        "A formal family portrait at a wedding, multiple generations standing close together and smiling at the camera.",
+        "Parents, siblings, grandparents, and extended family members posed together in a group photo at a wedding.",
+        "A large family group photograph with adults and children arranged in rows, all dressed formally for the wedding.",
+        "The bride and groom surrounded by their immediate family members in a posed portrait on the wedding day.",
+        "A wide group photo of the entire wedding family — grandparents, parents, children, and cousins — lined up together.",
+    ],
+    [  # venue — hall decor, empty or near-empty space, architecture, table settings
+        "An elegant empty wedding banquet hall decorated with floral centerpieces, draped fabric, and soft ambient lighting.",
+        "A wide interior shot of a wedding venue showing decorated round tables, tall candelabras, and chandeliers before guests arrive.",
+        "Architectural detail photography inside a wedding hall: chandeliers, flower arrangements, and formally set tables with no people.",
+        "Close-up detail shots of wedding table decorations: place cards, candles, crystal glasses, and flower arrangements.",
+        "The grand interior of a wedding venue from above or distance, showing the decorated stage, altar area, and ambient lighting design.",
     ],
 ]
 # CLIP confidence floor — scores below this yield null (photo genuinely ambiguous).
