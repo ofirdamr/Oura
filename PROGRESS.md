@@ -2,6 +2,15 @@
 
 _Older entries archived to `PROGRESS-archive.md`._
 
+### 2026-07-22 — CLIP prompt fix for ceremony false positives (PR #130)
+- Root cause: posed couple portraits were scoring ≥0.20 on ceremony prompts ("chuppah visible + couple standing" fired on formal bridal attire)
+- Fix: couple prompts now require "no crowd, no canopy, looking at camera"; ceremony prompts now require active ritual (rabbi reading ketubah, ring exchange, guests watching)
+- PR #130 merged to main → Cloud Run rebuild triggered (GH Actions run #29940381887)
+- All 35 WED-2024 categories cleared to null before rebuild
+- Backfill ran with OLD prompts (Cloud Run not yet rebuilt): couple:6, ceremony:13, family:1, null:15
+- NEXT: once Cloud Run rebuild completes (~25 min from merge), re-clear + re-run backfill with new prompts
+- Queue consumer wiring (step 4 classify after embed) confirmed already in place — no change needed
+
 ### 2026-07-22 — Cloud Run 4Gi memory fix + backfill success (session)
 - Root cause found: default 512MB Cloud Run OOM-killed InsightFace+CLIP during load → all backfill calls got 503 → 35 photos skipped
 - Fix: added `--memory 4Gi --cpu 2` to deploy command in `.github/workflows/deploy-cloud-run.yml` (PR #120, merged to main)
