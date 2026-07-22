@@ -11,6 +11,13 @@ _Older entries archived to `PROGRESS-archive.md`._
 - All 4 bug fixes visually confirmed via Playwright screenshots committed to `qa/screenshots/`
 - Category chips confirmed working in live gallery: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
+### 2026-07-22 — WED-2024 backfill re-run post PR #125 (this session)
+- Queried WED-2024 category breakdown before: ceremony 30 (85.7%), couple 5 (14.3%)
+- Nulled all 35 photos via Supabase SQL, Cloud Run warm (health ok), ran POST /admin/events/WED-2024/backfill-categories?debug=1
+- Result: ceremony 8 ✅, couple 7 ✅, dances 3, family 2, null 15
+- 15 permanently null: fail at R2 fetch on two consecutive passes (empty debug) — orphaned records or files >6MB; not a classification bug
+- CHECK constraint verified: all 7 categories present and correct in DB
+
 ### 2026-07-22 — backfill-categories WHERE category IS NULL fix (this session)
 - Fixed `POST /admin/events/:id/backfill-categories` to add `.is('category', null)` — previously re-ran CLIP on ALL photos, wasting calls on already-classified ones
 - Deployed oura-api (deployed from branch `claude/backfill-uncategorized-photos-ideve1`)
