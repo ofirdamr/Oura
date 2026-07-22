@@ -93,8 +93,8 @@ PR #107 merged and deployed:
 
 ## Remaining open items
 
-- **Cloud Run redeploy** — PR for CLIP classification (branch `claude/zero-cost-ai-classification-4l51ek`, PR #112) must be merged to main so CI auto-deploys Cloud Run. Once merged, both `/classify-category` (new) and `/social-frame` (§10.3) will go live automatically. No manual GCP action needed.
-- **Backfill still needed** — after merging PR #112 and Cloud Run redeploy completes, run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN to reclassify existing photos using CLIP.
+- **CLIP classification branch closed** — PR #112 (`claude/zero-cost-ai-classification-4l51ek`) was closed without merging by the founder. Branch still exists with complete code. If you want to ship this, tell the next session to reopen or re-PR it.
+- **Backfill still needed** — once CLIP branch is merged and Cloud Run redeploys, run: `POST /admin/events/WED-2024/backfill-categories` with ADMIN_BACKFILL_TOKEN.
 - **Demo photos too few** — upload dancing/eating/couple photos via https://oura-web.oura-events.workers.dev/admin/upload so all category chips show content.
 - **Visual QA** — confirm category chips show correct photos after backfill.
 
