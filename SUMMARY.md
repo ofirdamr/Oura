@@ -13,6 +13,18 @@ We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visua
 
 ---
 
+## CLIP category prompt fix — merged, Cloud Run redeploy in progress (2026-07-22)
+
+PR #125 merged. Root cause: "couple" prompts were outdoor-only, so makeup shots, indoor portraits, bridal detail shots (shoes, rings, veil), and getting-ready photos had no home and fell to "ceremony." 29/35 WED-2024 photos were wrongly tagged ceremony.
+
+Fix: "couple" prompts now cover getting-ready, indoor portraits, solo bridal shots, and detail photography. "ceremony" tightened to require chuppah canopy in every prompt variant.
+
+**Cloud Run redeploy triggered by merge — takes ~15–20 min.** After it's live, null all WED-2024 photo categories and re-run `POST /admin/events/WED-2024/backfill-categories?debug=1` (Bearer `Oura-backfill-2026`) to reclassify with new prompts. A scheduled check-in at ~11:33 UTC will do this automatically.
+
+Also: PR #126 merged — CLAUDE.md now requires mobile+desktop responsive screenshot on every UI change.
+
+---
+
 ## Backfill fix — confirmed live (2026-07-22, this session)
 
 `POST /admin/events/:id/backfill-categories` now queries `WHERE category IS NULL` — only unclassified photos go through CLIP. Previously re-classified all photos on every run (wasted Cloud Run calls).
