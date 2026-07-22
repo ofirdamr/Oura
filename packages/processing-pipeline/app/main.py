@@ -38,19 +38,19 @@ _CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course", "f
 # Each inner list is an ensemble of prompts for one category.
 # At load time all prompts are encoded and averaged per category → [5, 512] matrix.
 _CATEGORY_PROMPTS: list[list[str]] = [
-    [  # couple — intimate bridal portraits, getting-ready shots, and couple photos indoors or outdoors
-        "The bride and groom alone together in a romantic portrait, whether outdoors at a scenic location or indoors in a hotel room or bridal suite, no other guests in the frame.",
-        "A bride having her makeup professionally applied by a makeup artist before the wedding — an intimate getting-ready moment in the bridal preparation room.",
-        "The bride alone in her wedding dress in an intimate portrait: solo bridal portrait in a suite, hallway, garden, or in front of a mirror.",
-        "Bridal preparation photography: the bride getting her hair styled, adjusting her veil, or looking in a mirror while getting ready for the wedding ceremony.",
-        "The bride and groom sharing a private moment together — indoors or outdoors — away from wedding guests, just the two of them in an intimate or romantic setting.",
+    [  # couple — posed portraits: just the two of them, no crowd, no canopy, looking at camera
+        "Bride and groom posing for a photographer, looking directly at the camera, just the two of them — no crowd, no chuppah canopy overhead, no rabbi or officiant in the frame.",
+        "A formal posed wedding portrait: bride and groom standing or sitting together, smiling at the lens, no other people visible and no ceremonial canopy or altar in the background.",
+        "The bride and groom alone in a romantic portrait at a scenic outdoor or indoor location — no guests, no canopy structure, no altar — just the couple in their wedding attire.",
+        "The bride alone in her wedding dress in an intimate solo portrait in a suite, hallway, or garden, no crowd or ceremony setting behind her.",
+        "The bride and groom sharing a private moment away from the wedding crowd, just the two of them, no chuppah or altar visible, intimate and personal.",
     ],
-    [  # ceremony — chuppah canopy OR close-up ritual moments: ring, glass-breaking, vows, aisle
-        "A Jewish wedding ceremony with the white chuppah canopy structure clearly visible, the couple standing beneath it and a rabbi officiating.",
-        "Guests seated in rows of chairs facing the chuppah altar, watching the wedding ceremony — nobody dancing or moving, all eyes on the canopy.",
-        "The groom placing a gold wedding ring on the bride's finger during the Jewish ceremony — a close-up of their hands and faces, the emotional peak of the ritual.",
-        "The groom stomping on a glass wrapped in white cloth at the end of the Jewish wedding ceremony, guests erupting in joy around the couple — a defining ritual close-up.",
-        "The bride walking down the ceremony aisle toward the chuppah canopy, guests seated on both sides turning to watch — the canopy structure clearly visible ahead.",
+    [  # ceremony — active ritual in progress: chuppah + officiant, ring exchange, ketubah reading, glass-breaking, aisle walk
+        "A rabbi reading aloud from a ketubah scroll to the bride and groom beneath the chuppah canopy — an active wedding ritual with officiant and couple at the altar, guests watching.",
+        "Guests seated in rows of chairs watching the wedding ceremony in progress, all eyes on the couple and rabbi at the chuppah — an active ritual is taking place at the altar.",
+        "The groom placing a gold wedding ring on the bride's finger during the Jewish ceremony — a close-up of their hands and faces at the moment of the ring exchange ritual.",
+        "The groom stomping on a glass wrapped in white cloth at the end of the Jewish wedding ceremony, guests erupting in joy around the couple — the defining ritual moment.",
+        "The bride walking down the ceremony aisle toward the chuppah canopy, guests seated on both sides turning to watch — the canopy structure clearly visible ahead of her.",
     ],
     [  # dances — open dance floor, no chuppah, chairs pushed aside, motion and energy
         "Wedding guests dancing the hora in a jubilant circle on the open parquet dance floor, the chuppah nowhere in sight, chairs along the walls.",
