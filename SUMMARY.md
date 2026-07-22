@@ -4,7 +4,7 @@
 
 ## Current state (2026-07-22)
 
-We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. Backfill ran successfully.
+We are in **§10 QA phase**. PR #121 (CLIP 5-prompt ensembles + משפחה/אולם categories) merged and Cloud Run redeploy triggered. **Migration 0012 pending** — must be applied manually in Supabase dashboard before backfill.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -42,16 +42,9 @@ PR #120 merged. Deploy completed with `--memory 4Gi --cpu 2`. Health: `{"ok":tru
 
 ---
 
-## Open PR
+## Open PRs
 
-**PR #121** — CLIP category classification improvements (branch `claude/clip-category-classification-lxlm3c`).
-- 5-prompt ensembles per category (averaged at load time — inference unchanged)
-- 2 new categories: `family` (משפחה) and `venue` (אולם) with full ensembles
-- Ceremony vs. dances distinction anchored to chuppah-in-background / seated guests vs. open dance floor / no canopy
-- Gallery chips updated: חופה / זוג / משפחה / ריקודים / קבלת פנים / מנה עיקרית / אולם
-- Migration 0012 (drop stale CHECK constraint, add 7-value one)
-- **To deploy:** merge PR → Cloud Run redeploys automatically. Apply migration 0012 in Supabase dashboard manually.
-- **Not verified:** actual CLIP inference scores on real images (needs post-deploy backfill run)
+None.
 
 ---
 
