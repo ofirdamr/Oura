@@ -39,12 +39,17 @@ jobs:
           gcloud artifacts repositories describe oura \
             --location=us-central1 \
             --project=ouraforphotographers \
-            --quiet 2>/dev/null || \
+            --quiet 2>/dev/null && exit 0
+          # describe failed (repo missing OR a transient/permission hiccup).
+          # The 'oura' repo already exists in this project and the deploy SA can
+          # push to it, so a create failure here must not kill the deploy —
+          # continue and let the build/push step surface any real problem.
           gcloud artifacts repositories create oura \
             --repository-format=docker \
             --location=us-central1 \
             --project=ouraforphotographers \
-            --quiet
+            --quiet \
+          || echo "WARN: could not create Artifact Registry repo 'oura' (it already exists or create is denied) — continuing to build/push."
 
       - name: Build and push to Artifact Registry
         run: |
