@@ -47,7 +47,11 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-**PR #122** (draft) — SUMMARY.md doc update only. Safe to merge or close.
+None. PRs #121, #122, #123 all merged to main.
+
+## Migration 0012 — applied ✅
+
+`photos_category_check` constraint live with all 7 values: `ceremony`, `couple`, `dances`, `reception`, `main_course`, `family`, `venue`. Verified 2026-07-22.
 
 ---
 
@@ -76,7 +80,7 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Built and deployed (PRs #94, #95). Migration 0011 status: never independently verified.
 
 ### §10.5 DB Schema
-- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): unverified — check before backfill produces DB errors on new categories.
+- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): applied ✅ verified 2026-07-22.
 
 ---
 
