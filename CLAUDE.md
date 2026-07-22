@@ -1,5 +1,8 @@
 # CLAUDE.md — Oura
 
+## ⛔ NEVER ASSUME FAILURE — CHECK AND RETRY (non-negotiable)
+Never assume a token, credential, service, or tool is unavailable after one failed attempt. Before declaring something blocked: (1) check the env explicitly (`env | grep TOKEN`, `printenv VAR`), (2) try a different invocation (trim the value, different endpoint, different flags), (3) wait for cold starts with a poll loop (`until`). Saying "token not in env" or "service unreachable" without exhaustively checking first is **forbidden**. Be fully self-reliant — never stop and ask the founder to do something you can try yourself.
+
 ## ⛔ EFFORT DEFAULTS TO LOW (non-negotiable, founder's rule)
 Default reasoning/effort is **LOW**. Don't overthink. Rise to **MEDIUM** only for a genuinely complicated mission — never higher. Most tasks are low. Do the thing, don't spin.
 

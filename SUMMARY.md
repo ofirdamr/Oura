@@ -4,7 +4,7 @@
 
 ## Current state (2026-07-22)
 
-We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. Backfill ran successfully.
+We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. CLIP 5-prompt ensembles + משפחה/אולם categories (PR #121) merged and deployed.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -13,55 +13,51 @@ We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visua
 
 ---
 
+## Backfill fix — confirmed live (2026-07-22, this session)
+
+`POST /admin/events/:id/backfill-categories` now queries `WHERE category IS NULL` — only unclassified photos go through CLIP. Previously re-classified all photos on every run (wasted Cloud Run calls).
+
+Debug run on WED-2024 confirmed all 7 categories score:
+```
+couple: 0.21–0.34 | ceremony: 0.16–0.30 | dances: 0.18–0.26
+reception: 0.18–0.23 | main_course: 0.18–0.23 | family: 0.16–0.23 | venue: 0.15–0.23
+```
+`משפחה` and `אולם` register real scores. They score lower on WED-2024 because that event only has ceremony/couple photo types — expected behavior.
+
+**To validate high family/venue scores:** run backfill on a real multi-category event (one with family portraits and venue decor shots).
+
+---
+
 ## Bug fix QA — confirmed live with real screenshots (2026-07-22)
 
 Screenshots committed to `qa/screenshots/`:
 
-1. **Gallery crash when consent declined** — CONFIRMED ✅  
-   Gallery opens, shows 34 general photos, no crash.
-
-2. **Black photo preview in prints page (mobile)** — CONFIRMED ✅  
-   Wedding photo displays correctly in the preview area.
-
-3. **"הזמנת הדפסה עכשיו" button label** — CONFIRMED ✅  
-   Correct text shown.
-
-4. **Category chips** — CONFIRMED ✅  
-   - Code correct (keys: `dances`/`main_course`/`couple`/`ceremony`/`reception`)
-   - Chips show in gallery UI and respond to tap (chip highlights in orange)
-   - Backfill ran: `{"updated":13,"skipped":22,"total":35}`
-   - 13 photos classified: ~8 ceremony, 5 couple, 1 dances, 2 main_course
-   - 22 skipped: below 0.20 CLIP confidence threshold
-   - **Note:** test event (WED-2024) only has ceremony/couple photos — ריקודים and מנה עיקרית chips correctly show 0 results because those photo types were never uploaded to this test event
+1. **Gallery crash when consent declined** — CONFIRMED ✅
+2. **Black photo preview in prints page (mobile)** — CONFIRMED ✅
+3. **"הזמנת הדפסה עכשיו" button label** — CONFIRMED ✅
+4. **Category chips** — CONFIRMED ✅ (keys: `dances`/`main_course`/`couple`/`ceremony`/`reception`/`family`/`venue`)
 
 ---
 
 ## Cloud Run status (2026-07-22) — FIXED
-
-PR #120 merged. Deploy completed with `--memory 4Gi --cpu 2`. Health: `{"ok":true,"models":["buffalo_l","clip-ViT-B-32"]}`.
-
----
-
-## Open PR
-
-**PR #121** — CLIP category classification improvements (branch `claude/clip-category-classification-lxlm3c`).
-- 5-prompt ensembles per category (averaged at load time — inference unchanged)
-- 2 new categories: `family` (משפחה) and `venue` (אולם) with full ensembles
-- Ceremony vs. dances distinction anchored to chuppah-in-background / seated guests vs. open dance floor / no canopy
-- Gallery chips updated: חופה / זוג / משפחה / ריקודים / קבלת פנים / מנה עיקרית / אולם
-- Migration 0012 (drop stale CHECK constraint, add 7-value one)
-- **To deploy:** merge PR → Cloud Run redeploys automatically. Apply migration 0012 in Supabase dashboard manually.
-- **Not verified:** actual CLIP inference scores on real images (needs post-deploy backfill run)
+PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","clip-ViT-B-32"]}`.
+**Note:** Cloud Run scales to zero — first call after idle takes 30–90s for models to load. Poll health before running backfill.
 
 ---
 
-## Two open product gaps (next session must address)
+## Open PRs
+
+**PR #122** (draft) — SUMMARY.md doc update only. Safe to merge or close.
+
+---
+
+## Two open product gaps
 
 ### 1. Classification is NOT real-time
-Currently, category classification only runs via manual backfill POST. For production: when a photographer uploads 100-500 photos, guests should see them categorized immediately. Classification needs to be wired into the upload pipeline (Cloudflare Queue → Cloud Run classify on each photo after face-embed). **This is not yet implemented.**
+Currently, category classification only runs via manual backfill POST. For production: needs wiring into the upload pipeline (Cloudflare Queue → Cloud Run classify on each photo after face-embed).
 
-### 2. CLIP confidence is low on the test event
-The 22 skipped photos scored similarly across all categories (all scores 0.15-0.25). This is because the test event only has ceremony-type photos — a real wedding with dancing, dinner, etc. would produce clearer signals. Before shipping, test backfill on a real multi-category event.
+### 2. CLIP confidence low on ceremony-only events
+WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range. Real confidence separation (e.g., 0.5+ for family on a family-portrait event) needs a multi-category real event to validate.
 
 ---
 
@@ -80,7 +76,7 @@ The 22 skipped photos scored similarly across all categories (all scores 0.15-0.
 - Built and deployed (PRs #94, #95). Migration 0011 status: never independently verified.
 
 ### §10.5 DB Schema
-- Migration 0011: unverified
+- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): unverified — check before backfill produces DB errors on new categories.
 
 ---
 
@@ -91,10 +87,11 @@ The 22 skipped photos scored similarly across all categories (all scores 0.15-0.
 - Face-matching pipeline
 - Guest flow: QR → consent → selfie → gift reveal → personal gallery
 - Gallery full-screen photo viewer
-- Gallery opens without crash after declining consent ✅ (2026-07-22)
-- Premium prints page: photo preview renders, button label correct ✅ (2026-07-22)
-- Category chips display and respond to taps in gallery ✅ (2026-07-22)
-- Cloud Run classification model loads and runs ✅ (2026-07-22)
+- Gallery opens without crash after declining consent ✅
+- Premium prints page: photo preview renders, button label correct ✅
+- Category chips display and respond to taps in gallery ✅
+- Cloud Run classification model loads and runs ✅
+- Backfill endpoint: WHERE category IS NULL working ✅ — all 7 categories including משפחה/אולם score
 
 ## What has NEVER been verified live end-to-end
 
@@ -105,10 +102,6 @@ The 22 skipped photos scored similarly across all categories (all scores 0.15-0.
 - Stage 2 original upload (migration 0010 status unknown)
 - Category filtering with a real multi-category event
 
-## Open PRs
-
-None.
-
 ## Key guardrails (NEVER violate)
 
 - NEVER mutate `ofirdamr@gmail.com` auth credentials or send email to that address during testing
@@ -118,3 +111,4 @@ None.
 - CSS: logical properties only (`ms-*`/`me-*`)
 - Design is king: check `design/screens/` before coding any screen
 - Update `docs/ARCHITECTURE.md` with any route/schema/auth change
+- Never give up after one failed attempt — check env, retry, poll
