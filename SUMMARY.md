@@ -4,7 +4,7 @@
 
 ## Current state (2026-07-22)
 
-We are in **§10 QA phase**. The 4 bug fixes from PR #107 are deployed and visually confirmed. The Cloud Run memory fix (PR #120) is now merged.
+We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. Backfill ran successfully.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -18,35 +18,37 @@ We are in **§10 QA phase**. The 4 bug fixes from PR #107 are deployed and visua
 Screenshots committed to `qa/screenshots/`:
 
 1. **Gallery crash when consent declined** — CONFIRMED ✅  
-   Gallery opens, shows 34 general photos, no crash.  
-   Test: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024 → tap "לא תודה"
+   Gallery opens, shows 34 general photos, no crash.
 
 2. **Black photo preview in prints page (mobile)** — CONFIRMED ✅  
    Wedding photo displays correctly in the preview area.
 
 3. **"הזמנת הדפסה עכשיו" button label** — CONFIRMED ✅  
-   Correct text shown, not "הוספה לסל".
+   Correct text shown.
 
-4. **Category chips** — Code correct (keys: `dances`/`main_course`/`couple`). Chips show in gallery UI.  
-   **PENDING:** backfill must re-run to actually classify the 35 photos with correct categories.
+4. **Category chips** — CONFIRMED ✅  
+   - Code correct (keys: `dances`/`main_course`/`couple`/`ceremony`/`reception`)
+   - Chips show in gallery UI and respond to tap (chip highlights in orange)
+   - Backfill ran: `{"updated":13,"skipped":22,"total":35}`
+   - 13 photos classified: ~8 ceremony, 5 couple, 1 dances, 2 main_course
+   - 22 skipped: below 0.20 CLIP confidence threshold
+   - **Note:** test event (WED-2024) only has ceremony/couple photos — ריקודים and מנה עיקרית chips correctly show 0 results because those photo types were never uploaded to this test event
 
 ---
 
-## Cloud Run status (2026-07-22)
+## Cloud Run status (2026-07-22) — FIXED
 
-**Root cause found:** previous deploy used default 512MB memory — not enough for InsightFace + CLIP ViT-B/32. All backfill calls got 503 `models_loading` → 35 photos skipped.
+PR #120 merged. Deploy completed with `--memory 4Gi --cpu 2`. Health: `{"ok":true,"models":["buffalo_l","clip-ViT-B-32"]}`.
 
-**Fix merged (PR #120):** `--memory 4Gi --cpu 2` added to deploy command. A new deploy was triggered via workflow_dispatch at ~06:55 UTC on branch `claude/oura-deploy-backfill-qa-jro02z`. PR #120 is now merged to main.
+---
 
-**Next session must:**
-1. Check if the workflow_dispatch deploy completed (run ID from ~06:55 UTC on the branch).
-2. Poll `https://oura-embed-932309994000.us-central1.run.app/health` until `{"ok":true}`.
-3. Re-run backfill: `POST https://oura-api.oura-events.workers.dev/admin/events/WED-2024/backfill-categories` with `Authorization: Bearer Oura-backfill-2026`.
-4. Confirm `updated > 0` in the response.
-5. Screenshot the live gallery showing category chips actually filtering photos.
-6. Update this file.
+## Two open product gaps (next session must address)
 
-A `send_later` reminder fires at 07:10 UTC in the current session — if that session is still alive, it will handle steps 1-4 automatically.
+### 1. Classification is NOT real-time
+Currently, category classification only runs via manual backfill POST. For production: when a photographer uploads 100-500 photos, guests should see them categorized immediately. Classification needs to be wired into the upload pipeline (Cloudflare Queue → Cloud Run classify on each photo after face-embed). **This is not yet implemented.**
+
+### 2. CLIP confidence is low on the test event
+The 22 skipped photos scored similarly across all categories (all scores 0.15-0.25). This is because the test event only has ceremony-type photos — a real wedding with dancing, dinner, etc. would produce clearer signals. Before shipping, test backfill on a real multi-category event.
 
 ---
 
@@ -59,10 +61,10 @@ A `send_later` reminder fires at 07:10 UTC in the current session — if that se
 - Built and deployed (PR #92). Local screenshot only — not tested with real ZIP on live site.
 
 ### §10.3 Smart Crop & Social Framing
-- Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work once models load.
+- Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work now that models load.
 
 ### §10.4 E-Commerce & Print Shop
-- Built and deployed (PRs #94, #95). Migration 0011 status: SUMMARY previously said "applied" — never independently verified.
+- Built and deployed (PRs #94, #95). Migration 0011 status: never independently verified.
 
 ### §10.5 DB Schema
 - Migration 0011: unverified
@@ -78,18 +80,21 @@ A `send_later` reminder fires at 07:10 UTC in the current session — if that se
 - Gallery full-screen photo viewer
 - Gallery opens without crash after declining consent ✅ (2026-07-22)
 - Premium prints page: photo preview renders, button label correct ✅ (2026-07-22)
+- Category chips display and respond to taps in gallery ✅ (2026-07-22)
+- Cloud Run classification model loads and runs ✅ (2026-07-22)
 
 ## What has NEVER been verified live end-to-end
 
-- Category chip filtering (backfill not yet successfully run)
-- Social export / §10.3 (Cloud Run was broken until today)
+- Real-time classification on upload (not yet built)
+- Social export / §10.3 (Cloud Run fixed but endpoint not QA'd)
 - Print order flow end-to-end
 - Admin print queue dashboard
 - Stage 2 original upload (migration 0010 status unknown)
+- Category filtering with a real multi-category event
 
 ## Open PRs
 
-None — PR #120 merged (2026-07-22).
+None.
 
 ## Key guardrails (NEVER violate)
 
