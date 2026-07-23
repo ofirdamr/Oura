@@ -2,15 +2,17 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-23)
+## Current state (2026-07-23, post-Mission B)
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
+
+**Mission B (Test Data):** Created 3 test orders in `Ready_For_Photographer_Print` state using `scripts/create-test-orders.mjs`. Orders: Test Guest 1 (print_10x15 ×1), Test Guest 2 (magnet ×2), Test Guest 3 (photo_book ×1). Live at: https://oura-web.oura-events.workers.dev/admin/print-queue (orders visible to authenticated photographers).
 
 **Parked thread (founder decision pending):** Manual photo-category corrections for the WED-2024 demo event were done directly in the live DB (3 bride/getting-ready shots ceremony→couple: `8cb9a140`, `56c00816`, `9368f886`; group shot `f144fec9` family→ceremony). Founder wants to come back and (a) upload the FULL wedding (not just 35 test photos) to properly test categorization at scale, and (b) add a one-tap "move photo to another category" control in the gallery — that control is a **design change → must go through Stitch first** (do not freehand).
 
 **Classification roadmap (PRs #131–#132, draft, not ready for merge):** ViT-L/14 model upgrade + burst-clustering + one-tap correction UI (PR #131 + #132). PR #131 says "NOT yet live-verified" — needs Cloud Run ≥6Gi redeploy. PR #132 depends on #131. On hold pending founder review of classification approach.
 
-**§10 migration status CONFIRMED LIVE via direct DB introspection (2026-07-23):** migrations 0010 (`photos.is_original_uploaded` + `photos.storage_keys`), 0011 (`orders` table w/ `fulfillment_type` + `order_status` enums), and 0012 (7-category CHECK) are ALL applied. `orders` holds 3 real test orders, all at `Awaiting_High_Res_Asset` (initial state) — order-write path works; Stage-2 auto-release trigger never exercised. Note: schema landed on tables `photos`/`orders` (not `media_assets` as PRD §10.5 draft named); `focal_point_x/y` columns are NOT present on `photos` (smart-crop focal storage gap to confirm).
+**§10 migration status CONFIRMED LIVE via direct DB introspection (2026-07-23):** migrations 0010 (`photos.is_original_uploaded` + `photos.storage_keys`), 0011 (`orders` table w/ `fulfillment_type` + `order_status` enums), and 0012 (7-category CHECK) are ALL applied. `orders` now holds 6 test orders: 3 at `Awaiting_High_Res_Asset` (original batch), 3 at `Ready_For_Photographer_Print` (Mission B). Stage-2 auto-release trigger now testable. Note: schema landed on tables `photos`/`orders` (not `media_assets` as PRD §10.5 draft named); `focal_point_x/y` columns are NOT present on `photos` (smart-crop focal storage gap to confirm).
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -99,7 +101,7 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work now that models load.
 
 ### §10.4 E-Commerce & Print Shop
-- Built and deployed (PRs #94, #95). `orders` table LIVE with fulfillment routing; 3 real test orders written ✅ (order-write path works). Full purchase→fulfillment→print-queue→mark-printed NOT verified end-to-end.
+- Built and deployed (PRs #94, #95). `orders` table LIVE with fulfillment routing; 6 test orders (3 at Awaiting_High_Res_Asset, 3 at Ready_For_Photographer_Print) ✅. Order-write path confirmed; Stage-2 auto-release trigger now testable. Full purchase→fulfillment→print-queue→mark-printed NOT verified end-to-end.
 
 ### §10.5 DB Schema
 - Migrations 0010, 0011, 0012 ALL applied ✅ confirmed live 2026-07-23. Gap: `focal_point_x/y` not present on `photos` (§10.3 smart-crop focal storage to confirm).
