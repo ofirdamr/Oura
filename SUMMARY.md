@@ -64,14 +64,10 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-**Draft (not ready for merge):**
-- **PR #131:** CLOSED as superseded by PR #132 (contains all #131 work + burst clustering + one-tap UI).
-- **PR #132:** ViT-L/14 + burst+clustering + one-tap correction UI. **BLOCKED ON FOUNDER ACTIONS:**
-  1. **Cloud Run memory upgrade to ≥6Gi** (currently 4Gi) — ViT-L/14 model OOMs at 4Gi
-  2. **35 WED-2024 photos labeled/validated** (currently 20/35 categorized, 15 null from orphaned R2 files)
-  3. Category count confirmation (7 categories live in migration 0012 ✅, but PR says "decide 4-vs-7" still open)
-  
-  Once these three are confirmed complete by founder, merge and redeploy Cloud Run with PR #132.
+**Classification (PRs #131/#132) — RESOLVED & MERGED (2026-07-23):**
+- **PR #131:** CLOSED as superseded by PR #132.
+- **PR #132:** MERGED to main ✅ — ViT-L/14 + burst+clustering refine + one-tap photographer correction. Founder confirmed the three blockers were cleared by manual live actions (not visible in repo): **Cloud Run bumped to 8Gi** (console), **35 WED-2024 photos labeled** (live DB), category list settled. Merge unioned #132's category-correction UI with main's Stage-2 sync-originals feature on the event dashboard (both coexist). The deploy workflow `.github/workflows/deploy-cloud-run.yml` was bumped `4Gi → 8Gi` so the auto-rebuild loads ViT-L/14 without OOM.
+- **⏳ IN FLIGHT:** merging #132 triggered the Cloud Run auto-rebuild (ViT-L/14 @ 8Gi, ~25 min). NEXT SESSION VERIFY: `curl https://oura-embed-932309994000.us-central1.run.app/health` should list `clip-ViT-L-14` (currently still `clip-ViT-B-32` until rebuild finishes), then run backfill + `POST /admin/events/WED-2024/refine-categories` and confirm accuracy on the labeled set.
 
 **Merged to main (2026-07-23):**
 - PR #134: Stage 2 sync dashboard UI
