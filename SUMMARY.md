@@ -8,6 +8,18 @@ We are in **§10 QA phase**. Previous session (2026-07-23 earlier) declared prem
 
 **DO NOT re-declare §10 done from a UI-shell screenshot again.** A screenshot showing correct layout/RTL/pricing is necessary but not sufficient — the actual photo content must visibly render, not a placeholder/black box.
 
+### PRD-vs-code gap audit (2026-07-23, full comparison run) — the real findings
+
+Direct comparison of PRD.md §10.1-10.5 against the actual migrations + `apps/web/app/admin/events/[event_id]/page.tsx` upload code:
+
+- **§10.1 Two-Stage Upload — NOT BUILT, not just untested.** Upload is single-stage: one `browser-image-compression` pass → one upload → done. There is NO "Sync High-Res Originals" button/flow anywhere in the dashboard UI. `is_original_uploaded` column exists in the DB but nothing in the upload code path ever sets it true. This is the root architectural gap.
+- **§10.2 Client extraction — mostly real.** JSZip extraction, browser-image-compression, 5-way parallel upload pool (`UPLOAD_CONCURRENCY=5`), retry logic all genuinely present in `apps/web/app/admin/events/[event_id]/page.tsx`. Reasonably matches spec (not true Web Streams decompression, but sequential extraction avoids the worst OOM case).
+- **§10.3 Smart crop — schema does not match PRD at all.** PRD specifies a `media_assets` table with a `storage_keys` JSONB (`thumbnail`/`web_optimized`/`social_story`/`social_feed`/`original`) and persisted `focal_point_x`/`focal_point_y` columns. NONE of this exists. Actual schema: `photos` table, one plain `storage_key` text column, no focal point persistence — focal point is recomputed per-request from `face_embeddings` in the API instead of stored. A materially different architecture was built than what's specified.
+- **§10.4 Print Shop — order status logic correctly wired, but permanently stuck.** The `Awaiting_High_Res_Asset → Ready_For_Photographer_Print` transition code is correct and matches spec, but since §10.1's sync step doesn't exist, `is_original_uploaded` never flips for any real photo, so every order is stuck at `Awaiting_High_Res_Asset` forever in practice. **This is almost certainly the root cause of the black-square bug** — checkout/receipt is very likely resolving a photo reference that assumes the multi-tier `storage_keys` structure from §10.5, which was never built.
+- **§10.5 DB Schema — does not match PRD.** No `media_assets` table, no `storage_keys` JSONB, no `focal_point_x/y`. A different, simpler schema (`photos` + single `storage_key`) was implemented instead. Whether this was a deliberate simplification or a missed spec was never decided/documented — **founder decision needed** on whether to retrofit the PRD schema or formally amend the PRD to match what's built.
+
+**Next session's fix order, updated:** (1) decide whether to build real §10.1 Stage-2 sync + §10.5's multi-tier schema, or formally descope/amend the PRD to match the simpler single-stage system that actually exists; (2) whichever is chosen, that's what will fix the black square, since it's downstream of this gap, not an isolated rendering bug.
+
 ### Immediate next-session mission (in priority order)
 
 1. **Fix the black-square bug.** Reproduce on `/premium-prints?code=WED-2024` and on the checkout/receipt page (see founder's screenshot in this session — order summary for a 15×10 "הדפסת פרימיום" print shows a black box instead of the chosen photo). Likely causes to check first: storage_key not resolving to a valid R2 media URL, a CORS/auth issue on the `<img>` src, or the photo id passed to checkout not matching a real photo record. Grep `apps/web` for the checkout/order-summary component and trace where the thumbnail `src` comes from.
