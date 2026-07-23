@@ -2,18 +2,25 @@
 
 _Older entries archived to `PROGRESS-archive.md`._
 
-### 2026-07-23 — §10.1 Stage 2 Dashboard UI Build (this session)
+### 2026-07-23 — PR Triage + Merge (Stage 2 + Tier-1 download, session end)
+- **Merged:** PR #134 (Stage 2 sync dashboard), #133 (DB state verification), #135 (Tier-1 download + privacy docs)
+  - #134: Photographers can now sync high-res originals via dashboard ("Sync Originals" section)
+  - #133: Confirmed migrations 0010/0011/0012 all live; manually corrected 4 WED-2024 photos in DB
+  - #135: Batch Tier-1 download button on Print Queue dashboard; privacy/egress policy documented in ARCHITECTURE.md
+- **Conflict resolution:** #133 merged with main after #134/#135 landed; SUMMARY.md merged both historical + new state
+- **Backlog cleared:** No open PRs remaining (PRs #131, #132 still draft, not ready for merge)
+
+### 2026-07-23 — §10.1 Stage 2 Dashboard UI Build (earlier session this day)
 - **Completed:** Dashboard UI for photographers to sync high-res originals back at studio
-- **What's new:** PR #134 (draft) — Stage 2 "Sync Originals" section on photographer dashboard
+- **What's new:** PR #134 — Stage 2 "Sync Originals" section on photographer dashboard
   - Fetch `is_original_uploaded` field from database
   - Show pending photos (where flag = false) in separate section with per-photo sync button
   - File picker + upload to `PUT /events/:event_id/photos/:photo_id/original`
   - Status badges on photo grid ("שלב 1" vs "סונכרן ✓")
   - Real-time UI update after successful sync (flag toggles to true)
 - **Backend:** Endpoint already existed (apps/api/src/index.ts), migration 0010 already applied
-- **Verification:** Code compiles ✓, type-checks pass ✓, security scan passes ✓
+- **Verification:** Code compiles ✓, type-checks pass ✓, security scan passes ✓, merges clean ✓
 - **Not tested live yet:** Full end-to-end event upload → studio sync → print order flow (requires live app test)
-- **Next:** Merge #134, test end-to-end on live site
 
 ### 2026-07-22 — CLIP prompt fix for ceremony false positives (PR #130)
 - Root cause: posed couple portraits were scoring ≥0.20 on ceremony prompts ("chuppah visible + couple standing" fired on formal bridal attire)
