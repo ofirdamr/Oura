@@ -28,8 +28,11 @@ WORKDIR /app
 # network, and the image is portable to whichever host (Fly.io/Cloud Run) gets
 # picked later without re-downloading anything.
 RUN python -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_l').prepare(ctx_id=-1)"
-# Bake CLIP ViT-B/32 weights — used by /classify-category (zero per-call cost).
-RUN python -c "import open_clip; open_clip.create_model_and_transforms('ViT-B-32', pretrained='openai')"
+# Bake CLIP ViT-L/14 weights — used by /classify-category (zero per-call cost).
+# Upgraded from ViT-B/32 for stronger fine-grained wedding-scene discrimination.
+# NOTE: ViT-L/14 (~1.6GB) raises the memory floor — verify Cloud Run memory (see
+# docs/ARCHITECTURE.md) is >=6Gi before relying on this in production.
+RUN python -c "import open_clip; open_clip.create_model_and_transforms('ViT-L-14', pretrained='openai')"
 
 COPY app/ ./app
 

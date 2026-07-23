@@ -303,3 +303,28 @@ export function deletePhoto(
     },
   );
 }
+
+export type SetCategoryResponse = {
+  id: string;
+  event_id: string;
+  category: string | null;
+  category_source: string | null;
+};
+
+// Photographer one-tap category correction. `category: null` clears the tag.
+// The API stamps category_source='manual' so the AI/refine passes never overwrite it.
+export function setPhotoCategory(
+  eventId: string,
+  photoId: string,
+  category: string | null,
+  accessToken: string,
+): Promise<ApiResult<SetCategoryResponse>> {
+  return request<SetCategoryResponse>(
+    `/events/${encodeURIComponent(eventId)}/photos/${encodeURIComponent(photoId)}/category`,
+    {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ category }),
+    },
+  );
+}

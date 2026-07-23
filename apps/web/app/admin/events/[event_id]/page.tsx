@@ -6,7 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
-import { API_BASE_URL, deletePhoto, uploadEventPhoto, uploadPhotoOriginal } from "@/lib/api";
+import { API_BASE_URL, deletePhoto, setPhotoCategory, uploadEventPhoto, uploadPhotoOriginal } from "@/lib/api";
+import { PHOTO_CATEGORIES, CATEGORY_LABELS } from "@/lib/categories";
 
 // Lazy imports to avoid SSR issues — both are browser-only
 const getJSZip = () => import("jszip").then((m) => m.default);
@@ -33,6 +34,8 @@ type PhotoRow = {
   storage_key: string;
   status: string;
   created_at: string;
+  category: string | null;
+  category_source: string | null;
   is_original_uploaded: boolean;
 };
 
@@ -118,6 +121,8 @@ export default function EventManagementPage() {
   const [batch, setBatch] = useState<BatchState>({ phase: "idle" });
   const [isDragging, setIsDragging] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [categoryMenuId, setCategoryMenuId] = useState<string | null>(null);
+  const [savingCategoryIds, setSavingCategoryIds] = useState<Set<string>>(new Set());
   const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const originalFileInputRef = useRef<HTMLInputElement>(null);
@@ -126,7 +131,7 @@ export default function EventManagementPage() {
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("photos")
-      .select("id, storage_key, status, created_at, is_original_uploaded")
+      .select("id, storage_key, status, created_at, category, category_source, is_original_uploaded")
       .eq("event_id", id)
       .order("created_at", { ascending: false });
 
@@ -219,7 +224,7 @@ export default function EventManagementPage() {
       if (result.ok && result.id && result.storage_key) {
         uploadedCount++;
         setPhotos((prev) => [
-          { id: result.id!, storage_key: result.storage_key!, status: "ready", created_at: new Date().toISOString(), is_original_uploaded: false },
+          { id: result.id!, storage_key: result.storage_key!, status: "ready", created_at: new Date().toISOString(), category: null, category_source: null, is_original_uploaded: false },
           ...prev,
         ]);
       } else {
@@ -272,6 +277,48 @@ export default function EventManagementPage() {
     }
 
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+  }
+
+  // One-tap category correction. `next` is a category key, or null to clear.
+  async function handleSetCategory(photo: PhotoRow, next: string | null) {
+    if (!eventId) return;
+    setCategoryMenuId(null);
+    if (next === photo.category) return; // no-op
+
+    setSavingCategoryIds((prev) => new Set(prev).add(photo.id));
+
+    const supabase = createSupabaseBrowserClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setSavingCategoryIds((prev) => {
+        const nextSet = new Set(prev);
+        nextSet.delete(photo.id);
+        return nextSet;
+      });
+      setBatch({ phase: "error", message: "יש להתחבר מחדש כדי לעדכן קטגוריה." });
+      return;
+    }
+
+    const result = await setPhotoCategory(eventId, photo.id, next, session.access_token);
+
+    setSavingCategoryIds((prev) => {
+      const nextSet = new Set(prev);
+      nextSet.delete(photo.id);
+      return nextSet;
+    });
+
+    if (!result.ok) {
+      setBatch({ phase: "error", message: "עדכון הקטגוריה נכשל. נסו שוב." });
+      return;
+    }
+
+    setPhotos((prev) =>
+      prev.map((p) =>
+        p.id === photo.id
+          ? { ...p, category: result.data.category, category_source: result.data.category_source }
+          : p,
+      ),
+    );
   }
 
   async function handleSyncOriginal(photo: PhotoRow) {
@@ -364,6 +411,8 @@ export default function EventManagementPage() {
     batch.phase === "processing" && batch.total > 0
       ? Math.round((batch.done / batch.total) * 100)
       : 0;
+
+  const menuPhoto = categoryMenuId ? photos.find((p) => p.id === categoryMenuId) ?? null : null;
 
   return (
     <AdminShell active="אירועים פעילים">
@@ -592,11 +641,85 @@ export default function EventManagementPage() {
                     {deletingIds.has(photo.id) ? "progress_activity" : "delete"}
                   </span>
                 </button>
+
+                {/* One-tap category chip — shows the current tag, opens the re-tag menu */}
+                <button
+                  type="button"
+                  onClick={() => setCategoryMenuId((cur) => (cur === photo.id ? null : photo.id))}
+                  disabled={savingCategoryIds.has(photo.id)}
+                  aria-label="שינוי קטגוריה"
+                  className="absolute inset-x-2 bottom-2 flex items-center justify-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-black/90 disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {savingCategoryIds.has(photo.id) ? "progress_activity" : "sell"}
+                  </span>
+                  <span className="truncate">
+                    {photo.category ? CATEGORY_LABELS[photo.category] ?? photo.category : "הוסף קטגוריה"}
+                  </span>
+                  {photo.category_source === "manual" && (
+                    <span className="material-symbols-outlined text-sm text-primary" title="תויג ידנית">
+                      check_circle
+                    </span>
+                  )}
+                </button>
+
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* One-tap category correction sheet — bottom sheet on mobile, centered
+          card on desktop. Rendered once at page level (not inside a tile) so the
+          7 options always have comfortable tap targets and never clip. */}
+      {menuPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+          onClick={() => setCategoryMenuId(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border border-outline-variant/20 bg-surface-container p-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-on-surface">שיוך קטגוריה לתמונה</h3>
+              <button
+                type="button"
+                onClick={() => setCategoryMenuId(null)}
+                aria-label="סגירה"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {PHOTO_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => handleSetCategory(menuPhoto, cat.key)}
+                  className={`rounded-xl px-3 py-2.5 text-sm font-bold transition-all ${
+                    menuPhoto.category === cat.key
+                      ? "bg-primary text-on-primary"
+                      : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+            {menuPhoto.category && (
+              <button
+                type="button"
+                onClick={() => handleSetCategory(menuPhoto, null)}
+                className="mt-3 w-full rounded-xl px-3 py-2.5 text-sm font-bold text-error hover:bg-error/10"
+              >
+                הסרת קטגוריה
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </AdminShell>
   );
 }

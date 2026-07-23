@@ -164,7 +164,10 @@ Key tables (see the migration files for full column lists/constraints):
   guest's access can be shortened/extended later without reissuing tokens.
 - **`photos`** — `id, event_id, storage_key (R2 key), status, width, height,
   bytes, content_type, phash, captured_at, created_at, embed_status,
-  is_original_uploaded (boolean, default false — migration 0010)
+  is_original_uploaded (boolean, default false — migration 0010),
+  category (text, 7-value CHECK — migration 0012), clip_embedding (jsonb),
+  clip_scores (jsonb), category_source ('ai'|'cluster'|'manual' — all three
+  migration 0013)
   ('pending'|'processing'|'done'|'failed', migration 0003)`. No binary data —
   `storage_key` is the only pointer to R2. `embed_status` is pipeline-only
   observability/retry state, deliberately separate from `status` (the
@@ -294,6 +297,46 @@ in this pass).
   real `WED-2024` event: consent → selfie submission → real Cloud Run
   embedding call → correct `no_face_detected`/`matched` response.
 
+### 4b. Photo category classification — per-photo CLIP + holistic refine
+
+Zero-cost (self-hosted CLIP, no per-call managed API). **Two layers:**
+
+1. **Per-photo (real-time + backfill).** Cloud Run `POST /classify-category`
+   (open_clip **ViT-L/14**, weights baked into the image — see the Dockerfile
+   memory note: ViT-L/14 ~1.6GB raises the floor, **Cloud Run must be ≥6Gi**)
+   returns `{ category, scores, embedding }`. The 512/768-d image `embedding` and
+   raw per-category `scores` are now returned too so callers persist them.
+   - Real-time: `queueConsumer.ts` step 4 stores `category` + `clip_scores` +
+     `clip_embedding` + `category_source='ai'` on the `photos` row.
+   - Backfill: `POST /admin/events/:id/backfill-categories` (operator
+     `ADMIN_BACKFILL_TOKEN`) fills `WHERE category IS NULL`, storing the same
+     three columns. Now persists embedding+scores even when category is null so
+     the refine can rescue it.
+2. **Holistic refine (burst + visual clustering) — the founder's key lever.**
+   Cloud Run `POST /refine-categories` (`app/refine.py`, pure numpy, torch-free
+   so it's unit-tested — `tests/test_refine.py`) takes `{ photos:[{id, embedding,
+   scores, seq}], category_keys?, min_score? }` and reasons over the WHOLE event
+   at once: (a) greedy agglomerative **visual clustering** by embedding cosine
+   similarity (`CLUSTER_SIM=0.86`) pools each burst's evidence to a consensus
+   category and rescues ambiguous frames; (b) **sequence smoothing** fills a
+   null frame flanked by two matching neighbors. Category-agnostic (argmaxes over
+   whatever keys are sent — works for the 4- or 7-category model). Orchestrated by
+   `POST /admin/events/:id/refine-categories` (operator `ADMIN_BACKFILL_TOKEN`):
+   loads every embedded photo in `created_at` order, EXCLUDES `category_source=
+   'manual'`, calls Cloud Run, writes back only changed rows with `category_source=
+   'cluster'` (guarded again at write time so a manual correction is never
+   overwritten). Run AFTER backfill has populated embeddings.
+3. **Manual correction wins.** `PATCH /events/:id/photos/:pid/category` (§5) sets
+   `category_source='manual'`; both AI layers skip those rows forever. Every
+   correction is future ground-truth for accuracy measurement.
+
+**`category_source` provenance:** `'ai'` (per-photo) | `'cluster'` (holistic
+refine) | `'manual'` (photographer). Migration 0013 adds `clip_embedding` +
+`clip_scores` (jsonb) + `category_source` (checked text) to `photos`. The 7
+category keys (`CATEGORY_KEYS` in `index.ts`, `PHOTO_CATEGORIES` in
+`apps/web/lib/categories.ts`, DB constraint migration 0012) are the single
+source of truth; reconciling 7→4 means updating all three together.
+
 ## 5. Photographer-facing API (`apps/api`, JWT-authenticated + ownership-gated)
 
 These routes exist ONLY because R2 is involved — everything else
@@ -305,6 +348,7 @@ photographer-facing is direct-to-Supabase from the browser (§2).
 | `POST /events/:event_id/branding/logo` | Multipart logo upload. Same auth. Content-addressed key per upload (`events/<event_id>/branding/logo-<uuid>.<ext>` — NOT a fixed filename; `/media/*` caches every key for a year as immutable, so a fixed key would keep serving the old bytes after a re-upload). Read-modify-writes `events.branding` jsonb, merging `logo_key` without clobbering sibling keys, then best-effort deletes the previous logo's R2 object. |
 | `DELETE /events/:event_id/photos/:photo_id` | Deletes a photo: DB row first (so the gallery stops showing it immediately), then best-effort R2 object delete (a failed R2 delete doesn't fail the request — an orphaned R2 object is a harmless storage-cost leak, not a correctness bug). |
 | `PUT /events/:event_id/photos/:photo_id/original` | Stage 2 high-res original sync (PRD §10.1). Raw body = full-resolution binary. Writes to R2 under `events/<event_id>/original/<photo_id>` and sets `photos.is_original_uploaded = true`. Idempotent — a second PUT safely overwrites. Gated by photographer JWT + event ownership. Response: `{ id, event_id, original_key }`. Migration 0010 adds the `is_original_uploaded` column + pending-sync index. |
+| `PATCH /events/:event_id/photos/:photo_id/category` | **Photographer one-tap category correction** (from the dashboard photo grid). Body `{ category: <one of the 7 keys> \| null }` — `null` clears. Sets `photos.category_source = 'manual'`; this is load-bearing: the AI classifier (queue) and the holistic refine both SKIP rows whose `category_source='manual'`, so a photographer's fix is permanent and never re-overwritten. Photo scoped by BOTH id and event_id; category validated against `CATEGORY_KEYS`. Gated by photographer JWT + event ownership. Response: `{ id, event_id, category, category_source }`. |
 
 **Shared auth helper:** `requireEventOwner(c, db, event_id)` in
 `apps/api/src/index.ts` — extracts the Bearer token, validates via

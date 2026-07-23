@@ -105,6 +105,12 @@ async function requireEventOwner(
   return { ok: true, user: data.user };
 }
 
+// Valid photo category keys — the API's single source of truth for validation.
+// Mirrors the DB photos_category_check constraint (migration 0012) and the
+// gallery/dashboard chip labels. When the founder reconciles 7 -> 4, update this
+// list, the migration, and the web-side labels together.
+const CATEGORY_KEYS = ['ceremony', 'couple', 'dances', 'reception', 'main_course', 'family', 'venue'] as const;
+
 const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', cors());
@@ -837,6 +843,64 @@ app.delete('/events/:event_id/photos/:photo_id', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// PATCH /events/:event_id/photos/:photo_id/category
+//   Photographer one-tap category correction from the dashboard. Requires a
+//   Supabase JWT and event ownership (same requireEventOwner gate as delete).
+//   Body: { category: <one of CATEGORY_KEYS> | null }. null clears the category.
+//
+//   Sets category_source = 'manual'. This is load-bearing: the AI classifier and
+//   the holistic burst/visual-clustering refine both SKIP manually-corrected
+//   photos, so a photographer's fix is permanent and never re-overwritten by the
+//   model. Every correction is also future ground-truth for accuracy measurement.
+//   Response 200: { id, event_id, category, category_source }
+// ---------------------------------------------------------------------------
+app.patch('/events/:event_id/photos/:photo_id/category', async (c) => {
+  const event_id = c.req.param('event_id');
+  const photo_id = c.req.param('photo_id');
+  if (!event_id) return c.json({ error: 'missing_event_id' }, 400);
+  if (!photo_id) return c.json({ error: 'missing_photo_id' }, 400);
+
+  const db = supa(c.env);
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  let body: { category?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'invalid_json' }, 400);
+  }
+  const category = body.category;
+  if (
+    category !== null &&
+    !(typeof category === 'string' && (CATEGORY_KEYS as readonly string[]).includes(category))
+  ) {
+    return c.json({ error: 'invalid_category' }, 400);
+  }
+
+  // Scope by BOTH id and event_id — a photo id from another event can't be
+  // re-tagged through this event's route.
+  const { data: photo, error: lookupErr } = await db
+    .from('photos')
+    .select('id')
+    .eq('id', photo_id)
+    .eq('event_id', event_id)
+    .maybeSingle();
+  if (lookupErr) return c.json({ error: 'photo_lookup_failed' }, 500);
+  if (!photo) return c.json({ error: 'photo_not_found' }, 404);
+
+  const category_source = category === null ? null : 'manual';
+  const { error: upErr } = await db
+    .from('photos')
+    .update({ category, category_source })
+    .eq('id', photo_id)
+    .eq('event_id', event_id);
+  if (upErr) return c.json({ error: 'photo_update_failed' }, 500);
+
+  return c.json({ id: photo_id, event_id, category: category ?? null, category_source });
+});
+
+// ---------------------------------------------------------------------------
 // Original-tier upload (Stage 2 high-res sync).
 // PUT /events/:event_id/photos/:photo_id/original
 //   Photographer-authenticated: requires `Authorization: Bearer <supabase jwt>`
@@ -1251,16 +1315,22 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
         body: bytes,
       });
       if (!clipRes.ok) { skipped++; return; }
-      const clipData = await clipRes.json() as { category: string | null; scores?: Record<string, number> };
+      const clipData = await clipRes.json() as { category: string | null; scores?: Record<string, number>; embedding?: number[] };
       const category = clipData.category;
       if (debug) debugLog.push({ photo_id: photo.id, category, scores: clipData.scores });
-      if (!category) { skipped++; return; }
-
+      // Always persist the embedding + scores even when category is null — the
+      // holistic refine can rescue a null frame from its burst afterward.
       const { error: upErr } = await db
         .from('photos')
-        .update({ category })
+        .update({
+          category,
+          clip_scores: clipData.scores ?? null,
+          clip_embedding: clipData.embedding ?? null,
+          category_source: category ? 'ai' : null,
+        })
         .eq('id', photo.id);
       if (upErr) { skipped++; return; }
+      if (!category) { skipped++; return; }
       updated++;
     } catch (err) {
       console.error('backfill-categories error for photo', photo.id, err);
@@ -1277,6 +1347,111 @@ app.post('/admin/events/:id/backfill-categories', async (c) => {
   return c.json(debug
     ? { updated, skipped, total: photos.length, debug: debugLog }
     : { updated, skipped, total: photos.length });
+});
+
+// ---------------------------------------------------------------------------
+// POST /admin/events/:id/refine-categories
+//   Holistic burst + visual-clustering refine over an ENTIRE event (the founder's
+//   "photos come in bursts / same place ⇒ same category" insight). Reads every
+//   photo's stored CLIP embedding + raw scores (no image re-download — that's why
+//   backfill/queue persist them) and sends them to Cloud Run /refine-categories,
+//   which clusters the event visually and smooths ambiguous frames along the
+//   time sequence, then writes back the refined category.
+//
+//   Photos with category_source='manual' are excluded up front AND guarded again
+//   at write time — a photographer correction is never overwritten.
+//   Run this AFTER backfill-categories has populated embeddings.
+//   Gated by ADMIN_BACKFILL_TOKEN (operator action). ?debug=1 returns the changes.
+// ---------------------------------------------------------------------------
+app.post('/admin/events/:id/refine-categories', async (c) => {
+  const authHeader = c.req.header('authorization') ?? '';
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  if (!c.env.ADMIN_BACKFILL_TOKEN || token !== c.env.ADMIN_BACKFILL_TOKEN) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+
+  const event_id = c.req.param('id');
+  const db = supa(c.env);
+
+  const isCode = isNaN(Number(event_id));
+  const eventQuery = isCode
+    ? db.from('events').select('id').eq('code', event_id).single()
+    : db.from('events').select('id').eq('id', event_id).single();
+  const { data: ev, error: evErr } = await eventQuery;
+  if (evErr || !ev) return c.json({ error: 'event_not_found' }, 404);
+  const resolved_event_id: string = (ev as { id: string }).id;
+
+  // Every classified photo with a stored embedding, in chronological order —
+  // created_at is the sequence proxy for burst detection.
+  const { data: rows, error: rowsErr } = await db
+    .from('photos')
+    .select('id, category, category_source, clip_scores, clip_embedding, created_at')
+    .eq('event_id', resolved_event_id)
+    .not('clip_embedding', 'is', null)
+    .order('created_at', { ascending: true });
+  if (rowsErr) return c.json({ error: 'query_failed' }, 500);
+  if (!rows || rows.length === 0) {
+    return c.json({ refined: 0, unchanged: 0, total: 0, message: 'no embedded photos — run backfill-categories first' });
+  }
+
+  type Row = {
+    id: string;
+    category: string | null;
+    category_source: string | null;
+    clip_scores: Record<string, number> | null;
+    clip_embedding: number[] | null;
+    created_at: string;
+  };
+  const typed = rows as Row[];
+  const refinable = typed.filter((r) => r.category_source !== 'manual' && r.clip_embedding && r.clip_scores);
+  if (refinable.length === 0) {
+    return c.json({ refined: 0, unchanged: 0, total: 0, message: 'nothing to refine (all manual or missing scores)' });
+  }
+
+  const payload = {
+    photos: refinable.map((r, i) => ({ id: r.id, embedding: r.clip_embedding, scores: r.clip_scores, seq: i })),
+    category_keys: CATEGORY_KEYS,
+  };
+
+  const res = await fetch(`${c.env.EMBED_SERVICE_URL}/refine-categories`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${c.env.EMBED_SERVICE_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) return c.json({ error: 'refine_service_failed', status: res.status }, 502);
+  const data = await res.json() as { photos: { id: string; category: string | null; source: string }[] };
+
+  // Persist only photos whose category actually changed.
+  const byId = new Map(refinable.map((r) => [r.id, r]));
+  const changed = data.photos.filter((p) => {
+    const before = byId.get(p.id);
+    return before !== undefined && before.category !== p.category;
+  });
+
+  let refined = 0;
+  let failed = 0;
+  const CONCURRENCY = 10;
+  for (let i = 0; i < changed.length; i += CONCURRENCY) {
+    await Promise.all(changed.slice(i, i + CONCURRENCY).map(async (p) => {
+      // Guard again at write time: never touch a row a photographer corrected
+      // (category_source='manual') between the read and now. `or` keeps null rows
+      // (neq alone would drop them under three-valued logic).
+      const { error } = await db
+        .from('photos')
+        .update({ category: p.category, category_source: p.source === 'cluster' ? 'cluster' : 'ai' })
+        .eq('id', p.id)
+        .eq('event_id', resolved_event_id)
+        .or('category_source.is.null,category_source.neq.manual');
+      if (error) { failed++; } else { refined++; }
+    }));
+  }
+
+  const debug = c.req.query('debug') === '1';
+  const result = { refined, failed, unchanged: data.photos.length - changed.length, total: refinable.length };
+  return c.json(debug ? { ...result, changes: changed } : result);
 });
 
 // ---------------------------------------------------------------------------
@@ -1607,8 +1782,10 @@ app.patch('/admin/photos/:id/restore', async (c) => {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length).trim() : null;
   if (!token) return c.json({ error: 'unauthorized' }, 401);
 
-  const db = createServerSupabaseClient(c.env, token);
-  const { data: { user }, error: authErr } = await db.auth.getUser();
+  // Service client + explicit token validation (mirrors requireEventOwner).
+  // Ownership is enforced in-query below via photographer_id/event_id filters.
+  const db = supa(c.env);
+  const { data: { user }, error: authErr } = await db.auth.getUser(token);
   if (authErr || !user) return c.json({ error: 'unauthorized' }, 401);
 
   const photoId = c.req.param('id');
