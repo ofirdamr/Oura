@@ -3,6 +3,9 @@
 ## ⛔ NEVER ASSUME FAILURE — CHECK AND RETRY (non-negotiable)
 Never assume a token, credential, service, or tool is unavailable after one failed attempt. Before declaring something blocked: (1) check the env explicitly (`env | grep TOKEN`, `printenv VAR`), (2) try a different invocation (trim the value, different endpoint, different flags), (3) wait for cold starts with a poll loop (`until`). Saying "token not in env" or "service unreachable" without exhaustively checking first is **forbidden**. Be fully self-reliant — never stop and ask the founder to do something you can try yourself.
 
+## ⛔ CLOSE THE LOOP — DEPLOY, MERGE, CLOSE, RECORD (non-negotiable, founder's rule 2026-07-23)
+No work — and no decision, blocker, or manual action — may live only in a conversation. The instant a change clears the verification it can clear in this environment, run the FULL loop in the same session, never parked for later: **(1) deploy, (2) merge the PR, (3) close every superseded/obsolete PR, (4) write the state into `SUMMARY.md`/`PROGRESS.md`/`docs/ARCHITECTURE.md`.** A draft PR "waiting for a merge decision" is forbidden — merge is not an ask-first gate (revert is the safety net). Any manual/out-of-repo action the founder or a session takes (a Cloud Run console change, a live-DB edit, a decision) MUST be written into the MD files immediately, because the repo cannot see it and a conversation can be lost. If you ever find yourself hunting through old chats to recover what was done, the rule was already broken — the MD files are the single source of truth and must be current before any session ends. Never let information live somewhere it can be lost.
+
 ## ⛔ EFFORT DEFAULTS TO LOW (non-negotiable, founder's rule)
 Default reasoning/effort is **LOW**. Don't overthink. Rise to **MEDIUM** only for a genuinely complicated mission — never higher. Most tasks are low. Do the thing, don't spin.
 

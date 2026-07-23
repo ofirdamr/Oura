@@ -64,9 +64,10 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-**Draft (not ready for merge):**
-- **PR #131:** ViT-L/14 classification + QA report. Says "NOT yet live-verified" — needs Cloud Run ≥6Gi redeploy.
-- **PR #132:** Burst+clustering + one-tap correction UI. Depends on #131 + ≥6Gi Cloud Run.
+**Classification (PRs #131/#132) — RESOLVED & MERGED (2026-07-23):**
+- **PR #131:** CLOSED as superseded by PR #132.
+- **PR #132:** MERGED to main ✅ — ViT-L/14 + burst+clustering refine + one-tap photographer correction. Founder confirmed the three blockers were cleared by manual live actions (not visible in repo): **Cloud Run bumped to 8Gi** (console), **35 WED-2024 photos labeled** (live DB), category list settled. Merge unioned #132's category-correction UI with main's Stage-2 sync-originals feature on the event dashboard (both coexist). The deploy workflow `.github/workflows/deploy-cloud-run.yml` was bumped `4Gi → 8Gi` so the auto-rebuild loads ViT-L/14 without OOM.
+- **⏳ IN FLIGHT:** merging #132 triggered the Cloud Run auto-rebuild (ViT-L/14 @ 8Gi, ~25 min). NEXT SESSION VERIFY: `curl https://oura-embed-932309994000.us-central1.run.app/health` should list `clip-ViT-L-14` (currently still `clip-ViT-B-32` until rebuild finishes), then run backfill + `POST /admin/events/WED-2024/refine-categories` and confirm accuracy on the labeled set.
 
 **Merged to main (2026-07-23):**
 - PR #134: Stage 2 sync dashboard UI
