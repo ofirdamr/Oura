@@ -65,8 +65,13 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 ## Open PRs
 
 **Draft (not ready for merge):**
-- **PR #131:** ViT-L/14 classification + QA report. Says "NOT yet live-verified" — needs Cloud Run ≥6Gi redeploy.
-- **PR #132:** Burst+clustering + one-tap correction UI. Depends on #131 + ≥6Gi Cloud Run.
+- **PR #131:** CLOSED as superseded by PR #132 (contains all #131 work + burst clustering + one-tap UI).
+- **PR #132:** ViT-L/14 + burst+clustering + one-tap correction UI. **BLOCKED ON FOUNDER ACTIONS:**
+  1. **Cloud Run memory upgrade to ≥6Gi** (currently 4Gi) — ViT-L/14 model OOMs at 4Gi
+  2. **35 WED-2024 photos labeled/validated** (currently 20/35 categorized, 15 null from orphaned R2 files)
+  3. Category count confirmation (7 categories live in migration 0012 ✅, but PR says "decide 4-vs-7" still open)
+  
+  Once these three are confirmed complete by founder, merge and redeploy Cloud Run with PR #132.
 
 **Merged to main (2026-07-23):**
 - PR #134: Stage 2 sync dashboard UI
