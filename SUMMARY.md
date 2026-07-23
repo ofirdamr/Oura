@@ -70,6 +70,23 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 
 ---
 
+## Founder decision (2026-07-23): §10 build scope
+
+Founder does not care about retrofitting already-uploaded photos. Directive:
+**build all of §10 (10.1–10.5) as specified in PRD.md, fresh, for new uploads
+going forward.** Do not spend time backfilling/retrofitting existing photos.
+Only report §10 "done" after full end-to-end verification (real screenshots,
+every button/flow clicked, on the live app) — per CLAUDE.md's hard rule that
+§10 has NOT been confirmed complete by the founder yet.
+
+Next session should start the actual build: §10.1 (two-stage upload) →
+§10.2 (client-side extraction/ZIP) → §10.3 (smart crop/social framing,
+Cloud Run already fixed) → §10.4 (print shop fulfillment routing) → §10.5
+(DB schema — apply migration 0010/0011 status needs checking first, see
+"never independently verified" notes below).
+
+---
+
 ## §10 Build Status — honest accounting
 
 ### §10.1 Two-Stage Upload Pipeline
