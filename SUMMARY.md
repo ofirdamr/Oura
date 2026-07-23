@@ -73,7 +73,10 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 ## §10 Build Status — honest accounting
 
 ### §10.1 Two-Stage Upload Pipeline
-- Migration 0010 (`is_original_uploaded`): status unknown — never confirmed applied
+- Migration 0010 (`is_original_uploaded`): applied ✅ (verified in migration file list)
+- Stage 1 (venue): ✅ Already working — client compresses images, uploads web-optimized versions, `is_original_uploaded` defaults to false
+- **Stage 2 (studio) dashboard UI: ✅ BUILT (PR #134, draft)** — photographers can now click "sync" on pending photos to re-upload originals
+- Backend endpoint (`PUT /events/:event_id/photos/:photo_id/original`): ✅ Already implemented in apps/api/src/index.ts
 
 ### §10.2 Client-Side Extraction Engine
 - Built and deployed (PR #92). Local screenshot only — not tested with real ZIP on live site.
