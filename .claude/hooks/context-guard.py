@@ -9,18 +9,25 @@ model, i.e. what maps to the 200k window and the "N% usage" figure), and:
   - injects a STRONGER warning once it passes BLOCK_PCT, urging the founder to
     hand off to a fresh conversation before the context runs away.
 
-The guard is advisory only — it never hard-blocks a message. (The old
-BLOCK_PCT hard stop was cancelled by founder request; it now surfaces an
-escalated warning at the same threshold instead.)
+  - HARD-BLOCKS the message once context passes HARDSTOP_PCT of the window,
+    forcing a handoff to a fresh conversation (founder rule, reinstated
+    2026-07-23 after a session was allowed to climb to 72%).
+
+The hard stop is REAL: it exits code 2 so the prompt is rejected and the
+founder is told to start a fresh session. Escape hatch: if the message begins
+with (or contains) the token `FORCE` it is let through, so the guard can never
+permanently wedge a session — e.g. to finish parking a thread or write a
+handoff. Below the hard stop, escalating warnings still fire.
 
 Goal: never again let a single long conversation eat most of the usage limit.
 Stop early, hand off to a new conversation, keep each mission small.
 
 Fails OPEN on any parsing problem so it can never wedge a session.
 Tunable via env vars:
-  OURA_CONTEXT_LIMIT   total context window in tokens        (default 200000)
-  OURA_CONTEXT_WARN    warn threshold, fraction of window     (default 0.20)
-  OURA_CONTEXT_BLOCK   block threshold, fraction of window    (default 0.35)
+  OURA_CONTEXT_LIMIT     total context window in tokens        (default 200000)
+  OURA_CONTEXT_WARN      warn threshold, fraction of window     (default 0.12)
+  OURA_CONTEXT_BLOCK     escalated-warning threshold            (default 0.22)
+  OURA_CONTEXT_HARDSTOP  hard-block threshold, fraction         (default 0.45)
 """
 import sys, os, json
 
@@ -45,6 +52,7 @@ LIMIT = _env_int("OURA_CONTEXT_LIMIT", 200000)
 # Warn early, push the handoff well before context runs away. Advisory only.
 WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.12)
 BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.22)
+HARDSTOP_PCT = _env_float("OURA_CONTEXT_HARDSTOP", 0.45)
 
 
 def context_tokens(transcript_path):
@@ -112,6 +120,21 @@ def main():
     pct = tokens / LIMIT
     pct_str = f"{pct * 100:.0f}%"
     tok_str = f"{tokens:,}/{LIMIT:,} tokens"
+
+    if pct >= HARDSTOP_PCT:
+        prompt = (data.get("prompt") or "")
+        if "FORCE" not in prompt.upper():
+            # REAL hard stop — reject the prompt and force a fresh session.
+            sys.stderr.write(
+                f"⛔ CONTEXT HARD STOP — this conversation is at {pct_str} "
+                f"({tok_str}), past the {HARDSTOP_PCT * 100:.0f}% limit. This "
+                "session is CLOSED to new work. Everything is committed and the "
+                "MD files are current. Start a FRESH conversation and continue "
+                "there. (To override for parking/handoff only, resend your "
+                "message with the word FORCE in it.)\n"
+            )
+            sys.exit(2)
+        # FORCE present — fall through to escalated warning, do not block.
 
     if pct >= BLOCK_PCT:
         # Escalated warning (no hard block — cancelled by founder request).
