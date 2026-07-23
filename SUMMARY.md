@@ -2,9 +2,9 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-22)
+## Current state (2026-07-23)
 
-We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. CLIP 5-prompt ensembles + משפחה/אולם categories (PR #121) merged and deployed.
+We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **PR #135 (draft):** Tier-1 (original) download for photographers + ARCHITECTURE.md §3 privacy/egress protection policy. Awaiting CI pass before merge.
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
