@@ -6,7 +6,11 @@
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
 
-**Mission B (Test Data):** Created 3 test orders in `Ready_For_Photographer_Print` state using `scripts/create-test-orders.mjs`. Orders: Test Guest 1 (print_10x15 ×1), Test Guest 2 (magnet ×2), Test Guest 3 (photo_book ×1). Live at: https://oura-web.oura-events.workers.dev/admin/print-queue (orders visible to authenticated photographers).
+**Mission B (Test Data) + login scroll fix — MERGED & LIVE (PR #136, 2026-07-23):**
+- 3 test orders in `Ready_For_Photographer_Print` state via `scripts/create-test-orders.mjs` (Test Guest 1 print_10x15 ×1, Test Guest 2 magnet ×2, Test Guest 3 photo_book ×1). Print queue: https://oura-web.oura-events.workers.dev/admin/print-queue
+- **Login `/login` phantom-scroll bug FIXED & DEPLOYED LIVE.** Root cause: `min-h-screen` (100vh) > iOS visible viewport → empty scrollable band below the card. Fix: `min-h-[100dvh]` + `justify-center`. Verified live: `qa/screenshots/login-scroll-fix-mobile.png` (full page = exactly one viewport, card centered). https://oura-web.oura-events.workers.dev/login
+
+**⚠️ WEB APP DEPLOYS ARE MANUAL — this is why past "fixed" claims weren't live.** There is NO CI auto-deploy for the frontend. A merge to `main` does NOT reach the live site. To deploy the web app: `cd apps/web && npm ci && npm run deploy` (Cloudflare creds are in env; deploy takes ~2 min; poll a chunk URL for 200 after, CDN lags a few seconds). Same for the API (`apps/api`). Only Cloud Run auto-builds via GH Actions.
 
 **Parked thread (founder decision pending):** Manual photo-category corrections for the WED-2024 demo event were done directly in the live DB (3 bride/getting-ready shots ceremony→couple: `8cb9a140`, `56c00816`, `9368f886`; group shot `f144fec9` family→ceremony). Founder wants to come back and (a) upload the FULL wedding (not just 35 test photos) to properly test categorization at scale, and (b) add a one-tap "move photo to another category" control in the gallery — that control is a **design change → must go through Stitch first** (do not freehand).
 
