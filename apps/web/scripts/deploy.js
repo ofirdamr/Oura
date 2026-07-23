@@ -9,8 +9,16 @@ const { execSync } = require("child_process");
 const trim = (v) => (v || "").trim();
 
 // Map SUPABASE_* → NEXT_PUBLIC_SUPABASE_* if the NEXT_PUBLIC_ variant is absent
+// Strip /rest/v1/ suffix if present — SUPABASE_URL is the PostgREST base, but the
+// browser Supabase client needs the project URL base for auth (GoTrue) endpoints.
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  process.env.NEXT_PUBLIC_SUPABASE_URL = trim(process.env.SUPABASE_URL);
+  let url = trim(process.env.SUPABASE_URL);
+  if (url.endsWith("/rest/v1/")) {
+    url = url.slice(0, -9); // remove "/rest/v1/"
+  } else if (url.endsWith("/rest/v1")) {
+    url = url.slice(0, -8); // remove "/rest/v1"
+  }
+  process.env.NEXT_PUBLIC_SUPABASE_URL = url;
 }
 if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = trim(process.env.SUPABASE_ANON_KEY);

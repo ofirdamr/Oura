@@ -2,6 +2,13 @@
 
 _Older entries archived to `PROGRESS-archive.md`._
 
+### 2026-07-23 — Reset-Password Link Bug Fix (this session)
+- **Root cause identified:** `SUPABASE_URL` includes `/rest/v1/` (PostgREST base), but was being passed unchanged to `NEXT_PUBLIC_SUPABASE_URL`. Browser Supabase client used this as auth endpoint, routing `verifyOtp()` calls to PostgREST instead of GoTrue → "Invalid path specified in request URL" rejection.
+- **Fix deployed:** Updated `apps/web/scripts/deploy.js` to strip `/rest/v1/` suffix before setting `NEXT_PUBLIC_SUPABASE_URL`. PR #141 created (draft).
+- **Deployment:** Web app deployed to https://oura-web.oura-events.workers.dev (SUCCESS). Page loads at /reset-password route (HTTP 200).
+- **Testing:** Founder to test by requesting password reset and clicking email link. Link should now load without rejection; confirm button should redeem token successfully.
+- **Pending:** End-to-end password reset verification by founder.
+
 ### 2026-07-23 — PR Triage + Merge (Stage 2 + Tier-1 download, session end)
 - **Merged:** PR #134 (Stage 2 sync dashboard), #133 (DB state verification), #135 (Tier-1 download + privacy docs)
   - #134: Photographers can now sync high-res originals via dashboard ("Sync Originals" section)
