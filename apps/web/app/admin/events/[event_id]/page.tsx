@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
-import { API_BASE_URL, deletePhoto, uploadEventPhoto } from "@/lib/api";
+import { API_BASE_URL, deletePhoto, uploadEventPhoto, uploadPhotoOriginal } from "@/lib/api";
 
 // Lazy imports to avoid SSR issues — both are browser-only
 const getJSZip = () => import("jszip").then((m) => m.default);
@@ -33,6 +33,7 @@ type PhotoRow = {
   storage_key: string;
   status: string;
   created_at: string;
+  is_original_uploaded: boolean;
 };
 
 type BatchState =
@@ -117,13 +118,15 @@ export default function EventManagementPage() {
   const [batch, setBatch] = useState<BatchState>({ phase: "idle" });
   const [isDragging, setIsDragging] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [syncingIds, setSyncingIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const originalFileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPhotos = useCallback(async (id: string) => {
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("photos")
-      .select("id, storage_key, status, created_at")
+      .select("id, storage_key, status, created_at, is_original_uploaded")
       .eq("event_id", id)
       .order("created_at", { ascending: false });
 
@@ -269,6 +272,59 @@ export default function EventManagementPage() {
     }
 
     setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+  }
+
+  async function handleSyncOriginal(photo: PhotoRow) {
+    if (!eventId) return;
+
+    setSyncingIds((prev) => new Set(prev).add(photo.id));
+
+    const supabase = createSupabaseBrowserClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      setSyncingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(photo.id);
+        return next;
+      });
+      setBatch({ phase: "error", message: "יש להתחבר מחדש כדי לסנכרן תמונות." });
+      return;
+    }
+
+    // Prompt for original file
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async () => {
+      if (!input.files || input.files.length === 0) {
+        setSyncingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(photo.id);
+          return next;
+        });
+        return;
+      }
+
+      const file = input.files[0];
+      const result = await uploadPhotoOriginal(eventId, photo.id, file, session.access_token);
+
+      setSyncingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(photo.id);
+        return next;
+      });
+
+      if (!result.ok) {
+        setBatch({ phase: "error", message: `סנכרון התמונה ${photo.id.slice(0, 8)} נכשל.` });
+        return;
+      }
+
+      setPhotos((prev) =>
+        prev.map((p) => (p.id === photo.id ? { ...p, is_original_uploaded: true } : p)),
+      );
+    };
+    input.click();
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -446,6 +502,50 @@ export default function EventManagementPage() {
         )}
       </div>
 
+      {/* Stage 2: Sync originals section */}
+      {photos.some((p) => !p.is_original_uploaded) && (
+        <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-5">
+          <h2 className="mb-3 flex items-center gap-1.5 text-start text-sm font-bold text-on-surface">
+            <span className="material-symbols-outlined text-base">cloud_upload</span>
+            סנכרון תמונות ברזולוציה גבוהה (שלב 2)
+          </h2>
+          <p className="mb-4 text-xs text-on-surface-variant">
+            התמונות להלן הועלו ברזולוציה אופטימלית לאירוע (שלב 1). כעת, חזרה לסטודיו, באפשרותך להעלות את הקבצים המקוריים בברזולוציה גבוהה להדפסה ותיבוע.
+          </p>
+
+          <div className="space-y-2">
+            {photos
+              .filter((p) => !p.is_original_uploaded)
+              .map((photo) => (
+                <div
+                  key={photo.id}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-surface-container-high px-4 py-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-on-surface truncate">
+                      ID: {photo.id.slice(0, 8)}...
+                    </p>
+                    <p className="text-xs text-on-surface-variant">
+                      {new Date(photo.created_at).toLocaleString("he-IL")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSyncOriginal(photo)}
+                    disabled={syncingIds.has(photo.id)}
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-on-primary transition-all hover:bg-primary-container disabled:opacity-60"
+                  >
+                    <span className="material-symbols-outlined text-sm">
+                      {syncingIds.has(photo.id) ? "progress_activity" : "upload"}
+                    </span>
+                    {syncingIds.has(photo.id) ? " עלייה..." : " העלה מקור"}
+                  </button>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Photo grid */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-on-surface-variant">
@@ -469,6 +569,18 @@ export default function EventManagementPage() {
                   sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
                   className="object-cover"
                 />
+                {/* Original sync indicator badge */}
+                {!photo.is_original_uploaded && (
+                  <div className="absolute start-2 top-2 rounded-full bg-warning/80 px-2 py-1 backdrop-blur-sm">
+                    <span className="text-xs font-bold text-on-warning">שלב 1</span>
+                  </div>
+                )}
+                {photo.is_original_uploaded && (
+                  <div className="absolute start-2 top-2 rounded-full bg-success/80 px-2 py-1 backdrop-blur-sm">
+                    <span className="text-xs font-bold text-on-success">סונכרן ✓</span>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => handleDeletePhoto(photo)}
