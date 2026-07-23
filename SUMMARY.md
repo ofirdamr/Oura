@@ -4,7 +4,7 @@
 
 ## Current state (2026-07-23)
 
-We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. CLIP 5-prompt ensembles + משפחה/אולם categories (PR #121) merged and deployed.
+We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **PR #135 (draft):** Tier-1 (original) download for photographers + ARCHITECTURE.md §3 privacy/egress protection policy. Awaiting CI pass before merge.
 
 **PAUSED / parked thread (2026-07-23):** Manual photo-category corrections for the WED-2024 demo event were done directly in the live DB (3 bride/getting-ready shots ceremony→couple: `8cb9a140`, `56c00816`, `9368f886`; group shot `f144fec9` family→ceremony). Data-only, already live, nothing to merge/revert. Founder wants to come back and (a) upload the FULL wedding (not just 35 test photos) to properly test categorization at scale, and (b) add a one-tap "move photo to another category" control in the gallery — that control is a **design change → must go through Stitch first** (do not freehand).
 
@@ -77,8 +77,11 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 ## §10 Build Status — honest accounting
 
 ### §10.1 Two-Stage Upload Pipeline
-- Migration 0010 (`is_original_uploaded` + `storage_keys` on `photos`): APPLIED ✅ confirmed live via DB introspection 2026-07-23.
-- Stage 2 "Sync High-Res Originals" endpoint built (PUT /events/:id/photos/:id/original, PR #91). NEVER tested end-to-end; auto-release order trigger never fired (3 orders still Awaiting_High_Res_Asset).
+- Migration 0010 (`is_original_uploaded` + `storage_keys`): APPLIED ✅ confirmed live 2026-07-23
+- Stage 1 (venue): ✅ Working — client compresses, uploads web-optimized, defaults `is_original_uploaded = false`
+- **Stage 2 (studio) dashboard UI: ✅ BUILT (PR #134, merged 2026-07-23)** — photographers sync originals via file picker
+- Backend endpoint (`PUT /events/:event_id/photos/:photo_id/original`): ✅ Implemented & functional
+- Auto-release trigger: NOT tested end-to-end (3 test orders still `Awaiting_High_Res_Asset`)
 
 ### §10.2 Client-Side Extraction Engine
 - Built and deployed (PR #92). Local screenshot only — not tested with real ZIP on live site.

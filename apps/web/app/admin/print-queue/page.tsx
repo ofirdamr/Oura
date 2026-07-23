@@ -145,6 +145,26 @@ export default function PrintQueuePage() {
     setMarkingId(null);
   }
 
+  async function downloadTier1() {
+    const token = await getToken();
+    if (!token || !selectedEvent) return;
+    const readyOrders = orders.filter((o: Order) => o.order_status === "Ready_For_Photographer_Print");
+    if (readyOrders.length === 0) return;
+    const orderIds = readyOrders.map((o: Order) => o.id).join(",");
+    const res = await fetch(`${API_BASE_URL}/admin/events/${selectedEvent}/tier1-download?orders=${orderIds}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.files && Array.isArray(data.files)) {
+        // Open each file in a new tab for download
+        data.files.forEach((file: { url: string; key: string }) => {
+          window.open(file.url, '_blank');
+        });
+      }
+    }
+  }
+
   const pendingCount = orders.filter(
     (o: Order) => o.order_status === "Awaiting_High_Res_Asset"
   ).length;
@@ -178,6 +198,17 @@ export default function PrintQueuePage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Tier-1 batch download */}
+            {readyCount > 0 && (
+              <button
+                onClick={downloadTier1}
+                className="flex items-center gap-2 rounded-xl border border-primary bg-primary px-3 py-2 text-sm text-on-primary hover:bg-primary/90 transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">cloud_download</span>
+                הורד קבצים מקוריים ({readyCount})
+              </button>
+            )}
+
             {/* CSV export */}
             {filteredOrders.length > 0 && (
               <button
