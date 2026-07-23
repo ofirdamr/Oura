@@ -3,6 +3,9 @@
 ## ⛔ NEVER ASSUME FAILURE — CHECK AND RETRY (non-negotiable)
 Never assume a token, credential, service, or tool is unavailable after one failed attempt. Before declaring something blocked: (1) check the env explicitly (`env | grep TOKEN`, `printenv VAR`), (2) try a different invocation (trim the value, different endpoint, different flags), (3) wait for cold starts with a poll loop (`until`). Saying "token not in env" or "service unreachable" without exhaustively checking first is **forbidden**. Be fully self-reliant — never stop and ask the founder to do something you can try yourself.
 
+## ⛔ HARD CONTEXT STOP AT 40% — NOT A SUGGESTION (non-negotiable, founder's rule)
+The moment context usage hits **40%**, STOP. Park the thread, commit/push, write the handoff, and tell the founder to open a fresh session. This is a HARD STOP, not advice to "strongly consider." Do NOT keep working past 40% because a task feels almost done — hand off. Repeatedly blowing past the guard to 60–70% is the single most frustrating recurring failure on this project; it ends here.
+
 ## ⛔ EFFORT DEFAULTS TO LOW (non-negotiable, founder's rule)
 Default reasoning/effort is **LOW**. Don't overthink. Rise to **MEDIUM** only for a genuinely complicated mission — never higher. Most tasks are low. Do the thing, don't spin.
 
