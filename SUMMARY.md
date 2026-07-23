@@ -9,6 +9,9 @@ We are in **§10 QA phase**. Full honest §10 accounting is in **`docs/SECTION-1
 ### ⚠️ Classification — approach changed this session (2026-07-23)
 Three prompt-tweak attempts (PRs #121/#128/#130) failed because tuning was **blind** (no labeled ground-truth) on **ViT-B/32** (the weakest CLIP), judging each photo **in isolation**. This session shipped the two structural levers instead: **model ViT-B/32 → ViT-L/14** + prompts rebuilt on the founder's real cues (white chuppah canopy = ceremony tie-breaker; family/couple require non-canopy backdrop). **NOT verified accurate** — cannot measure without live Supabase + redeployed Cloud Run.
 
+### 🧭 FOUNDER PRIORITIES (2026-07-23) — direction decision, honor going forward
+Founder's hard requirements for classification: **(1) FREE, (2) 100% accuracy as guests perceive it, (3) FAST/real-time** (guests watch live). Clarified: the self-hosted CLIP model is free either way (no per-call cost) — the founder's worry about "paying for a higher model" is unfounded, BUT the bigger ViT-L/14 is **slower**, which conflicts with priority #3. **Decision: favor keeping the small fast model (ViT-B/32) + the founder's own free/fast levers — burst+visual clustering (roadmap #4) and one-tap human correction (roadmap #5) — over the ViT-L/14 upgrade.** Next session should likely **revert the model upgrade in PR #131** and re-scope toward clustering + correction. No true 100% from any zero-shot model alone; near-100%-as-perceived comes from clustering + instant correction.
+
 ### 🔴 FOUNDER ACTIONS NEEDED (re-surface every session until done)
 1. **Label the ~35 WED-2024 photos** into correct categories — this is the scoreboard; blind tuning is why we looped 3×.
 2. **Raise Cloud Run memory to ≥6Gi and redeploy** the pipeline so ViT-L/14 loads without OOM (currently 4Gi).
