@@ -13,6 +13,19 @@ We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visua
 
 ---
 
+## 2026-07-23 — PR #132 (classification refine + one-tap correction) staged, blocked on founder input
+
+PR #132 (open, draft, mergeable): migration 0013, `/refine-categories` (burst/visual clustering), one-tap photographer category-correction UI. **Not yet merged, not yet live-tested.**
+
+**Founder inputs — status:**
+- ✅ **Cloud Run memory raised to 8Gi** (confirmed by founder 2026-07-23; ≥6Gi requirement met — 6Gi wasn't an available preset, 8Gi chosen instead).
+- ⬜ **4-vs-7 category decision** — still open, founder has not answered.
+- ⬜ **~35 WED-2024 photo labels** — still open, needed as ground truth before refine accuracy can be measured.
+
+**Next session must:** merge PR #132 → apply migration 0013 → run `backfill-categories` then `refine-categories` on WED-2024 → screenshot the live one-tap correction UI (mobile + desktop) → commit screenshots to `qa/screenshots/`. Still blocked on the 2 open decisions above (category count is needed before backfill; photo labels needed before accuracy can be claimed).
+
+---
+
 ## WED-2024 backfill re-run — confirmed (2026-07-22, post PR #125)
 
 Backfill ran manually after Cloud Run redeploy. Category breakdown shifted as expected:
