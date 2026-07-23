@@ -10,10 +10,15 @@ We are in **§10 QA phase**. Full honest §10 accounting is in **`docs/SECTION-1
 Three prompt-tweak attempts (PRs #121/#128/#130) failed because tuning was **blind** (no labeled ground-truth) on **ViT-B/32** (the weakest CLIP), judging each photo **in isolation**. This session shipped the two structural levers instead: **model ViT-B/32 → ViT-L/14** + prompts rebuilt on the founder's real cues (white chuppah canopy = ceremony tie-breaker; family/couple require non-canopy backdrop). **NOT verified accurate** — cannot measure without live Supabase + redeployed Cloud Run.
 
 ### 🧭 FOUNDER DECISIONS (2026-07-23) — locked, honor going forward
-Model is **free either way** (self-hosted CLIP, no per-call cost) — the "paying for a higher model" worry is unfounded. Founder was asked to trade speed for accuracy and **chose accuracy**: categorization can lag guest viewing (guests see photos immediately, uncategorized; categories fill in a few minutes later). He accepts ~5–6 min for ~150 photos and ~15 min for ~500. So:
-- **KEEP the bigger/more-accurate model (ViT-L/14 in PR #131) — do NOT revert.** Speed is no longer a blocker. May even go bigger if accuracy improves. Still needs Cloud Run ≥6Gi to avoid OOM.
-- **BUILD the burst+visual clustering layer** (roadmap #4) — still free, boosts accuracy.
-- **BUILD photographer one-tap correction** (roadmap #5), APPROVED: photographer reassigns a mis-categorized photo to the correct category from the dashboard. This delivers the "100% feeling" to guests AND accuracy confidence to the photographer. Rare 1–2 misses acceptable as long as he can fix them fast.
+Model is **free either way** (self-hosted CLIP, no per-call cost) — the "paying for a higher model" worry is unfounded. Founder chose **accuracy over speed**: guests see photos immediately (uncategorized); categories fill in a few minutes later (~5–6 min/150 photos, ~15 min/500).
+- **KEEP ViT-L/14 (PR #131) — do NOT revert.** Still needs Cloud Run ≥6Gi to avoid OOM. ✅ carried forward on this branch.
+- **Burst + visual clustering layer** (roadmap #4) — ✅ **BUILT this session** (see below).
+- **Photographer one-tap correction** (roadmap #5) — ✅ **BUILT this session** (see below).
+
+### ✅ Classification architecture BUILT this session (2026-07-23, this branch)
+Branch `claude/oura-classification-vit-se4lgf`, built on top of PR #131 (ViT-L/14 kept). Code-complete, typecheck/lint/build clean, refine engine unit-tested (6/6 pass). **NOT yet live-verified** — needs merge + Cloud Run redeploy at ≥6Gi (see founder actions).
+- **Holistic refine (burst + visual clustering)** — Cloud Run `POST /refine-categories` (`app/refine.py`, torch-free, unit-tested): greedy visual clustering by CLIP-embedding cosine similarity pools each burst to a consensus category + rescues ambiguous frames; sequence-smoothing fills null frames flanked by matching neighbors. Category-agnostic (works for 4 or 7). Orchestrated by operator `POST /admin/events/:id/refine-categories`. `/classify-category` now also returns the image embedding; queue + backfill persist `clip_embedding`/`clip_scores` so refine never re-downloads images (migration 0013).
+- **One-tap correction** — `PATCH /events/:id/photos/:pid/category` (photographer JWT) sets `category_source='manual'`; the AI + refine passes both skip manual rows forever. Dashboard UI: a category chip on every photo tile opens a bottom-sheet/centered picker (screenshots: `qa/screenshots/2026-07-23-category-correction-{mobile,desktop}.png`, local component render — live dashboard needs auth+deploy).
 
 ### 🔴 FOUNDER ACTIONS NEEDED (re-surface every session until done)
 1. **Label the ~35 WED-2024 photos** into correct categories — this is the scoreboard; blind tuning is why we looped 3×.
@@ -66,7 +71,9 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-None. PRs #121, #122, #123 all merged to main.
+- **This branch's PR (classification architecture)** — builds on PR #131 (keeps ViT-L/14), adds the burst+visual-clustering refine + one-tap correction. Draft. Code-complete + tested; live verification pending Cloud Run ≥6Gi redeploy + merge.
+- **PR #131** — ViT-L/14 + canopy prompts + §10 QA report. This branch supersedes it (contains all of #131 plus the new layers); merging this branch's PR obsoletes #131.
+- **PR #129** — post-#128 backfill/deploy doc (draft, pre-existing).
 
 ## Migration 0012 — applied ✅
 

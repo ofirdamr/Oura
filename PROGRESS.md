@@ -2,6 +2,16 @@
 
 _Older entries archived to `PROGRESS-archive.md`._
 
+### 2026-07-23 — Classification architecture: burst+clustering refine + one-tap correction
+- Branch `claude/oura-classification-vit-se4lgf`, built on PR #131 (ViT-L/14 kept, not reverted per locked founder decision)
+- Cloud Run: `/classify-category` now also returns the image embedding; new `POST /refine-categories` (`app/refine.py`, torch-free) — greedy visual clustering (embedding cosine sim, `CLUSTER_SIM=0.86`) pools bursts to consensus + rescues ambiguous frames; sequence-smoothing fills flanked nulls. Category-agnostic (4 or 7). Unit-tested `tests/test_refine.py` — 6/6 pass
+- API: queue consumer + backfill persist `clip_embedding`/`clip_scores`/`category_source='ai'`; new operator `POST /admin/events/:id/refine-categories` (excludes + write-guards `manual`); new photographer `PATCH /events/:id/photos/:pid/category` sets `category_source='manual'` (AI+refine skip manual forever)
+- Migration 0013: `clip_embedding` + `clip_scores` (jsonb) + `category_source` (checked) on `photos`
+- Web: `lib/categories.ts` shared keys/labels; `setPhotoCategory` client; dashboard photo tiles get a category chip → bottom-sheet/centered re-tag picker (RTL). Screenshots mobile+desktop in `qa/screenshots/2026-07-23-category-correction-*` (local component render)
+- Fixed a pre-existing compile-break inherited from #131: `createServerSupabaseClient` (undefined) in `/admin/photos/:id/restore` → switched to `supa()` + `getUser(token)`
+- Verify: apps/api tsc clean, apps/web tsc+eslint clean + `next build` compiles (only unrelated `/reset-password` prerender fails — no Supabase env in sandbox), refine unit tests pass
+- NOT live-verified: needs merge + Cloud Run redeploy at ≥6Gi. Founder actions still open: label 35 photos, raise Cloud Run to ≥6Gi, decide 4-vs-7
+
 ### 2026-07-22 — CLIP prompt fix for ceremony false positives (PR #130)
 - Root cause: posed couple portraits were scoring ≥0.20 on ceremony prompts ("chuppah visible + couple standing" fired on formal bridal attire)
 - Fix: couple prompts now require "no crowd, no canopy, looking at camera"; ceremony prompts now require active ritual (rabbi reading ketubah, ring exchange, guests watching)

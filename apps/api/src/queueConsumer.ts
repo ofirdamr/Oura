@@ -26,11 +26,17 @@ function cosineSim(a: number[], b: number[]): number {
   return dot;
 }
 
+type ClassifyResult = {
+  category: string | null;
+  scores: Record<string, number> | null;
+  embedding: number[] | null;
+};
+
 async function classifyCategory(
   embedServiceUrl: string,
   embedServiceToken: string,
   imageBytes: ArrayBuffer,
-): Promise<string | null> {
+): Promise<ClassifyResult> {
   try {
     const res = await fetch(`${embedServiceUrl}/classify-category`, {
       method: 'POST',
@@ -40,12 +46,15 @@ async function classifyCategory(
       },
       body: imageBytes,
     });
-    if (!res.ok) return null;
-    const data = await res.json() as { category: string | null };
-    return data.category;
+    if (!res.ok) return { category: null, scores: null, embedding: null };
+    const data = await res.json() as { category: string | null; scores?: Record<string, number>; embedding?: number[] };
+    // The CLIP embedding + raw scores are persisted so the event-level burst /
+    // visual-clustering refine (POST /admin/events/:id/refine-categories) can run
+    // later without re-downloading a single image.
+    return { category: data.category, scores: data.scores ?? null, embedding: data.embedding ?? null };
   } catch (err) {
     console.error('category classification failed:', err);
-    return null;
+    return { category: null, scores: null, embedding: null };
   }
 }
 
@@ -135,14 +144,19 @@ export async function handleQueue(
       }
 
       // ── Category classification via Cloud Run CLIP (zero per-call cost) ──
-      const category = await classifyCategory(env.EMBED_SERVICE_URL, env.EMBED_SERVICE_TOKEN, bytes);
+      // Per-photo call; the embedding + scores are stored so the holistic refine
+      // pass can later reason over the whole event (bursts + visual clusters).
+      const clip = await classifyCategory(env.EMBED_SERVICE_URL, env.EMBED_SERVICE_TOKEN, bytes);
 
       // ── Persist all pipeline results ──────────────────────────────────────
       await db.from('photos').update({
         embed_status: 'done',
         ai_rejected,
         rejection_reason: ai_rejected ? rejection_reason : null,
-        category,
+        category: clip.category,
+        clip_scores: clip.scores,
+        clip_embedding: clip.embedding,
+        category_source: clip.category ? 'ai' : null,
       }).eq('id', photo_id);
 
       message.ack();

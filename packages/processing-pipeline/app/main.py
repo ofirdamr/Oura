@@ -24,6 +24,8 @@ from PIL import Image, ImageFilter
 
 import threading
 
+from .refine import refine_event
+
 EMBED_SERVICE_TOKEN = os.environ.get("EMBED_SERVICE_TOKEN")
 
 app = FastAPI()
@@ -215,7 +217,41 @@ async def classify_category(request: Request) -> dict:
     best_score = float(sims[best_idx])
 
     category = _CATEGORY_KEYS[best_idx] if best_score >= _CLIP_MIN_SCORE else None
-    return {"category": category, "scores": scores}
+    # The L2-normalized image embedding is returned so callers can persist it and
+    # later run the event-level burst/visual-clustering refine (/refine-categories)
+    # without re-downloading the image. Rounded to keep the stored JSON compact.
+    embedding = [round(float(v), 5) for v in image_feats.squeeze(0).tolist()]
+    return {"category": category, "scores": scores, "embedding": embedding}
+
+
+@app.post("/refine-categories")
+async def refine_categories(request: Request) -> dict:
+    """Holistic event-level category refine (burst + visual clustering).
+
+    Body JSON: {
+      "photos": [{"id": str, "embedding": [float], "scores": {cat: float}, "seq": int}],
+      "category_keys": [str, ...]   # optional; defaults to the service's 7 keys
+      "min_score": float            # optional; defaults to _CLIP_MIN_SCORE
+    }
+    Returns {"photos": [{"id", "category": str|null, "source": "ai"|"cluster"}]}.
+    """
+    _check_auth(request)
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid_json")
+
+    photos = payload.get("photos")
+    if not isinstance(photos, list):
+        raise HTTPException(status_code=400, detail="photos_required")
+
+    category_keys = payload.get("category_keys") or _CATEGORY_KEYS
+    if not isinstance(category_keys, list) or not category_keys:
+        raise HTTPException(status_code=400, detail="invalid_category_keys")
+    min_score = float(payload.get("min_score", _CLIP_MIN_SCORE))
+
+    result = refine_event(photos, category_keys, min_score)
+    return {"photos": result}
 
 
 def _focal_crop(img: Image.Image, target_w: int, target_h: int, focal_x: float, focal_y: float) -> Image.Image:
