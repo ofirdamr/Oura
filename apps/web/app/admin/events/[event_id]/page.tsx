@@ -219,7 +219,7 @@ export default function EventManagementPage() {
       if (result.ok && result.id && result.storage_key) {
         uploadedCount++;
         setPhotos((prev) => [
-          { id: result.id!, storage_key: result.storage_key!, status: "ready", created_at: new Date().toISOString() },
+          { id: result.id!, storage_key: result.storage_key!, status: "ready", created_at: new Date().toISOString(), is_original_uploaded: false },
           ...prev,
         ]);
       } else {
