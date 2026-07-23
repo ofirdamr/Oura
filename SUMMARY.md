@@ -2,6 +2,19 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
+## 🔴 URGENT OPEN BUG (2026-07-23 eve) — password reset link rejected
+The `/reset-password` page shows: **"לא הצלחנו לאמת את הקישור (Invalid path specified in request URL). בקשו קישור חדש."** Founder cannot set a new password AND reports his known password no longer works. "Invalid path specified in request URL" is a Supabase Auth error → the recovery token/redirect the page passes to Supabase is malformed or the link is expired/consumed. NEXT SESSION MUST FIX THIS FIRST.
+- **GUARDRAILS (do NOT violate):** never send a reset email to ofirdamr@gmail.com; never mutate the founder's real auth credentials; test only with a throwaway account. The known-password-not-working is likely fallout from a past session randomizing it (see MISTAKES.md) — treat as separate from the link bug.
+- Start at `apps/web/app/reset-password/page.tsx` (the ONLY legit `auth.updateUser` site) + Supabase redirect URL config. Reproduce with a throwaway account's real recovery link, inspect the URL hash/query the page receives.
+
+## Photo-sorting engine launch — session outcome (2026-07-23, branch `claude/photo-sorting-engine-launch-0u5adm`)
+- Cloud Run health confirmed live: `{"ok":true,"models":["buffalo_l","clip-ViT-L-14"]}` ✅ (ViT-L/14 @ 8Gi). Note: models load in a background thread; needs sustained rapid polling to warm (CPU throttles after each response).
+- Migration **0013** (`clip_embedding`, `clip_scores`, `category_source`) APPLIED to live DB (was missing → refine returned `query_failed`).
+- API worker **redeployed** (`/admin/events/:id/refine-categories` route now live; was 404 pre-deploy). NB: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` env vars have a LEADING SPACE — must `tr -d '[:space:]'` before `npm run deploy` or auth/routing fails.
+- **Founder decision:** WED-2024's 35 photos are ground-truth labels → **keep, do NOT re-sort.** Backfill was a no-op anyway (0 null categories). Refine NOT run. The 35 labels backed up to `qa/snapshots/WED-2024-categories-before-vitl14-2026-07-23.csv` AND marked `category_source='manual'` so no future auto-sort can overwrite them.
+- Gallery entry QA'd live mobile+desktop (`qa/screenshots/gallery-wed2024-{mobile,desktop}-2026-07-23.png`) — consent gate renders clean, no console errors.
+- **PR #140 (docs) NOT merged** — founder said stop before merge. Its body is now stale (says "next session runs backfill+refine"; that decision is made — keep labels). Update or merge with a corrected note.
+
 ## Current state (2026-07-23, post-Mission B)
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
