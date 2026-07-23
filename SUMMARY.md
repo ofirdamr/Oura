@@ -6,6 +6,10 @@
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
 
+**⚠️ DECISION NEEDED:** Two gaps identified, pick which to close first:
+- **Option A: Wire original-photo upload** (30 min) — Stage 2 dashboard uploads only compressed photos, never the original tier. Endpoint exists, UI just doesn't call it. Close the gap now.
+- **Option B: Hold & focus on photo sorting** — PR #131 ViT-L/14 model upgrade is ready but needs (1) Cloud Run resize to 6Gi (money/infra) and (2) decision on whether to build labeled test set first (scope). Awaiting founder direction on both.
+
 **Mission B (Test Data) + login scroll fix — MERGED & LIVE (PR #136, 2026-07-23):**
 - 3 test orders in `Ready_For_Photographer_Print` state via `scripts/create-test-orders.mjs` (Test Guest 1 print_10x15 ×1, Test Guest 2 magnet ×2, Test Guest 3 photo_book ×1). Print queue: https://oura-web.oura-events.workers.dev/admin/print-queue
 - **Login `/login` phantom-scroll bug FIXED & DEPLOYED LIVE.** Root cause: `min-h-screen` (100vh) > iOS visible viewport → empty scrollable band below the card. Fix: `min-h-[100dvh]` + `justify-center`. Verified live: `qa/screenshots/login-scroll-fix-mobile.png` (full page = exactly one viewport, card centered). https://oura-web.oura-events.workers.dev/login
