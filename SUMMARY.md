@@ -64,14 +64,23 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-**Draft (not ready for merge):**
-- **PR #131:** ViT-L/14 classification + QA report. Says "NOT yet live-verified" — needs Cloud Run ≥6Gi redeploy.
-- **PR #132:** Burst+clustering + one-tap correction UI. Depends on #131 + ≥6Gi Cloud Run.
+### ⭐ NEXT MISSION (founder directive, 2026-07-23): resolve the 2 open photo-sorting PRs — #131 & #132
+The founder is worried about **losing good work** and wants the open photo-sorting PRs sorted out: **for each, decide either deploy+merge (if it's good work that matches where we stopped) or close it (if it's not, or it pre-dates/contradicts the decision below).** Do NOT leave them dangling as drafts.
 
-**Merged to main (2026-07-23):**
+**Where the founder remembers stopping (the source of truth for the decision):**
+1. **Manual sort of the 35 WED-2024 photos = DONE, MERGED, LIVE (PR #133).** This is the "good, done work" he does NOT want touched or rewritten — someone manually went through all 35 photos and set the correct category for each, directly in the live DB. It is safe and committed. Leave it alone.
+2. **Future work he remembers deciding on:** (a) a **one-tap "photographer moves a photo to another category"** control, and (b) a **test with all the waiting photos** (upload the full wedding, not just 35, and test categorization at scale).
+
+**The 2 open PRs to judge against that:**
+- **PR #131** (draft, `claude/section-10-qa-verification-hq3tjt`) — §10 QA report + classification approach change (ViT-B/32 → **ViT-L/14** model + canopy-aware prompts). NOT live-verified; needs Cloud Run **≥6Gi** redeploy (ViT-L/14 OOMs at 4Gi). `mergeable_state: dirty` (has conflicts with main).
+- **PR #132** (draft, `claude/oura-classification-vit-se4lgf`) — **supersedes #131** (contains all of #131 PLUS): burst+visual clustering refine engine (migration 0013), **the one-tap photographer category-correction UI** (`PATCH /events/:id/photos/:pid/category`, `category_source='manual'`), correction bottom-sheet/picker. This is the feature the founder remembers deciding on. NOT live-verified; also needs ≥6Gi Cloud Run.
+
+**Judgment guidance for next session:** #132 is the one that matches the founder's remembered decision (one-tap photographer correction). Since #132 contains all of #131, they likely should NOT both merge — probably **merge #132, close #131 as superseded** (confirm #132 truly contains #131's changes first). BUT both are gated on a **Cloud Run ≥6Gi redeploy** (currently 4Gi) and a **founder decision on 4-vs-7 categories** — verify/raise those before relying on classification accuracy. The one-tap correction UI itself does not depend on the model size and could be the safe, mergeable core.
+
+**Other merged photo-sorting work to main (2026-07-23):**
 - PR #134: Stage 2 sync dashboard UI
 - PR #135: Tier-1 download + privacy/egress docs
-- PR #133: DB state verification + WED-2024 corrections
+- PR #133: WED-2024 manual category corrections (the "done, don't touch" work above)
 
 ## Migration 0012 — applied ✅
 
