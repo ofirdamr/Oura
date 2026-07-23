@@ -226,6 +226,50 @@ export async function uploadEventPhoto(
   return { ok: true, data: body as UploadPhotoResponse };
 }
 
+export type UploadPhotoOriginalResponse = { id: string; event_id: string; original_key: string };
+
+// PUT /events/:event_id/photos/:photo_id/original -> §10.1 Stage 2 high-res sync.
+// Photographer-authenticated. Accepts raw binary body (the original file), uploads
+// to R2 under events/<event_id>/original/<photo_id>, and sets is_original_uploaded = true.
+// Idempotent — a second PUT safely overwrites. Response: { id, event_id, original_key }
+export async function uploadPhotoOriginal(
+  eventId: string,
+  photoId: string,
+  file: File,
+  accessToken: string,
+): Promise<ApiResult<UploadPhotoOriginalResponse>> {
+  let res: Response;
+  try {
+    res = await fetch(
+      `${API_BASE_URL}/events/${encodeURIComponent(eventId)}/photos/${encodeURIComponent(photoId)}/original`,
+      {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: await file.arrayBuffer(),
+      },
+    );
+  } catch {
+    return { ok: false, status: null, error: "network_error" };
+  }
+
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    // Non-JSON body (shouldn't happen against this API, but don't crash on it).
+  }
+
+  if (!res.ok) {
+    const error =
+      body && typeof body === "object" && "error" in body && typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : `http_${res.status}`;
+    return { ok: false, status: res.status, error };
+  }
+
+  return { ok: true, data: body as UploadPhotoOriginalResponse };
+}
+
 export type DeletePhotoResponse = { id: string; event_id: string };
 
 // DELETE /events/:event_id/photos/:photo_id -> photographer-authenticated photo

@@ -51,7 +51,7 @@ jobs:
             --image us-central1-docker.pkg.dev/ouraforphotographers/oura/embed-service:${{ github.sha }} \
             --region us-central1 \
             --project ouraforphotographers \
-            --memory 4Gi \
+            --memory 8Gi \
             --cpu 2 \
             --cpu-boost \
             --quiet

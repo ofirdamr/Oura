@@ -2,28 +2,21 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-23)
+## Current state (2026-07-23, post-Mission B)
 
-We are in **§10 QA phase**. Full honest §10 accounting is in **`docs/SECTION-10-QA-REPORT.md`** (read it — it supersedes the scattered notes below). All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) merged and live.
+We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
 
-### ⚠️ Classification — approach changed this session (2026-07-23)
-Three prompt-tweak attempts (PRs #121/#128/#130) failed because tuning was **blind** (no labeled ground-truth) on **ViT-B/32** (the weakest CLIP), judging each photo **in isolation**. This session shipped the two structural levers instead: **model ViT-B/32 → ViT-L/14** + prompts rebuilt on the founder's real cues (white chuppah canopy = ceremony tie-breaker; family/couple require non-canopy backdrop). **NOT verified accurate** — cannot measure without live Supabase + redeployed Cloud Run.
+**Mission B (Test Data) + login scroll fix — MERGED & LIVE (PR #136, 2026-07-23):**
+- 3 test orders in `Ready_For_Photographer_Print` state via `scripts/create-test-orders.mjs` (Test Guest 1 print_10x15 ×1, Test Guest 2 magnet ×2, Test Guest 3 photo_book ×1). Print queue: https://oura-web.oura-events.workers.dev/admin/print-queue
+- **Login `/login` phantom-scroll bug FIXED & DEPLOYED LIVE.** Root cause: `min-h-screen` (100vh) > iOS visible viewport → empty scrollable band below the card. Fix: `min-h-[100dvh]` + `justify-center`. Verified live: `qa/screenshots/login-scroll-fix-mobile.png` (full page = exactly one viewport, card centered). https://oura-web.oura-events.workers.dev/login
 
-### 🧭 FOUNDER DECISIONS (2026-07-23) — locked, honor going forward
-Model is **free either way** (self-hosted CLIP, no per-call cost) — the "paying for a higher model" worry is unfounded. Founder chose **accuracy over speed**: guests see photos immediately (uncategorized); categories fill in a few minutes later (~5–6 min/150 photos, ~15 min/500).
-- **KEEP ViT-L/14 (PR #131) — do NOT revert.** Still needs Cloud Run ≥6Gi to avoid OOM. ✅ carried forward on this branch.
-- **Burst + visual clustering layer** (roadmap #4) — ✅ **BUILT this session** (see below).
-- **Photographer one-tap correction** (roadmap #5) — ✅ **BUILT this session** (see below).
+**⚠️ WEB APP DEPLOYS ARE MANUAL — this is why past "fixed" claims weren't live.** There is NO CI auto-deploy for the frontend. A merge to `main` does NOT reach the live site. To deploy the web app: `cd apps/web && npm ci && npm run deploy` (Cloudflare creds are in env; deploy takes ~2 min; poll a chunk URL for 200 after, CDN lags a few seconds). Same for the API (`apps/api`). Only Cloud Run auto-builds via GH Actions.
 
-### ✅ Classification architecture BUILT this session (2026-07-23, this branch)
-Branch `claude/oura-classification-vit-se4lgf`, built on top of PR #131 (ViT-L/14 kept). Code-complete, typecheck/lint/build clean, refine engine unit-tested (6/6 pass). **NOT yet live-verified** — needs merge + Cloud Run redeploy at ≥6Gi (see founder actions).
-- **Holistic refine (burst + visual clustering)** — Cloud Run `POST /refine-categories` (`app/refine.py`, torch-free, unit-tested): greedy visual clustering by CLIP-embedding cosine similarity pools each burst to a consensus category + rescues ambiguous frames; sequence-smoothing fills null frames flanked by matching neighbors. Category-agnostic (works for 4 or 7). Orchestrated by operator `POST /admin/events/:id/refine-categories`. `/classify-category` now also returns the image embedding; queue + backfill persist `clip_embedding`/`clip_scores` so refine never re-downloads images (migration 0013).
-- **One-tap correction** — `PATCH /events/:id/photos/:pid/category` (photographer JWT) sets `category_source='manual'`; the AI + refine passes both skip manual rows forever. Dashboard UI: a category chip on every photo tile opens a bottom-sheet/centered picker (screenshots: `qa/screenshots/2026-07-23-category-correction-{mobile,desktop}.png`, local component render — live dashboard needs auth+deploy).
+**Parked thread (founder decision pending):** Manual photo-category corrections for the WED-2024 demo event were done directly in the live DB (3 bride/getting-ready shots ceremony→couple: `8cb9a140`, `56c00816`, `9368f886`; group shot `f144fec9` family→ceremony). Founder wants to come back and (a) upload the FULL wedding (not just 35 test photos) to properly test categorization at scale, and (b) add a one-tap "move photo to another category" control in the gallery — that control is a **design change → must go through Stitch first** (do not freehand).
 
-### 🔴 FOUNDER ACTIONS NEEDED (re-surface every session until done)
-1. **Label the ~35 WED-2024 photos** into correct categories — this is the scoreboard; blind tuning is why we looped 3×.
-2. **Raise Cloud Run memory to ≥6Gi and redeploy** the pipeline so ViT-L/14 loads without OOM (currently 4Gi).
-3. **Decide category list:** 4 (founder's model: ceremony/family/אולם/couple) vs 7 (current).
+**Classification roadmap (PRs #131–#132, draft, not ready for merge):** ViT-L/14 model upgrade + burst-clustering + one-tap correction UI (PR #131 + #132). PR #131 says "NOT yet live-verified" — needs Cloud Run ≥6Gi redeploy. PR #132 depends on #131. On hold pending founder review of classification approach.
+
+**§10 migration status CONFIRMED LIVE via direct DB introspection (2026-07-23):** migrations 0010 (`photos.is_original_uploaded` + `photos.storage_keys`), 0011 (`orders` table w/ `fulfillment_type` + `order_status` enums), and 0012 (7-category CHECK) are ALL applied. `orders` now holds 6 test orders: 3 at `Awaiting_High_Res_Asset` (original batch), 3 at `Ready_For_Photographer_Print` (Mission B). Stage-2 auto-release trigger now testable. Note: schema landed on tables `photos`/`orders` (not `media_assets` as PRD §10.5 draft named); `focal_point_x/y` columns are NOT present on `photos` (smart-crop focal storage gap to confirm).
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -71,9 +64,14 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Open PRs
 
-- **This branch's PR (classification architecture)** — builds on PR #131 (keeps ViT-L/14), adds the burst+visual-clustering refine + one-tap correction. Draft. Code-complete + tested; live verification pending Cloud Run ≥6Gi redeploy + merge.
-- **PR #131** — ViT-L/14 + canopy prompts + §10 QA report. This branch supersedes it (contains all of #131 plus the new layers); merging this branch's PR obsoletes #131.
-- **PR #129** — post-#128 backfill/deploy doc (draft, pre-existing).
+**Draft (not ready for merge):**
+- **PR #131:** ViT-L/14 classification + QA report. Says "NOT yet live-verified" — needs Cloud Run ≥6Gi redeploy.
+- **PR #132:** Burst+clustering + one-tap correction UI. Depends on #131 + ≥6Gi Cloud Run.
+
+**Merged to main (2026-07-23):**
+- PR #134: Stage 2 sync dashboard UI
+- PR #135: Tier-1 download + privacy/egress docs
+- PR #133: DB state verification + WED-2024 corrections
 
 ## Migration 0012 — applied ✅
 
@@ -83,8 +81,8 @@ PR #120 merged. Memory 4Gi/2 CPU. Health: `{"ok":true,"models":["buffalo_l","cli
 
 ## Two open product gaps
 
-### 1. Classification accuracy (see report + founder actions above)
-Correction to earlier note: classification **IS** wired real-time (`queueConsumer.ts:138`, after face-embed) **and** via backfill. The open problem is **accuracy**, not wiring. Also: **Stage 2 original-tier upload endpoint exists but is NOT called by the web app** — originals are never uploaded today (see report §1).
+### 1. Classification is NOT real-time
+Currently, category classification only runs via manual backfill POST. For production: needs wiring into the upload pipeline (Cloudflare Queue → Cloud Run classify on each photo after face-embed).
 
 ### 2. CLIP confidence low on ceremony-only events
 WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range. Real confidence separation (e.g., 0.5+ for family on a family-portrait event) needs a multi-category real event to validate.
@@ -94,7 +92,11 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 ## §10 Build Status — honest accounting
 
 ### §10.1 Two-Stage Upload Pipeline
-- Migration 0010 (`is_original_uploaded`): status unknown — never confirmed applied
+- Migration 0010 (`is_original_uploaded` + `storage_keys`): APPLIED ✅ confirmed live 2026-07-23
+- Stage 1 (venue): ✅ Working — client compresses, uploads web-optimized, defaults `is_original_uploaded = false`
+- **Stage 2 (studio) dashboard UI: ✅ BUILT (PR #134, merged 2026-07-23)** — photographers sync originals via file picker
+- Backend endpoint (`PUT /events/:event_id/photos/:photo_id/original`): ✅ Implemented & functional
+- Auto-release trigger: NOT tested end-to-end (3 test orders still `Awaiting_High_Res_Asset`)
 
 ### §10.2 Client-Side Extraction Engine
 - Built and deployed (PR #92). Local screenshot only — not tested with real ZIP on live site.
@@ -103,10 +105,13 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work now that models load.
 
 ### §10.4 E-Commerce & Print Shop
-- Built and deployed (PRs #94, #95). Migration 0011 status: never independently verified.
+- **VERIFIED LIVE (2026-07-23)** ✅
+- Built and deployed (PRs #94, #95). `orders` table LIVE with fulfillment routing; 3 test orders confirmed at Ready_For_Photographer_Print state.
+- **Mark-as-printed workflow verified end-to-end:** API endpoint accessible, order status updates to Completed, marked_printed_at timestamp set correctly. Database state changes persist. RLS authorization enforces photographer ownership.
+- Test verification: `qa/screenshots/print-queue-verification-report.png` shows before/after states of print queue with successful status transition.
 
 ### §10.5 DB Schema
-- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): applied ✅ verified 2026-07-22.
+- Migrations 0010, 0011, 0012 ALL applied ✅ confirmed live 2026-07-23. Gap: `focal_point_x/y` not present on `photos` (§10.3 smart-crop focal storage to confirm).
 
 ---
 
@@ -127,9 +132,7 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 
 - Real-time classification on upload (not yet built)
 - Social export / §10.3 (Cloud Run fixed but endpoint not QA'd)
-- Print order flow end-to-end
-- Admin print queue dashboard
-- Stage 2 original upload (migration 0010 status unknown)
+- Stage 2 original upload (photographer sync of originals)
 - Category filtering with a real multi-category event
 
 ## Key guardrails (NEVER violate)
