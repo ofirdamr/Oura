@@ -19,10 +19,10 @@ PR #132 (open, draft, mergeable): migration 0013, `/refine-categories` (burst/vi
 
 **Founder inputs — status:**
 - ✅ **Cloud Run memory raised to 8Gi** (confirmed by founder 2026-07-23; ≥6Gi requirement met — 6Gi wasn't an available preset, 8Gi chosen instead).
-- ⬜ **4-vs-7 category decision** — still open, founder has not answered.
-- ⬜ **~35 WED-2024 photo labels** — still open, needed as ground truth before refine accuracy can be measured.
+- ✅ **Category decision: keep 7** (founder decided 2026-07-23 — explicitly rejected simplifying to 4). Founder also wants photographers to be able to **add their own custom category**, auto-sorted by AI once created — **new backlog item, not in scope for PR #132, do not build without a separate founder go-ahead on design.**
+- ⬜ **~35 WED-2024 photo labels** — founder declined to do this now ("I don't remember", wants to move fast) — **deferred, not resolved.** Without it, refine-category accuracy cannot be measured/claimed, but the pipeline can still be run. Do not re-ask this exact way again — next session should either do it interactively photo-by-photo during the live QA pass, or explicitly skip accuracy measurement and say so.
 
-**Next session must:** merge PR #132 → apply migration 0013 → run `backfill-categories` then `refine-categories` on WED-2024 → screenshot the live one-tap correction UI (mobile + desktop) → commit screenshots to `qa/screenshots/`. Still blocked on the 2 open decisions above (category count is needed before backfill; photo labels needed before accuracy can be claimed).
+**Next session's single mission:** merge PR #132 → apply migration 0013 → run `backfill-categories` then `refine-categories` on WED-2024 → screenshot the live one-tap correction UI (mobile + desktop) → commit screenshots to `qa/screenshots/`. Both hard blockers (memory, category count) are now resolved — nothing else should block this.
 
 ---
 
