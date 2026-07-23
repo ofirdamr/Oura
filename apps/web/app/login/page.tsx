@@ -7,7 +7,7 @@
 // properties only (Rubik by default). Guests never see this - it's the entry
 // point for the /admin area gated by middleware.ts.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
@@ -19,6 +19,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const preventScroll = (e: FocusEvent) => {
+      const target = e.target as HTMLInputElement;
+      if (target.tagName === "INPUT") {
+        const scrollPos = window.scrollY;
+        target.blur();
+        target.focus();
+        window.scrollTo(0, scrollPos);
+      }
+    };
+    document.addEventListener("focus", preventScroll, true);
+    return () => document.removeEventListener("focus", preventScroll, true);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
