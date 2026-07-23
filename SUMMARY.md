@@ -2,9 +2,13 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-22)
+## Current state (2026-07-23)
 
 We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. CLIP 5-prompt ensembles + משפחה/אולם categories (PR #121) merged and deployed.
+
+**PAUSED / parked thread (2026-07-23):** Manual photo-category corrections for the WED-2024 demo event were done directly in the live DB (3 bride/getting-ready shots ceremony→couple: `8cb9a140`, `56c00816`, `9368f886`; group shot `f144fec9` family→ceremony). Data-only, already live, nothing to merge/revert. Founder wants to come back and (a) upload the FULL wedding (not just 35 test photos) to properly test categorization at scale, and (b) add a one-tap "move photo to another category" control in the gallery — that control is a **design change → must go through Stitch first** (do not freehand).
+
+**§10 migration status CONFIRMED LIVE via direct DB introspection (2026-07-23):** migrations 0010 (`photos.is_original_uploaded` + `photos.storage_keys`), 0011 (`orders` table w/ `fulfillment_type` + `order_status` enums), and 0012 (7-category CHECK) are ALL applied. `orders` holds 3 real test orders, all at `Awaiting_High_Res_Asset` (initial state) — order-write path works; Stage-2 auto-release trigger never exercised. Note: schema landed on tables `photos`/`orders` (not `media_assets` as PRD §10.5 draft named); `focal_point_x/y` columns are NOT present on `photos` (smart-crop focal storage gap to confirm).
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -73,7 +77,8 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 ## §10 Build Status — honest accounting
 
 ### §10.1 Two-Stage Upload Pipeline
-- Migration 0010 (`is_original_uploaded`): status unknown — never confirmed applied
+- Migration 0010 (`is_original_uploaded` + `storage_keys` on `photos`): APPLIED ✅ confirmed live via DB introspection 2026-07-23.
+- Stage 2 "Sync High-Res Originals" endpoint built (PUT /events/:id/photos/:id/original, PR #91). NEVER tested end-to-end; auto-release order trigger never fired (3 orders still Awaiting_High_Res_Asset).
 
 ### §10.2 Client-Side Extraction Engine
 - Built and deployed (PR #92). Local screenshot only — not tested with real ZIP on live site.
@@ -82,10 +87,10 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work now that models load.
 
 ### §10.4 E-Commerce & Print Shop
-- Built and deployed (PRs #94, #95). Migration 0011 status: never independently verified.
+- Built and deployed (PRs #94, #95). `orders` table LIVE with fulfillment routing; 3 real test orders written ✅ (order-write path works). Full purchase→fulfillment→print-queue→mark-printed NOT verified end-to-end.
 
 ### §10.5 DB Schema
-- Migration 0011: unverified. Migration 0012 (7-category CHECK constraint): applied ✅ verified 2026-07-22.
+- Migrations 0010, 0011, 0012 ALL applied ✅ confirmed live 2026-07-23. Gap: `focal_point_x/y` not present on `photos` (§10.3 smart-crop focal storage to confirm).
 
 ---
 
