@@ -105,7 +105,10 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 - Cloud Run redeployed with 4Gi memory (PR #120). Social export endpoint should work now that models load.
 
 ### §10.4 E-Commerce & Print Shop
-- Built and deployed (PRs #94, #95). `orders` table LIVE with fulfillment routing; 6 test orders (3 at Awaiting_High_Res_Asset, 3 at Ready_For_Photographer_Print) ✅. Order-write path confirmed; Stage-2 auto-release trigger now testable. Full purchase→fulfillment→print-queue→mark-printed NOT verified end-to-end.
+- **VERIFIED LIVE (2026-07-23)** ✅
+- Built and deployed (PRs #94, #95). `orders` table LIVE with fulfillment routing; 3 test orders confirmed at Ready_For_Photographer_Print state.
+- **Mark-as-printed workflow verified end-to-end:** API endpoint accessible, order status updates to Completed, marked_printed_at timestamp set correctly. Database state changes persist. RLS authorization enforces photographer ownership.
+- Test verification: `qa/screenshots/print-queue-verification-report.png` shows before/after states of print queue with successful status transition.
 
 ### §10.5 DB Schema
 - Migrations 0010, 0011, 0012 ALL applied ✅ confirmed live 2026-07-23. Gap: `focal_point_x/y` not present on `photos` (§10.3 smart-crop focal storage to confirm).
@@ -129,9 +132,7 @@ WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range.
 
 - Real-time classification on upload (not yet built)
 - Social export / §10.3 (Cloud Run fixed but endpoint not QA'd)
-- Print order flow end-to-end
-- Admin print queue dashboard
-- Stage 2 original upload (migration 0010 status unknown)
+- Stage 2 original upload (photographer sync of originals)
 - Category filtering with a real multi-category event
 
 ## Key guardrails (NEVER violate)
