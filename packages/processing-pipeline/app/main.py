@@ -36,21 +36,30 @@ _models_ready = threading.Event()
 # Fixed wedding category labels — order matches _clip_text_features rows.
 _CATEGORY_KEYS = ["couple", "ceremony", "dances", "reception", "main_course", "family", "venue"]
 # Each inner list is an ensemble of prompts for one category.
-# At load time all prompts are encoded and averaged per category → [5, 512] matrix.
+# At load time all prompts are encoded and averaged per category → [n, 512] matrix.
+#
+# Design note (2026-07-23): the DOMINANT signal for ceremony is the white draped
+# chuppah canopy / white fabric backdrop in the frame — a group hug, a toast, or
+# a close family moment that happens UNDER the canopy is still ceremony, not
+# family, even though it looks like a family shot. Earlier attempts over-tightened
+# ceremony toward only wide ritual shots, which pushed canopy close-ups into
+# family. Family/couple prompts now explicitly demand a NON-canopy backdrop
+# (stone wall, staircase, garden, plain wall) so the canopy stays the tie-breaker.
 _CATEGORY_PROMPTS: list[list[str]] = [
-    [  # couple — posed portraits: just the two of them, no crowd, no canopy, looking at camera
-        "Bride and groom posing for a photographer, looking directly at the camera, just the two of them — no crowd, no chuppah canopy overhead, no rabbi or officiant in the frame.",
-        "A formal posed wedding portrait: bride and groom standing or sitting together, smiling at the lens, no other people visible and no ceremonial canopy or altar in the background.",
-        "The bride and groom alone in a romantic portrait at a scenic outdoor or indoor location — no guests, no canopy structure, no altar — just the couple in their wedding attire.",
-        "The bride alone in her wedding dress in an intimate solo portrait in a suite, hallway, or garden, no crowd or ceremony setting behind her.",
-        "The bride and groom sharing a private moment away from the wedding crowd, just the two of them, no chuppah or altar visible, intimate and personal.",
+    [  # couple — just the two of them, scenic/plain backdrop, NO canopy, NO crowd
+        "Bride and groom posing together for a photographer against a stone wall, garden, or plain backdrop — just the two of them, no white draped canopy, no crowd, no officiant.",
+        "A formal posed wedding portrait of only the bride and groom, embracing or looking at the lens, with a scenic non-canopy background — no chuppah, no altar, no guests.",
+        "The bride and groom alone in a romantic portrait, holding each other close at a scenic spot — no white ceremony canopy overhead, no rabbi, just the couple in wedding attire.",
+        "The bride alone in her wedding dress in an intimate solo portrait against a stone wall, staircase, or hallway — no crowd, no canopy, no ceremony setting behind her.",
+        "The bride getting her hair and makeup done before the wedding, or a solo bridal portrait, in a getting-ready suite — no canopy, no crowd.",
     ],
-    [  # ceremony — active ritual in progress: chuppah + officiant, ring exchange, ketubah reading, glass-breaking, aisle walk
-        "A rabbi reading aloud from a ketubah scroll to the bride and groom beneath the chuppah canopy — an active wedding ritual with officiant and couple at the altar, guests watching.",
-        "Guests seated in rows of chairs watching the wedding ceremony in progress, all eyes on the couple and rabbi at the chuppah — an active ritual is taking place at the altar.",
-        "The groom placing a gold wedding ring on the bride's finger during the Jewish ceremony — a close-up of their hands and faces at the moment of the ring exchange ritual.",
-        "The groom stomping on a glass wrapped in white cloth at the end of the Jewish wedding ceremony, guests erupting in joy around the couple — the defining ritual moment.",
-        "The bride walking down the ceremony aisle toward the chuppah canopy, guests seated on both sides turning to watch — the canopy structure clearly visible ahead of her.",
+    [  # ceremony — DOMINANT cue: white draped chuppah canopy / white fabric backdrop present
+        "People gathered close together beneath a white draped chuppah canopy at a Jewish wedding, the white fabric of the canopy clearly visible behind and above them — this is the ceremony, even if it looks like a group of family or friends hugging.",
+        "A close-up of the bride, groom, or family members embracing and emotional under the white chuppah canopy during the ceremony, white draped fabric filling the background.",
+        "A man holding a wine glass and reading or speaking into a microphone during the wedding ceremony blessing, near the white canopy — the kiddush or a ceremony toast in progress.",
+        "The groom placing a ring on the bride's finger, or a rabbi reading the ketubah, beneath the white chuppah canopy — an active Jewish wedding ritual with the canopy overhead.",
+        "Guests and family crowded around the couple under the white draped chuppah, everyone facing the canopy, white fabric and ceremony lighting visible — the ceremony moment.",
+        "A small child or flower girl standing on the white fabric beneath the chuppah canopy during the ceremony, surrounded by the white draped ceremony backdrop.",
     ],
     [  # dances — open dance floor, no chuppah, chairs pushed aside, motion and energy
         "Wedding guests dancing the hora in a jubilant circle on the open parquet dance floor, the chuppah nowhere in sight, chairs along the walls.",
@@ -73,19 +82,19 @@ _CATEGORY_PROMPTS: list[list[str]] = [
         "Guests at a wedding reception seated and eating their meal, with tall floral centerpieces and candles on the table.",
         "A formal wedding dinner with people seated around large tables, servers bringing plates, a warm candlelit atmosphere.",
     ],
-    [  # family — posed group portrait, multiple generations, no dancing or eating
-        "A formal family portrait at a wedding, multiple generations standing close together and smiling at the camera.",
-        "Parents, siblings, grandparents, and extended family members posed together in a group photo at a wedding.",
-        "A large family group photograph with adults and children arranged in rows, all dressed formally for the wedding.",
-        "The bride and groom surrounded by their immediate family members in a posed portrait on the wedding day.",
-        "A wide group photo of the entire wedding family — grandparents, parents, children, and cousins — lined up together.",
+    [  # family — posed group portrait against a NON-canopy backdrop (wall, stairs, garden)
+        "A formal posed family portrait at a wedding, multiple generations standing close together and smiling at the camera, against a stone wall, staircase, or garden — NOT under a white chuppah canopy.",
+        "Parents, siblings, grandparents and the couple posed together in a deliberate group photo at a scenic wedding spot, everyone looking at the lens, no white ceremony canopy overhead.",
+        "A large family group photograph, adults and children arranged in rows and posing for the camera, at a decorative backdrop that is clearly not the ceremony canopy.",
+        "The bride and groom flanked by immediate family in a posed portrait against a plain or scenic wall, everyone facing the photographer — a staged family photo, no canopy.",
+        "A posed extended-family lineup — grandparents, parents, children, cousins — standing shoulder to shoulder and smiling, photographed away from the chuppah at a scenic location.",
     ],
-    [  # venue — hall decor, empty or near-empty space, architecture, table settings
-        "An elegant empty wedding banquet hall decorated with floral centerpieces, draped fabric, and soft ambient lighting.",
-        "A wide interior shot of a wedding venue showing decorated round tables, tall candelabras, and chandeliers before guests arrive.",
-        "Architectural detail photography inside a wedding hall: chandeliers, flower arrangements, and formally set tables with no people.",
-        "Close-up detail shots of wedding table decorations: place cards, candles, crystal glasses, and flower arrangements.",
-        "The grand interior of a wedding venue from above or distance, showing the decorated stage, altar area, and ambient lighting design.",
+    [  # venue / אולם — hall decor, tables, empty space, table settings, design details
+        "An elegant wedding banquet hall decorated with floral centerpieces, draped fabric, and soft lighting, few or no people — the room and its design are the subject.",
+        "A wide interior shot of a wedding venue showing rows of decorated round dining tables, tall candelabras, and chandeliers before or between guests.",
+        "Close-up detail photography of the wedding table setting: place cards, candles, plates, crystal glasses, napkins, and flower arrangements — the decor is the subject, no people.",
+        "The design and styling of the wedding hall: the decorated stage, lounge furniture, lighting, and floral installations, photographed as an interior/decor shot.",
+        "A photo focused on the tables, chairs, and room design of the wedding venue rather than on any person — capturing how the אולם is set up and decorated.",
     ],
 ]
 # CLIP confidence floor — scores below this yield null (photo genuinely ambiguous).
@@ -98,10 +107,13 @@ def _load_models_sync() -> None:
     _face_app = FaceAnalysis(name="buffalo_l")
     _face_app.prepare(ctx_id=-1)  # CPU; pilot scale doesn't need GPU
 
-    # Load CLIP ViT-B/32 (weights baked into image at build time).
-    model, _, preprocess = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
+    # Load CLIP ViT-L/14 (weights baked into image at build time). Upgraded from
+    # ViT-B/32 (2026-07-23): the smaller model could not separate semantically
+    # close wedding scenes (family group under the canopy vs. family portrait on
+    # the stairs). ViT-L/14 has markedly stronger fine-grained scene discrimination.
+    model, _, preprocess = open_clip.create_model_and_transforms("ViT-L-14", pretrained="openai")
     model.eval()
-    tokenizer = open_clip.get_tokenizer("ViT-B-32")
+    tokenizer = open_clip.get_tokenizer("ViT-L-14")
     flat_prompts = [p for group in _CATEGORY_PROMPTS for p in group]
     group_sizes = [len(g) for g in _CATEGORY_PROMPTS]
     texts = tokenizer(flat_prompts)
@@ -140,7 +152,7 @@ def _check_auth(request: Request) -> None:
 @app.get("/health")
 def health() -> dict:
     ready = _models_ready.is_set()
-    return {"ok": ready, "models": ["buffalo_l", "clip-ViT-B-32"] if ready else []}
+    return {"ok": ready, "models": ["buffalo_l", "clip-ViT-L-14"] if ready else []}
 
 
 @app.post("/embed")

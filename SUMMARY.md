@@ -2,9 +2,17 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-22)
+## Current state (2026-07-23)
 
-We are in **§10 QA phase**. All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) is merged and live. CLIP 5-prompt ensembles + משפחה/אולם categories (PR #121) merged and deployed.
+We are in **§10 QA phase**. Full honest §10 accounting is in **`docs/SECTION-10-QA-REPORT.md`** (read it — it supersedes the scattered notes below). All 4 bug fixes from PR #107 are deployed and visually confirmed. Cloud Run memory fix (PR #120) merged and live.
+
+### ⚠️ Classification — approach changed this session (2026-07-23)
+Three prompt-tweak attempts (PRs #121/#128/#130) failed because tuning was **blind** (no labeled ground-truth) on **ViT-B/32** (the weakest CLIP), judging each photo **in isolation**. This session shipped the two structural levers instead: **model ViT-B/32 → ViT-L/14** + prompts rebuilt on the founder's real cues (white chuppah canopy = ceremony tie-breaker; family/couple require non-canopy backdrop). **NOT verified accurate** — cannot measure without live Supabase + redeployed Cloud Run.
+
+### 🔴 FOUNDER ACTIONS NEEDED (re-surface every session until done)
+1. **Label the ~35 WED-2024 photos** into correct categories — this is the scoreboard; blind tuning is why we looped 3×.
+2. **Raise Cloud Run memory to ≥6Gi and redeploy** the pipeline so ViT-L/14 loads without OOM (currently 4Gi).
+3. **Decide category list:** 4 (founder's model: ceremony/family/אולם/couple) vs 7 (current).
 
 **Live URLs:**
 - Frontend: https://oura-web.oura-events.workers.dev
@@ -62,8 +70,8 @@ None. PRs #121, #122, #123 all merged to main.
 
 ## Two open product gaps
 
-### 1. Classification is NOT real-time
-Currently, category classification only runs via manual backfill POST. For production: needs wiring into the upload pipeline (Cloudflare Queue → Cloud Run classify on each photo after face-embed).
+### 1. Classification accuracy (see report + founder actions above)
+Correction to earlier note: classification **IS** wired real-time (`queueConsumer.ts:138`, after face-embed) **and** via backfill. The open problem is **accuracy**, not wiring. Also: **Stage 2 original-tier upload endpoint exists but is NOT called by the web app** — originals are never uploaded today (see report §1).
 
 ### 2. CLIP confidence low on ceremony-only events
 WED-2024 is a ceremony/couple event — all scores cluster in 0.15–0.34 range. Real confidence separation (e.g., 0.5+ for family on a family-portrait event) needs a multi-category real event to validate.
