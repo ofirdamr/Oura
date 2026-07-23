@@ -47,7 +47,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative mx-auto flex min-h-screen max-w-sm flex-col items-center overflow-x-hidden p-6 md:p-10">
+    <main className="relative mx-auto flex min-h-[100dvh] max-w-sm flex-col items-center justify-center overflow-x-hidden p-6 md:p-10">
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,138,117,0.15)_0%,_transparent_50%)]" />
 
       <header className="relative z-10 mb-6 mt-8">
