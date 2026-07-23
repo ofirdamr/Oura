@@ -48,3 +48,17 @@ _Older entries archived to `PROGRESS-archive.md`._
 - Cloud Run cold start: models took ~60s to load on first call — wait for `{"ok":true,"models":[...]}` before running backfill on a cold instance
 - Added CLAUDE.md rule: never assume a token/service is unavailable without exhaustive checking
 - Archived PROGRESS.md + MISTAKES.md → separate archive files (lean context)
+
+## 2026-07-23 — §10 Architecture: Tier-1 Download + Privacy Docs (PR #135)
+
+**Completed:**
+- ARCHITECTURE.md §3: documented privacy & egress-protection policy
+  - Biometric data zero-retention (selfies never persisted)
+  - Tier 1 (original): photographer-only access via JWT+ownership gate
+  - Tier 3 (web-optimized): guest default for save/share (cost protection)
+  - Tier 5 (thumbnail): preview tier for grids
+- Print Queue dashboard: added batch Tier-1 download button
+  - Backend: GET /admin/events/:event_id/tier1-download returns manifest of Tier-1 URLs
+  - Frontend: downloadTier1() opens files sequentially in new tabs
+  - Button visible only when orders exist in "Ready_For_Photographer_Print" status
+- PR #135 (draft) created; CI pending verification

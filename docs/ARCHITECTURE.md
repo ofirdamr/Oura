@@ -197,6 +197,17 @@ Key tables (see the migration files for full column lists/constraints):
   `true` by `POST /consent/:token`, folded into the existing `/consent`
   screen as an additional checkbox rather than a new "age gate" screen.
 
+### 3a. Privacy & Egress Protection Policy
+
+**Biometric Data Retention:** Selfies are zero-retention by design — never persisted to disk or DB. Only the matching results (`guest_photo_matches` join rows) survive the `POST /guests/:token/selfie` call. The guest↔photo link is deleted after 30 days via the daily cron (§4a retention enforcement), regardless of whether the guest downloaded/shared any photos. The photo-derived embedding index (`face_embeddings`) is the shared search template per event, not guest-specific, and survives photo-deletion cascades — it is only purged if the photo itself is deleted or the whole event is archived.
+
+**Media Tier Access Control:** The system manages three media tiers:
+- **Tier 1 (Original):** Full-resolution source files (`events/<event_id>/original/<photo_id>`). Photographer-only access; guests must be **programmatically blocked** from requesting Tier 1 signed URLs or downloading original binaries. Used only by photographers syncing originals and printing workflows.
+- **Tier 3 (Web-Optimized):** Guest-facing mobile-optimized JPEG (~500KB typical). Default for guest save/share exports, providing acceptable visual quality while protecting egress costs (CLAUDE.md guardrail: R2's zero-egress model is the core cost mitigation).
+- **Tier 5 (Thumbnail):** Tiny preview images (~50KB). Used in gallery grids and share sheets.
+
+**Enforcement:** `GET /media/*` stream endpoint serves media by key; the Worker route itself is guest-accessible (no auth barrier), but the R2 key construction **must never place Tier 1 keys in the guest gallery response** (§4 `GET /gallery/:token` returns only web-optimized metadata for guest display). Photographer-facing routes (`POST /admin/orders/:orderId/tier1-download`) require full JWT auth + event ownership verification via `requireEventOwner()` (§5). No guest-scoped API path exposes Tier 1 keys.
+
 ## 4. Guest-facing API (`apps/api`, service-role, bypasses RLS)
 
 All routes below live in `apps/api/src/index.ts`. None require photographer
