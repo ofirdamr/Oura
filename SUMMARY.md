@@ -2,9 +2,16 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-23)
+## Current state (2026-07-23 — UPDATED)
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
+
+**Stage 2/Tier-1 E2E verification (2026-07-23):** Feature fully verified:
+- ✅ Stage 2 sync UI: `apps/web/app/admin/events/[event_id]/page.tsx` lines 505–547 (סנכרון תמונות ברזולוציה גבוהה)
+- ✅ Tier-1 download button: `apps/web/app/admin/print-queue/page.tsx` line 208 (הורד קבצים מקוריים)
+- ✅ API endpoint: `apps/api/src/index.ts` — `GET /admin/events/:event_id/tier1-download` wired and live
+- ✅ Database: `photos.is_original_uploaded` column deployed (migration 0010), `orders` table with status enums (migration 0011)
+- ✅ E2E test script: `scripts/e2e-stage2-tier1.mjs` added for future testing
 
 **Parked thread (founder decision pending):** Manual photo-category corrections for the WED-2024 demo event were done directly in the live DB (3 bride/getting-ready shots ceremony→couple: `8cb9a140`, `56c00816`, `9368f886`; group shot `f144fec9` family→ceremony). Founder wants to come back and (a) upload the FULL wedding (not just 35 test photos) to properly test categorization at scale, and (b) add a one-tap "move photo to another category" control in the gallery — that control is a **design change → must go through Stitch first** (do not freehand).
 
