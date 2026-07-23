@@ -2,6 +2,14 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
+## 🔴 NEXT MISSION (2026-07-23 late) — audit §10 for freehanded UI, replace via Stitch
+Founder directive: **design belongs to Stitch; our only role is to wire it.** A §10 screen was built freehand with NO Stitch source and must go:
+- **CONFIRMED freehand (delete + re-wire from Stitch):** the Stage-2 studio high-res upload UI in `apps/web/app/admin/events/[event_id]/page.tsx` — the `סנכרון תמונות ברזולוציה גבוהה (שלב 2)` section rendering per-photo rows as `ID: xxxx` + `העלה מקור` button with **no thumbnail** (added freehand in commit `6161541`, `feat: §10.1 Stage 2 dashboard UI`). No `design/screens/*` exists for any upload/stage-2/sync screen — verified.
+- **Also required:** the replacement must support **bulk "upload all originals at once" (or a ZIP)**, matching files to existing photos by filename. Today `handleSyncOriginal` forces one photo at a time — unusable for a full wedding.
+- **Founder is generating the Stitch design now.** Do NOT freehand anything — wait for the real export in `design/screens/`, then delete the freehand version and wire 1:1.
+- **Broader task:** audit **all** §10-related UI (Stage-1 upload, Stage-2 sync, one-tap category-correction picker from PR #132, print-queue, order flow) — for anything else built without a matching Stitch `screen.png`, delete it and write a ready-to-paste Stitch prompt. Do this in a FRESH session, not the one that surfaced it.
+- Still live & locked: ViT-L/14 sorting brain @ 8Gi (`{"models":["buffalo_l","clip-ViT-L-14"]}`), and the 35 WED-2024 ground-truth labels (`category_source='manual'`, backed up in `qa/snapshots/`).
+
 ## Current state (2026-07-23, post-Mission B)
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
