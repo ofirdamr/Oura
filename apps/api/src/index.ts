@@ -1908,6 +1908,61 @@ app.put('/admin/orders/:order_id/mark-printed', async (c) => {
   return c.json({ ok: true });
 });
 
+// §10.4 — Print Shop: batch Tier-1 (original) download for photographer
+app.get('/admin/events/:event_id/tier1-download', async (c) => {
+  const event_id = c.req.param('event_id');
+  const orders_param = c.req.query('orders');
+  if (!event_id || !orders_param) return c.json({ error: 'missing_params' }, 400);
+
+  const db = supa(c.env);
+  const auth = await requireEventOwner(c, db, event_id);
+  if (!auth.ok) return c.json({ error: auth.error }, auth.status);
+
+  const order_ids = orders_param.split(',').filter((id) => id.trim());
+  if (order_ids.length === 0) return c.json({ error: 'no_orders' }, 400);
+
+  // Fetch orders + photos with is_original_uploaded flag
+  const { data: orders, error: fetchErr } = await db
+    .from('orders')
+    .select('id, photo_id, photos(id, is_original_uploaded, storage_key)')
+    .eq('event_id', event_id)
+    .in('id', order_ids);
+
+  if (fetchErr || !orders || orders.length === 0) {
+    return c.json({ error: 'orders_not_found' }, 404);
+  }
+
+  // Collect all original photo keys (Tier 1)
+  const tier1_keys: string[] = [];
+  for (const order of orders) {
+    const photo = order.photos as any;
+    if (photo && photo.is_original_uploaded && photo.storage_key) {
+      const original_key = `events/${event_id}/original/${photo.id}`;
+      tier1_keys.push(original_key);
+    }
+  }
+
+  if (tier1_keys.length === 0) {
+    return c.json({ error: 'no_originals', message: 'No original files available for download' }, 404);
+  }
+
+  // Stream ZIP of all Tier 1 files
+  // Note: Cloudflare Workers don't have native ZIP support; streaming a tar.gz or
+  // JSON list is an alternative. For now, return a simple JSON manifest; a real
+  // implementation would use a streaming ZIP library or pre-build the archive in R2.
+  const manifest = tier1_keys.map((key) => ({
+    key,
+    url: `${new URL(c.req.url).origin}/media/${key}`,
+  }));
+
+  return c.json({
+    ok: true,
+    count: tier1_keys.length,
+    files: manifest,
+    note: 'Download each file via the provided URL, or request ZIP support in a future update',
+  }, 200);
+});
+
 app.get('/', (c) => c.text('oura-api'));
 
 // Safety net: re-enqueue photos whose face-embedding never completed. The inline
