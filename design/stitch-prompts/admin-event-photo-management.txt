@@ -1,0 +1,13 @@
+Design a mobile screen (RTL, Hebrew) for a photographer's admin panel: the single-event photo management screen. Dark theme, coral accent (#ff8a75), Manrope headlines, Inter body, rounded-8 corners. All text is Hebrew and right-to-left.
+
+Top header: large event title placeholder "חתונת דנה ויוסי", small grey subtitle beneath it "ניהול תמונות האירוע: העלאה, צפייה ומחיקה". To the header's start-side, two small pill buttons in a row: "מיתוג ולוגו" and "קוד QR וגישה", each with a small leading icon.
+
+Section 1 card titled "העלאת תמונות (שלב 1)". Inside it a large dashed-border drop zone with a centered upload cloud icon and the text "גרור תמונות לכאן או לחץ להעלאה", and a smaller grey line under it "JPEG, PNG — ניתן גם לגרור קובץ ZIP עם כל התמונות". Show a subtle coral progress bar state variant beneath (label "מייעל ומעלה נכסים בצורה בטוחה...").
+
+Section 2 card titled "סנכרון תמונות ברזולוציה גבוהה (שלב 2)" with a grey helper line "העלו את הקבצים המקוריים בברזולוציה גבוהה להדפסה ומגנטים". IMPORTANT: this must be a BULK uploader, not one row per photo — a single dashed drop zone that accepts many files or a ZIP at once ("גרור את כל המקורים בבת אחת"), plus a compact horizontal strip of small photo THUMBNAILS below it, each thumbnail carrying a tiny status badge — an amber "שלב 1" badge for photos still awaiting their high-res original, and a green "סונכרן ✓" badge for ones already synced. Show a small counter "12 מתוך 40 סונכרנו".
+
+Section 3 titled "תמונות האירוע (40)". A responsive grid of square photo thumbnails, 3 per row on mobile. Each thumbnail shows on hover/tap: a small round delete (trash) icon button in one corner, a small stage badge (amber "שלב 1" or green "סונכרן ✓") in another corner, and along the bottom a small pill showing the photo's category label (e.g. "חופה", "הזוג", "משפחה", "ריקודים", "קבלת פנים", "מנה עיקרית", "אולם") with a tiny tag icon; thumbnails with no category show a faint "הוסף קטגוריה" pill instead.
+
+Include one category-picker bottom-sheet modal overlay variant titled "שיוך קטגוריה לתמונה" listing the seven category chips (חופה, הזוג, משפחה, ריקודים, קבלת פנים, מנה עיקרית, אולם) plus a "הסרת קטגוריה" option and a close X.
+
+Overall: clean, premium, dark, generous spacing, coral primary buttons, feels like a modern photo-management dashboard on a phone.
