@@ -2,9 +2,21 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-23, post-Mission B)
+## Current state (2026-07-24, post-design-audit)
 
-We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
+We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** **Design audit: §10 cleanup complete (PR #143); branding & reports pages audited — both match or use their designs (no orphaned screens found).** Backlog is clean — no unmerged feature PRs remaining.
+
+## Design Audit — Complete (2026-07-24)
+
+✅ **§10 cleanup + 2 admin pages audited → no orphaned screens found**
+
+- **PR #143 (draft):** §10 audit complete. Deleted: `oura_final_production_checkout_desktop/mobile` (2 orphaned screens, no code). Kept: Premium Prints (used), Order Confirmation (used). STITCH_PROMPT_§10_CLEANUP.md ready.
+- **Branding Settings** (`/admin/branding`): Desktop uses `branding_settings_desktop_3` ✓, Mobile uses `branding_settings_mobile_3` ✓. Code matches designs.
+- **Reports Management** (`/admin/reports`): Desktop (`reports_management_desktop`) and Mobile (`reports_management_mobile`) designs exist and are used. Implementation note: stat labels differ (code: AI processing; design: activity stats), mobile missing "אירועים אחרונים" section. Out of audit scope (designs are in use).
+
+**Audit complete — no further action needed on these two admin pages.**
+
+---
 
 **Mission B (Test Data) + login scroll fix — MERGED & LIVE (PR #136, 2026-07-23):**
 - 3 test orders in `Ready_For_Photographer_Print` state via `scripts/create-test-orders.mjs` (Test Guest 1 print_10x15 ×1, Test Guest 2 magnet ×2, Test Guest 3 photo_book ×1). Print queue: https://oura-web.oura-events.workers.dev/admin/print-queue
