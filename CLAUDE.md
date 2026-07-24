@@ -1,5 +1,21 @@
 # CLAUDE.md — Oura
 
+## ⛔⛔⛔ DESIGN AUDIT PROTOCOL — MANDATORY BEFORE ANY UI CODING (non-negotiable, founder's anger)
+
+**EVERY UI SCREEN, COMPONENT, OR FEATURE MUST EXIST IN STITCH FIRST. NO EXCEPTIONS. NO FREEHANDING. NO DESIGN INVENTION.**
+
+Before writing ONE line of code for any user-visible screen or UI element:
+
+1. **Check `design/screens/` for the matching Stitch design.** Reference: `design/oura_final_production_index_42_screens.md` (42 screens total).
+2. **If the design does NOT exist → STOP IMMEDIATELY.** Do NOT code it. Do NOT freehand. Do NOT "improve it." Write a Stitch prompt requesting the design FIRST.
+3. **Wire the Stitch design 1:1 to code.** Match pixels, layout, typography, spacing, colors exactly as exported. No interpretations. No "better" versions.
+4. **Never assume a design is missing.** Check the index. Check `ls design/screens/`. Open the `screen.png` file. Trust the content of the image, not the folder name.
+5. **Any UI element, button, layout, flow, or feature NOT in Stitch must be deleted immediately.** Delete it. Then request it in Stitch.
+
+**Responsibility:** Every session, before touching /apps/web, audit the entire app against the 42 Stitch screens. Delete anything that's not in the design. File a Stitch request for what's missing. Then proceed to wire only what exists in Stitch.
+
+---
+
 ## ⛔ NEVER ASSUME FAILURE — CHECK AND RETRY (non-negotiable)
 Never assume a token, credential, service, or tool is unavailable after one failed attempt. Before declaring something blocked: (1) check the env explicitly (`env | grep TOKEN`, `printenv VAR`), (2) try a different invocation (trim the value, different endpoint, different flags), (3) wait for cold starts with a poll loop (`until`). Saying "token not in env" or "service unreachable" without exhaustively checking first is **forbidden**. Be fully self-reliant — never stop and ask the founder to do something you can try yourself.
 

@@ -15,6 +15,22 @@ description: >-
 
 # Universal Master Framework
 
+## ⛔⛔⛔ DESIGN AUDIT PROTOCOL — MANDATORY BEFORE ANY UI CODING (non-negotiable)
+
+**EVERY UI SCREEN, COMPONENT, OR FEATURE MUST EXIST IN STITCH FIRST. NO EXCEPTIONS. NO FREEHANDING. NO DESIGN INVENTION.**
+
+Before writing ONE line of code for any user-visible screen or UI element:
+
+1. **Check `design/screens/` for the matching Stitch design.** Reference the project's design index (e.g. `design/oura_final_production_index_42_screens.md` for Oura — 42 screens total).
+2. **If the design does NOT exist → STOP IMMEDIATELY.** Do NOT code it. Do NOT freehand. Do NOT "improve it." Write a design request for Stitch/your design tool FIRST.
+3. **Wire the design 1:1 to code.** Match pixels, layout, typography, spacing, colors exactly as exported. No interpretations. No "better" versions.
+4. **Never assume a design is missing.** Check the index. Check `ls design/screens/`. Open the actual `screen.png` file. Trust the content of the image, not the folder name.
+5. **Any UI element, button, layout, flow, or feature NOT in the design must be deleted immediately.** Delete it. Then request it in your design tool.
+
+**Responsibility:** Every session, before touching any UI code, audit the entire app against the design screens. Delete anything that's not in the design. File a design request for what's missing. Then proceed to wire only what exists in the design.
+
+---
+
 A lean, reusable methodology for delivering high-quality work across any project
 type while strictly conserving tokens. You are a **Master Orchestrator**: you act
 as the Project Manager, consult specialists *internally*, and emit ONE unified,
