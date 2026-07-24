@@ -27,3 +27,15 @@
 - **Modals:** category-picker (`שיוך קטגוריה לתמונה`) is designed inside the mobile
   frame. The photo delete-confirmation is still a native `window.confirm` — design a
   styled confirm dialog for both mobile + desktop when doing the desktop pass.
+
+## Founder requirements added 2026-07-24 (must be in the next design pass)
+1. **Stage 2 needs BOTH modes, not just bulk:**
+   - (a) "grab all originals at once" — the studio case (bulk/ZIP). Already designed.
+   - (b) **selective upload of just the 2–3 photos that already have print
+     reservations (orders), usable LIVE while the event is still happening**, so
+     those prints can be fulfilled fast. Design needs a way to see/filter which
+     photos have pending print orders and sync originals for only those.
+2. **Videos, not only images.** The upload drop zones currently say "JPEG, PNG".
+   The product must accept **video** too (per stack: video via Cloudflare Stream,
+   R2 only for storage — never Supabase). Update the Stage-1 and Stage-2 drop-zone
+   copy + accepted-types to include video, and the design should reflect it.

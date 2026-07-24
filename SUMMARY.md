@@ -27,7 +27,7 @@ We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deplo
 
 ## Parked (2026-07-24): admin event photo-management screen — Stitch design
 - **Mobile design DONE** (PR #147, draft): `/admin/events/[event_id]` regenerated in Stitch (project 14054752854771709694, screen 64470c652eb048cda9b89a5eefecda86). Fixes PR #142's freehand Stage-2 upload → bulk/ZIP drop zone + thumbnail strip + "N מתוך M" counter. Screenshot: `qa/screenshots/admin-event-photo-management-stitch-design.png`. Awaiting founder "go" before wiring 1:1.
-- **STILL OPEN:** (1) real desktop layout — Stitch DESKTOP call returned a phone-width frame, needs a dedicated pass; (2) styled delete-confirmation modal (currently native `window.confirm`). Details in `design/stitch-prompts/admin-event-photo-management.meta.md`.
+- **STILL OPEN:** (1) real desktop layout — Stitch DESKTOP call returned a phone-width frame, needs a dedicated pass; (2) styled delete-confirmation modal (currently native `window.confirm`).: Design needs (a) bulk sync-all + (b) selective sync of only the 2-3 photos that have print reservations, usable live during the event; and the upload zones must accept VIDEO (Cloudflare Stream), not just JPEG/PNG. Details in `design/stitch-prompts/admin-event-photo-management.meta.md`.
 - **Pileup to consolidate:** PRs #142–#147 are all the same "redesign freehand screens via Stitch" effort.
 
 ---
