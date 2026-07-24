@@ -69,3 +69,9 @@ _Older entries archived to `PROGRESS-archive.md`._
   - Frontend: downloadTier1() opens files sequentially in new tabs
   - Button visible only when orders exist in "Ready_For_Photographer_Print" status
 - PR #135 (draft) created; CI pending verification
+
+## 2026-07-24 — Stitch missing-design pass started (/login generated)
+- Stitch reachable via curl (not a session tool); working inside project 14054752854771709694 (Oura Photo Santos Project).
+- Reconstructed the 10-screen freehand audit (referenced docs never existed in git).
+- Generated /login design in Stitch, on-brand + RTL-correct. Screenshot committed. Awaiting founder OK before wiring 1:1.
+- Docs: STITCH_MISSING_DESIGNS.md (workflow + audit), design/stitch-prompts/login.txt.

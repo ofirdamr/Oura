@@ -2,6 +2,23 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
+## Stitch missing-design pass (2026-07-24, IN PROGRESS)
+
+Designing the 10 freehanded screens through the founder's real Stitch project
+(`Oura Photo Santos Project`, id `14054752854771709694`). **Stitch is NOT a
+session tool — reach it via curl** (see `STITCH_MISSING_DESIGNS.md` for the exact
+command, the 10-screen audit, and the per-screen workflow). Baseline design set =
+`final_production`. The referenced `STITCH_PROMPTS_MISSING_DESIGNS.md` +
+"Design Audit" section never existed in git — reconstructed from routes ✗ design source.
+
+- **`/login` — Stitch design GENERATED, awaiting founder OK before wiring.**
+  Screenshot: `qa/screenshots/login-stitch-design.png`. On-brand, RTL-correct.
+- Remaining 9: `/signup`, `/forgot-password`, `/reset-password`, `/consent`,
+  `/selfie`, `/join`, `/admin/events/[event_id]`, `/admin/print-queue`, `/`.
+- **Next session:** on founder approval, `get_screen` → wire `/login` 1:1 → delete
+  freehand styling → live QA; then continue screen-by-screen. Move the Stitch API
+  key into a `STITCH_API_KEY` env secret.
+
 ## Current state (2026-07-23, post-Mission B)
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.

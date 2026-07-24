@@ -1,0 +1,13 @@
+A right-to-left (RTL) Hebrew photographer login screen for a premium event-photography SaaS called Oura. Dark luxury theme: near-black background (#121414) with a soft coral radial glow (#ff8a75) emanating from the top center. Everything is centered in a single narrow column, mobile-first.
+
+Top: the "OURA" wordmark logo in an elegant rounded glass badge.
+Below it, centered heading in Hebrew: "התחברות לאזור הצלמים" and a soft muted sub-line in Hebrew: "הזינו את פרטי החשבון שלכם כדי להיכנס ללוח הבקרה ולנהל את האירועים."
+
+A frosted-glass rounded-2xl card (translucent dark surface, subtle white border, blur, soft shadow) containing a vertical form:
+- Field label in coral "אימייל" above a tall rounded input with placeholder "you@studio.com" (the email value itself left-to-right).
+- Field label in coral "סיסמה" above a tall rounded password input showing dots.
+- A large full-width coral primary button "התחברות" with a login icon.
+- A centered coral text link "שכחתם סיסמה?".
+- A centered muted line "אין לך חשבון? הרשמה" where "הרשמה" is a coral link.
+
+Labels right-aligned (RTL). Rounded corners, generous spacing, premium and calm. Coral (#ff8a75) is the only accent color. Font: Manrope for headings, clean sans for body.
