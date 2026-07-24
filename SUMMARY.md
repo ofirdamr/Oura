@@ -23,6 +23,13 @@ We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deplo
 - API: https://oura-api.oura-events.workers.dev
 - Demo event: https://oura-web.oura-events.workers.dev/gallery-entry?code=WED-2024
 
+
+
+## Parked (2026-07-24): admin event photo-management screen — Stitch design
+- **Mobile design DONE** (PR #147, draft): `/admin/events/[event_id]` regenerated in Stitch (project 14054752854771709694, screen 64470c652eb048cda9b89a5eefecda86). Fixes PR #142's freehand Stage-2 upload → bulk/ZIP drop zone + thumbnail strip + "N מתוך M" counter. Screenshot: `qa/screenshots/admin-event-photo-management-stitch-design.png`. Awaiting founder "go" before wiring 1:1.
+- **STILL OPEN:** (1) real desktop layout — Stitch DESKTOP call returned a phone-width frame, needs a dedicated pass; (2) styled delete-confirmation modal (currently native `window.confirm`). Details in `design/stitch-prompts/admin-event-photo-management.meta.md`.
+- **Pileup to consolidate:** PRs #142–#147 are all the same "redesign freehand screens via Stitch" effort.
+
 ---
 
 ## WED-2024 backfill re-run — confirmed (2026-07-22, post PR #125)

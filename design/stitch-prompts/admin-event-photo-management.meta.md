@@ -18,3 +18,12 @@
 4. Ignore Stitch mockup artifacts: the stray "obile" watermark text and the English
    Settings/Clients/Uploads/Gallery bottom tab bar are not part of the real app.
 5. Live QA mobile + desktop via `scripts/qa-shot.mjs` before "done".
+
+## Still open (2026-07-24, from founder review)
+- **Mobile design: done** — `qa/screenshots/admin-event-photo-management-stitch-design.png`.
+- **Desktop: NOT done.** A `deviceType:DESKTOP` generate call returned a phone-width
+  frame for this screen (Stitch didn't produce a true wide desktop layout), so it was
+  discarded. Desktop needs a dedicated pass (wider multi-column grid, 5–6 thumbs/row).
+- **Modals:** category-picker (`שיוך קטגוריה לתמונה`) is designed inside the mobile
+  frame. The photo delete-confirmation is still a native `window.confirm` — design a
+  styled confirm dialog for both mobile + desktop when doing the desktop pass.
