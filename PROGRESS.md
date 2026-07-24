@@ -69,3 +69,8 @@ _Older entries archived to `PROGRESS-archive.md`._
   - Frontend: downloadTier1() opens files sequentially in new tabs
   - Button visible only when orders exist in "Ready_For_Photographer_Print" status
 - PR #135 (draft) created; CI pending verification
+
+## 2026-07-24 — Admin event photo-management screen designed in Stitch
+- Generated `/admin/events/[event_id]` design inside project 14054752854771709694 (screen 64470c652eb048cda9b89a5eefecda86) via the curl MCP workflow. STITCH_API_KEY now present in env.
+- Design incorporates PR #142's directive: Stage-2 high-res sync is now a BULK/ZIP drop zone + thumbnail strip + "N מתוך M" counter (replacing the freehand one-at-a-time rows).
+- Screenshot committed for founder review: qa/screenshots/admin-event-photo-management-stitch-design.png. Prompt + wiring metadata in design/stitch-prompts/. No product code changed — awaiting founder OK before wiring 1:1.

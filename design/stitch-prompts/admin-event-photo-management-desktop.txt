@@ -1,0 +1,17 @@
+Design a WIDE DESKTOP web dashboard screen (1440px wide, landscape, RTL Hebrew) for a photographer's admin panel: the single-event photo management screen. This must be a full-width desktop layout — NOT a narrow phone frame. Use the full horizontal width with multiple columns. Dark theme, coral accent (#ff8a75), Manrope headlines, Inter body, rounded-8 corners. All text is Hebrew and right-to-left.
+
+Overall layout: a top bar spanning the full width, then a TWO-COLUMN main area. The wide main column (right side, ~70% width in RTL) holds the event photo grid. A narrower side column (left side, ~30% width) holds the two upload/sync panels stacked vertically.
+
+Top bar (full width): large event title "חתונת דנה ויוסי" on the start (right) side, a grey subtitle beneath it "ניהול תמונות האירוע: העלאה, צפייה ומחיקה". On the end (left) side of the bar: three pill buttons in a row — "מיתוג ולוגו", "קוד QR וגישה", and a coral primary "פרסום". Small leading icons on each.
+
+SIDE COLUMN (narrow, left):
+Panel A card titled "העלאת תמונות (שלב 1)": a dashed drop zone, upload cloud icon, text "גרור תמונות וסרטונים לכאן", grey subline "JPEG, PNG, MP4, MOV — או קובץ ZIP". A thin coral progress bar variant beneath it labelled "מייעל ומעלה...".
+Panel B card titled "סנכרון ברזולוציה גבוהה (שלב 2)": two small tabs at top — active "כל המקורים" and "רק הזמנות הדפסה (3)" with a coral badge. Below (bulk mode): a compact dashed drop zone "גרור את כל המקורים בבת אחת" and a "12 מתוך 40 סונכרנו" counter with a thin progress bar. Below that a coral-tinted callout "סנכרון מהיר להזמנות חיות" with a short list of 3 rows: small thumbnail + guest name ("דנה כהן", "יוסי לוי", "מיכל בר") + tiny pill "הזמנת הדפסה ממתינה" + a small coral "סנכרן מקור" button; one row already shows green "סונכרן ✓".
+
+MAIN COLUMN (wide, right): header row "תמונות האירוע (40)" with a filter icon on the end side. Below it a WIDE responsive grid of square photo thumbnails, 6 THUMBNAILS PER ROW, several rows tall, filling the wide column. Each thumbnail shows on hover: a small round trash delete button in one corner, a stage badge (amber "שלב 1" or green "סונכרן ✓") in another corner, and a bottom category pill with a tag icon ("חופה", "הזוג", "משפחה", "ריקודים", "קבלת פנים", "מנה עיקרית", "אולם"); un-categorized ones show a faint "הוסף קטגוריה" pill. One or two video thumbnails show a centered play-triangle overlay.
+
+Also render, floating centered over the whole screen with a dark scrim, a category-picker modal titled "שיוך קטגוריה לתמונה": at its top the selected photo shown LARGE as a rounded preview image with its current category name beneath, then the seven category chips (חופה, הזוג, משפחה, ריקודים, קבלת פנים, מנה עיקרית, אולם) with the selected one highlighted in coral, a "הסרת קטגוריה" option and a close X.
+
+Also render, floating centered over the whole screen with a dark scrim, a delete-confirmation modal: a compact dark card, red-tinted trash icon on top, title "למחוק את התמונה?", body "הפעולה בלתי הפיכה. התמונה תוסר מהגלריה של האורחים לצמיתות.", and two buttons side by side — neutral "ביטול" and red destructive "מחק תמונה".
+
+Overall: premium, dark, spacious desktop SaaS dashboard, wide grid dominating the screen, coral primary buttons. Landscape 1440px wide layout, absolutely not a mobile phone mockup.

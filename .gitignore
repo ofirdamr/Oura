@@ -1,3 +1,4 @@
 # Ephemeral per-agent worktrees created by parallel/background agent runs.
 # Never commit these - they're local working copies, not source content.
 .claude/worktrees/
+scratchpad/
