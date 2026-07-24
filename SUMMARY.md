@@ -2,13 +2,57 @@
 
 **Read this first, then `docs/ARCHITECTURE.md` for structural detail.**
 
-## Current state (2026-07-23, post-Mission B)
+## Current state (2026-07-24, post-category-correction session)
 
 We are in **§10 architecture finalization**. All 4 bug fixes from PR #107 deployed and verified. Cloud Run memory fix (PR #120) live. CLIP classifier (PR #121) live. **Stage 2 upload + Tier-1 download merged to main (PRs #134 + #135, 2026-07-23).** Backlog is clean — no unmerged feature PRs remaining.
 
 **Mission B (Test Data) + login scroll fix — MERGED & LIVE (PR #136, 2026-07-23):**
 - 3 test orders in `Ready_For_Photographer_Print` state via `scripts/create-test-orders.mjs` (Test Guest 1 print_10x15 ×1, Test Guest 2 magnet ×2, Test Guest 3 photo_book ×1). Print queue: https://oura-web.oura-events.workers.dev/admin/print-queue
 - **Login `/login` phantom-scroll bug FIXED & DEPLOYED LIVE.** Root cause: `min-h-screen` (100vh) > iOS visible viewport → empty scrollable band below the card. Fix: `min-h-[100dvh]` + `justify-center`. Verified live: `qa/screenshots/login-scroll-fix-mobile.png` (full page = exactly one viewport, card centered). https://oura-web.oura-events.workers.dev/login
+
+---
+
+## What changed this session (2026-07-24)
+
+### 1. Context-guard hook — NOW A REAL HARD STOP at 45%
+`/.claude/hooks/context-guard.py` — previously only showed a warning at 22%, never actually blocked. Now:
+- **Warns at 22%** (advisory, message injected into model context)
+- **HARD BLOCKS at 45%** — `continue: false` — the model literally cannot reply. It must update SUMMARY.md and write the next-session handoff first.
+
+### 2. Photo management page — has NO Stitch design (flagged gap)
+`/apps/web/app/admin/events/[event_id]/page.tsx` was built without a Stitch export. This is a rule violation. Stitch prompt was written this session for the founder to paste — covers: photo grid, category correction modal, create/edit category modals. **The founder has NOT yet pasted it into Stitch.**
+
+### 3. Four empty design folders created (broken state — need screen.png)
+These folders exist but are empty (no `screen.png` inside):
+- `design/screens/oura_final_production_photo_management_desktop/`
+- `design/screens/oura_final_production_photo_management_modal_change_category_desktop/`
+- `design/screens/oura_final_production_photo_management_modal_edit_category_desktop/`
+- `design/screens/oura_final_production_photo_management_modal_new_category_desktop/`
+
+The founder has 4 Stitch screenshot images (IMG_3424–3427) that need to go into these folders. They were blocked from being saved. **Next session: ask founder to share the images again and save them.**
+
+### 4. One-tap category correction (PR #132) — merged to main
+The `categoryMenuId` modal is live in the photo management page. It works but was built freehand (no Stitch design). Once Stitch produces the design, the UI needs to be updated to match.
+
+### 5. Design audit completed — 10 pages built without Stitch
+These pages need Stitch prompts before any further UI work:
+1. Photo management page (`/admin/events/[event_id]/page.tsx`)
+2. Reset password page
+3. Auth/login page  
+4. Gallery entry page
+5. Consent gate
+6. Selfie page
+7. Print queue (`/admin/print-queue`)
+8. Stage 2 sync dashboard section
+9. Gift box reveal
+10. Order confirmation
+
+### Founder action required
+Paste this Stitch prompt to get the photo management page designed:
+
+> "I need you to design the photo management screen for the Oura photographer dashboard. This is the page a photographer sees after clicking on one of their events. It uses the same dark luxury style (surface #0E0E0E, primary coral #FF8A75) and the same sidebar layout as the Event List screen. The main content area shows a responsive photo grid. Each photo has a small category chip overlay (bottom-left) showing the AI-assigned category in Hebrew (e.g., חופה, הזוג, משפחה). Hovering/tapping a photo shows a 3-dot menu with: 'Change category', 'Delete photo'. I also need 3 modals: (1) Change Category modal — shows the 7 category options as chips, photographer taps one to reassign. (2) Create New Category modal — text input + confirm. (3) Edit Category modal — rename existing category. All text Hebrew RTL. Aperture O logo top-right. Same bottom navigation as other dashboard screens."
+
+---
 
 **⚠️ WEB APP DEPLOYS ARE MANUAL — this is why past "fixed" claims weren't live.** There is NO CI auto-deploy for the frontend. A merge to `main` does NOT reach the live site. To deploy the web app: `cd apps/web && npm ci && npm run deploy` (Cloudflare creds are in env; deploy takes ~2 min; poll a chunk URL for 200 after, CDN lags a few seconds). Same for the API (`apps/api`). Only Cloud Run auto-builds via GH Actions.
 

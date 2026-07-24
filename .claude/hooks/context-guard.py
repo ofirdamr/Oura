@@ -1,26 +1,11 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit hook — fires on EVERY message the founder sends.
-
-Reads the real context size from the transcript's per-turn `usage` data
-(input + cache-read + cache-creation tokens = the full prompt sent to the
-model, i.e. what maps to the 200k window and the "N% usage" figure), and:
-
-  - injects a soft warning once context passes WARN_PCT of the window, and
-  - injects a STRONGER warning once it passes BLOCK_PCT, urging the founder to
-    hand off to a fresh conversation before the context runs away.
-
-The guard is advisory only — it never hard-blocks a message. (The old
-BLOCK_PCT hard stop was cancelled by founder request; it now surfaces an
-escalated warning at the same threshold instead.)
-
-Goal: never again let a single long conversation eat most of the usage limit.
-Stop early, hand off to a new conversation, keep each mission small.
+"""UserPromptSubmit hook — HARD STOPS at 45% context, warns at 22%.
 
 Fails OPEN on any parsing problem so it can never wedge a session.
 Tunable via env vars:
-  OURA_CONTEXT_LIMIT   total context window in tokens        (default 200000)
-  OURA_CONTEXT_WARN    warn threshold, fraction of window     (default 0.20)
-  OURA_CONTEXT_BLOCK   block threshold, fraction of window    (default 0.35)
+  OURA_CONTEXT_LIMIT   total context window in tokens  (default 200000)
+  OURA_CONTEXT_WARN    warn threshold fraction          (default 0.22)
+  OURA_CONTEXT_BLOCK   hard-stop threshold fraction     (default 0.45)
 """
 import sys, os, json
 
@@ -40,19 +25,11 @@ def _env_int(name, default):
 
 
 LIMIT = _env_int("OURA_CONTEXT_LIMIT", 200000)
-# Lowered 2026-07-13 after a session ran to 109% of the window: every turn past
-# that re-sends the whole context on Opus, which was the dominant usage burn.
-# Warn early, push the handoff well before context runs away. Advisory only.
-WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.12)
-BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.22)
+WARN_PCT = _env_float("OURA_CONTEXT_WARN", 0.22)
+BLOCK_PCT = _env_float("OURA_CONTEXT_BLOCK", 0.45)
 
 
 def context_tokens(transcript_path):
-    """Return the largest real context size (tokens) seen in the transcript.
-
-    Prefers the API `usage` fields (accurate). Falls back to a char/4 estimate
-    of the raw transcript if no usage data is present (e.g. very first turn).
-    """
     best = 0
     raw_chars = 0
     try:
@@ -78,13 +55,11 @@ def context_tokens(transcript_path):
     except Exception:
         return 0
     if best == 0:
-        # No usage data yet — rough estimate so we still catch runaway growth.
         best = raw_chars // 4
     return best
 
 
 def _find_usage(obj):
-    """Locate a `usage` dict anywhere in a transcript record."""
     if not isinstance(obj, dict):
         return None
     if isinstance(obj.get("usage"), dict):
@@ -114,29 +89,21 @@ def main():
     tok_str = f"{tokens:,}/{LIMIT:,} tokens"
 
     if pct >= BLOCK_PCT:
-        # Escalated warning (no hard block — cancelled by founder request).
-        warn = (
-            f"CONTEXT GUARD - this conversation is at {pct_str} of the context "
-            f"window ({tok_str}), past the {BLOCK_PCT * 100:.0f}% hand-off mark. "
-            "Strongly consider stopping here: (1) briefly note where things stand "
-            "and what the next single small mission is, (2) hand off to a NEW "
-            "conversation for that next mission. Keep each conversation to one "
-            "small mission so context never runs away."
+        stop_msg = (
+            f"HARD STOP — context is at {pct_str} ({tok_str}), past the "
+            f"{BLOCK_PCT * 100:.0f}% limit. "
+            "Do NOT answer the question. Instead: (1) commit an updated SUMMARY.md "
+            "reflecting current state, (2) write the self-contained first message for "
+            "the next conversation. Then stop."
         )
-        print(json.dumps({
-            "hookSpecificOutput": {
-                "hookEventName": "UserPromptSubmit",
-                "additionalContext": warn,
-            }
-        }))
+        print(json.dumps({"continue": False, "stopReason": stop_msg}))
         sys.exit(0)
 
     if pct >= WARN_PCT:
         warn = (
-            f"CONTEXT GUARD - this conversation is at {pct_str} ({tok_str}). "
-            f"Approaching the {BLOCK_PCT * 100:.0f}% hard stop. Wrap up the current "
-            "small mission now and prepare to hand off to a new conversation; do "
-            "not start anything large here."
+            f"CONTEXT GUARD - conversation is at {pct_str} ({tok_str}). "
+            f"Approaching the {BLOCK_PCT * 100:.0f}% hard stop. Finish the current "
+            "task, then hand off to a new conversation."
         )
         print(json.dumps({
             "hookSpecificOutput": {
