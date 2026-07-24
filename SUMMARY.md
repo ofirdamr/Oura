@@ -11,8 +11,11 @@ command, the 10-screen audit, and the per-screen workflow). Baseline design set 
 `final_production`. The referenced `STITCH_PROMPTS_MISSING_DESIGNS.md` +
 "Design Audit" section never existed in git — reconstructed from routes ✗ design source.
 
-- **`/login` — Stitch design GENERATED, awaiting founder OK before wiring.**
-  Screenshot: `qa/screenshots/login-stitch-design.png`. On-brand, RTL-correct.
+- **`/login` — Stitch design generated; founder noted "that screen is already in
+  App".** The existing freehand `/login` already matches this design, so re-wiring
+  it 1:1 is low value. Next session: **reconfirm scope with founder** — which of the
+  10 are actually wrong/missing vs already-fine — before designing more. Don't burn
+  effort re-building screens that already look right.
 - Remaining 9: `/signup`, `/forgot-password`, `/reset-password`, `/consent`,
   `/selfie`, `/join`, `/admin/events/[event_id]`, `/admin/print-queue`, `/`.
 - **Next session:** on founder approval, `get_screen` → wire `/login` 1:1 → delete
