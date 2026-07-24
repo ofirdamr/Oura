@@ -28,6 +28,34 @@
   frame. The photo delete-confirmation is still a native `window.confirm` — design a
   styled confirm dialog for both mobile + desktop when doing the desktop pass.
 
+## NEXT SESSION — generate the refreshed design (prompts are READY, not yet run)
+Both prompt files already encode ALL founder requirements below + the new
+category-picker large-preview. The generate step has NOT run yet (context ran out).
+Run it first thing:
+```
+NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt node scratchpad/stitch-gen.mjs \
+  design/stitch-prompts/admin-event-photo-management.txt MOBILE \
+  qa/screenshots/admin-event-photo-management-stitch-design.png
+NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt node scratchpad/stitch-gen.mjs \
+  design/stitch-prompts/admin-event-photo-management-desktop.txt DESKTOP \
+  qa/screenshots/admin-event-photo-management-stitch-design-desktop.png
+```
+- `scratchpad/stitch-gen.mjs` is git-ignored — recreate it from the curl workflow in
+  `STITCH_MISSING_DESIGNS.md` (on branch `claude/stitch-mcp-integration-tj1vdc`) if missing.
+  It POSTs `generate_screen_from_text` to `https://stitch.googleapis.com/mcp` with
+  `X-Goog-Api-Key: $STITCH_API_KEY`, projectId `14054752854771709694`, and writes the PNG.
+- Commit both PNGs to `qa/screenshots/`, update this meta with the NEW screen ids/sessionIds,
+  then show the founder BOTH mockups. Wire 1:1 only after his OK.
+- If DESKTOP again returns a phone-width frame, note it and iterate the desktop prompt
+  (it already stresses "1440px wide, landscape, two-column, 6 thumbs/row, not a phone").
+
+## Founder Q&A resolved this session (2026-07-24)
+- English bottom menu + the redrawn "מיתוג ולוגו" button in the mockup = Stitch auto-added
+  artifacts, dropped when wiring the real page. (Already noted in "Ignore Stitch artifacts".)
+- Category editing: every photo has ONE category pill on its thumbnail; tap it → picker with
+  7 chips + "הסרת קטגוריה" → full add/change/remove. Founder approved adding a LARGE preview
+  of the selected photo at the top of the category picker — now in both prompts.
+
 ## Founder requirements added 2026-07-24 (must be in the next design pass)
 1. **Stage 2 needs BOTH modes, not just bulk:**
    - (a) "grab all originals at once" — the studio case (bulk/ZIP). Already designed.

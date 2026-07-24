@@ -12,7 +12,7 @@ Also show a highlighted callout card for the second mode: a coral-tinted card wi
 
 Section 3 titled "תמונות האירוע (40)". A responsive grid of square photo thumbnails, 3 per row on mobile. Each thumbnail shows: a small round delete (trash) icon button in one corner, a small stage badge (amber "שלב 1" or green "סונכרן ✓") in another corner, and along the bottom a small pill showing the photo's category label (e.g. "חופה", "הזוג", "משפחה", "ריקודים", "קבלת פנים", "מנה עיקרית", "אולם") with a tiny tag icon; thumbnails with no category show a faint "הוסף קטגוריה" pill instead. A small video thumbnail variant shows a play-triangle overlay in its center.
 
-Include one category-picker bottom-sheet modal overlay variant titled "שיוך קטגוריה לתמונה" listing the seven category chips (חופה, הזוג, משפחה, ריקודים, קבלת פנים, מנה עיקרית, אולם) plus a "הסרת קטגוריה" option and a close X.
+Include one category-picker bottom-sheet modal overlay variant titled "שיוך קטגוריה לתמונה". At the TOP of this sheet show the selected photo LARGE as a preview (a wide rounded image thumbnail of the photo being tagged) so it is clear which photo is being edited, with its current category name shown beneath the preview. Below the preview list the seven category chips (חופה, הזוג, משפחה, ריקודים, קבלת פנים, מנה עיקרית, אולם) with the currently-selected one highlighted in coral, plus a "הסרת קטגוריה" option and a close X.
 
 Include one delete-confirmation modal overlay variant: a small centered dark card with a red-tinted trash icon at top, title "למחוק את התמונה?", body "הפעולה בלתי הפיכה. התמונה תוסר מהגלריה של האורחים לצמיתות.", and two buttons — a neutral "ביטול" and a red/destructive "מחק תמונה".
 

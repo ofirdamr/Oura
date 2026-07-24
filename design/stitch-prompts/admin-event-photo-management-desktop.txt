@@ -10,6 +10,8 @@ Panel B card titled "סנכרון ברזולוציה גבוהה (שלב 2)": two
 
 MAIN COLUMN (wide, right): header row "תמונות האירוע (40)" with a filter icon on the end side. Below it a WIDE responsive grid of square photo thumbnails, 6 THUMBNAILS PER ROW, several rows tall, filling the wide column. Each thumbnail shows on hover: a small round trash delete button in one corner, a stage badge (amber "שלב 1" or green "סונכרן ✓") in another corner, and a bottom category pill with a tag icon ("חופה", "הזוג", "משפחה", "ריקודים", "קבלת פנים", "מנה עיקרית", "אולם"); un-categorized ones show a faint "הוסף קטגוריה" pill. One or two video thumbnails show a centered play-triangle overlay.
 
+Also render, floating centered over the whole screen with a dark scrim, a category-picker modal titled "שיוך קטגוריה לתמונה": at its top the selected photo shown LARGE as a rounded preview image with its current category name beneath, then the seven category chips (חופה, הזוג, משפחה, ריקודים, קבלת פנים, מנה עיקרית, אולם) with the selected one highlighted in coral, a "הסרת קטגוריה" option and a close X.
+
 Also render, floating centered over the whole screen with a dark scrim, a delete-confirmation modal: a compact dark card, red-tinted trash icon on top, title "למחוק את התמונה?", body "הפעולה בלתי הפיכה. התמונה תוסר מהגלריה של האורחים לצמיתות.", and two buttons side by side — neutral "ביטול" and red destructive "מחק תמונה".
 
 Overall: premium, dark, spacious desktop SaaS dashboard, wide grid dominating the screen, coral primary buttons. Landscape 1440px wide layout, absolutely not a mobile phone mockup.
